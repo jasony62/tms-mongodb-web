@@ -1,6 +1,6 @@
 const { Ctrl, ResultData } = require('tms-koa')
 
-class Bb extends Ctrl {
+class Db extends Ctrl {
   list() {
     return new ResultData('所有的库')
   }

@@ -2,6 +2,12 @@
 
 可灵活扩展的 mongodb web 客户端。
 
+# 运行
+
+> docker-compose up -d
+
+> yarn serve
+
 # 接口清单
 
 | 接口                     | 方法 | 说明                           |
