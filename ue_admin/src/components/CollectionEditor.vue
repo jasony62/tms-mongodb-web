@@ -5,14 +5,14 @@
     :close-on-click-modal="closeOnClickModal"
   >
     <el-form ref="form" :model="collection" label-position="top">
-      <el-form-item label="集合名称（英文名称）">
+      <el-form-item label="集合名称（英文）">
         <el-input v-model="collection.name"></el-input>
       </el-form-item>
-      <el-form-item label="集合显示名（中文名称）">
+      <el-form-item label="集合显示名（中文）">
         <el-input v-model="collection.title"></el-input>
       </el-form-item>
       <el-form-item label="说明">
-        <el-input type="textarea" v-model="collection.desc"></el-input>
+        <el-input type="textarea" v-model="collection.description"></el-input>
       </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">
@@ -40,7 +40,7 @@ export default {
     collection: {
       type: Object,
       default: function() {
-        return { name: '', title: '', desc: '' }
+        return { name: '', title: '', description: '' }
       }
     }
   },

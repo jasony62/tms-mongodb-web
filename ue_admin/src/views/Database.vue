@@ -25,7 +25,7 @@
           label="名称"
           width="180"
         ></el-table-column>
-        <el-table-column prop="desc" label="说明"></el-table-column>
+        <el-table-column prop="description" label="说明"></el-table-column>
         <el-table-column fixed="right" label="操作" width="120">
           <template slot-scope="scope">
             <el-button
@@ -60,7 +60,6 @@ Vue.use(Table)
   .use(TableColumn)
   .use(Button)
 import CollectionEditor from '../components/CollectionEditor.vue'
-import apiCollection from '../apis/collection'
 
 export default {
   name: 'Database',
@@ -97,8 +96,10 @@ export default {
       })
     },
     removeCollection(collection) {
-      apiCollection.remove(this.db, collection.name).then(() => {
-        this.$store.commit({ type: 'removeCollection', collection })
+      this.$store.dispatch({
+        type: 'removeCollection',
+        db: this.db,
+        collection
       })
     }
   },

@@ -5,14 +5,14 @@
     :close-on-click-modal="closeOnClickModal"
   >
     <el-form ref="form" :model="database" label-position="top">
-      <el-form-item label="数据库名称（英文名称）">
+      <el-form-item label="数据库名称（英文）">
         <el-input v-model="database.name"></el-input>
       </el-form-item>
-      <el-form-item label="数据库显示名（中文名称）">
+      <el-form-item label="数据库显示名（中文）">
         <el-input v-model="database.title"></el-input>
       </el-form-item>
       <el-form-item label="说明">
-        <el-input type="textarea" v-model="database.desc"></el-input>
+        <el-input type="textarea" v-model="database.description"></el-input>
       </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">
@@ -39,7 +39,7 @@ export default {
     database: {
       type: Object,
       default: function() {
-        return { name: '', title: '', desc: '' }
+        return { name: '', title: '', description: '' }
       }
     }
   },

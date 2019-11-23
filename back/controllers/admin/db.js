@@ -61,8 +61,8 @@ class Db extends Ctrl {
   async remove() {
     const dbName = this.request.query.db
     const client = await Context.mongoClient()
-    const db = client.db('tms_admin')
-    return db
+    return client
+      .db('tms_admin')
       .collection('mongodb_object')
       .deleteOne({ name: dbName, type: 'database' })
       .then(() => client.db(dbName).dropDatabase())
