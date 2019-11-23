@@ -3,6 +3,10 @@ import { TmsAxios } from 'tms-vue'
 const base = '/api/admin/collection'
 
 export default {
+  /**
+   *
+   * @param {*} db
+   */
   list(db) {
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/list?db=${db}`)
