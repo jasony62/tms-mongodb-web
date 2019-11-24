@@ -11,7 +11,7 @@
       <router-link
         :to="{
           name: 'database',
-          params: { db }
+          params: { dbName }
         }"
         >返回</router-link
       >
@@ -47,13 +47,16 @@ Vue.use(Table)
   .use(Button)
 
 import DocEditor from '../components/DocEditor.vue'
+import apiCol from '../apis/collection'
 import apiDoc from '../apis/document'
 
 export default {
   name: 'Collection',
-  props: ['db', 'collection'],
+  props: ['dbName', 'clName'],
   data() {
-    return {}
+    return {
+      collection: null
+    }
   },
   computed: {
     ...mapState(['documents'])
@@ -62,47 +65,39 @@ export default {
     listDocument() {
       this.$store.dispatch({
         type: 'listDocument',
-        db: this.db,
-        collection: this.collection
+        db: this.dbName,
+        collection: this.clName
       })
     },
     createDocument() {
       let editor = new Vue(DocEditor)
-      editor.dbName = this.db
-      editor.clName = this.collection
-      editor.$on('submit', document => {
+      editor.open('create', this.dbName, this.collection).then(newDoc => {
         this.$store.commit({
           type: 'appendDocument',
-          document
+          document: newDoc
         })
-        editor.dialogVisible = false
       })
-      editor.$mount()
-      document.body.appendChild(editor.$el)
     },
     editDocument(doc) {
       let editor = new Vue(DocEditor)
-      editor.dbName = this.db
-      editor.clName = this.collection
-      editor.document = Object.assign({}, doc)
-      editor.$on('submit', newDoc => {
+      editor.open('update', this.dbName, this.collection, doc).then(newDoc => {
         Object.assign(doc, newDoc)
         this.$store.commit({
           type: 'updateDocument',
           document: doc
         })
-        editor.dialogVisible = false
       })
-      editor.$mount()
-      document.body.appendChild(editor.$el)
     },
     removeDocument(document) {
-      apiDoc.remove(this.db, this.collection, document._id).then(() => {
+      apiDoc.remove(this.db, this.clName, document._id).then(() => {
         this.$store.commit({ type: 'removeDocument', document })
       })
     }
   },
   mounted() {
+    apiCol.byName(this.dbName, this.clName).then(collection => {
+      this.collection = collection
+    })
     this.listDocument()
   }
 }

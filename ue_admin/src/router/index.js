@@ -13,13 +13,13 @@ const routes = [
     component: Home
   },
   {
-    path: '/database/:db',
+    path: '/database/:dbName',
     name: 'database',
     component: Database,
     props: true
   },
   {
-    path: '/collection/:db/:collection',
+    path: '/collection/:dbName/:clName',
     name: 'collection',
     component: Collection,
     props: true

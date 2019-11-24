@@ -5,7 +5,7 @@
     :leftWidth="'20%'"
   >
     <template v-slot:header>
-      <router-link to="/">返回数据库{{ db }}</router-link>
+      <router-link to="/">返回数据库{{ dbName }}</router-link>
     </template>
     <template v-slot:center>
       <el-table :data="collections" stripe style="width: 100%">
@@ -14,7 +14,7 @@
             <router-link
               :to="{
                 name: 'collection',
-                params: { db, collection: scope.row.name }
+                params: { dbName, clName: scope.row.name }
               }"
               >{{ scope.row.name }}</router-link
             >
@@ -63,7 +63,7 @@ import CollectionEditor from '../components/CollectionEditor.vue'
 
 export default {
   name: 'Database',
-  props: ['db'],
+  props: ['dbName'],
   computed: {
     ...mapState(['collections'])
   },
@@ -72,11 +72,11 @@ export default {
   },
   methods: {
     listCollection() {
-      this.$store.dispatch({ type: 'listCollection', db: this.db })
+      this.$store.dispatch({ type: 'listCollection', db: this.dbName })
     },
     createCollection() {
       let editor = new Vue(CollectionEditor)
-      editor.open('create', this.db).then(newCollection => {
+      editor.open('create', this.dbName).then(newCollection => {
         this.$store.commit({
           type: 'appendCollection',
           collection: newCollection
@@ -85,7 +85,7 @@ export default {
     },
     editCollection(collection) {
       let editor = new Vue(CollectionEditor)
-      editor.open('update', this.db, collection).then(newCollection => {
+      editor.open('update', this.dbName, collection).then(newCollection => {
         Object.keys(newCollection).forEach(k => {
           Vue.set(collection, k, newCollection[k])
         })
@@ -98,7 +98,7 @@ export default {
     removeCollection(collection) {
       this.$store.dispatch({
         type: 'removeCollection',
-        db: this.db,
+        db: this.dbName,
         collection
       })
     }

@@ -30,14 +30,18 @@ export default {
   name: 'DocEditor',
   props: {
     dialogVisible: { default: true },
-    dbName: { type: String },
-    clName: { type: String },
     document: {
-      type: Object
+      type: Object,
+      default: function() {
+        return {}
+      }
     }
   },
   data() {
     return {
+      mode: '',
+      dbName: '',
+      collection: null,
       destroyOnClose: true,
       closeOnClickModal: false,
       jsonString: ''
@@ -64,6 +68,20 @@ export default {
           .create(this.dbName, this.clName, newDoc)
           .then(newDoc => this.$emit('submit', newDoc))
       }
+    },
+    open(mode, dbName, collection, doc) {
+      this.mode = mode
+      this.dbName = dbName
+      this.collection = collection
+      if (mode === 'update') Object.assign(this.document, doc)
+      this.$mount()
+      document.body.appendChild(this.$el)
+      return new Promise(resolve => {
+        this.$on('submit', newDoc => {
+          this.dialogVisible = false
+          resolve(newDoc)
+        })
+      })
     }
   }
 }

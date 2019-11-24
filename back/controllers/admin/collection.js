@@ -1,8 +1,33 @@
 const _ = require('lodash')
 const { Ctrl, ResultData, ResultFault } = require('tms-koa')
 const { Context } = require('../../context')
+const ObjectId = require('mongodb').ObjectId
 
 class Collection extends Ctrl {
+  /**
+   *
+   */
+  async byName() {
+    const { db: dbName, cl: clName } = this.request.query
+    const client = await Context.mongoClient()
+    const cl = client.db('tms_admin').collection('mongodb_object')
+    return cl
+      .findOne({ database: dbName, name: clName, type: 'collection' })
+      .then(result => result)
+      .then(myCl => {
+        if (myCl.schema_id) {
+          return cl
+            .findOne({ type: 'schema', _id: new ObjectId(myCl.schema_id) })
+            .then(schema => {
+              myCl.schema = schema
+              delete myCl.schema_id
+              return myCl
+            })
+        }
+        delete myCl.schema_id
+        return myCl
+      })
+  }
   /**
    *
    */
