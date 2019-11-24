@@ -11,6 +11,21 @@
       <el-form-item label="集合显示名（中文）">
         <el-input v-model="collection.title"></el-input>
       </el-form-item>
+      <el-form-item label="集合列定义">
+        <el-select
+          v-model="collection.schema_id"
+          clearable
+          placeholder="请选择"
+        >
+          <el-option
+            v-for="item in schemas"
+            :key="item._id"
+            :label="item.title"
+            :value="item._id"
+          >
+          </el-option>
+        </el-select>
+      </el-form-item>
       <el-form-item label="说明">
         <el-input type="textarea" v-model="collection.description"></el-input>
       </el-form-item>
@@ -31,6 +46,7 @@ Vue.use(Dialog)
   .use(Button)
 
 import apiCollection from '../apis/collection'
+import apiSchema from '../apis/schema'
 
 export default {
   name: 'CollectionEditor',
@@ -40,7 +56,7 @@ export default {
     collection: {
       type: Object,
       default: function() {
-        return { name: '', title: '', description: '' }
+        return { name: '', title: '', description: '', schema_id: '' }
       }
     }
   },
@@ -48,8 +64,14 @@ export default {
     return {
       mode: '',
       destroyOnClose: true,
-      closeOnClickModal: false
+      closeOnClickModal: false,
+      schemas: []
     }
+  },
+  mounted() {
+    apiSchema.listSimple().then(schemas => {
+      this.schemas = schemas
+    })
   },
   methods: {
     onSubmit() {

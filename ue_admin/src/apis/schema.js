@@ -9,6 +9,12 @@ export default {
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
   },
+  listSimple() {
+    return TmsAxios.ins('mongodb-api')
+      .get(`${base}/listSimple`)
+      .then(rst => rst.data.result)
+      .catch(err => Promise.reject(err))
+  },
   create(proto) {
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/create`, proto)
