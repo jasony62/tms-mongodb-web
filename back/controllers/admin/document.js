@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const { Ctrl, ResultData } = require('tms-koa')
 const { Context } = require('../../context')
 const ObjectId = require('mongodb').ObjectId
@@ -34,7 +35,8 @@ class Document extends Ctrl {
    */
   async update() {
     const { db: dbName, cl: clName, id } = this.request.query
-    const doc = this.request.body
+    let doc = this.request.body
+    doc = _.omit(doc, ['_id'])
     const client = await Context.mongoClient()
     return client
       .db(dbName)

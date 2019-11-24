@@ -21,7 +21,7 @@
         <el-table-column label="数据库" width="180">
           <template slot-scope="scope">
             <router-link
-              :to="{ name: 'database', params: { db: scope.row.name } }"
+              :to="{ name: 'database', params: { dbName: scope.row.name } }"
               >{{ scope.row.name }}</router-link
             >
           </template>

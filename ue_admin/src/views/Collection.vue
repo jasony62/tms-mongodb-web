@@ -1,13 +1,10 @@
 <template>
   <tms-frame
     class="tmw-collection"
-    :display="{ header: true, footer: true, left: true, right: true }"
+    :display="{ header: true, footer: true, right: true }"
     :leftWidth="'20%'"
   >
     <template v-slot:header>
-      <el-button @click="createDocument">添加文档</el-button>
-    </template>
-    <template v-slot:left>
       <router-link
         :to="{
           name: 'database',
@@ -17,18 +14,27 @@
       >
     </template>
     <template v-slot:center>
-      <tms-flex direction="column">
-        <tms-flex v-for="doc in documents" :key="doc._id">
-          <div>{{ doc }}</div>
-          <div>
-            <el-button size="mini" @click="editDocument(doc)">修改</el-button>
-            <el-button size="mini" @click="removeDocument(doc)">删除</el-button>
-          </div>
-        </tms-flex>
-      </tms-flex>
+      <el-table :data="documents" stripe style="width: 100%">
+        <el-table-column
+          v-for="(s, k) in collection.schema.body.properties"
+          :key="k"
+          :prop="k"
+          :label="s.title"
+        ></el-table-column>
+        <el-table-column fixed="right" label="操作" width="180">
+          <template slot-scope="scope">
+            <el-button size="mini" @click="editDocument(scope.row)"
+              >修改</el-button
+            >
+            <el-button size="mini" @click="removeDocument(scope.row)"
+              >删除</el-button
+            >
+          </template>
+        </el-table-column>
+      </el-table>
     </template>
     <template v-slot:right>
-      right
+      <el-button @click="createDocument">添加文档</el-button>
     </template>
   </tms-frame>
 </template>
@@ -55,7 +61,7 @@ export default {
   props: ['dbName', 'clName'],
   data() {
     return {
-      collection: null
+      collection: { schema: { body: { properties: {} } } }
     }
   },
   computed: {
@@ -84,7 +90,7 @@ export default {
         Object.assign(doc, newDoc)
         this.$store.commit({
           type: 'updateDocument',
-          document: doc
+          document: newDoc
         })
       })
     },

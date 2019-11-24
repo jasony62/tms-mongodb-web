@@ -4,30 +4,26 @@
     :destroy-on-close="destroyOnClose"
     :close-on-click-modal="closeOnClickModal"
   >
-    <el-form ref="form" label-position="top">
-      <el-form-item label="内容">
-        <el-input type="textarea" v-model="jsonString"></el-input>
-      </el-form-item>
-    </el-form>
-    <div slot="footer" class="dialog-footer">
-      <el-button type="primary" @click="onSubmit">提交</el-button>
-      <el-button @click="dialogVisible = false">取消</el-button>
-    </div>
+    <tms-el-json-doc
+      :schema="collection.schema.body"
+      :model="document"
+      v-on:submit="onJsonDocSubmit"
+    ></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
 import Vue from 'vue'
-import { Dialog, Form, FormItem, Input, Button } from 'element-ui'
+import { Dialog } from 'element-ui'
 Vue.use(Dialog)
-  .use(Form)
-  .use(FormItem)
-  .use(Input)
-  .use(Button)
+
+//import { TmsElJsonDoc } from '../../lib'
+const { TmsElJsonDoc } = require('tms-vue-ui')
 
 import apiDoc from '../apis/document'
 
 export default {
   name: 'DocEditor',
+  components: { TmsElJsonDoc },
   props: {
     dialogVisible: { default: true },
     document: {
@@ -43,29 +39,23 @@ export default {
       dbName: '',
       collection: null,
       destroyOnClose: true,
-      closeOnClickModal: false,
-      jsonString: ''
-    }
-  },
-  mounted() {
-    if (this.document) {
-      let doc = Object.assign({}, this.document)
-      delete doc._id
-      this.jsonString = JSON.stringify(doc)
-    } else {
-      this.jsonString = '{}'
+      closeOnClickModal: false
     }
   },
   methods: {
-    onSubmit() {
-      const newDoc = JSON.parse(this.jsonString)
+    onJsonDocSubmit() {
       if (this.document && this.document._id) {
         apiDoc
-          .update(this.dbName, this.clName, this.document._id, newDoc)
+          .update(
+            this.dbName,
+            this.collection.name,
+            this.document._id,
+            this.document
+          )
           .then(newDoc => this.$emit('submit', newDoc))
       } else {
         apiDoc
-          .create(this.dbName, this.clName, newDoc)
+          .create(this.dbName, this.collection.name, this.document)
           .then(newDoc => this.$emit('submit', newDoc))
       }
     },

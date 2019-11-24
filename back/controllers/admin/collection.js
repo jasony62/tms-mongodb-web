@@ -27,6 +27,7 @@ class Collection extends Ctrl {
         delete myCl.schema_id
         return myCl
       })
+      .then(myCl => new ResultData(myCl))
   }
   /**
    *
