@@ -4,11 +4,7 @@
     :destroy-on-close="destroyOnClose"
     :close-on-click-modal="closeOnClickModal"
   >
-    <tms-el-json-doc
-      :schema="collection.schema.body"
-      :model="document"
-      v-on:submit="onJsonDocSubmit"
-    ></tms-el-json-doc>
+    <tms-el-json-doc :schema="collection.schema.body" :doc="document" v-on:submit="onJsonDocSubmit"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
@@ -16,54 +12,44 @@ import Vue from 'vue'
 import { Dialog } from 'element-ui'
 Vue.use(Dialog)
 
-//import { TmsElJsonDoc } from '../../lib'
+//import { TmsElJsonDoc } from 'tms-vue-ui'
 const { TmsElJsonDoc } = require('tms-vue-ui')
-
 import apiDoc from '../apis/document'
 
 export default {
   name: 'DocEditor',
   components: { TmsElJsonDoc },
   props: {
-    dialogVisible: { default: true },
-    document: {
-      type: Object,
-      default: function() {
-        return {}
-      }
-    }
+    dialogVisible: { default: true }
   },
   data() {
     return {
-      mode: '',
       dbName: '',
       collection: null,
       destroyOnClose: true,
-      closeOnClickModal: false
+      closeOnClickModal: false,
+      document: {
+        type: Object,
+        default: () => ({})
+      }
     }
   },
   methods: {
-    onJsonDocSubmit() {
+    onJsonDocSubmit(newDoc) {
       if (this.document && this.document._id) {
         apiDoc
-          .update(
-            this.dbName,
-            this.collection.name,
-            this.document._id,
-            this.document
-          )
+          .update(this.dbName, this.collection.name, this.document._id, newDoc)
           .then(newDoc => this.$emit('submit', newDoc))
       } else {
         apiDoc
-          .create(this.dbName, this.collection.name, this.document)
+          .create(this.dbName, this.collection.name, newDoc)
           .then(newDoc => this.$emit('submit', newDoc))
       }
     },
-    open(mode, dbName, collection, doc) {
-      this.mode = mode
+    open(dbName, collection, doc) {
       this.dbName = dbName
       this.collection = collection
-      if (mode === 'update') Object.assign(this.document, doc)
+      if (doc && doc._id) this.document = doc
       this.$mount()
       document.body.appendChild(this.$el)
       return new Promise(resolve => {

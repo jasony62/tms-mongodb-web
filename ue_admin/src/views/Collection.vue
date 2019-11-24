@@ -5,13 +5,10 @@
     :leftWidth="'20%'"
   >
     <template v-slot:header>
-      <router-link
-        :to="{
+      <router-link :to="{
           name: 'database',
           params: { dbName }
-        }"
-        >返回</router-link
-      >
+        }">返回</router-link>
     </template>
     <template v-slot:center>
       <el-table :data="documents" stripe style="width: 100%">
@@ -23,12 +20,8 @@
         ></el-table-column>
         <el-table-column fixed="right" label="操作" width="180">
           <template slot-scope="scope">
-            <el-button size="mini" @click="editDocument(scope.row)"
-              >修改</el-button
-            >
-            <el-button size="mini" @click="removeDocument(scope.row)"
-              >删除</el-button
-            >
+            <el-button size="mini" @click="editDocument(scope.row)">修改</el-button>
+            <el-button size="mini" @click="removeDocument(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -53,8 +46,7 @@ Vue.use(Table)
   .use(Button)
 
 import DocEditor from '../components/DocEditor.vue'
-import apiCol from '../apis/collection'
-import apiDoc from '../apis/document'
+import { collection as apiCol, doc as apiDoc } from '../apis'
 
 export default {
   name: 'Collection',
@@ -77,7 +69,7 @@ export default {
     },
     createDocument() {
       let editor = new Vue(DocEditor)
-      editor.open('create', this.dbName, this.collection).then(newDoc => {
+      editor.open(this.dbName, this.collection).then(newDoc => {
         this.$store.commit({
           type: 'appendDocument',
           document: newDoc
@@ -86,7 +78,7 @@ export default {
     },
     editDocument(doc) {
       let editor = new Vue(DocEditor)
-      editor.open('update', this.dbName, this.collection, doc).then(newDoc => {
+      editor.open(this.dbName, this.collection, doc).then(newDoc => {
         Object.assign(doc, newDoc)
         this.$store.commit({
           type: 'updateDocument',
@@ -95,7 +87,7 @@ export default {
       })
     },
     removeDocument(document) {
-      apiDoc.remove(this.db, this.clName, document._id).then(() => {
+      apiDoc.remove(this.dbName, this.clName, document._id).then(() => {
         this.$store.commit({ type: 'removeDocument', document })
       })
     }
@@ -103,8 +95,8 @@ export default {
   mounted() {
     apiCol.byName(this.dbName, this.clName).then(collection => {
       this.collection = collection
+      this.listDocument()
     })
-    this.listDocument()
   }
 }
 </script>

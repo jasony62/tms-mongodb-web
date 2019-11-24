@@ -3,10 +3,7 @@ import Vuex from 'vuex'
 
 Vue.use(Vuex)
 
-import apiDb from '../apis/database'
-import apiSchema from '../apis/schema'
-import apiCollection from '../apis/collection'
-import apiDocument from '../apis/document'
+import apis from '../apis'
 
 export default new Vuex.Store({
   state: {
@@ -59,48 +56,48 @@ export default new Vuex.Store({
   },
   actions: {
     listDatabase({ commit }) {
-      return apiDb.list().then(dbs => {
+      return apis.db.list().then(dbs => {
         commit({ type: 'dbs', dbs })
         return { dbs }
       })
     },
     listSchema({ commit }) {
-      return apiSchema.list().then(schemas => {
+      return apis.schema.list().then(schemas => {
         commit({ type: 'schemas', schemas })
         return { schemas }
       })
     },
     listCollection({ commit }, payload) {
       const { db } = payload
-      return apiCollection.list(db).then(collections => {
+      return apis.collection.list(db).then(collections => {
         commit({ type: 'collections', collections })
         return { collections }
       })
     },
     listDocument({ commit }, payload) {
       const { db, collection } = payload
-      return apiDocument.list(db, collection).then(documents => {
+      return apis.doc.list(db, collection).then(documents => {
         commit({ type: 'documents', documents })
         return { documents }
       })
     },
     removeDb({ commit }, payload) {
       const { db } = payload
-      apiDb.remove(db).then(() => {
+      apis.db.remove(db).then(() => {
         commit({ type: 'removeDatabase', db })
         return { db }
       })
     },
     removeSchema({ commit }, playload) {
       const { schema } = playload
-      return apiSchema.remove(schema).then(() => {
+      return apis.schema.remove(schema).then(() => {
         commit({ type: 'removeSchema', schema })
         return { schema }
       })
     },
     removeCollection({ commit }, payload) {
       const { db, collection } = payload
-      apiCollection.remove(db, collection.name).then(() => {
+      apis.collection.remove(db, collection.name).then(() => {
         commit({ type: 'removeCollection', collection })
         return { collection }
       })

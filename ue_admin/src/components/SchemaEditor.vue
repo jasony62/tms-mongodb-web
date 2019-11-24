@@ -5,14 +5,10 @@
     :close-on-click-modal="closeOnClickModal"
   >
     <el-tabs v-model="activeTab" type="card" @tab-click="onTabClick">
-      <el-tab-pane label="基本信息" name="first"> </el-tab-pane>
-      <el-tab-pane label="列定义" name="second"> </el-tab-pane>
+      <el-tab-pane label="基本信息" name="first"></el-tab-pane>
+      <el-tab-pane label="列定义" name="second"></el-tab-pane>
     </el-tabs>
-    <el-form
-      v-show="activeTab === 'first'"
-      :model="schema"
-      label-position="top"
-    >
+    <el-form v-show="activeTab === 'first'" :model="schema" label-position="top">
       <el-form-item label="集合列定义显示名（中文）">
         <el-input v-model="schema.title"></el-input>
       </el-form-item>
@@ -20,10 +16,7 @@
         <el-input type="textarea" v-model="schema.description"></el-input>
       </el-form-item>
     </el-form>
-    <tms-json-schema
-      v-show="activeTab === 'second'"
-      :schema="schema.body"
-    ></tms-json-schema>
+    <tms-json-schema v-show="activeTab === 'second'" :schema="schema.body"></tms-json-schema>
     <div slot="footer" class="dialog-footer">
       <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button @click="dialogVisible = false">取消</el-button>
@@ -34,7 +27,7 @@
 import Vue from 'vue'
 const { TmsJsonSchema } = require('tms-vue-ui')
 //import { TmsJsonSchema } from 'tms-vue-ui'
-import apiSchema from '../apis/schema'
+import apiSchema from '../apis'
 import {
   Dialog,
   Form,
