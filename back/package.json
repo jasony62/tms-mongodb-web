@@ -13,6 +13,6 @@
   "dependencies": {
     "lodash": "^4.17.15",
     "mongodb": "^3.3.4",
-    "tms-koa": "^0.0.25"
+    "tms-koa": "^0.0.26"
   }
 }
