@@ -27,7 +27,7 @@
 import Vue from 'vue'
 const { TmsJsonSchema } = require('tms-vue-ui')
 //import { TmsJsonSchema } from 'tms-vue-ui'
-import apiSchema from '../apis'
+import apiSchema from '../apis/schema'
 import {
   Dialog,
   Form,
