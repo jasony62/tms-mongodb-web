@@ -7,6 +7,8 @@ const fs = require('fs')
 const { Context } = require('../../context')
 const ObjectId = require('mongodb').ObjectId
 const modelMgdb = require('../../models/mgdb')
+// 上传
+const { LocalFS } = require('tms-koa/lib/model/fs/local')
 
 class Document extends Ctrl {
   /**
@@ -36,6 +38,30 @@ class Document extends Ctrl {
       .then(() => new ResultData(doc))
   }
   /**
+   * 上传单个文件
+   */
+  async uploadToImport() {
+    if (!this.request.files || !this.request.files.file) {
+        return new ResultFault('没有上传文件')
+    }
+    let { db: dbName, cl: clName } = this.request.query
+    if (!dbName || !clName) {
+        return new ResultData('参数不完整')
+    }
+    
+    const file = this.request.files.file
+    let fs = new LocalFS('upload')
+    let filepath = await fs.writeStream(file.name, file)
+
+    let rst = await this._importToCon(dbName, clName, filepath)
+
+    if (rst[0] === true) {
+      return new ResultData(rst[1])
+    } else {
+      return new ResultFault(rst[1])
+    }
+  }
+  /**
    * 从excel导入数据
    */
   async import() {
@@ -48,6 +74,18 @@ class Document extends Ctrl {
     let filename = _.get(fileConfig, ['local', 'rootDir'], '') + '/upload/' + path
     if (!fs.existsSync(filename)) return new ResultFault('指定的文件不存在')
 
+    let rst = await this._importToCon(dbName, clName, filename)
+
+    if (rst[0] === true) {
+      return new ResultData(rst[1])
+    } else {
+      return new ResultFault(rst[1])
+    }
+  }
+  /**
+   * 
+   */
+  async _importToCon(dbName, clName, filename) {
     const xlsx = require('xlsx')
     const wb = xlsx.readFile(filename)
     const firstSheetName = wb.SheetNames[0]
@@ -57,7 +95,7 @@ class Document extends Ctrl {
     const client = await Context.mongoClient()
     const table = await modelMgdb.getSchemaByCollection(dbName, clName)
     if (!table.schema) {
-      return new ResultFault('指定的集合没有指定集合列')
+      return [false, '指定的集合没有指定集合列']
     }
     let columns = table.schema.body.properties
 
@@ -75,10 +113,10 @@ class Document extends Ctrl {
       .db(dbName)
       .collection(clName)
       .insertMany(jsonRawRows)
-      .then(() => new ResultData(jsonRawRows))
+      .then(() => [true, jsonRawRows] )
     } catch (err) {
       logger.warn('Document.insertMany', err)
-      return new ResultFault(err.message)
+      return [false, err.message]
     }
   }
   /**
