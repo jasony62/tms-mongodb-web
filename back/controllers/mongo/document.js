@@ -1,9 +1,12 @@
 const { Ctrl, ResultData, ResultFault, ResultObjectNotFound } = require('tms-koa')
+const log4js = require('log4js')
+const logger = log4js.getLogger('tms-xlsx-etd')
 const fileConfig = require(process.cwd() + '/config/fs')
 const _ = require('lodash')
 const fs = require('fs')
 const { Context } = require('../../context')
 const ObjectId = require('mongodb').ObjectId
+const modelMgdb = require('../../models/mgdb')
 
 class Document extends Ctrl {
   /**
@@ -52,24 +55,7 @@ class Document extends Ctrl {
     const json = xlsx.utils.sheet_to_json(sh)
 
     const client = await Context.mongoClient()
-    const cl = client.db('tms_admin').collection('mongodb_object')
-    // 获取表列
-    const table = await cl
-    .findOne({ database: dbName, name: clName, type: 'collection' })
-    .then(result => result)
-    .then(myCl => {
-      if (myCl.schema_id) {
-        return cl
-          .findOne({ type: 'schema', _id: new ObjectId(myCl.schema_id) })
-          .then(schema => {
-            myCl.schema = schema
-            delete myCl.schema_id
-            return myCl
-          })
-      }
-      delete myCl.schema_id
-      return myCl
-    })
+    const table = await modelMgdb.getSchemaByCollection(dbName, clName)
     if (!table.schema) {
       return new ResultFault('指定的集合没有指定集合列')
     }
@@ -94,6 +80,49 @@ class Document extends Ctrl {
       logger.warn('Document.insertMany', err)
       return new ResultFault(err.message)
     }
+  }
+  /**
+   * 导出数据
+   */
+  async export() {
+    let { db: dbName, cl: clName } = this.request.query
+
+    const client = await Context.mongoClient()
+    // 集合列
+    const table = await modelMgdb.getSchemaByCollection(dbName, clName)
+    if (!table.schema) {
+      return new ResultFault('指定的集合没有指定集合列')
+    }
+    let columns = table.schema.body.properties
+    // 集合数据
+    let data = await client
+      .db(dbName)
+      .collection(clName)
+      .find()
+      .toArray()
+    
+    const xlsx = require('xlsx')
+    const wb = xlsx.utils.book_new()
+    const ws = xlsx.utils.json_to_sheet(
+      data.map(row => {
+        let row2 = {}
+        for (const k in columns) {
+          let column = columns[k]
+          row2[column.title] = row[k]
+        }
+        return row2
+      })
+    )
+    
+    xlsx.utils.book_append_sheet(wb, ws, 'Sheet1')
+    let path = process.cwd() + "/public"
+    if (!fs.existsSync(path)) {
+      fs.mkdirSync(path)
+    }
+    xlsx.writeFile(wb, path + '/' + dbName + '.xlsx')
+
+    
+    return "ok"
   }
   /**
    * 指定数据库下批量新建文档
