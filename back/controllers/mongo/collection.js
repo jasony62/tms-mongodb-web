@@ -5,6 +5,31 @@ const ObjectId = require('mongodb').ObjectId
 
 class Collection extends Ctrl {
   /**
+   *
+   */
+  async byName() {
+    const { db: dbName, cl: clName } = this.request.query
+    const client = await Context.mongoClient()
+    const cl = client.db('tms_admin').collection('mongodb_object')
+    return cl
+      .findOne({ database: dbName, name: clName, type: 'collection' })
+      .then(result => result)
+      .then(myCl => {
+        if (myCl.schema_id) {
+          return cl
+            .findOne({ type: 'schema', _id: new ObjectId(myCl.schema_id) })
+            .then(schema => {
+              myCl.schema = schema
+              delete myCl.schema_id
+              return myCl
+            })
+        }
+        delete myCl.schema_id
+        return myCl
+      })
+      .then(myCl => new ResultData(myCl))
+  }
+  /**
    * 指定库下所有的集合
    */
   async list() {
@@ -42,6 +67,35 @@ class Collection extends Ctrl {
       .then(() => client.db('tms_admin').collection('mongodb_object'))
       .then(cl => cl.insertOne(info))
       .then(result => new ResultData(result.ops[0]))
+  }
+  /**
+   * 更新集合对象信息
+   */
+  async update() {
+    let { db: dbName, cl: clName } = this.request.query
+    let info = this.request.body
+    info = _.omit(info, ['_id', 'name', 'database'])
+    const client = await Context.mongoClient()
+    const cl = client.db('tms_admin').collection('mongodb_object')
+    return cl
+      .updateOne(
+        { database: dbName, name: clName, type: 'collection' },
+        { $set: info },
+        { upsert: true }
+      )
+      .then(() => new ResultData(info))
+  }
+  /**
+   * 修改集合名称
+   */
+  async rename() {
+    let { db: dbName, cl: clName, newName } = this.request.query
+    const client = await Context.mongoClient()
+    const db = client.db(dbName)
+    return db
+      .renameCollection(clName, newName)
+      .then(() => new ResultData('ok'))
+      .catch(err => Promise.reject(new ResultFault(err.message)))
   }
   /**
    * 删除指定数据库下的集合

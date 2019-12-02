@@ -16,11 +16,21 @@ class Document extends Ctrl {
    */
   async list() {
     const { db: dbName, cl: clName } = this.request.query
+    const { filter = null } = this.request.body
+
+    let find = {}
+    if (filter) {
+      let fKey = Object.keys(filter)
+      fKey.forEach( fk => {
+        find[fk] = filter[fk]
+      })
+    }
+    console.log(find)
     const client = await Context.mongoClient()
     return client
       .db(dbName)
       .collection(clName)
-      .find()
+      .find(find)
       .toArray()
       .then(docs => new ResultData(docs))
   }
@@ -159,7 +169,6 @@ class Document extends Ctrl {
     }
     xlsx.writeFile(wb, path + '/' + dbName + '.xlsx')
 
-    
     return "ok"
   }
   /**
@@ -169,10 +178,16 @@ class Document extends Ctrl {
     return new ResultData('指定数据库下批量新建文档')
   }
   /**
-   * 删除指定数据库指定集合下的文档
+   *
    */
-  remove() {
-    return new ResultData('删除指定数据库指定集合下的文档')
+  async remove() {
+    const { db: dbName, cl: clName, id } = this.request.query
+    const client = await Context.mongoClient()
+    return client
+      .db(dbName)
+      .collection(clName)
+      .deleteOne({ _id: ObjectId(id) })
+      .then(result => new ResultData(result.result))
   }
   /**
    * 剪切数据到指定库
