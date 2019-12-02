@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'tms-koa-mongo',
+      name: 'tms-mongodb-web-back',
       script: './server.js',
 
       // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/

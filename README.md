@@ -4,9 +4,9 @@
 
 # 运行
 
-> docker-compose up -d
+指定 nginx 的配置文件
 
-> yarn serve
+> docker-compose up -d
 
 # 接口清单
 
