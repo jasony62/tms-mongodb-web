@@ -195,7 +195,7 @@ class Document extends Ctrl {
     let newClObj = await modelMgdb.getSchemaByCollection(newDb, newCl)
     if (!newClObj || !newClObj.schema) return new ResultFault("指定的集合不存在")
     let newClSchema = newClObj.schema.body.properties
-newClSchema.ccc = "aaaa"
+
     // 查询获取旧数据
     let find = {_id:{$in: docIds2}}
     let fields = { _id: 0 }
@@ -210,12 +210,15 @@ newClSchema.ccc = "aaaa"
 
     // 插入到指定集合中,补充没有的数据
     let newDocs = oldDocus.map( doc => {
+      let newd = {}
       for (const k in newClSchema) {
         if (typeof doc[k] === "undefined") {
-          doc[k] = ''
+          newd[k] = ''
+        } else {
+          newd[k] = doc[k]
         }
       }
-      return doc
+      return newd
     })
     const client = await Context.mongoClient()
     const clNew = client.db(newDb).collection(newCl)
