@@ -175,6 +175,17 @@ class Document extends Ctrl {
     return new ResultData('删除指定数据库指定集合下的文档')
   }
   /**
+   * 剪切数据到指定库
+   */
+  shear() {
+    const {  oldDb: oldDbName, oldCl: oldClName, newDb: newDbName, newCl: newClName } = this.request.query
+    let docs = this.request.body
+    // 查询获取旧数据
+
+
+    return new ResultData('ok') 
+  }
+  /**
    * 更新指定数据库指定集合下的文档
    */
   async update() {
