@@ -177,7 +177,7 @@ class Document extends Ctrl {
   /**
    * 剪切数据到指定库
    */
-  async shear() {
+  async move() {
     const { oldDb, oldCl, newDb, newCl } = this.request.query
     if (!oldDb || !oldCl || !newDb || !newCl) {
       return new ResultFault("参数不完整")
