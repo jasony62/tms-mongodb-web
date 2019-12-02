@@ -177,13 +177,77 @@ class Document extends Ctrl {
   /**
    * 剪切数据到指定库
    */
-  shear() {
-    const {  oldDb: oldDbName, oldCl: oldClName, newDb: newDbName, newCl: newClName } = this.request.query
-    let docs = this.request.body
+  async shear() {
+    const { oldDb, oldCl, newDb, newCl } = this.request.query
+    if (!oldDb || !oldCl || !newDb || !newCl) {
+      return new ResultFault("参数不完整")
+    }
+    let { docIds } = this.request.body
+    if (!docIds || !Array.isArray(docIds) || docIds.length == 0) {
+      return new ResultFault("没有要移动的数据")
+    }
+    let docIds2 = []
+    docIds.forEach( id => {
+      docIds2.push(new ObjectId(id))
+    })
+
+    //获取指定集合的列
+    let newClObj = await modelMgdb.getSchemaByCollection(newDb, newCl)
+    if (!newClObj || !newClObj.schema) return new ResultFault("指定的集合不存在")
+    let newClSchema = newClObj.schema.body.properties
+newClSchema.ccc = "aaaa"
     // 查询获取旧数据
+    let find = {_id:{$in: docIds2}}
+    let fields = { _id: 0 }
+    // for (const k in newClSchema) {
+    //   fields[k] = 1
+    // }
+    let oldDocus = await modelMgdb.getDocumentByCollection(oldDb, oldCl, find, fields)
+    if (oldDocus[0] === false) {
+      return new ResultFault(oldDocus[1])
+    }
+    oldDocus = oldDocus[1]
 
+    // 插入到指定集合中,补充没有的数据
+    let newDocs = oldDocus.map( doc => {
+      for (const k in newClSchema) {
+        if (typeof doc[k] === "undefined") {
+          doc[k] = ''
+        }
+      }
+      return doc
+    })
+    const client = await Context.mongoClient()
+    const clNew = client.db(newDb).collection(newCl)
+    let rst = await clNew
+                .insertMany(newDocs)
+                .then( rst => [true, rst])
+                .catch( err => [false, err.toString()] )
+    if (rst[0] === false) {
+      return new ResultFault(rst[1])
+    }
+    rst = rst[1]
+    if (rst.insertedCount != newDocs.length) {
+      Object.keys(rst.insertedIds).forEach( async (k) => {
+        let newId = rst.insertedIds[k]
+        await clNew.deleteOne({_id: new ObjectId(newId)})
+      })
+      return new ResultFault('插入数据数量错误需插入：' + newDocs.length + "；实际插入：" + rst.insertedCount)
+    }
+    
+    // 删除旧数据
+    const clOld = client.db(oldDb).collection(oldCl)
+    let rst2 = await clOld
+      .deleteMany({_id:{$in: docIds2}})
+      .then( rst => [true, rst])
+      .catch( err => [false, err.toString()] )
 
-    return new ResultData('ok') 
+    if (rst2[0] === false) {
+      return new ResultFault('数据以到指定集合中，但删除旧数据时失败')
+    }
+    rst2 = rst2[1]
+
+    return new ResultData(rst2.result) 
   }
   /**
    * 更新指定数据库指定集合下的文档
