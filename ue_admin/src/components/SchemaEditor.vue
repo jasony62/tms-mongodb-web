@@ -1,9 +1,5 @@
 <template>
-  <el-dialog
-    :visible.sync="dialogVisible"
-    :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal"
-  >
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <el-tabs v-model="activeTab" type="card" @tab-click="onTabClick">
       <el-tab-pane label="基本信息" name="first"></el-tab-pane>
       <el-tab-pane label="列定义" name="second"></el-tab-pane>
@@ -25,9 +21,8 @@
 </template>
 <script>
 import Vue from 'vue'
-const { TmsJsonSchema } = require('tms-vue-ui')
-//import { TmsJsonSchema } from 'tms-vue-ui'
-import apiSchema from '../apis'
+import { JsonSchema as TmsJsonSchema } from 'tms-vue-ui'
+import apiSchema from '../apis/schema'
 import {
   Dialog,
   Form,

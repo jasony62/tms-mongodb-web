@@ -1,6 +1,6 @@
 module.exports = {
   port: 3630,
-  name: 'tms-koa-mongo',
+  name: 'tms-mongodb-web-back',
   router: {
     auth: {
       prefix: '/mgdb/auth' // 接口调用url的前缀
