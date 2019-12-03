@@ -15,7 +15,7 @@ class Document extends Ctrl {
    * 指定数据库指定集合下的文档
    */
   async list() {
-    const { db: dbName, cl: clName } = this.request.query
+    const { db: dbName, cl: clName, page = null, size = null } = this.request.query
     const { filter = null } = this.request.body
 
     let find = {}
@@ -25,14 +25,30 @@ class Document extends Ctrl {
         find[fk] = filter[fk]
       })
     }
-    console.log(find)
+
     const client = await Context.mongoClient()
-    return client
-      .db(dbName)
-      .collection(clName)
+    let cl = client.db(dbName).collection(clName)
+    let data = {}
+    if (page && page > 0 && size && size > 0) {
+      let skip = (parseInt(page) - 1) * parseInt(size)
+      let limit = parseInt(size)
+      data.docs = await cl
+        .find(find)
+        .skip(skip)
+        .limit(limit)
+        .toArray()
+        .then(docs => docs)
+    } else {
+      data.docs = await cl
+        .find(find)
+        .toArray()
+        .then(docs => docs)
+    }
+    data.total = await cl
       .find(find)
-      .toArray()
-      .then(docs => new ResultData(docs))
+      .count()
+
+    return new ResultData(data)
   }
   /**
    * 指定数据库指定集合下新建文档
@@ -213,7 +229,7 @@ class Document extends Ctrl {
 
     // 查询获取旧数据
     let find = {_id:{$in: docIds2}}
-    let fields = { _id: 0 }
+    let fields = {}
     // for (const k in newClSchema) {
     //   fields[k] = 1
     // }
@@ -225,7 +241,7 @@ class Document extends Ctrl {
 
     // 插入到指定集合中,补充没有的数据
     let newDocs = oldDocus.map( doc => {
-      let newd = {}
+      let newd = { _id: doc._id}
       for (const k in newClSchema) {
         if (typeof doc[k] === "undefined") {
           newd[k] = ''
@@ -235,14 +251,36 @@ class Document extends Ctrl {
       }
       return newd
     })
+
+    // 插件
+    if (fs.existsSync(process.cwd() + "/config/transform.js")) {
+      let { transformDoc } = require(process.cwd() + "/config/transform")
+      if (Array.isArray(transformDoc)) {
+        for (const tf of transformDoc) {
+          if (fs.existsSync(process.cwd() + "/plugins/" + tf[0] + ".js")) {
+            let func = require(process.cwd() + "/plugins/" + tf[0])
+            newDocs = await func(newDocs, tf)
+          }
+        }
+      }
+    }
+
+    // 去除newDocs的_id
+    if (newDocs.length == 0) {
+      return new ResultFault("没有选择数据或为重复数据")
+    }
+    let newDocs2 = (JSON.parse(JSON.stringify(newDocs))).map(nd => {
+      delete nd._id
+      return nd
+    })
     const client = await Context.mongoClient()
     const clNew = client.db(newDb).collection(newCl)
     let rst = await clNew
-                .insertMany(newDocs)
+                .insertMany(newDocs2)
                 .then( rst => [true, rst])
                 .catch( err => [false, err.toString()] )
     if (rst[0] === false) {
-      return new ResultFault(rst[1])
+      return new ResultFault("数据插入指定表错误: " + rst[1])
     }
     rst = rst[1]
     if (rst.insertedCount != newDocs.length) {
@@ -254,9 +292,13 @@ class Document extends Ctrl {
     }
     
     // 删除旧数据
+    let newDocIds = []
+    newDocs.forEach( nd => {
+      newDocIds.push(new ObjectId(nd._id))
+    })
     const clOld = client.db(oldDb).collection(oldCl)
     let rst2 = await clOld
-      .deleteMany({_id:{$in: docIds2}})
+      .deleteMany({_id:{$in: newDocIds}})
       .then( rst => [true, rst])
       .catch( err => [false, err.toString()] )
 
