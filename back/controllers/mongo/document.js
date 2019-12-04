@@ -253,8 +253,8 @@ class Document extends Ctrl {
     })
 
     // 插件
-    if (fs.existsSync(process.cwd() + "/config/transform.js")) {
-      let { transformDoc } = require(process.cwd() + "/config/transform")
+    if (fs.existsSync(process.cwd() + "/config/plugins.js")) {
+      let { transformDoc } = require(process.cwd() + "/config/plugins")
       if (Array.isArray(transformDoc)) {
         for (const tf of transformDoc) {
           if (fs.existsSync(process.cwd() + "/plugins/" + tf[0] + ".js")) {
@@ -265,10 +265,10 @@ class Document extends Ctrl {
       }
     }
 
-    // 去除newDocs的_id
     if (newDocs.length == 0) {
       return new ResultFault("没有选择数据或为重复数据")
     }
+    // 去除newDocs的_id
     let newDocs2 = (JSON.parse(JSON.stringify(newDocs))).map(nd => {
       delete nd._id
       return nd
