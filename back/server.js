@@ -9,4 +9,7 @@ const { TmsKoa } = require('tms-koa')
 
 const tmsKoa = new TmsKoa()
 
-tmsKoa.startup()
+// 下载
+let router = require('./download/router')
+let beforeController = router.routes()
+tmsKoa.startup({ beforeController: [ beforeController ] })

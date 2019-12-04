@@ -7,6 +7,9 @@ module.exports = {
     },
     controllers: {
       prefix: '/mgdb/api' // 接口调用url的前缀，例如：/api
+    },
+    download: {
+      prefix: '/mgdb/download' // 接口调用url的前缀
     }
   },
   tmsTransaction: false

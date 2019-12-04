@@ -1,7 +1,7 @@
 const { Ctrl, ResultData, ResultFault, ResultObjectNotFound } = require('tms-koa')
 const log4js = require('log4js')
 const logger = log4js.getLogger('tms-xlsx-etd')
-const fileConfig = require(process.cwd() + '/config/fs')
+const fsConfig = require(process.cwd() + '/config/fs')
 const _ = require('lodash')
 const fs = require('fs')
 const { Context } = require('../../context')
@@ -97,7 +97,7 @@ class Document extends Ctrl {
         return new ResultData('参数不完整')
     }
 
-    let filename = _.get(fileConfig, ['local', 'rootDir'], '') + '/upload/' + path
+    let filename = _.get(fsConfig, ['local', 'rootDir'], '') + '/upload/' + path
     if (!fs.existsSync(filename)) return new ResultFault('指定的文件不存在')
 
     let rst = await this._importToCon(dbName, clName, filename)
@@ -112,6 +112,8 @@ class Document extends Ctrl {
    * 
    */
   async _importToCon(dbName, clName, filename) {
+    if (!fs.existsSync(filename)) return [ false, '指定的文件不存在']
+
     const xlsx = require('xlsx')
     const wb = xlsx.readFile(filename)
     const firstSheetName = wb.SheetNames[0]
@@ -177,15 +179,18 @@ class Document extends Ctrl {
         return row2
       })
     )
-    
     xlsx.utils.book_append_sheet(wb, ws, 'Sheet1')
-    let path = process.cwd() + "/public"
+
+    let path = _.get(fsConfig, ['local', 'outPath'], '')
+    if (!path) path = process.cwd() + "/public"
+
     if (!fs.existsSync(path)) {
       fs.mkdirSync(path)
     }
-    xlsx.writeFile(wb, path + '/' + dbName + '.xlsx')
+    let filePath = path + '/' + clName + '.xlsx'
+    xlsx.writeFile(wb, filePath)
 
-    return "ok"
+    return new ResultData(filePath.replace(path + '/', ""))
   }
   /**
    * 指定数据库下批量新建文档
