@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const { Ctrl, ResultData } = require('tms-koa')
+const { Ctrl, ResultData, ResultFault } = require('tms-koa')
 const { Context } = require('../../context')
 const ObjectId = require('mongodb').ObjectId
 

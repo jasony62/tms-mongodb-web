@@ -61,8 +61,15 @@ class Collection extends Ctrl {
     info.type = 'collection'
     info.database = dbName
     const client = await Context.mongoClient()
-    return client
-      .db(dbName)
+    let cl = client.db(dbName)
+
+    // 查询是否已存在同名集合
+    let cls = await cl.listCollections({ name: info.name}, { nameOnly: true }).toArray()
+    if (cls.length > 0) {
+      return new ResultFault("已存在同名集合")
+    }
+
+    return cl
       .createCollection(info.name)
       .then(() => client.db('tms_admin').collection('mongodb_object'))
       .then(cl => cl.insertOne(info))

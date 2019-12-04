@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const { Ctrl, ResultData } = require('tms-koa')
+const { Ctrl, ResultData, ResultFault } = require('tms-koa')
 const { Context } = require('../../context')
 
 class Db extends Ctrl {
@@ -30,10 +30,17 @@ class Db extends Ctrl {
   async create() {
     let info = this.request.body
     info.type = 'database'
+
     const client = await Context.mongoClient()
-    return client
-      .db('tms_admin')
-      .collection('mongodb_object')
+    let cl = client.db('tms_admin').collection('mongodb_object')
+
+    // 查询是否存在同名库
+    let dbs = await cl.find({ name: info.name, type: 'database' }).toArray()
+    if (dbs.length > 0) {
+      return new ResultFault("已存在同名数据库")
+    }
+
+    return cl
       .insertOne(info)
       .then(result => new ResultData(result.ops[0]))
   }
