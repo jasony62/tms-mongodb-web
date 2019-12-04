@@ -271,7 +271,7 @@ class Document extends Ctrl {
         for (const tf of transformDoc) {
           if (fs.existsSync(process.cwd() + "/plugins/" + tf[0] + ".js")) {
             let func = require(process.cwd() + "/plugins/" + tf[0])
-            newDocs = await func(newDocs, tf)
+            newDocs = await func(newDocs, tf, newDb + ":" + newCl)
           }
         }
       }
