@@ -106,10 +106,13 @@ class Document extends Ctrl {
     }
     
     const file = this.request.files.file
-    let fs = new LocalFS('upload')
-    let filepath = await fs.writeStream(file.name, file)
+    let filePath = moment().format('YYYYMM/DDHH/')
+    filePath += file.name
 
-    let rst = await this._importToCon(dbName, clName, filepath)
+    let fs = new LocalFS('upload')
+    let filepath2 = await fs.writeStream(filePath, file)
+
+    let rst = await this._importToCon(dbName, clName, filepath2)
 
     if (rst[0] === true) {
       return new ResultData(rst[1])
