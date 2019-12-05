@@ -207,15 +207,18 @@ class Document extends Ctrl {
         return row2
       })
     )
-    
     xlsx.utils.book_append_sheet(wb, ws, 'Sheet1')
-    let path = process.cwd() + "/public"
+
+    let path = _.get(fsConfig, ['local', 'outPath'], '')
+    if (!path) path = process.cwd() + "/public"
+
     if (!fs.existsSync(path)) {
       fs.mkdirSync(path)
     }
-    xlsx.writeFile(wb, path + '/' + dbName + '.xlsx')
+    let filePath = path + '/' + clName + '.xlsx'
+    xlsx.writeFile(wb, filePath)
 
-    return "ok"
+    return new ResultData(filePath.replace(path + '/', ""))
   }
   /**
    * 剪切数据到指定库
