@@ -1,77 +1,28 @@
-const { Ctrl, ResultData, ResultFault, ResultObjectNotFound } = require('tms-koa')
+const { ResultData, ResultFault, ResultObjectNotFound } = require('tms-koa')
+const DocBase = require('../documentBase')
 const log4js = require('log4js')
 const logger = log4js.getLogger('tms-xlsx-etd')
-const fsConfig = require(process.cwd() + '/config/fs')
 const _ = require('lodash')
 const fs = require('fs')
-const { Context } = require('../../context')
 const ObjectId = require('mongodb').ObjectId
 const modelMgdb = require('../../models/mgdb')
 // 上传
-const { LocalFS } = require('tms-koa/lib/model/fs/local')
 const moment = require('tms-koa/node_modules/moment')
 
-class Document extends Ctrl {
-  /**
-   * 指定数据库指定集合下的文档
-   */
-  async list() {
-    const { db: dbName, cl: clName, page = null, size = null } = this.request.query
-    const { filter = null } = this.request.body
-
-    let find = {}
-    if (filter) {
-      let fKey = Object.keys(filter)
-      fKey.forEach( fk => {
-        find[fk] = filter[fk]
-      })
-    }
-
-    const client = await Context.mongoClient()
-    let cl = client.db(dbName).collection(clName)
-    let data = {}
-    if (page && page > 0 && size && size > 0) {
-      let skip = (parseInt(page) - 1) * parseInt(size)
-      let limit = parseInt(size)
-      data.docs = await cl
-        .find(find)
-        .skip(skip)
-        .limit(limit)
-        .toArray()
-        .then(docs => docs)
-    } else {
-      data.docs = await cl
-        .find(find)
-        .toArray()
-        .then(docs => docs)
-    }
-    data.total = await cl
-      .find(find)
-      .count()
-
-    return new ResultData(data)
-  }
-  /**
-   * 指定数据库指定集合下新建文档
-   */
-  async create() {
-    const { db: dbName, cl: clName } = this.request.query
-    const doc = this.request.body
-    const client = await Context.mongoClient()
-    return client
-      .db(dbName)
-      .collection(clName)
-      .insertOne(doc)
-      .then(() => new ResultData(doc))
+class Document extends DocBase {
+  constructor(...args) {
+    super(...args)
   }
   /**
    * 上传单个文件
    */
   async uploadToImport() {
+    const { LocalFS } = require('tms-koa/lib/model/fs/local')
+
     if (!this.request.files || !this.request.files.file) {
         return new ResultFault('没有上传文件')
     }
-    let { db: dbName, cl: clName } = this.request.query
+    let { db: dbName, cl: clName, checkRepeatColumns = "", keepFirstRepeatData = false } = this.request.query
     if (!dbName || !clName) {
         return new ResultData('参数不完整')
     }
@@ -83,10 +34,16 @@ class Document extends Ctrl {
     let fs = new LocalFS('upload')
     let filepath2 = await fs.writeStream(filePath, file)
 
-    let rst = await this._importToCon(dbName, clName, filepath2)
+    let options = {}
+    if (checkRepeatColumns) {
+      options.unrepeat = {}
+      options.unrepeat.columns = checkRepeatColumns.split(',')
+      options.unrepeat.keepFirstRepeatData = keepFirstRepeatData ? keepFirstRepeatData : false
+    }
+    let rst = await this._importToColl(dbName, clName, filepath2, options)
 
     if (rst[0] === true) {
-      return new ResultData(rst[1])
+      return new ResultData("ok")
     } else {
       return new ResultFault(rst[1])
     }
@@ -95,7 +52,8 @@ class Document extends Ctrl {
    * 从excel导入数据
    */
   async import() {
-    let { db: dbName, cl: clName, path } = this.request.query
+    const fsConfig = require(process.cwd() + '/config/fs')
+    let { db: dbName, cl: clName, path, checkRepeatColumns, keepFirstRepeatData = false } = this.request.query
     
     if (!dbName || !clName || !path) {
         return new ResultData('参数不完整')
@@ -104,51 +62,18 @@ class Document extends Ctrl {
     let filename = _.get(fsConfig, ['local', 'rootDir'], '') + '/upload/' + path
     if (!fs.existsSync(filename)) return new ResultFault('指定的文件不存在')
 
-    let rst = await this._importToCon(dbName, clName, filename)
+    let options = {}
+    if (checkRepeatColumns) {
+      options.unrepeat = {}
+      options.unrepeat.columns = checkRepeatColumns.split(',')
+      options.unrepeat.keepFirstRepeatData = keepFirstRepeatData ? keepFirstRepeatData : false
+    }
+    let rst = await this._importToColl(dbName, clName, filename, options)
 
     if (rst[0] === true) {
-      return new ResultData(rst[1])
+      return new ResultData("ok")
     } else {
       return new ResultFault(rst[1])
-    }
-  }
-  /**
-   * 
-   */
-  async _importToCon(dbName, clName, filename) {
-    if (!fs.existsSync(filename)) return [ false, '指定的文件不存在']
-
-    const xlsx = require('xlsx')
-    const wb = xlsx.readFile(filename)
-    const firstSheetName = wb.SheetNames[0]
-    const sh = wb.Sheets[firstSheetName]
-    const json = xlsx.utils.sheet_to_json(sh)
-
-    const client = await Context.mongoClient()
-    const table = await modelMgdb.getSchemaByCollection(dbName, clName)
-    if (!table.schema) {
-      return [false, '指定的集合没有指定集合列']
-    }
-    let columns = table.schema.body.properties
-
-    const jsonRawRows = json.map(row => {
-      let newRow = {}
-      for (const k in columns) {
-        let column = columns[k]
-        newRow[k] = row[column.title]
-      }
-      return newRow
-    })
-    
-    try {
-      return client
-      .db(dbName)
-      .collection(clName)
-      .insertMany(jsonRawRows)
-      .then(() => [true, jsonRawRows] )
-    } catch (err) {
-      logger.warn('Document.insertMany', err)
-      return [false, err.message]
     }
   }
   /**
@@ -157,44 +82,28 @@ class Document extends Ctrl {
   async export() {
     let { db: dbName, cl: clName } = this.request.query
 
-    const client = await Context.mongoClient()
+    const client = this.mongoClient
     // 集合列
-    const table = await modelMgdb.getSchemaByCollection(dbName, clName)
-    if (!table.schema) {
+    let columns = await modelMgdb.getSchemaByCollection(dbName, clName)
+    if (!columns) {
       return new ResultFault('指定的集合没有指定集合列')
     }
-    let columns = table.schema.body.properties
     // 集合数据
     let data = await client
       .db(dbName)
       .collection(clName)
       .find()
       .toArray()
-    
-    const xlsx = require('xlsx')
-    const wb = xlsx.utils.book_new()
-    const ws = xlsx.utils.json_to_sheet(
-      data.map(row => {
-        let row2 = {}
-        for (const k in columns) {
-          let column = columns[k]
-          row2[column.title] = row[k]
-        }
-        return row2
-      })
-    )
-    xlsx.utils.book_append_sheet(wb, ws, 'Sheet1')
 
-    let path = _.get(fsConfig, ['local', 'outPath'], '')
-    if (!path) path = process.cwd() + "/public"
+    const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
+    let rst = ExcelCtrl.export(columns, data, clName)
 
-    if (!fs.existsSync(path)) {
-      fs.mkdirSync(path)
+    if (rst[0] === false) {
+      return new ResultFault(rst[1])
     }
-    let filePath = path + '/' + clName + '.xlsx'
-    xlsx.writeFile(wb, filePath)
+    rst = rst[1]
 
-    return new ResultData(filePath.replace(path + '/', ""))
+    return new ResultData(rst)
   }
   /**
    * 指定数据库下批量新建文档
@@ -203,22 +112,10 @@ class Document extends Ctrl {
     return new ResultData('指定数据库下批量新建文档')
   }
   /**
-   *
-   */
-  async remove() {
-    const { db: dbName, cl: clName, id } = this.request.query
-    const client = await Context.mongoClient()
-    return client
-      .db(dbName)
-      .collection(clName)
-      .deleteOne({ _id: ObjectId(id) })
-      .then(result => new ResultData(result.result))
-  }
-  /**
    * 剪切数据到指定库
    */
   async move() {
-    const { oldDb, oldCl, newDb, newCl } = this.request.query
+    const { oldDb, oldCl, newDb, newCl, transforms = 'plugins/unrepeat' } = this.request.query
     if (!oldDb || !oldCl || !newDb || !newCl) {
       return new ResultFault("参数不完整")
     }
@@ -226,111 +123,132 @@ class Document extends Ctrl {
     if (!docIds || !Array.isArray(docIds) || docIds.length == 0) {
       return new ResultFault("没有要移动的数据")
     }
-    let docIds2 = []
-    docIds.forEach( id => {
-      docIds2.push(new ObjectId(id))
-    })
 
-    //获取指定集合的列
-    let newClObj = await modelMgdb.getSchemaByCollection(newDb, newCl)
-    if (!newClObj || !newClObj.schema) return new ResultFault("指定的集合不存在")
-    let newClSchema = newClObj.schema.body.properties
-
-    // 查询获取旧数据
-    let find = {_id:{$in: docIds2}}
-    let fields = {}
-    // for (const k in newClSchema) {
-    //   fields[k] = 1
-    // }
-    let oldDocus = await modelMgdb.getDocumentByCollection(oldDb, oldCl, find, fields)
-    if (oldDocus[0] === false) {
-      return new ResultFault(oldDocus[1])
-    }
-    oldDocus = oldDocus[1]
-
-    // 插入到指定集合中,补充没有的数据
-    let newDocs = oldDocus.map( doc => {
-      let newd = { _id: doc._id}
-      for (const k in newClSchema) {
-        if (typeof doc[k] === "undefined") {
-          newd[k] = ''
-        } else {
-          newd[k] = doc[k]
-        }
-      }
-      return newd
-    })
-
-    // 插件
-    if (fs.existsSync(process.cwd() + "/config/plugins.js")) {
-      let { transformDoc } = require(process.cwd() + "/config/plugins")
-      if (Array.isArray(transformDoc)) {
-        for (const tf of transformDoc) {
-          if (fs.existsSync(process.cwd() + "/plugins/" + tf[0] + ".js")) {
-            let func = require(process.cwd() + "/plugins/" + tf[0])
-            newDocs = await func(newDocs, tf, newDb + ":" + newCl)
-          }
-        }
-      }
-    }
-
-    if (newDocs.length == 0) {
-      return new ResultFault("没有选择数据或为重复数据")
-    }
-    // 去除newDocs的_id
-    let newDocs2 = (JSON.parse(JSON.stringify(newDocs))).map(nd => {
-      delete nd._id
-      return nd
-    })
-    const client = await Context.mongoClient()
-    const clNew = client.db(newDb).collection(newCl)
-    let rst = await clNew
-                .insertMany(newDocs2)
-                .then( rst => [true, rst])
-                .catch( err => [false, err.toString()] )
-    if (rst[0] === false) {
-      return new ResultFault("数据插入指定表错误: " + rst[1])
-    }
+    let options = {}
+    options.transforms = transforms
+    let rst = await this.cutDocs(oldDb, oldCl, newDb, newCl, docIds, options)
+    if (rst[0] === false) return new ResultFault(rst[1])
     rst = rst[1]
-    if (rst.insertedCount != newDocs.length) {
-      Object.keys(rst.insertedIds).forEach( async (k) => {
-        let newId = rst.insertedIds[k]
-        await clNew.deleteOne({_id: new ObjectId(newId)})
-      })
-      return new ResultFault('插入数据数量错误需插入：' + newDocs.length + "；实际插入：" + rst.insertedCount)
-    }
-    
-    // 删除旧数据
-    let newDocIds = []
-    newDocs.forEach( nd => {
-      newDocIds.push(new ObjectId(nd._id))
-    })
-    const clOld = client.db(oldDb).collection(oldCl)
-    let rst2 = await clOld
-      .deleteMany({_id:{$in: newDocIds}})
-      .then( rst => [true, rst])
-      .catch( err => [false, err.toString()] )
 
-    if (rst2[0] === false) {
-      return new ResultFault('数据以到指定集合中，但删除旧数据时失败')
-    }
-    rst2 = rst2[1]
-
-    return new ResultData(rst2.result) 
+    let data = { planMoveTotal: rst.planMoveTotal, failMoveTotal: rst.planMoveTotal - rst.rstDelOld.result.n, factMoveTotal: rst.rstDelOld.result.n }
+    return new ResultData(data)
   }
   /**
-   * 更新指定数据库指定集合下的文档
+   *  根据规则获取数据
    */
-  async update() {
-    const { db: dbName, cl: clName, id } = this.request.query
-    let doc = this.request.body
-    doc = _.omit(doc, ['_id'])
-    const client = await Context.mongoClient()
-    return client
-      .db(dbName)
-      .collection(clName)
-      .updateOne({ _id: ObjectId(id) }, { $set: doc })
-      .then(() => new ResultData(doc))
+  async getDocsByRule() {
+    let { ruleDb, ruleCl, db, cl, markResultColumn = "import_status", planTotalColumn = "need_sum" } = this.request.query
+    if ( !ruleDb || !ruleCl || !db || !cl ) return new ResultFault('参数不完整')
+    
+    // 获取规则表表头
+    let schemas = await modelMgdb.getSchemaByCollection(ruleDb, ruleCl)
+    if (!schemas) {
+      return new ResultFault('指定的集合没有指定集合列')
+    }
+    if (markResultColumn && !schemas[markResultColumn]) return new ResultFault('需求表缺少完成状态（' + markResultColumn + '）列')
+    if (planTotalColumn && !schemas[planTotalColumn]) return new ResultFault('需求表缺少需求数量（' + planTotalColumn + '）列')
+
+    schemas.exist_total = {type: "string", title: "匹配总数"}
+
+    //取出规则
+    const client = this.mongoClient
+    let rules = await client.db(ruleDb).collection(ruleCl).find().toArray()
+    if (rules.length == 0) return new ResultFault("未指定规则")
+
+    let data = await this.getDocsByRule2(db, cl, rules, planTotalColumn)
+    if (data[0] === false) return new ResultFault(data[1])
+
+    data = data[1]
+    let failed = []
+    let passed = []
+    for (const val of data) {
+        if (val.code != 0){
+          failed.push(val)
+        } else {
+          passed.push(val)
+        }
+    }
+
+    return new ResultData({schemas, failed, passed}) 
+  }
+  /**
+   * 根据规则替换数据
+   */
+  async replaceDocsByRule() {
+    let { db, cl } = this.request.query
+    let { rule, dels } = this.request.body
+
+    dels = dels.join(";")
+    rule.byId = "notin," + dels
+    let rules = [rule]
+    let data = await this.getDocsByRule2(db, cl, rules)
+    if (data[0] === false) return new ResultFault(data[1])
+
+    data = data[1]
+    let failed = []
+    let passed = []
+    for (const val of data) {
+        if (val.code != 0){
+          failed.push(val)
+        } else {
+          passed.push(val)
+        }
+    }
+
+    return new ResultData({failed, passed})
+  }
+  /**
+   * 根据规则迁移数据 
+   */
+  async moveByRule() {
+    let { ruleDb, ruleCl, oldDb, oldCl, newDb, newCl, markResultColumn = "import_status" } = this.request.query
+    if ( !ruleDb || !ruleCl || !oldDb || !oldCl || !newDb || !newCl) {
+      return new ResultFault("参数不完整")
+    }
+
+    let docsByRule = this.request.body
+    if (!docsByRule || !Array.isArray(docsByRule) || docsByRule.length == 0) {
+      return new ResultFault("没有要移动的数据")
+    }
+
+    const client = this.mongoClient
+    let cl = client.db(ruleDb).collection(ruleCl)
+    let moveRst = docsByRule.map( async value => {
+      let ruleId = value.ruleId
+      let docIds = value.docIds
+      let rst = await this.cutDocs(oldDb, oldCl, newDb, newCl, docIds)
+      if (rst[0] === false) {
+        // 将结果存入需求表中
+        if (markResultColumn) {
+          let set = {}
+          set[markResultColumn] = "失败：" + rst[1]
+          await cl.updateOne({ _id: ObjectId(ruleId) }, { $set: set })
+        }
+        return { ruleId: ruleId, code: 500, msg: rst[1] }
+      }
+
+      rst = rst[1]
+      if (rst.planMoveTotal != rst.rstDelOld.result.n) {
+        if (markResultColumn) {
+          let set = {}
+          set[markResultColumn] = "异常：需求数量" + rst.planMoveTotal + "与实际迁移数量" + rst.rstDelOld.result.n + "不符"
+          await cl.updateOne({ _id: ObjectId(ruleId) }, { $set: set })
+        }
+        return { ruleId: ruleId, code: 500, msg: "需求数量" + rst.planMoveTotal + "与实际迁移数量" + rst.rstDelOld.result.n + "不符" }
+      }
+
+      if (markResultColumn) {
+        let set = {}
+        set[markResultColumn] = "成功"
+        await cl.updateOne({ _id: ObjectId(ruleId) }, { $set: set })
+      }
+
+      return { ruleId: ruleId, code: 0, msg: "成功" }
+    })
+
+    return Promise.all(moveRst).then( rst => {
+      return new ResultData(rst)
+    })
   }
 }
 module.exports = Document

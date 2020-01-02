@@ -12,12 +12,11 @@
   "license": "MIT",
   "dependencies": {
     "glob": "^7.1.6",
-    "koa-send": "^5.0.0",
     "lodash": "^4.17.15",
     "log4js": "^6.1.0",
     "mongodb": "^3.3.4",
+    "redis": "^2.8.0",
     "tms-db": "^0.0.8",
-    "tms-koa": "^0.0.26",
-    "xlsx": "^0.15.3"
+    "tms-koa": "^0.0.28"
   }
 }

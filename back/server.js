@@ -8,8 +8,12 @@ Context.init()
 const { TmsKoa } = require('tms-koa')
 
 const tmsKoa = new TmsKoa()
+// webApi
+let router2 = require('./api/router')
+let apiController = router2.routes()
+// plugins
+// let router3 = require('./plugins/router')
+// let plugController = router3.routes()
 
-// 下载
-let router = require('./download/router')
-let beforeController = router.routes()
-tmsKoa.startup({ beforeController: [ beforeController ] })
+// tmsKoa.startup({ beforeController: [ apiController, plugController ] })
+tmsKoa.startup({ beforeController: [ apiController ] })
