@@ -1,15 +1,15 @@
 module.exports = {
-  port: 3630,
+  port: 3000,
   name: 'tms-mongodb-web-back',
   router: {
     auth: {
-      prefix: '/mgdb/auth' // 接口调用url的前缀
+      prefix: 'auth' // 接口调用url的前缀
     },
     controllers: {
-      prefix: '/mgdb/api' // 接口调用url的前缀，例如：/api
+      prefix: 'api' // 接口调用url的前缀，例如：/api
     },
-    download: {
-      prefix: '/mgdb/download' // 接口调用url的前缀
+    plugins: {
+      prefix: 'plugin' // 接口调用url的前缀
     }
   },
   tmsTransaction: false

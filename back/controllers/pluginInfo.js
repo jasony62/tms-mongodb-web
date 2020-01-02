@@ -6,7 +6,7 @@ class PluginInfo extends Ctrl {
     super(...args)
   }
   /**
-   * 获取集合页面插件
+   * 获取所有插件
    */
   getPlugins() {
     if (!fs.existsSync(process.cwd() + "/config/plugins.js")) {
