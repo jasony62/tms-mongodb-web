@@ -90,7 +90,7 @@ class DocBase extends Ctrl {
     async cutDocs(oldDb, oldCl, newDb, newCl, docIds, options = {}) {
         //获取指定集合的列
         let newClSchema = await modelMgdb.getSchemaByCollection(newDb, newCl)
-        if (!newClSchema) return [false, "指定的集合不存在"]
+        if (!newClSchema) return [false, "指定的集合未指定集合列"]
 
         // 查询获取旧数据
         let fields = {}
