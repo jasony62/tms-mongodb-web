@@ -37,7 +37,7 @@
             <el-button type="text" size="mini" @click="editDb(scope.row)"
               >修改</el-button
             >
-            <el-button type="text" size="mini" @click="removeDb(scope.row)"
+            <el-button type="text" size="mini" @click="handleDb(scope.row)"
               >删除</el-button
             >
           </template>
@@ -57,7 +57,7 @@
             <el-button type="text" size="mini" @click="editSchema(scope.row)"
               >修改</el-button
             >
-            <el-button type="text" size="mini" @click="removeSchema(scope.row)"
+            <el-button type="text" size="mini" @click="handleSchema(scope.row)"
               >删除</el-button
             >
           </template>
@@ -77,17 +77,9 @@
 
 <script>
 import Vue from 'vue'
-import { mapState } from 'vuex'
+import { mapState, mapMutations, mapActions } from 'vuex'
 import { Frame, Flex } from 'tms-vue-ui'
 Vue.use(Frame).use(Flex)
-import { Form, RadioGroup, RadioButton, Table, TableColumn } from 'element-ui'
-Vue.use(Form)
-  .use(RadioGroup)
-  .use(RadioButton)
-  .use(Table)
-  .use(TableColumn)
-import { Button } from 'element-ui'
-Vue.use(Button)
 
 import DbEditor from '../components/DbEditor.vue'
 import SchemaEditor from '../components/SchemaEditor.vue'
@@ -103,17 +95,22 @@ export default {
     ...mapState(['dbs', 'schemas'])
   },
   methods: {
-    // 获取数据库列表
-    listDatabase() {
-      this.$store.dispatch('listDatabase')
-    },
+    ...mapMutations([
+      'appendDatabase',
+      'updateDatabase',
+      'appendSchema',
+      'updateSchema'
+    ]),
+    ...mapActions([
+      'listDatabase',
+      'removeDb',
+      'listSchema',
+      'removeSchema'
+    ]),
     createDb() {
       const editor = new Vue(DbEditor)
       editor.open('create').then(newDb => {
-        this.$store.commit({
-          type: 'appendDatabase',
-          db: newDb
-        })
+        this.appendDatabase({db: newDb})
       })
     },
     editDb(db) {
@@ -122,25 +119,18 @@ export default {
         Object.keys(newDb).forEach(k => {
           Vue.set(db, k, newDb[k])
         })
-        this.$store.commit({
-          type: 'updateDatabase',
-          db: newDb
-        })
+        this.updateDatabase({db: newDb})
       })
     },
-    removeDb(db) {
-      this.$store.dispatch({ type: 'removeDb', db })
-    },
-    listSchema() {
-      this.$store.dispatch('listSchema')
+    handleDb(db) {
+      this.$customeConfirm('数据库', () => {
+        return this.removeDb({db})
+      })
     },
     createSchema() {
       const editor = new Vue(SchemaEditor)
       editor.open('create').then(newSchema => {
-        this.$store.commit({
-          type: 'appendSchema',
-          schema: newSchema
-        })
+        this.appendSchema({schema: newSchema})
       })
     },
     editSchema(schema) {
@@ -149,15 +139,14 @@ export default {
         Object.keys(newSchema).forEach(k => {
           this.$set(schema, k, newSchema[k])
         })
-        this.$store.commit({
-          type: 'updateSchema',
-          schema: newSchema
-        })
+        this.updateSchema({schema: newSchema})
       })
     },
-    removeSchema(schema) {
-      this.$store.dispatch({ type: 'removeSchema', schema })
-    }
+    handleSchema(schema) {
+      this.$customeConfirm('列定义', () => {
+        return this.removeSchema({schema})
+      })
+    },
   },
   mounted() {
     this.listDatabase()

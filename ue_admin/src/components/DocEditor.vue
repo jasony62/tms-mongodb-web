@@ -1,19 +1,10 @@
 <template>
-  <el-dialog
-    :visible.sync="dialogVisible"
-    :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal"
-  >
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <tms-el-json-doc :schema="collection.schema.body" :doc="document" v-on:submit="onJsonDocSubmit"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
-import Vue from 'vue'
-import { Dialog } from 'element-ui'
-Vue.use(Dialog)
-
-//import { TmsElJsonDoc } from 'tms-vue-ui'
-const { TmsElJsonDoc } = require('tms-vue-ui')
+import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
 import apiDoc from '../apis/document'
 
 export default {

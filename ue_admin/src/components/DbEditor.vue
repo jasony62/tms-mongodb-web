@@ -22,14 +22,6 @@
   </el-dialog>
 </template>
 <script>
-import Vue from 'vue'
-import { Dialog, Form, FormItem, Input, Button } from 'element-ui'
-Vue.use(Dialog)
-  .use(Form)
-  .use(FormItem)
-  .use(Input)
-  .use(Button)
-
 import apiDb from '../apis/database'
 
 export default {
