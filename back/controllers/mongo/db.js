@@ -1,8 +1,8 @@
-const { Ctrl, ResultData } = require('tms-koa')
+const DbBase = require('../dbBase')
 
-class Db extends Ctrl {
-  list() {
-    return new ResultData('所有的库')
+class Db extends DbBase {
+  constructor(...args) {
+    super(...args)
   }
 }
 module.exports = Db

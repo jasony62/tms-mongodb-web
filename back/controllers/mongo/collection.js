@@ -1,14 +1,16 @@
-const { Ctrl, ResultData } = require('tms-koa')
+const { ResultData, ResultFault } = require('tms-koa')
+const CollectionBase = require('../collectionBase')
 
-class Collection extends Ctrl {
-  list() {
-    return new ResultData('指定库下所有的集合')
+class Collection extends CollectionBase {
+  constructor(...args) {
+    super(...args)
   }
-  create() {
-    return new ResultData('指定数据库下新建集合')
-  }
-  remove() {
+  /**
+   * 删除指定数据库下的集合
+   */
+  async remove() {
     return new ResultData('删除指定数据库下的集合')
   }
 }
+
 module.exports = Collection
