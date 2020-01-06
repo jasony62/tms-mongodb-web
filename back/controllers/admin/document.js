@@ -1,61 +1,14 @@
-const _ = require('lodash')
-const { Ctrl, ResultData } = require('tms-koa')
-const { Context } = require('../../context')
-const ObjectId = require('mongodb').ObjectId
+const { ResultData, ResultFault } = require('tms-koa')
+const DocBase = require('../documentBase')
 
-class Document extends Ctrl {
-  /**
-   *
-   */
-  async list() {
-    const { db: dbName, cl: clName } = this.request.query
-    const client = await Context.mongoClient()
-    return client
-      .db(dbName)
-      .collection(clName)
-      .find()
-      .toArray()
-      .then(docs => new ResultData(docs))
+const log4js = require('log4js')
+const logger = log4js.getLogger('tms-xlsx-etd')
+
+class Document extends DocBase {
+  constructor(...args) {
+    super(...args)
   }
-  /**
-   *
-   */
-  async create() {
-    const { db: dbName, cl: clName } = this.request.query
-    const doc = this.request.body
-    const client = await Context.mongoClient()
-    return client
-      .db(dbName)
-      .collection(clName)
-      .insertOne(doc)
-      .then(() => new ResultData(doc))
-  }
-  /**
-   *
-   */
-  async update() {
-    const { db: dbName, cl: clName, id } = this.request.query
-    let doc = this.request.body
-    doc = _.omit(doc, ['_id'])
-    const client = await Context.mongoClient()
-    return client
-      .db(dbName)
-      .collection(clName)
-      .updateOne({ _id: ObjectId(id) }, { $set: doc })
-      .then(() => new ResultData(doc))
-  }
-  /**
-   *
-   */
-  async remove() {
-    const { db: dbName, cl: clName, id } = this.request.query
-    const client = await Context.mongoClient()
-    return client
-      .db(dbName)
-      .collection(clName)
-      .deleteOne({ _id: ObjectId(id) })
-      .then(result => new ResultData(result.result))
-  }
+  //
   bulk() {
     return new ResultData('指定数据库下批量新建文档')
   }

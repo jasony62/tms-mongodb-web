@@ -7,6 +7,9 @@ module.exports = {
     },
     controllers: {
       prefix: 'api' // 接口调用url的前缀，例如：/api
+    },
+    plugins: {
+      prefix: 'plugin' // 接口调用url的前缀
     }
   },
   tmsTransaction: false
