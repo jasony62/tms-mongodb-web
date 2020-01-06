@@ -76,30 +76,38 @@ export default new Vuex.Store({
     },
     listDocument({ commit }, payload) {
       const { db, collection } = payload
-      return apis.doc.list(db, collection).then(documents => {
+      return apis.doc.list(db, collection).then(result => {
+        const documents = result.docs
         commit({ type: 'documents', documents })
         return { documents }
       })
     },
     removeDb({ commit }, payload) {
       const { db } = payload
-      apis.db.remove(db).then(() => {
+      return apis.db.remove(db).then(() => {
         commit({ type: 'removeDatabase', db })
-        return { db }
+        // return { db }
       })
     },
     removeSchema({ commit }, playload) {
       const { schema } = playload
       return apis.schema.remove(schema).then(() => {
         commit({ type: 'removeSchema', schema })
-        return { schema }
+        // return { schema }
       })
     },
     removeCollection({ commit }, payload) {
       const { db, collection } = payload
-      apis.collection.remove(db, collection.name).then(() => {
+      return apis.collection.remove(db, collection.name).then(() => {
         commit({ type: 'removeCollection', collection })
-        return { collection }
+        // return { collection }
+      })
+    },
+    removeDocument({ commit }, payload) {
+      const { dbName, clName, id, document } = payload
+      return apis.doc.remove(dbName, clName, id).then(() => {
+        commit({ type: 'removeDocument', document })
+        // return { document }
       })
     }
   },

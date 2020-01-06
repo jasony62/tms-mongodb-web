@@ -21,7 +21,7 @@
         <el-table-column fixed="right" label="操作" width="180">
           <template slot-scope="scope">
             <el-button size="mini" @click="editDocument(scope.row)">修改</el-button>
-            <el-button size="mini" @click="removeDocument(scope.row)">删除</el-button>
+            <el-button size="mini" @click="handleDocument(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -34,68 +34,61 @@
 
 <script>
 import Vue from 'vue'
-import { mapState } from 'vuex'
+import { mapState, mapMutations, mapActions } from 'vuex'
 import { Frame } from 'tms-vue-ui'
 Vue.use(Frame)
-import { Table, TableColumn, Input, Row, Col, Button } from 'element-ui'
-Vue.use(Table)
-  .use(TableColumn)
-  .use(Input)
-  .use(Row)
-  .use(Col)
-  .use(Button)
 
 import DocEditor from '../components/DocEditor.vue'
-import { collection as apiCol, doc as apiDoc } from '../apis'
+import { collection as apiCol } from '../apis'
 
 export default {
   name: 'Collection',
   props: ['dbName', 'clName'],
   data() {
     return {
-      collection: { schema: { body: { properties: {} } } }
+      collection: { schema: { body: { properties: [] } } }
     }
   },
   computed: {
     ...mapState(['documents'])
   },
   methods: {
-    listDocument() {
-      this.$store.dispatch({
-        type: 'listDocument',
-        db: this.dbName,
-        collection: this.clName
-      })
-    },
+    ...mapMutations([
+      'appendDocument',
+      'updateDocument'
+    ]),
+    ...mapActions([
+      'listDocument',
+      'removeDocument'
+    ]),
     createDocument() {
       let editor = new Vue(DocEditor)
       editor.open(this.dbName, this.collection).then(newDoc => {
-        this.$store.commit({
-          type: 'appendDocument',
-          document: newDoc
-        })
+        this.appendDocument({document: newDoc})
       })
     },
     editDocument(doc) {
       let editor = new Vue(DocEditor)
       editor.open(this.dbName, this.collection, doc).then(newDoc => {
         Object.assign(doc, newDoc)
-        this.$store.commit({
-          type: 'updateDocument',
-          document: newDoc
-        })
+        this.updateDocument({document: newDoc})
       })
     },
-    removeDocument(document) {
-      apiDoc.remove(this.dbName, this.clName, document._id).then(() => {
-        this.$store.commit({ type: 'removeDocument', document })
+    handleDocument(document) {
+      this.$customeConfirm('数据库', () => {
+        return this.removeDocument({
+          dbName: this.dbName,
+          clName: this.clName,
+          id: document._id,
+          document
+        })
       })
     }
   },
   mounted() {
     apiCol.byName(this.dbName, this.clName).then(collection => {
       this.collection = collection
-      this.listDocument()
+      this.listDocument({db: this.dbName, collection: this.clName})
     })
   }
 }

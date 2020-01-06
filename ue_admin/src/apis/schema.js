@@ -1,6 +1,6 @@
 import { TmsAxios } from 'tms-vue'
 
-const base = '/api/admin/schema'
+const base = '/mgdb/api/admin/schema'
 
 export default {
   list() {
