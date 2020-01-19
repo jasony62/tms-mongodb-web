@@ -5,7 +5,7 @@
     :leftWidth="'20%'"
   >
     <template v-slot:header>
-      <router-link to="/">返回数据库{{ dbName }}</router-link>
+      <router-link to="/home">返回数据库{{ dbName }}</router-link>
     </template>
     <template v-slot:center>
       <el-table :data="collections" stripe style="width: 100%">
@@ -35,7 +35,7 @@
               >修改</el-button
             >
             <el-button
-              @click="removeCollection(scope.row)"
+              @click="handleCollection(scope.row)"
               type="text"
               size="mini"
               >删除</el-button
@@ -52,13 +52,9 @@
 
 <script>
 import Vue from 'vue'
-import { mapState } from 'vuex'
+import { mapState, mapMutations, mapActions } from 'vuex'
 import { Frame, Flex } from 'tms-vue-ui'
 Vue.use(Frame).use(Flex)
-import { Table, TableColumn, Button } from 'element-ui'
-Vue.use(Table)
-  .use(TableColumn)
-  .use(Button)
 import CollectionEditor from '../components/CollectionEditor.vue'
 
 export default {
@@ -71,16 +67,18 @@ export default {
     return {}
   },
   methods: {
-    listCollection() {
-      this.$store.dispatch({ type: 'listCollection', db: this.dbName })
-    },
+    ...mapMutations([
+      'appendCollection',
+      'updateCollection'
+    ]),
+    ...mapActions([
+      'listCollection',
+      'removeCollection'
+    ]),
     createCollection() {
       let editor = new Vue(CollectionEditor)
       editor.open('create', this.dbName).then(newCollection => {
-        this.$store.commit({
-          type: 'appendCollection',
-          collection: newCollection
-        })
+        this.appendCollection({collection: newCollection})
       })
     },
     editCollection(collection) {
@@ -89,22 +87,17 @@ export default {
         Object.keys(newCollection).forEach(k => {
           Vue.set(collection, k, newCollection[k])
         })
-        this.$store.commit({
-          type: 'updateCollection',
-          collection
-        })
+        this.updateCollection({collection})
       })
     },
-    removeCollection(collection) {
-      this.$store.dispatch({
-        type: 'removeCollection',
-        db: this.dbName,
-        collection
+    handleCollection(collection) {
+      this.$customeConfirm('集合', () => {
+        return this.removeCollection({db: this.dbName, collection})
       })
-    }
+    },
   },
   mounted() {
-    this.listCollection()
+    this.listCollection({db: this.dbName})
   }
 }
 </script>

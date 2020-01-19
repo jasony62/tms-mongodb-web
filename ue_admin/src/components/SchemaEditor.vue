@@ -20,25 +20,8 @@
   </el-dialog>
 </template>
 <script>
-import Vue from 'vue'
 import { JsonSchema as TmsJsonSchema } from 'tms-vue-ui'
 import apiSchema from '../apis/schema'
-import {
-  Dialog,
-  Form,
-  FormItem,
-  Input,
-  Button,
-  Tabs,
-  TabPane
-} from 'element-ui'
-Vue.use(Dialog)
-  .use(Form)
-  .use(FormItem)
-  .use(Input)
-  .use(Button)
-  .use(Tabs)
-  .use(TabPane)
 
 export default {
   name: 'SchemaEditor',

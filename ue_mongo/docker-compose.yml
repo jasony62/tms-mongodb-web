@@ -1,0 +1,10 @@
+version: '3.7'
+services:
+   app:
+     image: 192.168.253.28/pool-mongo/pool-mongo:latest
+     container_name: pool-mongo
+     ports:
+       - '3930:80'
+     volumes:
+       - "/ablity/portal/common/config/pool/pool-mongo/nginx.conf:/usr/local/nginx/conf/nginx.conf"
+     restart: always

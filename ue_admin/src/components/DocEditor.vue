@@ -4,10 +4,6 @@
   </el-dialog>
 </template>
 <script>
-import Vue from 'vue'
-import { Dialog } from 'element-ui'
-Vue.use(Dialog)
-
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
 import apiDoc from '../apis/document'
 
