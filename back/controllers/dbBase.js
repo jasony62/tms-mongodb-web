@@ -33,9 +33,17 @@ class DbBase extends Ctrl {
     let info = this.request.body
     info.type = 'database'
 
+    //格式化库名
+    if (info.name.search(/[\u4E00-\u9FA5]|[\uFE30-\uFFA0]/gi) !== -1) return new ResultFault("库名不能包含中文")
+    info.name = info.name.replace(/\s/g,"")
+    if (!info.name) return new ResultFault("库名不能为空")
+    if (!isNaN(info.name)) return new ResultFault("库名不能全为数字")
+
     const client = this.mongoClient
     let cl = client.db('tms_admin').collection('mongodb_object')
 
+    // 查询库名是否是mongodb自带数据库
+    if (["admin", "config", "local", "tms_admin"].includes(info.name)) return new ResultFault("不能用mongodb自带数据库作为库名")
     // 查询是否存在同名库
     let dbs = await cl.find({ name: info.name, type: 'database' }).toArray()
     if (dbs.length > 0) {
@@ -59,8 +67,7 @@ class DbBase extends Ctrl {
       .collection('mongodb_object')
       .updateOne(
         { name: dbName, type: 'database' },
-        { $set: info },
-        { upsert: true }
+        { $set: info }
       )
       .then(() => new ResultData(info))
   }

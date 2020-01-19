@@ -55,6 +55,18 @@ class CollectionBase extends Ctrl {
     })
   }
   /**
+   *  检查集合名
+   */
+  _checkClName(clName) {
+    if (clName.search(/[\u4E00-\u9FA5]|[\uFE30-\uFFA0]/gi) !== -1) return [false, "集合名不能包含中文"]
+
+    let newName = clName.replace(/\s/g,"")
+    if (!newName) return [false, "集合名不能为空"]
+    if (!isNaN(newName)) return [false, "集合名不能全为数字"]
+
+    return [true, newName]
+  }
+  /**
    * 指定数据库下新建集合
    */
   async create() {
@@ -62,6 +74,12 @@ class CollectionBase extends Ctrl {
     const info = this.request.body
     info.type = 'collection'
     info.database = dbName
+
+    // 检查集合名
+    let newName = this._checkClName(info.name)
+    if (newName[0] === false) return new ResultFault(newName[1])
+    info.name = newName[1] 
+
     const client = this.mongoClient
     let cl = client.db(dbName)
 
@@ -83,34 +101,82 @@ class CollectionBase extends Ctrl {
   async update() {
     let { db: dbName, cl: clName } = this.request.query
     let info = this.request.body
-    info = _.omit(info, ['_id', 'name', 'database'])
+    
+    // 格式化集合名
+    let newClName = this._checkClName(info.name)
+    if (newClName[0] === false) return new ResultFault(newClName[1])
+    newClName = newClName[1] 
+
+    info = _.omit(info, ['_id', 'name', 'database', 'type'])
     const client = this.mongoClient
     const cl = client.db('tms_admin').collection('mongodb_object')
-    return cl
-      .updateOne(
-        { database: dbName, name: clName, type: 'collection' },
-        { $set: info },
-        { upsert: true }
-      )
-      .then(() => new ResultData(info))
+    let rst = await cl
+        .updateOne(
+          { database: dbName, name: clName, type: 'collection' },
+          { $set: info },
+          { upsert: true }
+        )
+        .then((rst) => [true, rst.result])
+        .catch(err => [false, err.message])
+        
+    if (rst[0] === false) return new ResultFault(rst[1])
+    if (newClName === clName) {
+      return new ResultData(rst[1])
+    }
+    // 更改集合名
+    let rst2 = await this._rename(dbName, clName, newClName)
+
+    if (rst2[0] === true) 
+      return new ResultData(rst2[1])
+    else 
+      return new ResultFault(rst2[1])
+
   }
   /**
    * 修改集合名称
    */
   async rename() {
     let { db: dbName, cl: clName, newName } = this.request.query
+
+    //格式化集合名
+    newName = this._checkClName(info.name)
+    if (newName[0] === false) return new ResultFault(newName[1])
+    newName = newName[1] 
+
+    let rst = await this._rename(dbName, clName, newName)
+
+    if (rst[0] === true) 
+      return new ResultData(rst[1])
+    else 
+      return new ResultFault(rst[1])
+  }
+  /**
+   * 
+   */
+  async _rename(dbName, clName, newName) {
     const client = this.mongoClient
-    const db = client.db(dbName)
-    return db
-      .renameCollection(clName, newName)
-      .then(() => new ResultData('ok'))
-      .catch(err => Promise.reject(new ResultFault(err.message)))
+    // 检查是否已存在同名集合
+    let clAdmin = client.db('tms_admin').collection('mongodb_object')
+    let equalNameSum = await clAdmin.find({name: newName, database: dbName, type: "collection"}).count()
+    if (equalNameSum !== 0) return [ false, "集合名修改失败！已存在同名集合"]
+
+    // 修改集合名
+    let clDb = client.db(dbName).collection(clName)
+    return clDb
+        .rename(newName)
+        .then(() => clAdmin.updateOne({name: clName, database: dbName, type: "collection"}, {$set: {name: newName}}))
+        .then((rst) => [true, rst.result])
+        .catch(err => [false, err.message])
   }
   /**
    * 删除集合
    */
   async remove() {
     let { db: dbName, cl: clName } = this.request.query
+
+    // 如(果是系统自带集合不能删除
+    if ((dbName === "admin" && clName === "system.version") || (dbName === "config" && clName === "system.sessions") || (dbName === "local" && clName === "startup_log") || (dbName === "tms_admin" && clName === "mongodb_object")) return new ResultFault("系统自带集合，不能删除")
+
     const client = this.mongoClient
     const db = client.db('tms_admin')
     return db
@@ -118,7 +184,7 @@ class CollectionBase extends Ctrl {
       .deleteOne({ name: clName, type: 'collection' })
       .then(() => client.db(dbName).dropCollection(clName))
       .then(() => new ResultData('ok'))
-      .catch(err => Promise.reject(new ResultFault(err.message)))
+      .catch(err => new ResultFault(err.message))
   }
 }
 

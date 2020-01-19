@@ -50,25 +50,114 @@ class DocBase extends Ctrl {
       return new ResultData(data)
     }
     /**
-     *
+     * 组装 查询条件
+     */
+    _assembleFind(filter, like = true) {
+        let find = {}
+        let fKeys = Object.keys(filter)
+        if (like === true) {
+            for (let fk of fKeys) {
+                let val = filter[fk]
+                let find2
+                if (typeof val === "object" && val.keyword) {
+                    if (val.feature === "start") {
+                        find2 = { $regex: "^" + val.keyword }
+                    } else if (val.feature === "notStart") {
+                        find2 = {$not: { $regex: "^" + val.keyword }}
+                    } else if (val.feature === "end") {
+                        find2 = { $regex: "^.*" + val.keyword + "$" }
+                    } else if (val.feature === "notEnd") {
+                        find2 = {$not: { $regex: "^.*" + val.keyword + "$" }}
+                    } else if (val.feature === "notLike") {
+                        find2 = { $not: {$regex: val.keyword} }
+                    } else {
+                        find2 = { $regex : val.keyword }
+                    }
+                } else {
+                    find2 = { $regex : val }
+                }
+                
+                find[fk] = find2
+            }
+        } else {
+            for (let fk of fKeys) {
+                find[fk] = filter[fk]
+            }
+        }
+
+        return find
+    }
+    /**
+     * 模糊搜索数据
+     */
+    async listDocs(dbName, clName, filter, page = null, size = null, like = true) {
+        let find = {}
+        if (filter) {
+            find = this._assembleFind(filter, like)
+        }
+
+        const client = this.mongoClient
+        let cl = client.db(dbName).collection(clName)
+        let data = {}
+        if (page && page > 0 && size && size > 0) {
+            let skip = (parseInt(page) - 1) * parseInt(size)
+            let limit = parseInt(size)
+            data.docs = await cl
+                .find(find)
+                .skip(skip)
+                .limit(limit)
+                .toArray()
+                .then(docs => docs)
+        } else {
+            data.docs = await cl
+                .find(find)
+                .toArray()
+                .then(docs => docs)
+        }
+        
+        data.total = await cl
+            .find(find)
+            .count()
+
+        return [true, data]
+    }
+    /**
+     * 批量删除
      */
     async removeMany() {
-      const { db: dbName, cl: clName } = this.request.query
-      const { ids } = this.request.body
-      const client = this.mongoClient
-  
-      let docIds = []
-      ids.forEach( id => {
-        docIds.push(new ObjectId(id))
-      })
-  
-      return client
-        .db(dbName)
-        .collection(clName)
-        .deleteMany({_id:{$in: docIds}})
-        .then(result => {
-          return new ResultData(result.result)
-        })
+        const { db: dbName, cl: clName } = this.request.query
+        const { docIds, filter } = this.request.body
+        const client = this.mongoClient
+        let cl = client.db(dbName).collection(clName)
+        
+        if (docIds && docIds.length > 0) { // 按选中删除
+            let docIds2 = []
+            docIds.forEach( id => {
+                docIds2.push(new ObjectId(id))
+            })
+            
+            return cl
+                .deleteMany({_id:{$in: docIds2}})
+                .then(result => {
+                    return new ResultData(result.result)
+                })
+        } else if (typeof filter === "string" && _.toUpper(filter) === "ALL") { // 清空表
+            return cl
+                .deleteMany({_id:{$ne: ""}})
+                .then(result => {
+                    return new ResultData(result.result)
+                })
+        } else if (typeof filter === "object") { // 按条件删除
+            let find = this._assembleFind(filter)
+
+            return cl
+                .deleteMany(find)
+                .then(result => {
+                    return new ResultData(result.result)
+                })
+        } else {
+            return new ResultData({n: 0, ok: 0})
+        }
     }
     /**
      * 更新指定数据库指定集合下的文档
@@ -87,7 +176,7 @@ class DocBase extends Ctrl {
     /**
      *  剪切数据到指定集合中
      */
-    async cutDocs(oldDb, oldCl, newDb, newCl, docIds, options = {}) {
+    async cutDocs(oldDb, oldCl, newDb, newCl, docIds = null, options = {}, oldDocus = null) {
         //获取指定集合的列
         let newClSchema = await modelMgdb.getSchemaByCollection(newDb, newCl)
         if (!newClSchema) return [false, "指定的集合未指定集合列"]
@@ -97,9 +186,12 @@ class DocBase extends Ctrl {
         // for (const k in newClSchema) {
         //   fields[k] = 1
         // }
-        let oldDocus = await modelMgdb.getDocumentByIds(oldDb, oldCl, docIds, fields)
-        if (oldDocus[0] === false) return [ false, oldDocus[1] ]
-        oldDocus = oldDocus[1]
+        if (!oldDocus || oldDocus.length === 0) {
+            if (!docIds || docIds.length === 0) return [false, "没有要移动的数据"]
+            oldDocus = await modelMgdb.getDocumentByIds(oldDb, oldCl, docIds, fields)
+            if (oldDocus[0] === false) return [ false, oldDocus[1] ]
+            oldDocus = oldDocus[1]
+        }
 
         // 插入到指定集合中,补充没有的数据
         let newDocs = oldDocus.map( doc => {
@@ -121,23 +213,21 @@ class DocBase extends Ctrl {
         if (typeof transforms === 'string' && transforms.length !== 0) {
             let transforms2 = transforms.split(',')
             if (fs.existsSync(process.cwd() + "/config/plugins.js")) {
-                let { moveTransformDoc } = require(process.cwd() + "/config/plugins")
-                if (Array.isArray(moveTransformDoc)) {
+                let plugins = require(process.cwd() + "/config/plugins")
+                let moveTransformDoc = _.get(plugins, 'document.transforms.move')
+                if (moveTransformDoc && Array.isArray(moveTransformDoc)) {
                     for (const tf of moveTransformDoc) {
                         //
-                        if (!transforms2.includes(tf[0])) continue
-
-                        if (fs.existsSync(process.cwd() + "/" + tf[0] + ".js")) {
-                            let func = require(process.cwd() + "/" + tf[0])
-                            let options2 = { oldDb, oldCl, newDb, newCl }
-                            newDocs = await func(newDocs, tf, options2)
+                        if (!transforms2.includes(tf.name)) continue
+                        
+                        if (fs.existsSync(process.cwd() + "/" + tf.name + ".js")) {
+                            let func = require(process.cwd() + "/" + tf.name)
+                            newDocs = await func(newDocs, tf)
                         }
                     }
                 }
             }
         }
-
-
 
         // 经过插件后还剩数量
         let afterFilterMoveTotal = newDocs.length
@@ -184,50 +274,6 @@ class DocBase extends Ctrl {
 
         let returnData = { planMoveTotal, afterFilterMoveTotal, rstInsNew: rst, rstDelOld }
         return [true, returnData]
-    }
-    /**
-     * 模糊搜索数据
-     */
-    async listDocs(dbName, clName, filter, page = null, size = null, like = true) {
-        let find = {}
-        if (filter) {
-            let fKey = Object.keys(filter)
-            if (like === true) {
-                fKey.forEach( fk => {
-                    let find2 = { $regex : filter[fk] }
-                    find[fk] = find2
-                })
-            } else {
-                fKey.forEach( fk => {
-                    find[fk] = filter[fk]
-                })
-            }
-        }
-
-        const client = this.mongoClient
-        let cl = client.db(dbName).collection(clName)
-        let data = {}
-        if (page && page > 0 && size && size > 0) {
-            let skip = (parseInt(page) - 1) * parseInt(size)
-            let limit = parseInt(size)
-            data.docs = await cl
-                .find(find)
-                .skip(skip)
-                .limit(limit)
-                .toArray()
-                .then(docs => docs)
-        } else {
-            data.docs = await cl
-                .find(find)
-                .toArray()
-                .then(docs => docs)
-        }
-        
-        data.total = await cl
-            .find(find)
-            .count()
-
-        return [true, data]
     }
     /**
      *  提取excel数据到集合中
@@ -355,14 +401,28 @@ class DocBase extends Ctrl {
     /**
      * 批量修改数据
      */
-    async updateBatch() {
+    async updateMany() {
         let { db:dbName, cl:clName } = this.request.query
         if (!dbName || !clName) return new ResultFault("参数不完整")
 
-        let { filter, columns } = this.request.body
+        let { docIds, filter, columns } = this.request.body
         if (!columns || Object.keys(columns).length === 0) return new ResultFault("没有要修改的列")
 
-        let find = {}
+        let find
+        if (docIds && docIds.length > 0) { // 按选中修改
+            let docIds2 = []
+            docIds.forEach( id => {
+                docIds2.push(new ObjectId(id))
+            })
+            find = {_id:{$in: docIds2}}
+        } else if (filter && typeof filter === "object") { // 按条件修改
+            find = this._assembleFind(filter)
+        } else if (typeof filter === "string" && filter === "ALL") { //修改全部
+            find = {}
+        } else {
+            return new ResultFault("没有要修改的数据")
+        }
+
         let set = {}
         for (const key in columns) {
             set[key] = columns[key]

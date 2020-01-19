@@ -115,22 +115,43 @@ class Document extends DocBase {
    * 剪切数据到指定库
    */
   async move() {
-    const { oldDb, oldCl, newDb, newCl, transforms = 'plugins/unrepeat' } = this.request.query
+    const { oldDb, oldCl, newDb, newCl, transforms, execNum = 100 } = this.request.query
     if (!oldDb || !oldCl || !newDb || !newCl) {
       return new ResultFault("参数不完整")
     }
-    let { docIds } = this.request.body
-    if (!docIds || !Array.isArray(docIds) || docIds.length == 0) {
+    let { docIds, filter } = this.request.body
+    if (!filter && (!docIds || !Array.isArray(docIds) || docIds.length == 0)) {
       return new ResultFault("没有要移动的数据")
+    }
+
+    let docIds2,oldDocus,total
+    if (docIds) {
+      total = docIds.length
+      docIds2 = docIds
+    } else { // 按条件
+      let find = {}
+      if (_.toUpper(filter) !== "ALL") {
+        find = this._assembleFind(filter)
+      }
+      let client = this.mongoClient
+      let cl = client.db(oldDb).collection(oldCl)
+      oldDocus = await cl
+          .find(find)
+          .limit(parseInt(execNum))
+          .toArray()
+      total = await cl
+          .find(find)
+          .count()
     }
 
     let options = {}
     options.transforms = transforms
-    let rst = await this.cutDocs(oldDb, oldCl, newDb, newCl, docIds, options)
+    let rst = await this.cutDocs(oldDb, oldCl, newDb, newCl, docIds2, options, oldDocus)
     if (rst[0] === false) return new ResultFault(rst[1])
     rst = rst[1]
 
-    let data = { planMoveTotal: rst.planMoveTotal, failMoveTotal: rst.planMoveTotal - rst.rstDelOld.result.n, factMoveTotal: rst.rstDelOld.result.n }
+    let spareTotal = total - rst.planMoveTotal
+    let data = { planMoveTotal: rst.planMoveTotal, failMoveTotal: rst.planMoveTotal - rst.rstDelOld.result.n, factMoveTotal: rst.rstDelOld.result.n, total, spareTotal }
     return new ResultData(data)
   }
   /**
@@ -152,7 +173,10 @@ class Document extends DocBase {
 
     //取出规则
     const client = this.mongoClient
-    let rules = await client.db(ruleDb).collection(ruleCl).find().toArray()
+    let find = {}
+    find[planTotalColumn] = { $not: {$in: [null, "", "0"]} }
+    find[markResultColumn] = { $in: [null, ""] }
+    let rules = await client.db(ruleDb).collection(ruleCl).find(find).toArray()
     if (rules.length == 0) return new ResultFault("未指定规则")
 
     let data = await this.getDocsByRule2(db, cl, rules, planTotalColumn)
