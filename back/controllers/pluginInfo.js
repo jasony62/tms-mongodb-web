@@ -9,11 +9,13 @@ class PluginInfo extends Ctrl {
    * 获取集合页面插件
    */
   getPlugins() {
-    if (!fs.existsSync(process.cwd() + "/config/plugins.js")) {
-        return new ResultFault("尚未配置任何插件")
+    let config = {}
+
+    if (fs.existsSync(process.cwd() + "/config/plugins.js")) {
+        let cf = require('../config/plugins')
+        if (typeof cf === "object") config = cf
     }
-    const config = require('../config/plugins')
-    
+
     return new ResultData(config)
   }
 }

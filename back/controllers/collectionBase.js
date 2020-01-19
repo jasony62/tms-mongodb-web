@@ -107,16 +107,15 @@ class CollectionBase extends Ctrl {
     if (newClName[0] === false) return new ResultFault(newClName[1])
     newClName = newClName[1] 
 
-    info = _.omit(info, ['_id', 'name', 'database', 'type'])
-    
     // 查询集合是否存在
     const client = this.mongoClient
     let repeatCls = await client.db(dbName).listCollections({ name: clName}, { nameOnly: true }).toArray()
     if (repeatCls.length === 0) {
       return new ResultFault("指定的集合不存在")
     }
-
+    
     const cl = client.db('tms_admin').collection('mongodb_object')
+    info = _.omit(info, ['_id', 'name', 'database', 'type'])
     let rst = await cl
         .updateOne(
           { database: dbName, name: clName, type: 'collection' },
