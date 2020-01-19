@@ -84,8 +84,8 @@ class CollectionBase extends Ctrl {
     let cl = client.db(dbName)
 
     // 查询是否已存在同名集合
-    let cls = await cl.listCollections({ name: info.name}, { nameOnly: true }).toArray()
-    if (cls.length > 0) {
+    let repeatCls = await cl.listCollections({ name: info.name}, { nameOnly: true }).toArray()
+    if (repeatCls.length > 0) {
       return new ResultFault("已存在同名集合")
     }
 
@@ -108,7 +108,14 @@ class CollectionBase extends Ctrl {
     newClName = newClName[1] 
 
     info = _.omit(info, ['_id', 'name', 'database', 'type'])
+    
+    // 查询集合是否存在
     const client = this.mongoClient
+    let repeatCls = await client.db(dbName).listCollections({ name: clName}, { nameOnly: true }).toArray()
+    if (repeatCls.length === 0) {
+      return new ResultFault("指定的集合不存在")
+    }
+
     const cl = client.db('tms_admin').collection('mongodb_object')
     let rst = await cl
         .updateOne(
