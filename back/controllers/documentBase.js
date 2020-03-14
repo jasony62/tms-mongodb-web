@@ -1,9 +1,12 @@
 const { Ctrl, ResultData, ResultFault, ResultObjectNotFound } = require('tms-koa')
 const fs = require('fs')
-const modelMgdb = require('../models/mgdb')
+const modelBase = require('../models/mgdb/base')
+const modelColl = require('../models/mgdb/collection')
+const modelDocu = require('../models/mgdb/document')
 const ObjectId = require('mongodb').ObjectId
 const _ = require('lodash')
 const { unrepeatByArray } = require('../tms/utilities')
+const TMSCONFIG = require('../config')
 
 class DocBase extends Ctrl {
     constructor(...args) {
@@ -13,14 +16,30 @@ class DocBase extends Ctrl {
      * 指定数据库指定集合下新建文档
      */
     async create() {
-      const { db: dbName, cl: clName } = this.request.query
-      const doc = this.request.body
-      const client = this.mongoClient
-      return client
-        .db(dbName)
-        .collection(clName)
-        .insertOne(doc)
-        .then(() => new ResultData(doc))
+        const { db: dbName, cl: clName } = this.request.query
+        let doc = this.request.body
+        // 加工数据
+        this._beforeProcessByInAndUp(doc, 'insert')
+
+        const client = this.mongoClient
+        return client
+            .db(dbName)
+            .collection(clName)
+            .insertOne(doc)
+            .then( async (r) => {
+                let modelD = new modelDocu()
+                await modelD.dataActionLog(r.ops, "创建", dbName, clName)
+                return new ResultData(doc)
+            })
+    }
+    /**
+     * 对插入到表中的数据进行加工
+     */
+    _beforeProcessByInAndUp(data, type) {
+        let model = new modelBase()
+        model._beforeProcessByInAndUp(data, type)
+
+        return data
     }
     /**
      *
@@ -28,98 +47,82 @@ class DocBase extends Ctrl {
     async remove() {
       const { db: dbName, cl: clName, id } = this.request.query
       const client = this.mongoClient
-      return client
-        .db(dbName)
-        .collection(clName)
+      const cl = client.db(dbName).collection(clName)
+
+      if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === "Y") { // 记录操作日志
+        let data = await cl.findOne({ _id: ObjectId(id) })
+        let modelD = new modelDocu()
+        await modelD.dataActionLog(data, "删除", dbName, clName)
+      }
+
+      return cl
         .deleteOne({ _id: ObjectId(id) })
         .then(result => new ResultData(result.result))
+    }
+    /**
+     *  根据某一列的值分组
+     */
+    async getGroupByColumnVal() {
+        let {  db: dbName, cl: clName, column, page = null, size = null } = this.request.query
+        let { filter } = this.request.body
+
+        const client = this.mongoClient
+        let cl = client.db(dbName).collection(clName)
+
+        let find = {}
+        if (filter) {
+            find = this._assembleFind(filter)
+        }
+        let group = [
+            {$match: find},
+            {$group : {_id : "$" + column, num_tutorial : {$sum : 1}}},
+            {$sort: {_id: 1}}
+        ]
+        if (page && page > 0 && size && size > 0) {
+            let skip = {$skip: (parseInt(page) - 1) * parseInt(size)}
+            let limit = {$limit: parseInt(size)}
+            group.push(skip)
+            group.push(limit)
+        }
+
+        return cl
+            .aggregate(group)
+            .toArray()
+            .then(arr => {
+                let data = []
+                arr.forEach(a => {
+                    let d = {}
+                    d.title = a._id
+                    d.sum = a.num_tutorial
+                    data.push(d)
+                })
+
+                return new ResultData(data)
+            })
     }
     /**
      * 指定数据库指定集合下的文档
      */
     async list() {
-      const { db: dbName, cl: clName, page = null, size = null } = this.request.query
-      const { filter = null } = this.request.body
-  
-      let data = await this.listDocs(dbName, clName, filter, page, size)
-      if (data[0] === false) {
-        return new ResultFault(data[1])
-      }
-      data = data[1]
-  
-      return new ResultData(data)
+        const { db: dbName, cl: clName, page = null, size = null } = this.request.query
+        const { filter = null, orderBy = null } = this.request.body
+    
+        let options = { filter, orderBy }
+        let model = new modelDocu()
+        let data = await model.listDocs(dbName, clName, options, page, size)
+        if (data[0] === false) {
+            return new ResultFault(data[1])
+        }
+        data = data[1]
+    
+        return new ResultData(data)
     }
     /**
      * 组装 查询条件
      */
     _assembleFind(filter, like = true) {
-        let find = {}
-        let fKeys = Object.keys(filter)
-        if (like === true) {
-            for (let fk of fKeys) {
-                let val = filter[fk]
-                let find2
-                if (typeof val === "object" && val.keyword) {
-                    if (val.feature === "start") {
-                        find2 = { $regex: "^" + val.keyword }
-                    } else if (val.feature === "notStart") {
-                        find2 = {$not: { $regex: "^" + val.keyword }}
-                    } else if (val.feature === "end") {
-                        find2 = { $regex: "^.*" + val.keyword + "$" }
-                    } else if (val.feature === "notEnd") {
-                        find2 = {$not: { $regex: "^.*" + val.keyword + "$" }}
-                    } else if (val.feature === "notLike") {
-                        find2 = { $not: {$regex: val.keyword} }
-                    } else {
-                        find2 = { $regex : val.keyword }
-                    }
-                } else {
-                    find2 = { $regex : val }
-                }
-                
-                find[fk] = find2
-            }
-        } else {
-            for (let fk of fKeys) {
-                find[fk] = filter[fk]
-            }
-        }
-
-        return find
-    }
-    /**
-     * 模糊搜索数据
-     */
-    async listDocs(dbName, clName, filter, page = null, size = null, like = true) {
-        let find = {}
-        if (filter) {
-            find = this._assembleFind(filter, like)
-        }
-
-        const client = this.mongoClient
-        let cl = client.db(dbName).collection(clName)
-        let data = {}
-        if (page && page > 0 && size && size > 0) {
-            let skip = (parseInt(page) - 1) * parseInt(size)
-            let limit = parseInt(size)
-            data.docs = await cl
-                .find(find)
-                .skip(skip)
-                .limit(limit)
-                .toArray()
-                .then(docs => docs)
-        } else {
-            data.docs = await cl
-                .find(find)
-                .toArray()
-                .then(docs => docs)
-        }
-        
-        data.total = await cl
-            .find(find)
-            .count()
-
-        return [true, data]
+        let model = new modelBase()
+        return model._assembleFind(filter, like)
     }
     /**
      * 批量删除
@@ -130,65 +133,74 @@ class DocBase extends Ctrl {
         const client = this.mongoClient
         let cl = client.db(dbName).collection(clName)
         
+        let find, operate_type
         if (docIds && docIds.length > 0) { // 按选中删除
             let docIds2 = []
             docIds.forEach( id => {
                 docIds2.push(new ObjectId(id))
             })
-            
-            return cl
-                .deleteMany({_id:{$in: docIds2}})
-                .then(result => {
-                    return new ResultData(result.result)
-                })
-        } else if (typeof filter === "string" && _.toUpper(filter) === "ALL") { // 清空表
-            return cl
-                .deleteMany({_id:{$ne: ""}})
-                .then(result => {
-                    return new ResultData(result.result)
-                })
-        } else if (typeof filter === "object") { // 按条件删除
-            let find = this._assembleFind(filter)
 
-            return cl
-                .deleteMany(find)
-                .then(result => {
-                    return new ResultData(result.result)
-                })
+            find = {_id:{$in: docIds2}}
+            operate_type = "批量删除(按选中)"
+        } else if (typeof filter === "string" && _.toUpper(filter) === "ALL") { // 清空表
+            find = {_id:{$ne: ""}}
+            operate_type = "批量删除(按全部)"
+        } else if (typeof filter === "object") { // 按条件删除
+            find = this._assembleFind(filter)
+            operate_type = "批量删除(按条件)"
         } else {
             return new ResultData({n: 0, ok: 0})
         }
+
+        if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === "Y") { // 记录操作日志
+            let datas = await cl.find(find).toArray()
+            let modelD = new modelDocu()
+            await modelD.dataActionLog(datas, operate_type, dbName, clName)
+        }
+
+        return cl
+            .deleteMany(find)
+            .then(result => new ResultData(result.result))
     }
     /**
      * 更新指定数据库指定集合下的文档
      */
     async update() {
-      const { db: dbName, cl: clName, id } = this.request.query
-      let doc = this.request.body
-      doc = _.omit(doc, ['_id'])
-      const client = this.mongoClient
-      return client
-        .db(dbName)
-        .collection(clName)
-        .updateOne({ _id: ObjectId(id) }, { $set: doc })
-        .then(() => new ResultData(doc))
+        const { db: dbName, cl: clName, id } = this.request.query
+        let doc = this.request.body
+        doc = _.omit(doc, ['_id'])
+        // 加工数据
+        this._beforeProcessByInAndUp(doc, 'update')
+
+        const client = this.mongoClient
+        let cl = client.db(dbName).collection(clName)
+        let find = { _id: ObjectId(id) }
+
+        // 日志
+        if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === "Y") {
+            // 获取原始数据
+            let oData = await cl.findOne(find)
+            let modelD = new modelDocu()
+            await modelD.dataActionLog(doc, "修改", dbName, clName, "", "", JSON.stringify(oData))
+        }
+
+        return cl
+            .updateOne(find, { $set: doc })
+            .then(() => new ResultData(doc))
     }
     /**
      *  剪切数据到指定集合中
      */
     async cutDocs(oldDb, oldCl, newDb, newCl, docIds = null, options = {}, oldDocus = null) {
         //获取指定集合的列
-        let newClSchema = await modelMgdb.getSchemaByCollection(newDb, newCl)
+        let newClSchema = await modelColl.getSchemaByCollection(newDb, newCl)
         if (!newClSchema) return [false, "指定的集合未指定集合列"]
 
         // 查询获取旧数据
         let fields = {}
-        // for (const k in newClSchema) {
-        //   fields[k] = 1
-        // }
         if (!oldDocus || oldDocus.length === 0) {
             if (!docIds || docIds.length === 0) return [false, "没有要移动的数据"]
-            oldDocus = await modelMgdb.getDocumentByIds(oldDb, oldCl, docIds, fields)
+            oldDocus = await modelDocu.getDocumentByIds(oldDb, oldCl, docIds, fields)
             if (oldDocus[0] === false) return [ false, oldDocus[1] ]
             oldDocus = oldDocus[1]
         }
@@ -198,9 +210,9 @@ class DocBase extends Ctrl {
             let newd = { _id: doc._id }
             for (const k in newClSchema) {
                 if (typeof doc[k] === "undefined") {
-                newd[k] = ''
+                    newd[k] = ''
                 } else {
-                newd[k] = doc[k]
+                    newd[k] = doc[k]
                 }
             }
             return newd
@@ -236,6 +248,9 @@ class DocBase extends Ctrl {
         // 去除newDocs的_id
         let newDocs2 = (JSON.parse(JSON.stringify(newDocs))).map(nd => {
             delete nd._id
+            // 加工数据
+            this._beforeProcessByInAndUp(nd, 'insert')
+
             return nd
         })
 
@@ -272,6 +287,18 @@ class DocBase extends Ctrl {
         if (rstDelOld[0] === false) return [false, '数据以到指定集合中，但删除旧数据时失败']
         rstDelOld = rstDelOld[1]
 
+        // 记录日志
+        if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === "Y") {
+            let moveOldDatas = {}
+            oldDocus.forEach( (od) => {
+                if (passDocIds.includes(od._id)) {
+                    moveOldDatas[od._id] = od
+                }
+            })
+            let modelD = new modelDocu()
+            await modelD.dataActionLog(newDocs, "移动", oldDb, oldCl, newDb, newCl, moveOldDatas)
+        }
+
         let returnData = { planMoveTotal, afterFilterMoveTotal, rstInsNew: rst, rstDelOld }
         return [true, returnData]
     }
@@ -290,7 +317,7 @@ class DocBase extends Ctrl {
         const rowsJson = xlsx.utils.sheet_to_json(sh)
     
         const client = this.mongoClient
-        let columns = await modelMgdb.getSchemaByCollection(dbName, clName)
+        let columns = await modelColl.getSchemaByCollection(dbName, clName)
         if (!columns) {
             return [false, '指定的集合没有指定集合列']
         }
@@ -298,14 +325,19 @@ class DocBase extends Ctrl {
         let jsonFinishRows = rowsJson.map(row => {
             let newRow = {}
             for (const k in columns) {
-            let column = columns[k]
-            let rowTitle = row[column.title]
-            if (typeof rowTitle === "number") {
-                newRow[k] = String(rowTitle)
-            } else {
-                newRow[k] = rowTitle
+                let column = columns[k]
+                let rDByTitle = row[column.title]
+                if (typeof rDByTitle === "number") {
+                    newRow[k] = String(rDByTitle)
+                } else if (typeof rDByTitle === "undefined") {
+                    newRow[k] = null
+                } else {
+                    newRow[k] = rDByTitle
+                }
             }
-            }
+            // 加工数据
+            this._beforeProcessByInAndUp(newRow, 'insert')
+
             return newRow
         })
 
@@ -316,10 +348,16 @@ class DocBase extends Ctrl {
 
         try {
             return client
-            .db(dbName)
-            .collection(clName)
-            .insertMany(jsonFinishRows)
-            .then(() => [true, jsonFinishRows] )
+                .db(dbName)
+                .collection(clName)
+                .insertMany(jsonFinishRows)
+                .then( async () => {
+                    if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === "Y") { // 记录日志
+                        let modelD = new modelDocu()
+                        await modelD.dataActionLog(jsonFinishRows, "导入", dbName, clName)
+                    }
+                    return [true, jsonFinishRows]
+                })
         } catch (err) {
             logger.warn('Document.insertMany', err)
             return [false, err.message]
@@ -346,7 +384,7 @@ class DocBase extends Ctrl {
             let need_sum = parseInt(rule[planTotalColumn])
             let find = {}
             for (const key in rule) {
-                if (key === planTotalColumn || key === "_id") continue
+                if (key === planTotalColumn || key === "_id" || key === TMSCONFIG["TMS_APP_DEFAULT_UPDATETIME"] || key === TMSCONFIG["TMS_APP_DEFAULT_CREATETIME"]) continue
                 if (!rule[key]) continue
 
                 let arrVal = rule[key].split(",")
@@ -427,6 +465,8 @@ class DocBase extends Ctrl {
         for (const key in columns) {
             set[key] = columns[key]
         }
+        // 加工数据
+        this._beforeProcessByInAndUp(set, 'update')
 
         const client = this.mongoClient
         return client

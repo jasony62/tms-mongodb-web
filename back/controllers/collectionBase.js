@@ -1,6 +1,7 @@
 const _ = require('lodash')
 const { Ctrl, ResultData, ResultFault } = require('tms-koa')
 const ObjectId = require('mongodb').ObjectId
+const modelColl = require('../models/mgdb/collection')
 
 class CollectionBase extends Ctrl {
   constructor(...args) {
@@ -58,13 +59,8 @@ class CollectionBase extends Ctrl {
    *  检查集合名
    */
   _checkClName(clName) {
-    if (clName.search(/[\u4E00-\u9FA5]|[\uFE30-\uFFA0]/gi) !== -1) return [false, "集合名不能包含中文"]
-
-    let newName = clName.replace(/\s/g,"")
-    if (!newName) return [false, "集合名不能为空"]
-    if (!isNaN(newName)) return [false, "集合名不能全为数字"]
-
-    return [true, newName]
+    let model = new modelColl()
+    return model._checkClName(clName)
   }
   /**
    * 指定数据库下新建集合
@@ -115,11 +111,11 @@ class CollectionBase extends Ctrl {
     }
     
     const cl = client.db('tms_admin').collection('mongodb_object')
-    info = _.omit(info, ['_id', 'name', 'database', 'type'])
+    let {_id, name, database, type, ...info2} = info
     let rst = await cl
         .updateOne(
           { database: dbName, name: clName, type: 'collection' },
-          { $set: info },
+          { $set: info2 },
           { upsert: true }
         )
         .then((rst) => [true, rst.result])
@@ -127,13 +123,13 @@ class CollectionBase extends Ctrl {
         
     if (rst[0] === false) return new ResultFault(rst[1])
     if (newClName === clName) {
-      return new ResultData(rst[1])
+      return new ResultData(info)
     }
     // 更改集合名
     let rst2 = await this._rename(dbName, clName, newClName)
 
     if (rst2[0] === true) 
-      return new ResultData(rst2[1])
+      return new ResultData(info)
     else 
       return new ResultFault(rst2[1])
 

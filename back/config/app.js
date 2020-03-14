@@ -12,5 +12,13 @@ module.exports = {
       prefix: 'plugin' // 接口调用url的前缀
     }
   },
-  tmsTransaction: false
+  tmsTransaction: false,
+  auth: {
+    redis: {
+      // host: "192.168.20.247",
+      prefix: "dev-op",
+      host: "localhost",
+      port: 6378
+    }
+  }
 }
