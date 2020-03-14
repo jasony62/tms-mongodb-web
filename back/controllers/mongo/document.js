@@ -5,7 +5,7 @@ const logger = log4js.getLogger('tms-xlsx-etd')
 const _ = require('lodash')
 const fs = require('fs')
 const ObjectId = require('mongodb').ObjectId
-const modelMgdb = require('../../models/mgdb')
+const modelColl = require('../../models/mgdb/collection')
 // 上传
 const moment = require('tms-koa/node_modules/moment')
 
@@ -84,7 +84,7 @@ class Document extends DocBase {
 
     const client = this.mongoClient
     // 集合列
-    let columns = await modelMgdb.getSchemaByCollection(dbName, clName)
+    let columns = await modelColl.getSchemaByCollection(dbName, clName)
     if (!columns) {
       return new ResultFault('指定的集合没有指定集合列')
     }
@@ -113,9 +113,13 @@ class Document extends DocBase {
   }
   /**
    * 剪切数据到指定库
+   * @execNum 本次最大迁移数
+   * @planTotal 总计划迁移数
+   * @alreadyMoveTotal 已经迁移的个数
+   * @alreadyMovePassTotal 已经迁移成功的个数
    */
   async move() {
-    const { oldDb, oldCl, newDb, newCl, transforms, execNum = 100 } = this.request.query
+    let { oldDb, oldCl, newDb, newCl, transforms, execNum = 100, planTotal = 0, alreadyMoveTotal = 0, alreadyMovePassTotal = 0 } = this.request.query
     if (!oldDb || !oldCl || !newDb || !newCl) {
       return new ResultFault("参数不完整")
     }
@@ -150,8 +154,13 @@ class Document extends DocBase {
     if (rst[0] === false) return new ResultFault(rst[1])
     rst = rst[1]
 
-    let spareTotal = total - rst.planMoveTotal
-    let data = { planMoveTotal: rst.planMoveTotal, failMoveTotal: rst.planMoveTotal - rst.rstDelOld.result.n, factMoveTotal: rst.rstDelOld.result.n, total, spareTotal }
+    //
+    if (planTotal == 0) planTotal = parseInt(total) // 计划总需要迁移数
+    alreadyMoveTotal = parseInt(alreadyMoveTotal) + parseInt(rst.planMoveTotal) // 已经迁移数
+    let spareTotal = parseInt(planTotal) - alreadyMoveTotal // 剩余迁移数
+    alreadyMovePassTotal = parseInt(alreadyMovePassTotal) + parseInt(rst.rstDelOld.result.n) // 已经成功迁移数
+    let alreadyMoveFailTotal = alreadyMoveTotal - alreadyMovePassTotal // 已经迁移失败的数量
+    let data = { planTotal, alreadyMoveTotal, alreadyMovePassTotal, alreadyMoveFailTotal, spareTotal }
     return new ResultData(data)
   }
   /**
@@ -162,7 +171,7 @@ class Document extends DocBase {
     if ( !ruleDb || !ruleCl || !db || !cl ) return new ResultFault('参数不完整')
     
     // 获取规则表表头
-    let schemas = await modelMgdb.getSchemaByCollection(ruleDb, ruleCl)
+    let schemas = await modelColl.getSchemaByCollection(ruleDb, ruleCl)
     if (!schemas) {
       return new ResultFault('指定的集合没有指定集合列')
     }

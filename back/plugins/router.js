@@ -2,10 +2,11 @@ const log4js = require('log4js')
 const logger = log4js.getLogger('mgdb-pool-plugins')
 const Router = require('tms-koa/node_modules/koa-router')
 const _ = require('lodash')
+const jwt = require('jsonwebtoken')
 
 const fs = require('fs')
+const appConfig = require(process.cwd() + '/config/app')
 const { ResultFault, AccessTokenFault } = require('tms-koa/lib/response')
-const Token = require('tms-koa/lib/auth/token')
 const { RequestTransaction } = require('tms-koa/lib/model/transaction')
 
 /**
@@ -26,9 +27,9 @@ function findCtrlAndMethod(ctx, client, dbContext, mongoClient, mongoose) {
 
   if (prefix) path = path.replace(prefix, '')
 
-  let pieces = path.split('/')
-  if (pieces.length < 2) {
-    let logMsg = '参数错误，请求的对象不存在(1)'
+  let pieces = path.split('/').filter(p => p)
+  if (pieces.length === 0) {
+    let logMsg = '参数错误，请求的控制器不存在(1)'
     logger.isDebugEnabled()
       ? logger.debug(logMsg, pieces)
       : logger.error(logMsg)
@@ -36,11 +37,13 @@ function findCtrlAndMethod(ctx, client, dbContext, mongoClient, mongoose) {
   }
 
   let method = pieces.splice(-1, 1)[0]
-  let ctrlPath = process.cwd() + '/plugins/' + pieces.join('/') + '.js'
+  let ctrlName = pieces.length ? pieces.join('/') : 'main'
+
+  let ctrlPath = process.cwd() + `/plugins/${ctrlName}.js`
   if (!fs.existsSync(ctrlPath)) {
-    ctrlPath = process.cwd() + '/plugins/' + pieces.join('/') + '/main.js'
+    ctrlPath = process.cwd() + `/plugins/${ctrlName}/main.js`
     if (!fs.existsSync(ctrlPath)) {
-      let logMsg = '参数错误，请求的对象不存在(2)'
+      let logMsg = `参数错误，请求的控制器不存在(2)`
       logger.isDebugEnabled()
         ? logger.debug(logMsg, ctrlPath)
         : logger.error(logMsg)
@@ -51,12 +54,31 @@ function findCtrlAndMethod(ctx, client, dbContext, mongoClient, mongoose) {
   const CtrlClass = require(ctrlPath)
   const oCtrl = new CtrlClass(ctx, client, dbContext, mongoClient, mongoose)
   if (oCtrl[method] === undefined && typeof oCtrl[method] !== 'function') {
-    let logMsg = '参数错误，请求的对象不存在(3)'
+    let logMsg = '参数错误，请求的控制器不存在(3)'
     logger.isDebugEnabled() ? logger.debug(logMsg, oCtrl) : logger.error(logMsg)
     throw new Error(logMsg)
   }
 
   return [oCtrl, method]
+}
+/**
+ * 获得请求中传递的access_token
+ *
+ * @param {*} ctx
+ */
+function getAccessTokenByRequest(ctx) {
+  let access_token
+  let { request } = ctx
+  let { authorization } = ctx.header
+  if (authorization && authorization.indexOf('Bearer') === 0) {
+    access_token = authorization.match(/\S+$/)[0]
+  } else if (request.query.access_token) {
+    access_token = request.query.access_token
+  } else {
+    return [false, '缺少Authorization头或access_token参数']
+  }
+
+  return [true, access_token]
 }
 /**
  * 根据请求找到对应的控制器并执行
@@ -67,19 +89,31 @@ function findCtrlAndMethod(ctx, client, dbContext, mongoClient, mongoose) {
 async function fnCtrlWrapper(ctx, next) {
   let { request, response } = ctx
   let tmsClient
-  if (Token.supported()) {
-    const { access_token } = request.query
-    if (!access_token) {
-      response.body = new ResultFault('缺少access_token参数')
-      return
+  if (typeof appConfig.auth === 'object') {
+    let [success, access_token] = getAccessTokenByRequest(ctx)
+    if (false === success)
+      return (response.body = new ResultFault(access_token))
+    if (appConfig.auth.jwt) {
+      try {
+        let decoded = jwt.verify(access_token, appConfig.auth.jwt.privateKey)
+        tmsClient = require('tms-koa/lib/auth/client').createByData(decoded)
+      } catch (e) {
+        if (e.name === 'TokenExpiredError') {
+          response.body = new AccessTokenFault('认证令牌过期')
+        } else {
+          response.body = new ResultFault(e.message)
+        }
+        return
+      }
+    } else if (appConfig.auth.redis) {
+      const Token = require('tms-koa/lib/auth/token')
+      let aResult = await Token.fetch(access_token)
+      if (false === aResult[0]) {
+        response.body = new AccessTokenFault(aResult[1])
+        return
+      }
+      tmsClient = aResult[1]
     }
-
-    let aResult = await Token.fetch(access_token)
-    if (false === aResult[0]) {
-      response.body = new AccessTokenFault(aResult[1])
-      return
-    }
-    tmsClient = aResult[1]
   }
   // 数据库连接
   let dbContext, mongoClient, mongoose
@@ -152,7 +186,8 @@ async function fnCtrlWrapper(ctx, next) {
     next()
   } catch (err) {
     logger.error('控制器执行异常', err)
-    let errMsg = typeof err === 'string' ? err : err.toString()
+    let errMsg =
+      typeof err === 'string' ? err : err.message ? err.message : err.toString()
     response.body = new ResultFault(errMsg)
   } finally {
     // 关闭数据库连接
@@ -163,12 +198,11 @@ async function fnCtrlWrapper(ctx, next) {
   }
 }
 
-const appConfig = require(process.cwd() + '/config/app')
+// 路由前缀必须以反斜杠开头
 let prefix = _.get(appConfig, ['router', 'plugins', 'prefix'], '')
-// 前缀必须以反斜杠开头
 if (prefix && !/^\//.test(prefix)) prefix = `/${prefix}`
 
-logger.info(`指定控制器前缀：${prefix}`)
+logger.info(`指定API控制器前缀：${prefix}`)
 
 const router = new Router({ prefix })
 router.all('/*', fnCtrlWrapper)
