@@ -25,14 +25,13 @@
           width="180"
         ></el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
-        <el-table-column fixed="right" label="操作" width="120" v-if="false">
+        <el-table-column fixed="right" label="操作" width="250">
           <template slot-scope="scope">
-            <el-button type="text" size="mini" @click="editDb(scope.row)"
-              >修改</el-button
-            >
-            <el-button type="text" size="mini" @click="removeDb(scope.row)"
-              >删除</el-button
-            >
+            <el-button v-if="!scope.row.top||scope.row.top==0" @click="topDb(scope.row, 'up')" size="mini">置顶</el-button>
+            <el-button v-if="scope.row.top==10000" disabled size="mini" type="text">已置顶</el-button>
+            <el-button v-if="scope.row.top==10000" @click="topDb(scope.row, 'down')" size="mini">取消置顶</el-button>
+            <el-button size="mini" @click="editDb(scope.row)">修改</el-button>
+            <el-button size="mini" @click="removeDb(scope.row)" v-if="false">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -48,16 +47,16 @@ import Vue from 'vue'
 import { mapState } from 'vuex'
 import { Frame, Flex } from 'tms-vue-ui'
 Vue.use(Frame).use(Flex)
-import { Form, RadioGroup, RadioButton, Table, TableColumn } from 'element-ui'
+import { Form, RadioGroup, RadioButton, Table, TableColumn, Button } from 'element-ui'
 Vue.use(Form)
   .use(RadioGroup)
   .use(RadioButton)
   .use(Table)
   .use(TableColumn)
-import { Button } from 'element-ui'
-Vue.use(Button)
+  .use(Button)
 
 import DbEditor from '../components/DbEditor.vue'
+import { db as apiDb}from '../apis'
 
 export default {
   name: 'Home',
@@ -78,21 +77,26 @@ export default {
         })
       })
     },
-  },
-  editDb(db) {
-    const editor = new Vue(DbEditor)
-    editor.open('update', db).then(newDb => {
-      Object.keys(newDb).forEach(k => {
-        Vue.set(db, k, newDb[k])
+    editDb(db) {
+      const editor = new Vue(DbEditor)
+      editor.open('update', db).then(newDb => {
+        Object.keys(newDb).forEach(k => {
+          Vue.set(db, k, newDb[k])
+        })
+        this.$store.commit({
+          type: 'updateDatabase',
+          db: newDb
+        })
       })
-      this.$store.commit({
-        type: 'updateDatabase',
-        db: newDb
+    },
+    removeDb(db) {
+      this.$store.dispatch({ type: 'removeDb', db })
+    },
+    topDb(collection, type) {
+      apiDb.top(collection._id, type).then(() => {
+        this.listDatabase()
       })
-    })
-  },
-  removeDb(db) {
-    this.$store.dispatch({ type: 'removeDb', db })
+    }
   },
   mounted() {
     this.listDatabase()

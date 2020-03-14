@@ -4,7 +4,6 @@ import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import Database from '../views/Database.vue'
 import Collection from '../views/Collection.vue'
-import Rule from '../views/Rule.vue'
 
 Vue.use(VueRouter)
 
@@ -34,12 +33,6 @@ const routes = [
     path: '/collection/:dbName/:clName',
     name: 'collection',
     component: Collection,
-    props: true
-  },
-  {
-    path: '/rule/:dbName/:clName/',
-    name: 'rule',
-    component: Rule,
     props: true
   }
 ]
