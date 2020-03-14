@@ -10,7 +10,8 @@ export default new Vuex.Store({
     dbs: [],
     schemas: [],
     collections: [],
-    documents: []
+    documents: [],
+    conditions: []
   },
   mutations: {
     dbs(state, payload) {
@@ -52,6 +53,33 @@ export default new Vuex.Store({
     updateDocument() {},
     removeDocument(state, payload) {
       state.documents.splice(state.documents.indexOf(payload.document), 1)
+    },
+    conditions(state, payload) {
+      const { condition } = payload
+      const index = state.conditions.findIndex(ele => ele.columnName === condition.columnName)
+      if (index !== -1) {
+        state.conditions.splice(index, 1)
+      }
+      state.conditions.push(condition)
+    },
+    conditionDelBtn(state, payload) {
+      const { columnName } = payload
+      state.conditions.forEach(ele => {
+        if(ele.columnName !== columnName){
+          ele.rule.orderBy = {}
+          ele.isCheckBtn = [true, true]
+        }
+      })
+    },
+    conditionDelColumn(state, payload) {
+      const { condition } = payload
+      const index = state.conditions.findIndex(ele => ele.columnName === condition.columnName)
+      if (index !== -1) {
+        state.conditions.splice(index, 1)
+      }
+    },
+    conditionReset(state) {
+      state.conditions = []
     }
   },
   actions: {
@@ -75,11 +103,11 @@ export default new Vuex.Store({
       })
     },
     listDocument({ commit }, payload) {
-      const { db, collection } = payload
-      return apis.doc.list(db, collection).then(result => {
+      const { db, cl, orderBy, filter, page } = payload
+      return apis.doc.list(db, cl, orderBy, filter, page).then(result => {
         const documents = result.docs
         commit({ type: 'documents', documents })
-        return { documents }
+        return result
       })
     },
     removeDb({ commit }, payload) {

@@ -3,9 +3,15 @@ import { TmsAxios } from 'tms-vue'
 const base = '/mgdb/api/admin/document'
 
 export default {
-  list(dbName, clName) {
+  byColumnVal(dbName, clName, columnName, filter= {}, orderBy= {}, page, size) {
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/list?db=${dbName}&cl=${clName}`)
+      .post(`${base}/getGroupByColumnVal?db=${dbName}&cl=${clName}&column=${columnName}&page=${page}&size=${size}`, {filter, orderBy})
+      .then(rst => rst.data.result)
+      .catch(err => Promise.reject(err))
+  },
+  list(dbName, clName, orderBy = {}, filter= {}, page) {
+    return TmsAxios.ins('mongodb-api')
+      .post(`${base}/list?db=${dbName}&cl=${clName}&page=${page.at}&size=${page.size}`, {orderBy, filter})
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
   },
@@ -23,7 +29,7 @@ export default {
   },
   remove(dbName, clName, id) {
     return TmsAxios.ins('mongodb-api')
-      .delete(`${base}/remove?db=${dbName}&cl=${clName}&id=${id}`)
+      .post(`${base}/remove?db=${dbName}&cl=${clName}&id=${id}`)
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
   }
