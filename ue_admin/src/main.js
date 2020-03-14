@@ -14,6 +14,21 @@ Vue.use(TmsEventPlugin)
 Vue.config.productionTip = false
 
 /**
+ * @name 自定义element指令-上拉加载
+ */
+Vue.directive('loadmore', {
+  bind(el, binding) {
+    const selectWrap = el.querySelector('.el-table__body-wrapper')
+    selectWrap.addEventListener('scroll', function() {
+      const scrollDistance = this.scrollHeight - this.scrollTop - this.clientHeight
+      if (scrollDistance <= 0) {
+        binding.value()
+      }
+    })
+  }
+})
+
+/**
  * @name 自定义确认框
  * @description 原型上增加confirm方法，方便统一控制
  * @param {string} msg 提示语 
