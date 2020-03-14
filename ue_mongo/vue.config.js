@@ -1,20 +1,13 @@
+const devServer = { proxy: {} }
+
+//代理auth请求
+devServer.proxy[`${process.env.VUE_APP_BACK_AUTH_BASE}`] = { target: process.env.VUE_APP_BACK_AUTH_SERVER }
+//代理base api请求
+devServer.proxy[`${process.env.VUE_APP_BACK_API_BASE}`] = { target: process.env.VUE_APP_BACK_API_SERVER }
+devServer.proxy[`${process.env.VUE_APP_BACK_API_PLUGIN}`] = { target: process.env.VUE_APP_BACK_API_SERVER }
+
 module.exports = {
   publicPath: "/mongo/",
   outputDir: "dist/mongo",
-  devServer: {
-    proxy: {
-      '/mgdb/api': {
-        target: 'http://localhost:80'
-      },
-      '/mgdb/api/mongo': {
-        target: 'http://localhost:80'
-      },
-      '/mgdb/download/': {
-        target: 'http://localhost:80'
-      },
-      '/mgdb/ue/': {
-        target: 'http://localhost:80'
-      }
-    }
-  }
+  devServer
 }

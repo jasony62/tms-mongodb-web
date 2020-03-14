@@ -1,6 +1,13 @@
 @import 'element-ui.less';
-
+.tms-frame__header {
+  min-height: 40px;
+  line-height: 40px;
+  .el-breadcrumb {
+    line-height: 40px;
+  }
+}
 .tms-frame__main__center {
+  width: calc(75% - 16px);
   background-color:rgb(240, 243, 246) !important;
 }
 .tmw-filter {
@@ -14,10 +21,10 @@
 .tmw-tags {
   display: flex;
   flex-wrap: wrap;
-  margin: 10px 0;
+  margin: 5px 0;
 }
 .tmw-pagination {
-  margin-top: 10px;
+  margin-top: 5px;
   > .tmw-pagination__text {
     display: inline-block;
     padding-left: 5px;

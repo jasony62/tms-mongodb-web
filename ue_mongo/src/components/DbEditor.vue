@@ -6,10 +6,18 @@
   >
     <el-form ref="form" :model="database" label-position="top">
       <el-form-item label="数据库名称（英文）">
-        <el-input v-model="database.name"></el-input>
+        <el-input v-model="database.name" :disabled="mode==='update'"></el-input>
       </el-form-item>
       <el-form-item label="数据库显示名（中文）">
         <el-input v-model="database.title"></el-input>
+      </el-form-item>
+      <el-form-item label="库拓展属性（选填）">
+        <el-select placeholder="请选择" v-model="database.extensionInfo.schemaId" clearable filterable>
+          <el-option v-for="item in extensions" :key="item._id" :label="item.title" :value="item._id"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="拓展属性详情（选填）" v-show="database.extensionInfo.schemaId">
+        <tms-attr-editor :schemas="extensions" :id="database.extensionInfo.schemaId" :doc="database.extensionInfo.info"></tms-attr-editor>
       </el-form-item>
       <el-form-item label="说明">
         <el-input type="textarea" v-model="database.description"></el-input>
@@ -30,7 +38,9 @@ Vue.use(Dialog)
   .use(Input)
   .use(Button)
 
+import TmsAttrEditor from './AttrEditor.vue'
 import apiDb from '../apis/database'
+import apiSchema from '../apis/schema'
 
 export default {
   name: 'DbEditor',
@@ -39,16 +49,23 @@ export default {
     database: {
       type: Object,
       default: function() {
-        return { name: '', title: '', description: '' }
+        return { name: '', title: '', description: '', extensionInfo: { schemaId: '', info: {} } }
       }
     }
   },
+  components: { TmsAttrEditor },
   data() {
     return {
       mode: '',
       destroyOnClose: true,
-      closeOnClickModal: false
+      closeOnClickModal: false,
+      extensions: []
     }
+  },
+  mounted() {
+    apiSchema.list('db').then(extensions => {
+      this.extensions = extensions
+    })
   },
   methods: {
     onSubmit() {

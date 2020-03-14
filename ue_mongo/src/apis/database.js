@@ -1,6 +1,6 @@
 import { TmsAxios } from 'tms-vue'
 
-const base = '/mgdb/api/mongo/db'
+const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/mongo/db'
 
 export default {
   list() {
@@ -24,6 +24,12 @@ export default {
   remove(db) {
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/remove?db=${db.name}`)
+      .then(rst => rst.data.result)
+      .catch(err => Promise.reject(err))
+  },
+  top(id, type) {
+    return TmsAxios.ins('mongodb-api')
+      .get(`${base}/top?id=${id}&type=${type}`)
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
   }

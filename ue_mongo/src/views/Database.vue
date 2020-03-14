@@ -5,7 +5,10 @@
     :leftWidth="'20%'"
   >
     <template v-slot:header>
-      <router-link to="/home">返回数据库{{ dbName }}</router-link>
+      <el-breadcrumb separator-class="el-icon-arrow-right">
+        <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item>{{dbName}}</el-breadcrumb-item>
+      </el-breadcrumb>
     </template>
     <template v-slot:center>
       <el-table :data="collections" stripe style="width: 100%">
@@ -26,20 +29,10 @@
           width="180"
         ></el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
-        <el-table-column fixed="right" label="操作" width="120" v-if="false">
+        <el-table-column fixed="right" label="操作" width="120">
           <template slot-scope="scope">
-            <el-button
-              @click="editCollection(scope.row)"
-              type="text"
-              size="mini"
-              >修改</el-button
-            >
-            <el-button
-              @click="removeCollection(scope.row)"
-              type="text"
-              size="mini"
-              >删除</el-button
-            >
+            <el-button @click="editCollection(scope.row)"  size="mini">修改</el-button>
+            <el-button @click="removeCollection(scope.row)" size="mini"  v-if="false">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -55,10 +48,12 @@ import Vue from 'vue'
 import { mapState } from 'vuex'
 import { Frame, Flex } from 'tms-vue-ui'
 Vue.use(Frame).use(Flex)
-import { Table, TableColumn, Button } from 'element-ui'
+import { Table, TableColumn, Button, Breadcrumb, BreadcrumbItem } from 'element-ui'
 Vue.use(Table)
   .use(TableColumn)
   .use(Button)
+  .use(Breadcrumb)
+  .use(BreadcrumbItem)
 import CollectionEditor from '../components/CollectionEditor.vue'
 
 export default {

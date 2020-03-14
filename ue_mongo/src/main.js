@@ -14,6 +14,18 @@ import '@/assets/css/element-ui.css'
 
 Vue.config.productionTip = false
 
+Vue.directive('loadmore', {
+  bind(el, binding) {
+    const selectWrap = el.querySelector('.el-table__body-wrapper')
+    selectWrap.addEventListener('scroll', function() {
+      const scrollDistance = this.scrollHeight - this.scrollTop - this.clientHeight
+      if (scrollDistance <= 0) {
+        binding.value()
+      }
+    })
+  }
+})
+
 new Vue({
   router,
   store,

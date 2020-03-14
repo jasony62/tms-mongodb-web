@@ -1,5 +1,5 @@
 .el-select .el-input {
-  width: 110px;
+  width: 130px;
 }
 .input-with-select .el-input-group__prepend {
   background-color: #fff;
@@ -10,7 +10,19 @@
 .el-pagination {
   margin-left: auto !important;
 }
+.el-dialog__body {
+  height: 400px;
+  overflow-y: auto;
+}
+.tms-frame__header {
+  min-height: 40px;
+  line-height: 40px;
+}
+.tms-frame__header .el-breadcrumb {
+  line-height: 40px;
+}
 .tms-frame__main__center {
+  width: calc(75% - 16px);
   background-color: #f0f3f6 !important;
 }
 .tmw-filter > .tmw-filter__inputWithSelect {
@@ -22,10 +34,10 @@
 .tmw-tags {
   display: flex;
   flex-wrap: wrap;
-  margin: 10px 0;
+  margin: 5px 0;
 }
 .tmw-pagination {
-  margin-top: 10px;
+  margin-top: 5px;
 }
 .tmw-pagination > .tmw-pagination__text {
   display: inline-block;
