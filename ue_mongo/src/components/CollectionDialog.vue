@@ -10,7 +10,7 @@
           :key="k"
           :prop="k"
           :label="s.title"
-        ></el-table-column>
+      ></el-table-column>
     </el-table>
     <div class="block">
       <el-pagination

@@ -1,14 +1,11 @@
 <template>
   <tms-frame
-    class="tmw-document"
+    ref="plugin"
     :display="{ header: true, footer: true, right: true }"
     :leftWidth="'20%'"
   >
     <template v-slot:header>
-      <router-link :to="{
-          name: 'collection',
-          params: { clName }
-        }">返回</router-link>
+      <el-button type="text" @click="closeDialog">返回</el-button>
     </template>
     <template v-slot:center>
       <el-table 
@@ -49,17 +46,17 @@ Vue.use(Table)
   .use(Row)
   .use(Col)
   .use(Button)
-Vue.prototype.$message = Message
-
-import DomainEditor from '../components/DomainEditor.vue'
-import CollectionDialog from '../components/CollectionDialog.vue'
-import { doc as apiDoc, collection as apiCol } from '../apis'
+  
+import DomainEditor from '@/components/DomainEditor.vue'
+import CollectionDialog from '@/components/CollectionDialog.vue'
+import { collection as apiCol } from '@/apis'
+ import api from './index'
 
 export default {
-  name: 'Rule',
-  props: ['dbName', 'clName'],
+  name: 'Main',
   data() {
     return {
+      dialogVisible: false,
       failed: [],
       rules: [],
       schemas: {},
@@ -71,24 +68,17 @@ export default {
       }
     }
   },
-  computed: {
-    ruleClName() {
-      return this.$route.query.ruleClName
-    },
-    ruleDbName() {
-      return this.$route.query.ruleDbName
-    }
-  },
   methods: {
     fnGetTelIdsOfEachRule(rule) {
       const telIds = rule.data.map(data => data._id)
       return telIds
     },
     moveDocument() {
-      const _this = this
-      let title = "迁移到"
-      let confirm = new Vue(DomainEditor)
-      confirm.open(title).then(function(fields) {
+      let _this, confirm, config
+      _this = this
+      confirm = new Vue(DomainEditor)
+      config = { title: '迁移到' }
+      confirm.open(config).then(function(fields) {
         const { dbName, clName } = fields
         async function batch(rules) {
           for (let rule of rules) {
@@ -96,7 +86,7 @@ export default {
               ruleId: rule._id,
               docIds: _this.fnGetTelIdsOfEachRule(rule)
             }]
-            await apiDoc.movebyRule(dbName, clName, _this.dbName, _this.clName, _this.ruleDbName, _this.ruleClName, args).then(result => {          
+            await api.movebyRule(dbName, clName, _this.dbName, _this.clName, _this.ruleDbName, _this.ruleClName, _this.transfroms, args).then(result => {          
               rule.import_status = result[0].msg
             })
           }
@@ -113,22 +103,35 @@ export default {
       detail.open(row.data, this.collection).then(tels => {
         row.data = tels
       })
+    },
+    closeDialog() {
+      document.body.removeChild(this.$el)
+    },
+    showDialog(db, cl, ruleDb, ruleCl, transform) {
+      this.dialogVisible = true
+      this.dbName = db
+      this.clName = cl
+      this.ruleDbName = ruleDb
+      this.ruleClName = ruleCl
+      this.transform = transform
+      this.$mount()
+      document.body.appendChild(this.$el)
     }
   },
   mounted() {
-    apiDoc.listByRule(this.dbName, this.clName, this.ruleDbName, this.ruleClName)
-      .then(data => { 
-        this.schemas = data.schemas
-        this.failed = data.failed
-        this.rules = this.failed.concat(data.passed) 
-      }).then(() => {
-        apiCol.byName(this.dbName, this.clName).then(collection => {
-          this.collection = collection
-        })
+    this.$refs.plugin.$el.style.zIndex = parseInt(document.body.lastChild.style.zIndex) + 1
+    api.list(this.dbName, this.clName, this.ruleDbName, this.ruleClName)
+    .then(data => { 
+      this.schemas = data.schemas
+      this.failed = data.failed
+      this.rules = this.failed.concat(data.passed) 
+    }).then(() => {
+      apiCol.byName(this.dbName, this.clName).then(collection => {
+        this.collection = collection
       })
+    })
   }
 }
 </script>
-<style lang="css">
-@import "../assets/css/common.css"
-</style>
+
+<style lang="less" src="../../assets/css/common.less"></style>

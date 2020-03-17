@@ -71,7 +71,7 @@ export default {
     }
   },
   mounted() {
-    apiSchema.listSimple().then(schemas => {
+    apiSchema.listSimple('document').then(schemas => {
       this.schemas = schemas
     })
     apiSchema.list('collection').then(extensions => {
