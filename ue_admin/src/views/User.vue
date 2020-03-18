@@ -12,7 +12,7 @@
     <template v-slot:center>
       <div class="login-account">
         <div class="login-account-form">
-          <tms-login :data="user" :submit="login"></tms-login>
+          <tms-login :on-success="fnOnSuccess" :on-fail="fnOnFail"></tms-login>
         </div>
         <div class="login-account-third"></div>
       </div>
@@ -23,34 +23,34 @@
 import Vue from 'vue'
 import { Frame, Flex, Login } from 'tms-vue-ui'
 Vue.use(Frame).use(Flex)
-
+const schema = [
+    {
+      key: 'username',
+      type: 'text',
+      placeholder: '用户名'
+    },
+    {
+      key: 'password',
+      type: 'password',
+      placeholder: '密码'
+    },
+    {
+      key: 'pin',
+      type: 'code',
+      placeholder: '验证码'
+    }
+  ]
 import apiUser from '../apis/user'
-Vue.use(Login, { fnGetCaptcha: apiUser.getCaptcha, fnGetToken: apiUser.getToken })
+Vue.use(Login, { schema, fnGetCaptcha: apiUser.getCaptcha, fnGetToken: apiUser.getToken })
 
 export default {
   data() {
     return {
-      user: [
-        {
-          key: 'uname',
-          type: 'text',
-          placeholder: '用户名'
-        },
-        {
-          key: 'password',
-          type: 'password',
-          placeholder: '密码'
-        },
-        {
-          key: 'pin',
-          type: 'code',
-          placeholder: '验证码'
-        }
-      ]
+      
     }
   },
   methods: {
-    login(token) {
+    fnOnSuccess(token) {
       if (token) {
         sessionStorage.setItem('access_token', token)
         // 去掉之前的token
@@ -59,6 +59,9 @@ export default {
         this.TmsAxios('mongodb-api').rules[0].requestParams.set('access_token', token)
         this.$router.push('/home')
       }
+    },
+    fnOnFail(rsl) {
+      this.$message({ message: rsl.msg || '登录失败', type: 'error', showClose: true })
     }
   }
 }

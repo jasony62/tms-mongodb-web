@@ -1,5 +1,7 @@
 import { TmsAxios } from 'tms-vue'
 
+const baseAuth = (process.env.VUE_APP_BACK_AUTH_BASE_REWRITE || '') + '/auth'
+
 export default {
   /**
    * 获取验证码
@@ -8,7 +10,7 @@ export default {
    */
   getCaptcha() {
     return TmsAxios.ins()
-      .get('/mgdb/ue/auth/captcha?width=150&height=44')
+      .get(`${baseAuth}/captcha?width=150&height=44`)
       .then(rst => rst.data)
       .catch(err => Promise.reject(err))
   },
@@ -19,7 +21,7 @@ export default {
    */
   getToken(userArg) {
     return TmsAxios.ins()
-      .post('/mgdb/ue/auth/token', userArg)
+      .post(`${baseAuth}/authorize`, userArg)
       .then(rst => rst.data)
       .catch(err => Promise.reject(err))
   }

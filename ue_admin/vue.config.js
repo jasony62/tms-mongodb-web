@@ -1,8 +1,7 @@
 const devServer = {
   proxy: {}
 }
-// const rewriteAuth = {}
-// rewriteAuth[process.env.VUE_APP_BACK_AUTH_BASE] = process.env.VUE_APP_BACK_AUTH_BASE_REWRITE
+
 // 代理auth请求
 devServer.proxy[`${process.env.VUE_APP_BACK_API_BASE}`] = {
   target: process.env.VUE_APP_BACK_API_SERVER,
@@ -14,7 +13,7 @@ devServer.proxy[`${process.env.VUE_APP_BACK_DOWNLOAD_BASE}`] = {
   target: process.env.VUE_APP_BACK_API_SERVER,
 }
 // 代理api请求
-devServer.proxy[`${process.env.VUE_APP_BACK_UE_BASE}`] = {
+devServer.proxy[`${process.env.VUE_APP_BACK_AUTH_BASE_REWRITE}`] = {
   target: process.env.VUE_APP_BACK_API_SERVER
 }
 

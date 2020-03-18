@@ -1,6 +1,6 @@
 import { TmsAxios } from 'tms-vue'
 
-const base = '/mgdb/api/admin/collection'
+const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/admin/collection'
 
 export default {
   byName(dbName, clName) {
