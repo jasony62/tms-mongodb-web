@@ -8,6 +8,9 @@ let appConfig = {
     controllers: {
       prefix: 'api' // 控制器接口调用url的前缀，例如：/api
     },
+    api: {
+      prefix: 'extApi' // 外部应用接口调用url的前缀，例如：/extApi
+    },
     plugins: {
       prefix: 'plugin' // 插件接口调用url的前缀
     }
