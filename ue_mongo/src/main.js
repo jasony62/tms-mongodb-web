@@ -2,17 +2,101 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
-import { Message } from 'element-ui'
-import LoginDialog from './components/LoginDialog.vue'
-Vue.prototype.$message = Message
-
-import { TmsAxiosPlugin, TmsEventPlugin } from 'tms-vue'
-Vue.use(TmsAxiosPlugin)
-Vue.use(TmsEventPlugin)
-
 import '@/assets/css/element-ui.css'
+import { Message } from 'element-ui'
+import { Login } from 'tms-vue-ui'
+import apiLogin from './apis/login.js'
+import { TmsAxiosPlugin, TmsErrorPlugin, TmsIgnorableError, TmsLockPromise } from 'tms-vue'
 
 Vue.config.productionTip = false
+
+Vue.use(TmsAxiosPlugin)
+  .use(TmsErrorPlugin)
+
+const { fnGetCaptcha, fnGetJwt } = apiLogin
+const LoginSchema = [
+  {
+    key: process.env.VUE_APP_LOGIN_KEY_USERNAME || 'username',
+    type: 'text',
+    placeholder: '用户名'
+  },
+  {
+    key: process.env.VUE_APP_LOGIN_KEY_PASSWORD || 'password',
+    type: 'password',
+    placeholder: '密码'
+  },
+  {
+    key: process.env.VUE_APP_LOGIN_KEY_PIN || 'pin',
+    type: 'code',
+    placeholder: '验证码'
+  }
+]
+Vue.use(Login, { schema: LoginSchema, fnGetCaptcha, fnGetToken: fnGetJwt })
+
+const LoginPromise = (function() {
+  let login = new Login(LoginSchema, fnGetCaptcha, fnGetJwt)
+  let ins = new TmsLockPromise(function() {
+    return login.showAsDialog().then(token => {
+      sessionStorage.setItem('access_token', token)
+      return `Bearer ${token}`
+    })
+  })
+  return ins
+})()
+
+function getAccessToken() {
+  if (LoginPromise.isRunning()) {
+    return LoginPromise.wait()
+  }
+
+  let token = sessionStorage.getItem('access_token')
+  if (!token) {
+    return LoginPromise.wait()
+  }
+
+  return `Bearer ${token}`
+}
+
+function onRetryAttempt(res) {
+  if (res.data.code===20001) {
+    return LoginPromise.wait().then(() => {
+      return true
+    })
+  }
+  return false
+}
+
+function onResultFault(res) {
+  Message({
+    showClose: true,
+    message: res.data.msg,
+    duration: 0,
+    type: 'error'
+  })
+  return Promise.reject(new TmsIgnorableError(res.data))
+}
+
+function onResponseRejected(err) {
+  return Promise.reject(new TmsIgnorableError(err))
+}
+
+let rules = []
+if (process.env.VUE_APP_BACK_AUTH_SERVER) {
+  let accessTokenTule = Vue.TmsAxios.newInterceptorRule({
+    requestHeaders: new Map([['Authorization', getAccessToken]]),
+    onRetryAttempt
+  })
+  rules.push(accessTokenTule)
+}
+let responseRule = Vue.TmsAxios.newInterceptorRule({
+  onResultFault,
+  onResponseRejected
+})
+rules.push(responseRule)
+
+Vue.TmsAxios({ name: 'mongodb-api', rules })
+
+Vue.TmsAxios({ name: 'auth-api' })
 
 Vue.directive('loadmore', {
   bind(el, binding) {
@@ -29,36 +113,5 @@ Vue.directive('loadmore', {
 new Vue({
   router,
   store,
-  created() {
-    const token = sessionStorage.getItem('access_token') || ''
-    const rule = Vue.TmsAxios.newInterceptorRule({
-      requestParams: new Map([['access_token', token]]),
-      onRetryAttempt: (res) => {
-        if (res.data.code === 20001) {
-          return new Promise(reslove => {
-            const loginComp = new Vue(LoginDialog)
-            loginComp.open().then(newToken => {
-              if (newToken) {
-                sessionStorage.setItem('access_token', newToken)
-                rule.requestParams.set('access_token', newToken)
-                reslove(true)
-              } else {
-                reslove(false)
-              }
-            })
-          })
-        }
-      },
-      onResultFault: (res) => {
-        return new Promise(resolve => {
-          if (res.data.code !== 0) {
-            Message.error({ message: res.data.msg})
-          }
-          resolve(true)
-        })
-      }
-    })
-    Vue.TmsAxios({ name: 'mongodb-api', rules: [rule] })
-  },
   render: h => h(App)
 }).$mount('#app')
