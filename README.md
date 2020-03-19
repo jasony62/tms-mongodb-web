@@ -52,3 +52,49 @@
 | code     | Integer  | 执行结果 code |
 | msg      | String   | 执行结果说明  |
 | result   | Array    | 集合列表      |
+
+# 连接mysql
+
+在项目的根目录下建立文件`/config/db.js`，指定下列 MySQL 或 Sqlite 数据库（可选）连接信息：
+```javascript
+module.exports = {
+  mysql: {
+    master: {
+      connectionLimit: 10,
+      host: '',
+      port: '',
+      user: '',
+      password: '',
+      database: ''
+    },
+    write: {
+      connectionLimit: 10,
+      host: '',
+      port: '',
+      user: '',
+      password: '',
+      database: ''
+    }
+  },
+  sqlite: {
+    path: ''
+  }
+}
+```
+参考：https://www.npmjs.com/package/mysql
+
+参考：https://github.com/JoshuaWise/better-sqlite3/blob/HEAD/docs/api.md
+
+# 上传导出文件
+
+上传文件默认保存在项目根目录/back/下，导出的文件默认导出在项目根目录/back/public/文件夹下
+如需更改上传和导出文件路径可在项目根目录下创建/config/fs.js文件
+
+```javascript
+module.exports = {
+  local: {
+    rootDir: 'files', // 指定保存文件的根目录
+    outDir: 'files'  // 指定输出文件的根目录
+  }
+}
+```

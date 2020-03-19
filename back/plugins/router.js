@@ -2,7 +2,7 @@ const log4js = require('log4js')
 const logger = log4js.getLogger('mgdb-pool-plugins')
 const Router = require('tms-koa/node_modules/koa-router')
 const _ = require('lodash')
-const jwt = require('jsonwebtoken')
+const jwt = require('tms-koa/node_modules/jsonwebtoken')
 
 const fs = require('fs')
 const appConfig = require(process.cwd() + '/config/app')
