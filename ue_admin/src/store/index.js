@@ -11,6 +11,7 @@ export default new Vuex.Store({
     schemas: [],
     collections: [],
     documents: [],
+    attributes: [],
     conditions: []
   },
   mutations: {
@@ -20,19 +21,28 @@ export default new Vuex.Store({
     appendDatabase(state, payload) {
       state.dbs.push(payload.db)
     },
-    updateDatabase() {},
+    updateDatabase(state, payload) {
+      const { index, db } = payload
+      state.dbs.splice(index, 1, db)
+    },
     removeDatabase(state, payload) {
       state.dbs.splice(state.dbs.indexOf(payload.db), 1)
     },
     schemas(state, payload) {
-      state.schemas = payload.schemas
+      const { schemas, types } = payload
+      state[types] = schemas
     },
     appendSchema(state, payload) {
-      state.schemas.push(payload.schema)
+      const { schema, type } = payload
+      state[type + 's'].push(schema)
     },
-    updateSchema() {},
+    updateSchema(state, payload) {
+      const { index, schema, type } = payload
+      state[type + 's'].splice(index, 1, schema)
+    },
     removeSchema(state, payload) {
-      state.schemas.splice(state.schemas.indexOf(payload.schema), 1)
+      const { schema, types } = payload
+      state[types + 's'].splice(state[types + 's'].indexOf(schema), 1)
     },
     collections(state, payload) {
       state.collections = payload.collections
@@ -40,20 +50,17 @@ export default new Vuex.Store({
     appendCollection(state, payload) {
       state.collections.push(payload.collection)
     },
-    updateCollection() {},
+    updateCollection(state, payload) {
+      const { index, collection } = payload
+      state.collections.splice(index, 1, collection)
+    },
     removeCollection(state, payload) {
       state.collections.splice(state.collections.indexOf(payload.collection), 1)
     },
     documents(state, payload) {
       state.documents = payload.documents
     },
-    appendDocument(state, payload) {
-      state.documents.push(payload.document)
-    },
     updateDocument() {},
-    removeDocument(state, payload) {
-      state.documents.splice(state.documents.indexOf(payload.document), 1)
-    },
     conditions(state, payload) {
       const { condition } = payload
       const index = state.conditions.findIndex(ele => ele.columnName === condition.columnName)
@@ -89,9 +96,11 @@ export default new Vuex.Store({
         return { dbs }
       })
     },
-    listSchema({ commit }) {
-      return apis.schema.list().then(schemas => {
-        commit({ type: 'schemas', schemas })
+    listSchema({ commit }, payload) {
+      const { scope } = payload
+      return apis.schema.list(scope).then(schemas => {
+        const types = typeof(scope) === 'string' ? 'schemas' : 'attributes'
+        commit({ type: 'schemas', schemas, types })
         return { schemas }
       })
     },
@@ -118,9 +127,9 @@ export default new Vuex.Store({
       })
     },
     removeSchema({ commit }, playload) {
-      const { schema } = playload
+      const { schema, type } = playload
       return apis.schema.remove(schema).then(() => {
-        commit({ type: 'removeSchema', schema })
+        commit({ type: 'removeSchema', schema, types: type })
         // return { schema }
       })
     },
@@ -129,13 +138,6 @@ export default new Vuex.Store({
       return apis.collection.remove(db, collection.name).then(() => {
         commit({ type: 'removeCollection', collection })
         // return { collection }
-      })
-    },
-    removeDocument({ commit }, payload) {
-      const { dbName, clName, id, document } = payload
-      return apis.doc.remove(dbName, clName, id).then(() => {
-        commit({ type: 'removeDocument', document })
-        // return { document }
       })
     }
   },

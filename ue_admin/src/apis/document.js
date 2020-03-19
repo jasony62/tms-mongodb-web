@@ -1,6 +1,6 @@
 import { TmsAxios } from 'tms-vue'
 
-const base = '/mgdb/api/admin/document'
+const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/admin/document'
 
 export default {
   byColumnVal(dbName, clName, columnName, filter= {}, orderBy= {}, page, size) {

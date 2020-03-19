@@ -53,7 +53,7 @@
 
 <script>
 import Vue from 'vue'
-import { mapState, mapMutations, mapActions } from 'vuex'
+import { mapState, mapMutations } from 'vuex'
 import { Frame } from 'tms-vue-ui'
 Vue.use(Frame)
 
@@ -83,12 +83,8 @@ export default {
   },
   methods: {
     ...mapMutations([
-      'appendDocument',
       'updateDocument',
       'conditionReset'
-    ]),
-    ...mapActions([
-      'removeDocument'
     ]),
     handleCondition() {
       if(!this.conditions.length) {
@@ -156,8 +152,8 @@ export default {
     },
     createDocument() {
       let editor = new Vue(DocEditor)
-      editor.open(this.dbName, this.collection).then(newDoc => {
-        this.appendDocument({document: newDoc})
+      editor.open(this.dbName, this.collection).then(() => {
+        this.listDocument()
       })
     },
     editDocument(doc) {
@@ -169,11 +165,8 @@ export default {
     },
     handleDocument(document) {
       this.$customeConfirm('数据库', () => {
-        return this.removeDocument({
-          dbName: this.dbName,
-          clName: this.clName,
-          id: document._id,
-          document
+        return apiDoc.remove(this.dbName, this.clName, document._id).then(() => {
+          this.listDocument()
         })
       })
     },
