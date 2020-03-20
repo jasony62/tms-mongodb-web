@@ -3,9 +3,10 @@ import { TmsAxios } from 'tms-vue'
 const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/admin/schema'
 
 export default {
-  list() {
+  list(scope) {
+    const type = typeof(scope) === 'object' ? scope.join(',') : scope
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/list`)
+      .get(`${base}/list?scope=${type}`)
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
   },

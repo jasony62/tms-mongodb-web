@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import User from '../views/User.vue'
+import Login from '../views/Login.vue'
 import Home from '../views/Home.vue'
 import Database from '../views/Database.vue'
 import Collection from '../views/Collection.vue'
@@ -15,14 +15,14 @@ const routes = [
   },
   {
     path: '/',
-    name: 'user',
-    component: User,
+    name: 'Login',
+    component: Login,
     props: true
   },
   {
     path: '/login',
-    name: 'user',
-    component: User,
+    name: 'Login',
+    component: Login,
     props: true
   },
   {

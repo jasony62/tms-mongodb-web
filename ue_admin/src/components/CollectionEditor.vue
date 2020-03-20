@@ -73,7 +73,7 @@ export default {
           .then(newCollection => this.$emit('submit', newCollection))
       else if (this.mode === 'update')
         apiCollection
-          .update(this.dbName, this.collection.name, this.collection)
+          .update(this.dbName, this.collection.fromDatabase, this.collection)
           .then(newCollection => this.$emit('submit', newCollection))
     },
     open(mode, dbName, collection) {
