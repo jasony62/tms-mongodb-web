@@ -87,16 +87,17 @@ export default {
       'conditionReset'
     ]),
     handleCondition() {
-      if(!this.conditions.length) {
+      let _obj = JSON.parse(JSON.stringify(this.conditions))
+      if(!_obj.length) {
         return {filter: {}, orderBy: {}}
       }
-      if(this.conditions.length === 1){
+      if(_obj.length === 1){
         return {
-          filter: this.conditions[0].rule.filter,
-          orderBy: this.conditions[0].rule.orderBy
+          filter: _obj[0].rule.filter,
+          orderBy: _obj[0].rule.orderBy
         }
       }
-      return this.conditions.map(ele => ele.rule).reduce((prev, curr) => {
+      return _obj.map(ele => ele.rule).reduce((prev, curr) => {
         return {
           filter: Object.assign(prev.filter, curr.filter),
           orderBy: Object.assign(prev.orderBy, curr.orderBy)
@@ -130,12 +131,13 @@ export default {
       }
       select.open(columnName, this.dbName, this.clName, this.dialogPage).then(rsl => {
         const { condition, isClear, isCheckBtn } = rsl
-        this.$store.commit('conditions', {condition})
+        this.$store.commit('conditionAddColumn', {condition})
         if (isClear) this.$store.commit('conditionDelColumn', {condition})
         let objPro = this.collection.schema.body.properties
+        if(isCheckBtn) this.$store.commit('conditionDelBtn', {columnName})
         Object.keys(objPro).map((ele, index) => {
+          const attrs = document.querySelectorAll('#tables thead.has-gutter img')[index]
           if (ele === columnName) {
-            const attrs = document.querySelectorAll('#tables thead.has-gutter img')[index]
             if(isClear) {
               attrs.src = require('../assets/icon_filter.png')
             }else if(isCheckBtn) {
@@ -143,10 +145,22 @@ export default {
             }else {
               attrs.src = require('../assets/icon_filter_active.png')
             }
+          } else if (isCheckBtn) {
+            // 如果选择升降序规则，则需重置其他图标
+            this.conditions.map(conEle => {
+              if (ele === conEle.columnName) {
+                if(conEle.rule && conEle.rule.filter && conEle.rule.filter[ele] && conEle.rule.filter[ele].keyword) {
+                  attrs.src = require('../assets/icon_filter_active.png')
+                }else if(conEle.isCheckBtn.includes(false)) {
+                  attrs.src = require('../assets/icon_'+ conEle.rule.orderBy[ele] + '_active.png')
+                }else {
+                  attrs.src = require('../assets/icon_filter.png')
+                }
+              }
+            })
           }
           return ele
         })
-        if(isCheckBtn) this.$store.commit('conditionDelBtn', {columnName})
         this.listDocument()
       })
     },

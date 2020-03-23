@@ -26,7 +26,7 @@ module.exports = {
       entry: 'src/main.js',
       template: 'public/index.html',
       filename: './index.html',
-      title: 'tms-finder',
+      title: 'mongodb web',
       chunks: ['chunk-vendors', 'chunk-common', 'index']
     }
   },
