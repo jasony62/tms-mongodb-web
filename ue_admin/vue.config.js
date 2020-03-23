@@ -26,7 +26,7 @@ module.exports = {
       entry: 'src/main.js',
       template: 'public/index.html',
       filename: './index.html',
-      title: 'tms-mongo-web admin',
+      title: process.env.VUE_APP_TITLE,
       chunks: ['chunk-vendors', 'chunk-common', 'index']
     }
   },
