@@ -1,10 +1,14 @@
 version: '3.7'
 services:
-   app:
-     image: 192.168.253.28/pool-mongo/pool-mongo:latest
-     container_name: pool-mongo
-     ports:
-       - '3930:80'
-     volumes:
-       - "/ablity/portal/common/config/pool/pool-mongo/nginx.conf:/usr/local/nginx/conf/nginx.conf"
-     restart: always
+   ue:
+    build:
+      context: .
+      args:
+        vue_app_base_url: /mongo
+        vue_app_login_key_username: username
+        vue_app_login_key_password: password
+        vue_app_login_key_pin: pin
+    image: tms-mongodb-web/ue-mongo:latest
+    container_name: mongo
+    environment:
+      - NGINX_WEB_BASE_URL=/mongo
