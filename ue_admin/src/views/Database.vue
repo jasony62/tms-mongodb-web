@@ -5,7 +5,10 @@
     :leftWidth="'20%'"
   >
     <template v-slot:header>
-      <router-link to="/home">返回数据库{{ dbName }}</router-link>
+      <el-breadcrumb separator-class="el-icon-arrow-right">
+        <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item>{{dbName}}</el-breadcrumb-item>
+      </el-breadcrumb>
     </template>
     <template v-slot:center>
       <el-table :data="collections" stripe style="width: 100%">
@@ -29,7 +32,7 @@
         <el-table-column fixed="right" label="操作" width="120">
           <template slot-scope="scope">
             <el-button
-              @click="editCollection(scope.row)"
+              @click="editCollection(scope.row, scope.$index)"
               type="text"
               size="mini"
               >修改</el-button
@@ -45,7 +48,7 @@
       </el-table>
     </template>
     <template v-slot:right>
-      <el-button @click="createCollection">添加集合</el-button>
+      <el-button @click="createCollection">添加文件</el-button>
     </template>
   </tms-frame>
 </template>
@@ -81,13 +84,10 @@ export default {
         this.appendCollection({collection: newCollection})
       })
     },
-    editCollection(collection) {
+    editCollection(collection, index) {
       let editor = new Vue(CollectionEditor)
-      editor.open('update', this.dbName, collection).then(newCollection => {
-        Object.keys(newCollection).forEach(k => {
-          Vue.set(collection, k, newCollection[k])
-        })
-        this.updateCollection({collection})
+      editor.open('update', this.dbName, {...collection, fromDatabase: collection.name}).then(newCollection => {
+        this.updateCollection({collection: newCollection, index})
       })
     },
     handleCollection(collection) {

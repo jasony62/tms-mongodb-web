@@ -2,14 +2,35 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
-import LoginDialog from './components/LoginDialog.vue'
+import apiUser from './apis/user'
+import { Login } from 'tms-vue-ui'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
+import './assets/css/common.less'
 Vue.use(ElementUI)
 
 import { TmsAxiosPlugin, TmsEventPlugin } from 'tms-vue'
 Vue.use(TmsAxiosPlugin)
 Vue.use(TmsEventPlugin)
+
+const schema = [
+  {
+    key: 'username',
+    type: 'text',
+    placeholder: '用户名'
+  },
+  {
+    key: 'password',
+    type: 'password',
+    placeholder: '密码'
+  },
+  {
+    key: 'pin',
+    type: 'code',
+    placeholder: '验证码'
+  }
+]
+const login = new Login(schema, apiUser.getCaptcha, apiUser.getToken)
 
 Vue.config.productionTip = false
 
@@ -67,11 +88,12 @@ new Vue({
         if (code === 20001) {
           this.$message({ message: msg, type: 'error', showClose: true })
           return new Promise(reslove => {
-            const loginComp = new Vue(LoginDialog)
-            loginComp.open().then(newToken => {
+            let confirm = new Vue(login.component)
+            confirm.showAsDialog().then(newToken => {
               if (newToken) {
                 sessionStorage.setItem('access_token', newToken)
                 rule.requestParams.set('access_token', newToken)
+                confirm.removeOverlay()
                 reslove(true)
               } else {
                 reslove(false)

@@ -10,6 +10,7 @@
         <el-radio-group v-model="activeTab">
           <el-radio-button label="database">数据库</el-radio-button>
           <el-radio-button label="schema">集合列定义</el-radio-button>
+          <el-radio-button label="attribute">库文件属性定义</el-radio-button>
         </el-radio-group>
       </el-form>
       <el-table
@@ -34,7 +35,7 @@
         <el-table-column prop="description" label="说明"></el-table-column>
         <el-table-column fixed="right" label="操作" width="120">
           <template slot-scope="scope">
-            <el-button type="text" size="mini" @click="editDb(scope.row)"
+            <el-button type="text" size="mini" @click="editDb(scope.row, scope.$index)"
               >修改</el-button
             >
             <el-button type="text" size="mini" @click="handleDb(scope.row)"
@@ -54,12 +55,32 @@
         <el-table-column prop="description" label="说明"> </el-table-column>
         <el-table-column fixed="right" label="操作" width="120">
           <template slot-scope="scope">
-            <el-button type="text" size="mini" @click="editSchema(scope.row)"
-              >修改</el-button
-            >
-            <el-button type="text" size="mini" @click="handleSchema(scope.row)"
-              >删除</el-button
-            >
+            <el-button type="text" size="mini" @click="editSchema(scope.row, scope.$index, 'schema', true)"
+              >复制</el-button>
+            <el-button type="text" size="mini" @click="editSchema(scope.row, scope.$index, 'schema')"
+              >修改</el-button>
+            <el-button type="text" size="mini" @click="handleSchema(scope.row, 'schema')"
+              >删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-table
+        v-show="activeTab === 'attribute'"
+        :data="attributes"
+        stripe
+        style="width: 100%"
+      >
+        <el-table-column prop="title" label="名称" width="180">
+        </el-table-column>
+        <el-table-column prop="description" label="说明"> </el-table-column>
+        <el-table-column fixed="right" label="操作" width="120">
+          <template slot-scope="scope">
+            <el-button type="text" size="mini" @click="editSchema(scope.row, scope.$index, 'attribute', true)"
+              >复制</el-button>
+            <el-button type="text" size="mini" @click="editSchema(scope.row, scope.$index, 'attribute')"
+              >修改</el-button>
+            <el-button type="text" size="mini" @click="handleSchema(scope.row, 'attribute')"
+              >删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -68,8 +89,11 @@
       <el-button @click="createDb" v-if="activeTab === 'database'"
         >添加数据库</el-button
       >
-      <el-button @click="createSchema" v-if="activeTab === 'schema'"
+      <el-button @click="createSchema('schema')" v-if="activeTab === 'schema'"
         >添加集合列定义</el-button
+      >
+      <el-button @click="createSchema('attribute')" v-if="activeTab === 'attribute'"
+        >添加库文件属性定义</el-button
       >
     </template>
   </tms-frame>
@@ -92,7 +116,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['dbs', 'schemas'])
+    ...mapState(['dbs', 'schemas', 'attributes'])
   },
   methods: {
     ...mapMutations([
@@ -113,13 +137,10 @@ export default {
         this.appendDatabase({db: newDb})
       })
     },
-    editDb(db) {
+    editDb(db, index) {
       const editor = new Vue(DbEditor)
       editor.open('update', db).then(newDb => {
-        Object.keys(newDb).forEach(k => {
-          Vue.set(db, k, newDb[k])
-        })
-        this.updateDatabase({db: newDb})
+        this.updateDatabase({db: newDb, index})
       })
     },
     handleDb(db) {
@@ -127,30 +148,37 @@ export default {
         return this.removeDb({db})
       })
     },
-    createSchema() {
+    createSchema(type) {
       const editor = new Vue(SchemaEditor)
-      editor.open('create').then(newSchema => {
-        this.appendSchema({schema: newSchema})
+      editor.open('create', type).then(newSchema => {
+        this.appendSchema({schema: newSchema, type})
       })
     },
-    editSchema(schema) {
+    editSchema(schema, index, type, isCopy = false) {
+      let newObj = {...schema}
+      if (isCopy) {
+        newObj.title = newObj.title + '-复制'
+        delete newObj._id
+      }
       const editor = new Vue(SchemaEditor)
-      editor.open('update', schema).then(newSchema => {
-        Object.keys(newSchema).forEach(k => {
-          this.$set(schema, k, newSchema[k])
-        })
-        this.updateSchema({schema: newSchema})
+      editor.open(newObj, type, isCopy).then(newSchema => {
+        if (isCopy) {
+          this.appendSchema({schema: newSchema, type})
+        } else {
+          this.updateSchema({schema: newSchema, index, type})
+        }
       })
     },
-    handleSchema(schema) {
+    handleSchema(schema, type) {
       this.$customeConfirm('列定义', () => {
-        return this.removeSchema({schema})
+        return this.removeSchema({schema, type})
       })
     },
   },
   mounted() {
     this.listDatabase()
-    this.listSchema()
+    this.listSchema({scope: 'document'})
+    this.listSchema({scope: ['db', 'collection']})
   }
 }
 </script>

@@ -5,8 +5,12 @@
       <el-tab-pane label="列定义" name="second"></el-tab-pane>
     </el-tabs>
     <el-form v-show="activeTab === 'first'" :model="schema" label-position="top">
-      <el-form-item label="集合列定义显示名（中文）">
+      <el-form-item :label="showName">
         <el-input v-model="schema.title"></el-input>
+      </el-form-item>
+      <el-form-item label="类型" v-if="showRadio">
+        <el-radio v-model="schema.scope" label="db">数据库</el-radio >
+        <el-radio v-model="schema.scope" label="collection">文件</el-radio >
       </el-form-item>
       <el-form-item label="说明">
         <el-input type="textarea" v-model="schema.description"></el-input>
@@ -31,40 +35,49 @@ export default {
     schema: {
       type: Object,
       default: function() {
-        return { title: '', description: '', body: {} }
+        return { title: '', description: '', scope: 'db', body: {} }
       }
     }
   },
   data() {
     return {
-      mode: '',
       activeTab: 'first',
       destroyOnClose: true,
-      closeOnClickModal: false
+      closeOnClickModal: false,
+      type: ''
+    }
+  },
+  computed: {
+    showName() {
+      return this.type === 'schema' ? '集合列定义显示名（中文）' : this.type === 'attribute' ? '库文件属性定义显示名（中文）' : ''
+    },
+    showRadio() {
+      return this.type === 'schema' ? false : this.type === 'attribute' ? true : ''
     }
   },
   methods: {
     onTabClick() {},
     onSubmit() {
-      if (this.mode === 'update') {
+      if (this.schema && this.schema._id) {
         apiSchema
           .update(this.schema, this.schema)
-          .then(newSchema => this.$emit('submit', newSchema))
-      } else if (this.mode === 'create') {
+          .then(newSchema => this.$emit('submit', {...newSchema, _id: this.schema._id}))
+      } else {
+        if (!this.showRadio) delete this.schema.scope
         apiSchema
           .create(this.schema)
           .then(newSchema => this.$emit('submit', newSchema))
       }
     },
-    open(mode, schema) {
-      this.mode = mode
-      if (mode === 'update') Object.assign(this.schema, schema)
+    open(schema, type, isCopy) {
+      this.type = type
+      if ((schema && schema._id) || isCopy) Object.assign(this.schema, schema)
       this.$mount()
       document.body.appendChild(this.$el)
       return new Promise(resolve => {
-        this.$on('submit', newSchema => {
+        this.$on('submit', schema => {
           this.dialogVisible = false
-          resolve(newSchema)
+          resolve(schema)
         })
       })
     }
