@@ -87,9 +87,8 @@ module.exports = {
 
 # 上传导出文件
 
-上传文件默认保存在项目根目录/back/下，导出的文件默认导出在项目根目录/back/public/文件夹下
-如需更改上传和导出文件路径可在项目根目录下创建/config/fs.js文件
-
+上传文件需要在项目根目录`/back/config/fs.js`中指定文件保存目录`rootDir: 'files'`。
+导出文件时为将生成的excel文件保存在服务器中，默认保存在根目录/back/public/文件夹下，如需指定目录需在根目录`/back/config/fs.js`中指定生成文件保存目录`outDir: 'files'`。
 ```javascript
 module.exports = {
   local: {
