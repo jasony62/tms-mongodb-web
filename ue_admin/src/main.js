@@ -139,30 +139,6 @@ new Vue({
   store,
   created() {
     initFunc.call(this)
-    // const token = sessionStorage.getItem('access_token') || ''
-    // const rule = Vue.TmsAxios.newInterceptorRule({
-    //   requestParams: new Map([['access_token', token]]),
-    //   onRetryAttempt: res => {
-    //     const { code, msg } = res.data
-    //     if (code === 20001) {
-    //       this.$message({ message: msg, type: 'error', showClose: true })
-    //       return new Promise(reslove => {
-    //         let confirm = new Vue(login.component)
-    //         confirm.showAsDialog().then(newToken => {
-    //           if (newToken) {
-    //             sessionStorage.setItem('access_token', newToken)
-    //             rule.requestParams.set('access_token', newToken)
-    //             confirm.removeOverlay()
-    //             reslove(true)
-    //           } else {
-    //             reslove(false)
-    //           }
-    //         })
-    //       })
-    //     }
-    //   }
-    // })
-    // Vue.TmsAxios({ name: 'mongodb-api', rules: [rule] })
   },
   render: h => h(App)
 }).$mount('#app')
