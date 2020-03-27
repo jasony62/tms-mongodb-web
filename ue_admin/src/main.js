@@ -37,10 +37,12 @@ Vue.config.productionTip = false
  */
 const LoginPromise = (function() {
   let login = new Login(schema, apiUser.getCaptcha, apiUser.getToken)
-  let ins = new TmsLockPromise(function() {
-    return login.showAsDialog().then(token => `Bearer ${token}`)
+  return new TmsLockPromise(function() {
+    return login.showAsDialog(function (res){Message({ message: res.msg, type: 'error' })}).then(token => {
+      sessionStorage.setItem('access_token', token)
+      return `Bearer ${token}`
+    })
   })
-  return ins
 })()
 
 function getAccessToken() {
