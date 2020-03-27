@@ -6,6 +6,7 @@ import apiUser from './apis/user'
 import { Login } from 'tms-vue-ui'
 import { TmsAxiosPlugin, TmsErrorPlugin, TmsIgnorableError, TmsLockPromise } from 'tms-vue'
 import ElementUI from 'element-ui'
+import { Message } from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import './assets/css/common.less'
 Vue.use(ElementUI)
