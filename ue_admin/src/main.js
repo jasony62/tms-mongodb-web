@@ -4,14 +4,14 @@ import router from './router'
 import store from './store'
 import apiUser from './apis/user'
 import { Login } from 'tms-vue-ui'
+import { TmsAxiosPlugin, TmsErrorPlugin, TmsIgnorableError, TmsLockPromise } from 'tms-vue'
 import ElementUI from 'element-ui'
+import { Message } from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import './assets/css/common.less'
 Vue.use(ElementUI)
 
-import { TmsAxiosPlugin, TmsEventPlugin } from 'tms-vue'
-Vue.use(TmsAxiosPlugin)
-Vue.use(TmsEventPlugin)
+Vue.use(TmsAxiosPlugin).use(TmsErrorPlugin)
 
 const schema = [
   {
@@ -30,9 +30,58 @@ const schema = [
     placeholder: '验证码'
   }
 ]
-const login = new Login(schema, apiUser.getCaptcha, apiUser.getToken)
 
 Vue.config.productionTip = false
+
+/**
+ * 请求中需要包含认证信息
+ */
+const LoginPromise = (function() {
+  let login = new Login(schema, apiUser.getCaptcha, apiUser.getToken)
+  return new TmsLockPromise(function() {
+    return login.showAsDialog(function (res){Message({ message: res.msg, type: 'error' })}).then(token => {
+      sessionStorage.setItem('access_token', token)
+      return `Bearer ${token}`
+    })
+  })
+})()
+
+function getAccessToken() {
+  // 如果正在登录，等待结果
+  if (LoginPromise.isRunning()) {
+    return LoginPromise.wait()
+  }
+  // 如果没有token，发起登录
+  let token = sessionStorage.getItem('access_token')
+  if (!token) {
+    return LoginPromise.wait()
+  }
+
+  return `Bearer ${token}`
+}
+
+function onRetryAttempt(res) {
+  if (res.data.code === 20001) {
+    return LoginPromise.wait().then(() => {
+      return true
+    })
+  }
+  return false
+}
+
+function onResultFault(res) {
+  this.$message({
+    showClose: true,
+    message: res.data.msg,
+    type: 'error',
+    duration: 0
+  })
+  return Promise.reject(new TmsIgnorableError(res.data))
+}
+// 处理请求过程中发生的异常
+function onResponseRejected(err) {
+  return Promise.reject(new TmsIgnorableError(err))
+}
 
 /**
  * @name 自定义element指令-上拉加载
@@ -75,35 +124,24 @@ function mountCustomMethod() {
   }
 }
 
+function initFunc() {
+  mountCustomMethod()
+  let rules = []
+  let rulesObj = {onResultFault, onResponseRejected}
+  if (process.env.VUE_APP_BACK_AUTH_BASE_REWRITE) {
+    rulesObj = { ...rulesObj, 'requestHeaders': new Map([['Authorization', getAccessToken]]), onRetryAttempt}
+  } 
+  const responseRule = Vue.TmsAxios.newInterceptorRule(rulesObj)
+  rules.push(responseRule)
+
+  Vue.TmsAxios({ name: 'mongodb-api', rules })
+}
+
 new Vue({
   router,
   store,
   created() {
-    mountCustomMethod.call(this);
-    const token = sessionStorage.getItem('access_token') || ''
-    const rule = Vue.TmsAxios.newInterceptorRule({
-      requestParams: new Map([['access_token', token]]),
-      onRetryAttempt: res => {
-        const { code, msg } = res.data
-        if (code === 20001) {
-          this.$message({ message: msg, type: 'error', showClose: true })
-          return new Promise(reslove => {
-            let confirm = new Vue(login.component)
-            confirm.showAsDialog().then(newToken => {
-              if (newToken) {
-                sessionStorage.setItem('access_token', newToken)
-                rule.requestParams.set('access_token', newToken)
-                confirm.removeOverlay()
-                reslove(true)
-              } else {
-                reslove(false)
-              }
-            })
-          })
-        }
-      }
-    })
-    Vue.TmsAxios({ name: 'mongodb-api', rules: [rule] })
+    initFunc.call(this)
   },
   render: h => h(App)
 }).$mount('#app')

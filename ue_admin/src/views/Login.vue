@@ -56,7 +56,10 @@ export default {
         // 去掉之前的token
         this.TmsAxios.remove('access_token');
         // 添加token
-        this.TmsAxios('mongodb-api').rules[0].requestParams.set('access_token', token)
+        if (!this.TmsAxios('mongodb-api').rules[0].requestHeaders) {
+          this.TmsAxios('mongodb-api').rules[0].requestHeaders = new Map()
+        }
+        this.TmsAxios('mongodb-api').rules[0].requestHeaders.set('Authorization', `Bearer ${token}`)
         this.$router.push('/home')
       }
     },
