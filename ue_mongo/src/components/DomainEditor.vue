@@ -11,7 +11,7 @@
             <el-option v-for="db in dbs" :key="db._id" :label="db.title" :value="db.name"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="选择文件">
+      <el-form-item label="选择文档">
         <el-select v-model="form.clName" placeholder="请选择" clearable filterable>
             <el-option v-for="cl in cls" :key="cl._id" :label="cl.title" :value="cl.name"></el-option>
         </el-select>

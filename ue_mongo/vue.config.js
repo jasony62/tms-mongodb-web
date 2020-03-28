@@ -8,7 +8,7 @@ devServer.proxy[`${process.env.VUE_APP_BACK_API_PLUGIN}`] = { target: process.en
 
 module.exports = {
   publicPath: "/mongo/",
-  outputDir: "dist",
+  outputDir: "./dist/mongo",
 	devServer,
 	pages: {
 		index: {

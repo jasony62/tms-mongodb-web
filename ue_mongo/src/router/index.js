@@ -48,8 +48,8 @@ router.beforeEach((to, from, next)=> {
   if (to.name!=='login') {
     let token = sessionStorage.getItem('access_token')
     if (!token) {
-      Vue.TmsRouterHistoryPlugin.push(to.path)
-      return next('/login')
+      Vue.TmsRouterHistory.push(to.path)
+      return next({name: 'login'})
     }
   }
   next()

@@ -48,7 +48,7 @@ export default new Vuex.Store({
     removeDocument(state, payload) {
       state.documents.splice(state.documents.indexOf(payload.document), 1)
     },
-    conditions(state, payload) {
+    conditionAddColumn(state, payload) {
       const { condition } = payload
       const index = state.conditions.findIndex(ele => ele.columnName === condition.columnName)
       if (index !== -1) {
