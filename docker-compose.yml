@@ -1,31 +1,42 @@
 version: '3.7'
 services:
   mongodb:
-    image: mongo:latest
-    container_name: tms-mw-mongo
-    ports:
-      - '27017:27017'
-    logging:
-      driver: none
-
+    build: ./mongodb
+    image: tms-mongodb/mongo:latest
+    container_name: tms-mongo-mongo
+  
   back:
     build: ./back
-    image: tms-mw-back
-    container_name: tms-mw-back
-    ports:
-      - '3000:3000'
-    volumes:
-      - ./back/config:/usr/src/app/config
-    depends_on:
-      - mongodb
-
+    image: tms-mongodb/back:latest
+    container_name: tms-mongodb-back
+    environment:
+         - NODE_ENV=production
+         - TMS__MONGODB_HOST=mongodb
+         - TMS__MONGODB_PORT=27017
+    command: ['./wait-for.sh', 'mongodb:27017', '-t', '300', '--', 'node', 'server']
+  
   ue_admin:
-    build: ./ue_admin
-    image: tms-mw-ue_admin
-    container_name: tms-mw-ue_admin
-    ports:
-      - '8080:80'
-    volumes:
-      - ./ue_admin/nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - back
+    build:
+      context: ./ue_admin
+      args:
+        vue_app_base_url: /admin
+        vue_app_login_key_username: username
+        vue_app_login_key_password: password
+        vue_app_login_key_pin: pin
+    image: tms-mongodb/ue-admin:latest
+    container_name: tms-mongodb-ue_admin
+    environment:
+      - NGINX_WEB_BASE_URL=/admin
+      
+  ue_mongo:
+    build:
+      context: ./ue_mongo
+      args:
+        vue_app_base_url: /mongo
+        vue_app_login_key_username: username
+        vue_app_login_key_password: password
+        vue_app_login_key_pin: pin
+    image: tms-mongodb/ue-mongo:latest
+    container_name: tms-mongodb-ue_mongo
+    environment:
+      - NGINX_WEB_BASE_URL=/mongo
