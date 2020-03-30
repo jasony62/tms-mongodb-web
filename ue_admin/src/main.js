@@ -106,7 +106,7 @@ Vue.directive('loadmore', {
  * 
  */
 function mountCustomMethod() {
-  Vue.prototype.$customeConfirm = (msg = '文件', successCB = function () { return Promise.reject() }) => {
+  Vue.prototype.$customeConfirm = function(msg = '文件', successCB = function () { return Promise.reject() })  {
     this.$confirm(`此操作将永久删除该${msg}, 是否继续?`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
