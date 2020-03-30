@@ -1,9 +1,0 @@
-version: '3.7'
-services:
-  ue:
-    build: .
-    ports:
-      - '3840:80'
-    dns:
-      - 223.6.6.6
-      - 223.5.5.5
