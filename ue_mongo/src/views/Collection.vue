@@ -8,23 +8,6 @@
       </el-breadcrumb>
     </template>
     <template v-slot:center>
-      <tms-flex class="tmw-filter">
-        <el-input  v-model="keyword" size="small" placeholder="请输入关键词" class="tmw-filter__inputWithSelect">
-          <el-select v-model="option" placeholder="选择条件" slot="prepend" @change="handleSelect">
-            <el-option v-for="(s, k) in collection.schema.body.properties" :key="k" :label="s.title" :value="k"></el-option>
-          </el-select>
-          <el-dropdown slot="append">
-            <el-button icon="el-icon-s-operation"></el-button>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item v-for="(f, k) in features" :key="k"><el-radio v-model="feature" :label="f.value">{{f.title}}</el-radio></el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-        </el-input>
-        <el-button size="small"  icon="el-icon-search" @click="handleSearch">搜索</el-button>
-      </tms-flex>
-      <div class="tmw-tags">
-        <el-tag v-for="tag in tags" :key="tag.id" closable :disable-transitions="false" @close="removeTag(tag)">{{tag.property.title}}:{{tag.keyword}},{{tag.feature.title}}</el-tag>
-      </div>
       <el-table id="tables" :data="documents" stripe ref="multipleTable" :height="tableHeight" @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55"></el-table-column>
         <el-table-column
@@ -33,7 +16,7 @@
           :prop="k">
           <template slot="header">
             <span>{{ s.title }}</span>
-            <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect1(s, k)">
+            <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作" width="150">
@@ -168,7 +151,7 @@ export default {
       plugins: { document: { submits: [], transforms: {} } },
       dialogPage: {
         at: 1,
-				size: 10,
+				size: 20,
       }
     }
   },
@@ -205,15 +188,6 @@ export default {
       return this.multipleDocuments.length
     }
   },
-  watch: {
-		filter: {
-			handler() {
-				this.page.at = 1
-				this.listDocument()
-			},
-			deep: true
-		}
-	},
   methods: {
     ...mapMutations([
       'conditionReset',
@@ -221,23 +195,24 @@ export default {
       'conditionDelColumn'
     ]),
     handleCondition() {
-      if(!this.conditions.length) {
+      let _obj = JSON.parse(JSON.stringify(this.conditions))
+      if(!_obj.length) {
         return {filter: {}, orderBy: {}}
       }
-      if(this.conditions.length === 1){
+      if(_obj.length === 1){
         return {
-          filter: this.conditions[0].rule.filter,
-          orderBy: this.conditions[0].rule.orderBy
+          filter: _obj[0].rule.filter,
+          orderBy: _obj[0].rule.orderBy
         }
       }
-      return this.conditions.map(ele => ele.rule).reduce((prev, curr) => {
+      return _obj.map(ele => ele.rule).reduce((prev, curr) => {
         return {
           filter: Object.assign(prev.filter, curr.filter),
           orderBy: Object.assign(prev.orderBy, curr.orderBy)
         }
       })
     },
-    handleSelect1(obj, columnName) {
+    handleSelect(obj, columnName) {
       this.dialogPage.at = 1
       const select = new Vue(SelectCondition)
       if(this.conditions.length) {
@@ -256,6 +231,7 @@ export default {
           setTimeout(() => {
             select.toggleSelection(columnResult)
           }, 0)
+          
         })
       } else {
         apiDoc.byColumnVal(this.dbName, this.clName, columnName, undefined, undefined, this.dialogPage.at, this.dialogPage.size).then(columnResult => {
@@ -264,12 +240,13 @@ export default {
       }
       select.open(columnName, this.dbName, this.clName, this.dialogPage).then(rsl => {
         const { condition, isClear, isCheckBtn } = rsl
-        this.$store.commit('conditions', {condition})
-        if (isClear) this.conditionDelColumn({condition})
+        this.$store.commit('conditionAddColumn', {condition})
+        if (isClear) this.$store.commit('conditionDelColumn', {condition})
         let objPro = this.collection.schema.body.properties
+        if(isCheckBtn) this.$store.commit('conditionDelBtn', {columnName})
         Object.keys(objPro).map((ele, index) => {
+          const attrs = document.querySelectorAll('#tables thead.has-gutter img')[index]
           if (ele === columnName) {
-            const attrs = document.querySelectorAll('#tables thead.has-gutter img')[index]
             if(isClear) {
               attrs.src = require('../assets/icon_filter.png')
             }else if(isCheckBtn) {
@@ -277,67 +254,24 @@ export default {
             }else {
               attrs.src = require('../assets/icon_filter_active.png')
             }
+          } else if (isCheckBtn) {
+            // 如果选择升降序规则，则需重置其他图标
+            this.conditions.map(conEle => {
+              if (ele === conEle.columnName) {
+                if(conEle.rule && conEle.rule.filter && conEle.rule.filter[ele] && conEle.rule.filter[ele].keyword) {
+                  attrs.src = require('../assets/icon_filter_active.png')
+                }else if(conEle.isCheckBtn.includes(false)) {
+                  attrs.src = require('../assets/icon_'+ conEle.rule.orderBy[ele] + '_active.png')
+                }else {
+                  attrs.src = require('../assets/icon_filter.png')
+                }
+              }
+            })
           }
           return ele
         })
-        if(isCheckBtn) this.conditionDelBtn({columnName})
-        this.listDocument(true)
+        this.listDocument()
       })
-    },
-    handleSelect() {
-      if (this.filter[this.option]) {
-        let obj = this.filter[this.option]
-        this.keyword = obj.keyword
-        this.feature = obj.feature
-        return
-      } 
-      this.keyword = ""
-      this.feature = ""
-    },
-    handleSearch() {
-      if (!this.option || !this.keyword) {
-        Message.info({ message: '请确认是否选择条件或输入关键词'})
-        return false
-      }
-      let obj = {}
-      this.$set(obj, 'keyword', this.keyword.replace(/^\s+|\s+$/g,""))
-      this.$set(obj, 'feature', this.feature)
-      this.$set(this.filter, this.option, obj)
-      if (this.tags.length) {
-        this.tags.forEach(tag => {
-          if (tag && tag.id===this.option) {
-            tag.keyword = this.keyword
-            tag.feature = this.feature ? this.features[this.feature] : {}
-          } 
-        })
-        if (this.tags.every(tag => tag.id !== this.option)) {
-          this.addTag()
-        }
-      } else {
-        this.addTag()
-      }
-    },
-    addTag() {
-      this.tags.push({
-        id: this.option,
-        property: this.collection.schema.body.properties[this.option],
-        keyword: this.keyword,
-        feature: this.feature ? this.features[this.feature] : {}
-      })
-    },
-    removeTag(tag) {
-      this.tags.forEach((item, index) => {
-        if (item.id===tag.id) {
-          this.tags.splice(index, 1)
-          this.$delete(this.filter, tag.id)
-          if (this.option===tag.id) {
-            this.option = ""
-            this.keyword = ""
-            this.feature = ""
-          }
-        }
-      })
-      this.listDocument()
     },
     handleSelectDocument(rows) {
       this.multipleDocuments = rows
@@ -348,38 +282,27 @@ export default {
     },
     listPlugin() {
       apiPlugins.plugin.list().then(plugins => {
-        this.moveCheckList = plugins.document.transforms.move.map(option => option.name)
-        plugins.document.submits.forEach(submit => {
-         
-          let transforms = plugins.document.transforms[submit.id]
-          submit.checkList = transforms ? transforms.map(item => item.name) : []
-        })
-        this.plugins = plugins
+				if (JSON.stringify(plugins) !== "{}") {
+					this.moveCheckList = plugins.document.transforms.move.map(option => option.name)
+					plugins.document.submits.forEach(submit => {
+						let transforms = plugins.document.transforms[submit.id]
+						submit.checkList = transforms ? transforms.map(item => item.name) : []
+					})
+					this.plugins = plugins
+				}
       })
     },
-    listDocument(flag) {
-      if (flag) {
-        const rule = this.handleCondition()
-        const { orderBy, filter } = rule
-        this.$store.dispatch({
-          type: 'listDocument',
-          db: this.dbName,
-          cl: this.clName,
-          page: this.page,
-          filter,
-          orderBy
-        }).then(result => {
-          this.page.total = result.result.total
-          this.tableHeight = window.innerHeight * 0.8
-        })
-        return
-      }
+    listDocument() {
+      const rule = this.handleCondition()
+      this.filter = rule.filter
+      const { orderBy, filter } = rule
       this.$store.dispatch({
         type: 'listDocument',
         db: this.dbName,
         cl: this.clName,
         page: this.page,
-        filter: this.filter,
+        filter,
+        orderBy
       }).then(result => {
         this.page.total = result.result.total
         this.tableHeight = window.innerHeight * 0.8
@@ -410,7 +333,8 @@ export default {
           param.filter = 'ALL'
         break;
         case 'filter':
-          param.filter = this.filter
+          param.filter = this.handleCondition().filter
+          this.filter = param.filter
         break;
         case 'checked':
           param.docIds = this.fnGetMultipleIds()
@@ -427,10 +351,10 @@ export default {
       }
     },
     batchEditDocument(command) {
-      let {param} = this.fnSetReqParam(command), editor
+      let { param } = this.fnSetReqParam(command), editor
       editor = new Vue(ColumnValueEditor)
       editor.open(this.collection).then(columns => {
-        Object.assign(param, {'columns': columns})
+        Object.assign(param, {columns})
         apiDoc.batchUpdate(this.dbName, this.collection.name, param).then(result => {
           Message.success({ message: '已成功修改' + result.n + '条' })
           this.listDocument()

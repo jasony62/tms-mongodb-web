@@ -11,7 +11,7 @@ export default {
       if (this.$tmsRouterHistory.canBack()) {
         this.$router.back()
       } else {
-        this.$router.push('/home')
+        this.$router.push({name: 'home'})
       }
     }
   }

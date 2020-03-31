@@ -8,6 +8,14 @@ devServer.proxy[`${process.env.VUE_APP_BACK_API_PLUGIN}`] = { target: process.en
 
 module.exports = {
   publicPath: "/mongo/",
-  outputDir: "dist/mongo",
-  devServer
+  outputDir: "./dist/mongo",
+	devServer,
+	pages: {
+		index: {
+				entry: "src/main.js",
+				template: "public/index.html",
+				title: process.env.VUE_APP_TITLE,
+				chunks: ["chunk-vendors", "chunk-common", "index"]
+		},
+	}
 }

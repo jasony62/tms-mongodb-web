@@ -61,7 +61,7 @@ export default new Vuex.Store({
       state.documents = payload.documents
     },
     updateDocument() {},
-    conditions(state, payload) {
+    conditionAddColumn(state, payload) {
       const { condition } = payload
       const index = state.conditions.findIndex(ele => ele.columnName === condition.columnName)
       if (index !== -1) {
