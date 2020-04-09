@@ -10,6 +10,7 @@
         :data="dbs"
         stripe
         style="width: 100%"
+				class="tms-table"
       >
         <el-table-column label="数据库" width="180">
           <template slot-scope="scope">
@@ -27,11 +28,11 @@
         <el-table-column prop="description" label="说明"></el-table-column>
         <el-table-column fixed="right" label="操作" width="250">
           <template slot-scope="scope">
-            <el-button v-if="!scope.row.top||scope.row.top==0" @click="topDb(scope.row, 'up')" size="mini">置顶</el-button>
+            <el-button v-if="!scope.row.top||scope.row.top==0" @click="topDb(scope.row, 'up')" size="mini" type="text">置顶</el-button>
             <el-button v-if="scope.row.top==10000" disabled size="mini" type="text">已置顶</el-button>
-            <el-button v-if="scope.row.top==10000" @click="topDb(scope.row, 'down')" size="mini">取消置顶</el-button>
-            <el-button size="mini" @click="editDb(scope.row)">修改</el-button>
-            <el-button size="mini" @click="removeDb(scope.row)" v-if="false">删除</el-button>
+            <el-button v-if="scope.row.top==10000" @click="topDb(scope.row, 'down')" size="mini" type="text">取消置顶</el-button>
+            <el-button size="mini" @click="editDb(scope.row)" type="text">修改</el-button>
+            <el-button size="mini" @click="removeDb(scope.row)" type="text" v-if="false">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
