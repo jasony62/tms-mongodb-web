@@ -6,30 +6,32 @@ import Database from '../views/Database.vue'
 import Collection from '../views/Collection.vue'
 import { TmsRouterHistoryPlugin } from 'tms-vue'
 
+const VUE_APP_BASE_URL = process.env.VUE_APP_BASE_URL ? process.env.VUE_APP_BASE_URL : ''
+
 const routes = [
   {
-    path: '/',
-    redirect: '/login'
+    path: `${VUE_APP_BASE_URL}/mongo`,
+    redirect: `${VUE_APP_BASE_URL}/mongo/login`
   },
   {
-    path: '/login',
+    path: `${VUE_APP_BASE_URL}/mongo/login`,
     name: 'login',
     component: Login
   },
   {
-    path: '/home',
+    path: `${VUE_APP_BASE_URL}/mongo/home`,
     name: 'home',
     component: Home,
     props: true
   },
   {
-    path: '/database/:dbName',
+    path: `${VUE_APP_BASE_URL}/mongo/database/:dbName`,
     name: 'database',
     component: Database,
     props: true
   },
   {
-    path: '/collection/:dbName/:clName',
+    path: `${VUE_APP_BASE_URL}/mongo/collection/:dbName/:clName`,
     name: 'collection',
     component: Collection,
     props: true
@@ -40,7 +42,6 @@ Vue.use(VueRouter).use(TmsRouterHistoryPlugin)
 
 let router = new VueRouter({
   mode: 'history',
-  base: process.env.BASE_URL,
   routes
 })
 

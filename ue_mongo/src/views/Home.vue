@@ -90,7 +90,7 @@ export default {
       })
     },
     removeDb(db) {
-      this.$store.dispatch({ type: 'removeDb', db })
+      this.$store.dispatch({ type: 'removeDatabase', db })
     },
     topDb(collection, type) {
       apiDb.top(collection._id, type).then(() => {

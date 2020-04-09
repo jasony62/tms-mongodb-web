@@ -2,7 +2,7 @@
   <tms-frame class="tmw-document" :display="{ header: true, footer: false, right: true }" :leftWidth="'20%'">
     <template v-slot:header>
       <el-breadcrumb separator-class="el-icon-arrow-right">
-        <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'database', params: { dbName: dbName } }">{{dbName}}</el-breadcrumb-item>
         <el-breadcrumb-item>{{clName}}</el-breadcrumb-item>
       </el-breadcrumb>
@@ -17,6 +17,10 @@
           <template slot="header">
             <span>{{ s.title }}</span>
             <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
+          </template>
+					<template slot-scope="scope">
+            <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
+						<span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作" width="150">
@@ -497,20 +501,20 @@ export default {
   }
 }
 </script>
-
-<style lang="less" src="../assets/css/common.less"></style>
-<style scoped>
-.tmw-document .icon-style {
-  margin-left: 10px;
-  cursor: pointer;
-}
-.tmw-document .icon-heightlight {
-  color: #409EFF;
-}
-.tmw-document .icon_filter {
-  width: 15px;
-  height: 15px;
-  vertical-align: middle;
-  cursor: pointer;
+<style lang="less" scoped>
+.tmw-document {
+	.icon-style {
+		margin-left: 10px;
+		cursor: pointer;
+	}
+	.icon-heightlight {
+		color: #409EFF;
+	}
+	.icon_filter {
+		width: 15px;
+		height: 15px;
+		vertical-align: middle;
+		cursor: pointer;
+	}
 }
 </style>
