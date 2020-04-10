@@ -70,7 +70,7 @@ function onRetryAttempt(res) {
 }
 
 function onResultFault(res) {
-  this.$message({
+  Message({
     showClose: true,
     message: res.data.msg,
     type: 'error',
@@ -114,9 +114,6 @@ function mountCustomMethod() {
     }).then(() => {
       successCB().then(() => {
         this.$message({ message: '删除成功!', type: 'success', showClose: true })
-      }).catch(err => {
-        const { msg } = err
-        this.$message({ message: msg || '接口异常', type: 'error', showClose: true })
       })
     }).catch(() => {
       this.$message({ message: '已取消删除', type: 'info', showClose: true })
