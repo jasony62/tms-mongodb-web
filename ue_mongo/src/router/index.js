@@ -10,28 +10,28 @@ const VUE_APP_BASE_URL = process.env.VUE_APP_BASE_URL ? process.env.VUE_APP_BASE
 
 const routes = [
   {
-    path: `${VUE_APP_BASE_URL}/mongo`,
-    redirect: `${VUE_APP_BASE_URL}/mongo/login`
+    path: `${VUE_APP_BASE_URL}`,
+    redirect: `${VUE_APP_BASE_URL}/login`
   },
   {
-    path: `${VUE_APP_BASE_URL}/mongo/login`,
+    path: `${VUE_APP_BASE_URL}/login`,
     name: 'login',
     component: Login
   },
   {
-    path: `${VUE_APP_BASE_URL}/mongo/home`,
+    path: `${VUE_APP_BASE_URL}/home`,
     name: 'home',
     component: Home,
     props: true
   },
   {
-    path: `${VUE_APP_BASE_URL}/mongo/database/:dbName`,
+    path: `${VUE_APP_BASE_URL}/database/:dbName`,
     name: 'database',
     component: Database,
     props: true
   },
   {
-    path: `${VUE_APP_BASE_URL}/mongo/collection/:dbName/:clName`,
+    path: `${VUE_APP_BASE_URL}/collection/:dbName/:clName`,
     name: 'collection',
     component: Collection,
     props: true
