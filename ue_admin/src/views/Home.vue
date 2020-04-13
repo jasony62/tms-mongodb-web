@@ -16,6 +16,7 @@
       <el-table
         v-show="activeTab === 'database'"
         :data="dbs"
+        class="table-fixed"
         stripe
         style="width: 100%"
       >
