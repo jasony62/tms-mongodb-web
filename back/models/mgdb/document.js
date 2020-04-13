@@ -24,7 +24,7 @@ class Document extends Base {
         }
         // 排序
         let sort = {}
-        if (options.orderBy) {
+        if (options.orderBy && typeof options.orderBy === "object" && Object.keys(options.orderBy).length) {
             for (const key in options.orderBy) {
                 let val = options.orderBy[key]
                 if (val === "desc") {
@@ -32,8 +32,9 @@ class Document extends Base {
                 } else {
                     sort[key] = 1
                 }
-            }
-            
+            }  
+        } else {
+            sort._id = -1
         }
 
         data.docs = await cl

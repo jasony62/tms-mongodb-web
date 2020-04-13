@@ -164,19 +164,19 @@ class Document extends DocBase {
     return new ResultData(data)
   }
   /**
-   *  根据规则获取数据
+   * 
    */
-  async getDocsByRule() {
+  async _getDocsByRule(again = false) {
     let { ruleDb, ruleCl, db, cl, markResultColumn = "import_status", planTotalColumn = "need_sum" } = this.request.query
-    if ( !ruleDb || !ruleCl || !db || !cl ) return new ResultFault('参数不完整')
+    if ( !ruleDb || !ruleCl || !db || !cl ) return [ false, '参数不完整' ]
     
     // 获取规则表表头
     let schemas = await modelColl.getSchemaByCollection(ruleDb, ruleCl)
     if (!schemas) {
-      return new ResultFault('指定的集合没有指定集合列')
+      return [ false, '指定的集合没有指定集合列' ]
     }
-    if (markResultColumn && !schemas[markResultColumn]) return new ResultFault('需求表缺少完成状态（' + markResultColumn + '）列')
-    if (planTotalColumn && !schemas[planTotalColumn]) return new ResultFault('需求表缺少需求数量（' + planTotalColumn + '）列')
+    if (markResultColumn && !schemas[markResultColumn]) return [ false, '需求表缺少完成状态（' + markResultColumn + '）列' ]
+    if (planTotalColumn && !schemas[planTotalColumn]) return [ false, '需求表缺少需求数量（' + planTotalColumn + '）列' ]
 
     schemas.exist_total = {type: "string", title: "匹配总数"}
 
@@ -184,12 +184,12 @@ class Document extends DocBase {
     const client = this.mongoClient
     let find = {}
     find[planTotalColumn] = { $not: {$in: [null, "", "0"]} }
-    find[markResultColumn] = { $in: [null, ""] }
+    if (again !== true) find[markResultColumn] = { $in: [null, ""] }
     let rules = await client.db(ruleDb).collection(ruleCl).find(find).toArray()
-    if (rules.length == 0) return new ResultFault("未指定规则")
+    if (rules.length == 0) return [ false, "未指定规则或已使用的规则" ]
 
     let data = await this.getDocsByRule2(db, cl, rules, planTotalColumn)
-    if (data[0] === false) return new ResultFault(data[1])
+    if (data[0] === false) return [ false, data[1] ]
 
     data = data[1]
     let failed = []
@@ -202,7 +202,43 @@ class Document extends DocBase {
         }
     }
 
-    return new ResultData({schemas, failed, passed}) 
+    return [true, {schemas, failed, passed}]
+  }
+  /**
+   *  根据规则获取数据
+   */
+  async getDocsByRule() {
+    let data = await this._getDocsByRule()
+    if (data[0] === false) return new ResultFault(data[1])
+
+    return new ResultData(data[1]) 
+  }
+
+  /**
+   *  导出根据规则获取得数据详情
+   */
+  async exportDocsByRule() {
+    let data = await this._getDocsByRule(true)
+    if (data[0] === false) return new ResultFault(data[1])
+    
+    let {schemas, failed, passed} = data[1]
+    schemas.msg = {type: 'string', title: '自动分配情况'}
+    let docs = _.concat(failed, passed)
+    docs.forEach(doc => {
+      if (doc.import_status === "成功") {
+        doc.msg = ""
+        doc.exist_total = ""
+      }
+    })
+
+    const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
+    let rst = ExcelCtrl.export(schemas, docs, '根据规则表【' + this.request.query.ruleCl + '】获取数据')
+    if (rst[0] === false) {
+      return new ResultFault(rst[1])
+    }
+    rst = rst[1]
+
+    return new ResultData(rst)
   }
   /**
    * 根据规则替换数据
@@ -211,8 +247,8 @@ class Document extends DocBase {
     let { db, cl } = this.request.query
     let { rule, dels } = this.request.body
 
-    dels = dels.join(";")
-    rule.byId = "notin," + dels
+    dels = dels.join(",")
+    rule.byId = "notin:" + dels
     let rules = [rule]
     let data = await this.getDocsByRule2(db, cl, rules)
     if (data[0] === false) return new ResultFault(data[1])
