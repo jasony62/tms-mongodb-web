@@ -4,7 +4,7 @@ const Base = require('./base')
 class Collection extends Base {
     //
     static async getSchemaByCollection(dbName, clName) {
-        let model = new Base()
+        const model = new Base()
         const client = await model.mongoClient()
         const cl = client.db('tms_admin').collection('mongodb_object')
         // 获取表列
@@ -31,7 +31,7 @@ class Collection extends Base {
     }
     //
     static async getCollection(dbName, clName) {
-        let model = new Base()
+        const model = new Base()
         const client = await model.mongoClient()
         const cl = client.db('tms_admin').collection('mongodb_object')
         //
