@@ -1,8 +1,8 @@
 const log4js = require('log4js')
 const logger = log4js.getLogger('tms-xlsx-etd-models')
-const MongoContext = require('tms-koa/lib/mongodb').Context
+const { MongoContext } = require('tms-koa').Context
 const moment = require('moment')
-const TMSCONFIG = require('../../config')
+const TMSCONFIG = require('tms-koa').Context.appConfig.tmsConfig
 
 class Base {
   constructor() {

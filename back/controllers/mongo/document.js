@@ -1,13 +1,9 @@
 const { ResultData, ResultFault, ResultObjectNotFound } = require('tms-koa')
 const DocBase = require('../documentBase')
-const log4js = require('log4js')
-const logger = log4js.getLogger('tms-xlsx-etd')
 const _ = require('lodash')
 const fs = require('fs')
 const ObjectId = require('mongodb').ObjectId
 const modelColl = require('../../models/mgdb/collection')
-// 上传
-const moment = require('tms-koa/node_modules/moment')
 
 class Document extends DocBase {
   constructor(...args) {
@@ -17,22 +13,29 @@ class Document extends DocBase {
    * 上传单个文件
    */
   async uploadToImport() {
-    const { LocalFS } = require('tms-koa/lib/model/fs/local')
-
     if (!this.request.files || !this.request.files.file) {
         return new ResultFault('没有上传文件')
     }
-    let { db: dbName, cl: clName, checkRepeatColumns = "", keepFirstRepeatData = false } = this.request.query
+    const { db: dbName, cl: clName, checkRepeatColumns = "", keepFirstRepeatData = false } = this.request.query
     if (!dbName || !clName) {
         return new ResultData('参数不完整')
     }
-    
-    const file = this.request.files.file
-    let filePath = moment().format('YYYYMM/DDHH/')
-    filePath += file.name
 
-    let fs = new LocalFS('upload')
-    let filepath2 = await fs.writeStream(filePath, file)
+    const { UploadPlain } = require('tms-koa/lib/model/fs/upload')
+    const { LocalFS } = require('tms-koa/lib/model/fs/local')
+    const { FsContext } = require('tms-koa').Context
+    
+    const fsContextIns = FsContext.insSync()
+    const domain = fsContextIns.getDomain(fsContextIns.defaultDomain)
+    const tmsFs = new LocalFS(domain)
+    const file = this.request.files.file
+    const upload = new UploadPlain(tmsFs)
+    let filepath
+    try {
+      filepath = await upload.store(file, '', "Y")
+    } catch (e) {
+      return new ResultFault(e.message)
+    }
 
     let options = {}
     if (checkRepeatColumns) {
@@ -40,7 +43,7 @@ class Document extends DocBase {
       options.unrepeat.columns = checkRepeatColumns.split(',')
       options.unrepeat.keepFirstRepeatData = keepFirstRepeatData ? keepFirstRepeatData : false
     }
-    let rst = await this._importToColl(dbName, clName, filepath2, options)
+    let rst = await this._importToColl(dbName, clName, filepath, options)
 
     if (rst[0] === true) {
       return new ResultData("ok")

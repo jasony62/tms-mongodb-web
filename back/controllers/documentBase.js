@@ -6,7 +6,7 @@ const modelDocu = require('../models/mgdb/document')
 const ObjectId = require('mongodb').ObjectId
 const _ = require('lodash')
 const { unrepeatByArray } = require('../tms/utilities')
-const TMSCONFIG = require('../config')
+const TMSCONFIG = require('tms-koa').Context.appConfig.tmsConfig
 
 class DocBase extends Ctrl {
   constructor(...args) {
