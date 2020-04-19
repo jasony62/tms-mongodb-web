@@ -1,8 +1,8 @@
-const log4js = require('@log4js-node/log4js-api')
-const logger = log4js.getLogger('tms-koa-ctrl')
-const Router = require('koa-router')
-const _ = require('lodash')
-const jwt = require('jsonwebtoken')
+const log4js = require('tms-koa/node_modules/@log4js-node/log4js-api')
+const logger = log4js.getLogger('tms-koa-plugins')
+const Router = require('tms-koa/node_modules/koa-router')
+const _ = require('tms-koa/node_modules/lodash')
+const jwt = require('tms-koa/node_modules/jsonwebtoken')
 const fs = require('fs')
 
 const {
@@ -11,15 +11,15 @@ const {
   MongoContext,
   MongooseContext,
   PushContext,
-} = require('../app').Context
+} = require('tms-koa').Context
 
 let trustedHosts = {}
 if (fs.existsSync(process.cwd() + '/config/trusted-hosts.js')) {
   Object.assign(trustedHosts, require(process.cwd() + '/config/trusted-hosts'))
 }
 
-const { ResultFault, AccessTokenFault } = require('../response')
-//const { RequestTransaction } = require('../model/transaction')
+const { ResultFault, AccessTokenFault } = require('tms-koa/lib/response')
+// const { RequestTransaction } = require('tms-koa/lib/model/transaction')
 
 function findCtrlClassInControllers(ctrlName, path) {
   // 从控制器路径查找
@@ -160,7 +160,7 @@ async function fnCtrlWrapper(ctx, next) {
     if (appConfig.auth.jwt) {
       try {
         let decoded = jwt.verify(access_token, appConfig.auth.jwt.privateKey)
-        tmsClient = require('../auth/client').createByData(decoded)
+        tmsClient = require('tms-koa/lib/auth/client').createByData(decoded)
       } catch (e) {
         if (e.name === 'TokenExpiredError') {
           response.body = new AccessTokenFault('认证令牌过期')
@@ -170,7 +170,7 @@ async function fnCtrlWrapper(ctx, next) {
         return
       }
     } else if (appConfig.auth.redis) {
-      const Token = require('../auth/token')
+      const Token = require('tms-koa/lib/auth/token')
       let aResult = await Token.fetch(access_token)
       if (false === aResult[0]) {
         response.body = new AccessTokenFault(aResult[1])
