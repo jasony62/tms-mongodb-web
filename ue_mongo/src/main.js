@@ -36,7 +36,7 @@ Vue.use(Login, { schema: LoginSchema, fnGetCaptcha, fnGetToken: fnGetJwt })
 const LoginPromise = (function() {
   let login = new Login(LoginSchema, fnGetCaptcha, fnGetJwt)
   let ins = new TmsLockPromise(function() {
-    return login.showAsDialog(function (res){Message({ message: res.msg, type: 'error' ,customClass:'mzindex' })}).then(token => {
+    return login.showAsDialog(function(res) {Message({ message: res.msg, type: 'error', customClass: 'mzindex'})}).then(token => {
       sessionStorage.setItem('access_token', token)
       return `Bearer ${token}`
     })
