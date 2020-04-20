@@ -7,6 +7,7 @@ import apis from '../apis'
 
 export default new Vuex.Store({
   state: {
+    buckets: [],
     dbs: [],
     schemas: [],
     collections: [],
@@ -15,6 +16,19 @@ export default new Vuex.Store({
     conditions: []
   },
   mutations: {
+    buckets(state, payload) {
+      state.buckets = payload.buckets
+    },
+    appendBucket(state, payload) {
+      state.buckets.push(payload.bucket)
+    },
+    updateBucket(state, payload) {
+      const { index, bucket } = payload
+      state.buckets.splice(index, 1, bucket)
+    },
+    removeBucket(state, payload) {
+      state.buckets.splice(state.buckets.indexOf(payload.bucket), 1)
+    },
     dbs(state, payload) {
       state.dbs = payload.dbs
     },
@@ -63,7 +77,9 @@ export default new Vuex.Store({
     updateDocument() {},
     conditionAddColumn(state, payload) {
       const { condition } = payload
-      const index = state.conditions.findIndex(ele => ele.columnName === condition.columnName)
+      const index = state.conditions.findIndex(
+        ele => ele.columnName === condition.columnName
+      )
       if (index !== -1) {
         state.conditions.splice(index, 1)
       }
@@ -72,7 +88,7 @@ export default new Vuex.Store({
     conditionDelBtn(state, payload) {
       const { columnName } = payload
       state.conditions.forEach(ele => {
-        if(ele.columnName !== columnName){
+        if (ele.columnName !== columnName) {
           ele.rule.orderBy = {}
           ele.isCheckBtn = [true, true]
         }
@@ -80,7 +96,9 @@ export default new Vuex.Store({
     },
     conditionDelColumn(state, payload) {
       const { condition } = payload
-      const index = state.conditions.findIndex(ele => ele.columnName === condition.columnName)
+      const index = state.conditions.findIndex(
+        ele => ele.columnName === condition.columnName
+      )
       if (index !== -1) {
         state.conditions.splice(index, 1)
       }
@@ -90,6 +108,12 @@ export default new Vuex.Store({
     }
   },
   actions: {
+    listBucket({ commit }) {
+      return apis.bucket.list().then(buckets => {
+        commit({ type: 'buckets', buckets })
+        return { buckets }
+      })
+    },
     listDatabase({ commit }) {
       return apis.db.list().then(dbs => {
         commit({ type: 'dbs', dbs })
@@ -99,7 +123,7 @@ export default new Vuex.Store({
     listSchema({ commit }, payload) {
       const { scope } = payload
       return apis.schema.list(scope).then(schemas => {
-        const types = typeof(scope) === 'string' ? 'schemas' : 'attributes'
+        const types = typeof scope === 'string' ? 'schemas' : 'attributes'
         commit({ type: 'schemas', schemas, types })
         return { schemas }
       })
@@ -117,6 +141,12 @@ export default new Vuex.Store({
         const documents = result.docs
         commit({ type: 'documents', documents })
         return result
+      })
+    },
+    removeBucket({ commit }, payload) {
+      const { bucket } = payload
+      return apis.bucket.remove(bucket).then(() => {
+        commit({ type: 'removeBucket', bucket })
       })
     },
     removeDb({ commit }, payload) {

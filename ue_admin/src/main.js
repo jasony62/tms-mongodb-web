@@ -4,7 +4,12 @@ import router from './router'
 import store from './store'
 import apiLogin from './apis/login'
 import { Login } from 'tms-vue-ui'
-import { TmsAxiosPlugin, TmsErrorPlugin, TmsIgnorableError, TmsLockPromise } from 'tms-vue'
+import {
+  TmsAxiosPlugin,
+  TmsErrorPlugin,
+  TmsIgnorableError,
+  TmsLockPromise
+} from 'tms-vue'
 import ElementUI from 'element-ui'
 import { Message } from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
@@ -40,10 +45,14 @@ Vue.config.productionTip = false
 const LoginPromise = (function() {
   let login = new Login(schema, fnGetCaptcha, fnGetToken)
   return new TmsLockPromise(function() {
-    return login.showAsDialog(function (res){Message({ message: res.msg, type: 'error', customClass: 'mzindex' })}).then(token => {
-      sessionStorage.setItem('access_token', token)
-      return `Bearer ${token}`
-    })
+    return login
+      .showAsDialog(function(res) {
+        Message({ message: res.msg, type: 'error', customClass: 'mzindex'  })
+      })
+      .then(token => {
+        sessionStorage.setItem('access_token', token)
+        return `Bearer ${token}`
+      })
   })
 })()
 
@@ -92,7 +101,8 @@ Vue.directive('loadmore', {
   bind(el, binding) {
     const selectWrap = el.querySelector('.el-table__body-wrapper')
     selectWrap.addEventListener('scroll', function() {
-      const scrollDistance = this.scrollHeight - this.scrollTop - this.clientHeight
+      const scrollDistance =
+        this.scrollHeight - this.scrollTop - this.clientHeight
       if (scrollDistance <= 0) {
         binding.value()
       }
@@ -103,33 +113,49 @@ Vue.directive('loadmore', {
 /**
  * @name 自定义确认框
  * @description 原型上增加confirm方法，方便统一控制
- * @param {string} msg 提示语 
+ * @param {string} msg 提示语
  * @param {function} successCB 成功回调
- * 
+ *
  */
 function mountCustomMethod() {
-  Vue.prototype.$customeConfirm = function(msg = '文件', successCB = function () { return Promise.reject() })  {
+  Vue.prototype.$customeConfirm = function(
+    msg = '文件',
+    successCB = function() {
+      return Promise.reject()
+    }
+  ) {
     this.$confirm(`此操作将永久删除该${msg}, 是否继续?`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
-    }).then(() => {
-      successCB().then(() => {
-        this.$message({ message: '删除成功!', type: 'success', showClose: true })
+    })
+      .then(() => {
+        successCB()
+          .then(() => {
+            this.$message({
+              message: '删除成功!',
+              type: 'success',
+              showClose: true
+            })
+          })
       })
-    }).catch(() => {
-      this.$message({ message: '已取消删除', type: 'info', showClose: true })
-    });
+      .catch(() => {
+        this.$message({ message: '已取消删除', type: 'info', showClose: true })
+      })
   }
 }
 
 function initFunc() {
   mountCustomMethod()
   let rules = []
-  let rulesObj = {onResultFault, onResponseRejected}
+  let rulesObj = { onResultFault, onResponseRejected }
   if (process.env.VUE_APP_BACK_AUTH_SERVER) {
-    rulesObj = { ...rulesObj, 'requestHeaders': new Map([['Authorization', getAccessToken]]), onRetryAttempt}
-  } 
+    rulesObj = {
+      ...rulesObj,
+      requestHeaders: new Map([['Authorization', getAccessToken]]),
+      onRetryAttempt
+    }
+  }
   const responseRule = Vue.TmsAxios.newInterceptorRule(rulesObj)
   rules.push(responseRule)
 
