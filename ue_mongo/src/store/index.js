@@ -98,9 +98,7 @@ export default new Vuex.Store({
         return {  result }
       })
 		},
-		removeDatabase() {
-			//console.log('未设置')
-		},
+		removeDatabase() {},
     removeCollection({ commit }, payload) {
       const { db, collection } = payload
       apis.collection.remove(db, collection.name).then(() => {
