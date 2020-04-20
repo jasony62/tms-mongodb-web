@@ -1,45 +1,47 @@
-FROM alpine:latest
-ENV ng_config /usr/local/nginx-1.16.0
-ADD nginx-1.16.0.tar.gz /usr/local/
+# 标准基础镜像（构建阶段）
+FROM node:alpine
 
-RUN CONFIG="\
---prefix=/usr/local/nginx \
---user=nginx \
---group=nginx \
---with-http_ssl_module \
---with-http_gzip_static_module \
---with-http_image_filter_module \
---with-http_stub_status_module \
-" \
+RUN npm install cnpm -g
 
-&& addgroup -S nginx \
-&& adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
-&& sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
-&& apk update \
-&& apk add --no-cache --virtual .build-deps \
-gcc g++ pcre pcre-dev expat-dev perl zlib-dev libxml2-dev make openssl openssl-dev bzip2-dev gd gd-dev \
-&& rm -rf /var/cache/apk/* \
+WORKDIR /home/node/app
 
-&& cd $ng_config \
-&& ./configure $CONFIG \
-&& sed -ri "s/-Werror//" $ng_config/objs/Makefile \
-&& make \
-&& make install \
+COPY . .
 
-#######################清除虚包#########################
-&& runDeps="$( \
-scanelf --needed --nobanner --format '%n#p' --recursive /usr/local \
-| tr ',' '\n' \
-| sort -u \
-| awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
-)" \
-&& apk add --no-cache $runDeps \
-&& apk del  .build-deps \
-&& rm -rf $ng_config
-########################################################
+# 生成.env文件
+ARG vue_app_base_url
+ARG vue_app_auth_server
+ARG vue_app_login_key_username=username
+ARG vue_app_login_key_password=password
+ARG vue_app_login_key_pin=pin
+ARG vue_app_api_server
 
-expose 80 443
-WORKDIR /usr/local/nginx/
-RUN mkdir -p /usr/src/app
-ADD dist /usr/src/app/dist/
-ENTRYPOINT [ "./sbin/nginx" ,"-g" ,"daemon off;"]
+RUN echo VUE_APP_BASE_URL=$vue_app_base_url > .env && \
+  echo VUE_APP_AUTH_SERVER=$vue_app_auth_server >> .env && \
+  echo VUE_APP_LOGIN_KEY_USERNAME=$vue_app_login_key_username >> .env && \
+  echo VUE_APP_LOGIN_KEY_PASSWORD=$vue_app_login_key_password  >> .env && \
+  echo VUE_APP_LOGIN_KEY_PIN=$vue_app_login_key_pin  >> .env && \
+  echo VUE_APP_API_SERVER=$vue_app_api_server >> .env
+
+# 安装依赖包，构建代码
+RUN cnpm i && yarn build
+
+# 标准基础镜像（部署阶段）
+FROM nginx:alpine
+
+# 设置时区
+RUN sed -i 's?http://dl-cdn.alpinelinux.org/?https://mirrors.aliyun.com/?' /etc/apk/repositories && \
+  apk add -U tzdata && \
+  cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+  apk del tzdata
+
+# 修改配置文件
+ADD ./nginx.conf.template /etc/nginx/nginx.conf.template
+
+ADD ./start_nginx.sh /usr/local/bin/start_nginx.sh
+
+RUN chmod +x /usr/local/bin/start_nginx.sh
+
+# 将构建阶段代码放在指定位置
+COPY --from=0 /home/node/app/dist /usr/share/nginx/html
+
+CMD ["start_nginx.sh"]
