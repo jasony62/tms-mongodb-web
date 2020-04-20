@@ -1,7 +1,7 @@
 const ObjectId = require('mongodb').ObjectId
 const Base = require('./base')
 const moment = require('moment')
-const TMSCONFIG = require('tms-koa').Context.appConfig.tmsConfig
+const TMSCONFIG = require('tms-koa').Context.appConfig.tmwConfig
 
 class Document extends Base {
     /**
