@@ -4,23 +4,39 @@ const Router = require('tms-koa/node_modules/koa-router')
 const _ = require('tms-koa/node_modules/lodash')
 const jwt = require('tms-koa/node_modules/jsonwebtoken')
 const fs = require('fs')
+const path = require('path')
 
-const {
-  appConfig,
-  DbContext,
-  MongoContext,
-  MongooseContext,
-  PushContext,
-} = require('tms-koa').Context
-
-let trustedHosts = {}
-if (fs.existsSync(process.cwd() + '/config/trusted-hosts.js')) {
-  Object.assign(trustedHosts, require(process.cwd() + '/config/trusted-hosts'))
-}
-
-const { ResultFault, AccessTokenFault } = require('tms-koa/lib/response')
+const appConfig = loadConfig('app')
+const trustedHosts = loadConfig('trusted-hosts') || {}
 // const { RequestTransaction } = require('tms-koa/lib/model/transaction')
+/**
+ * 获得配置数据
+ */
+function loadConfig(name, defaultConfig) {
+  let basepath = path.resolve('config', `${name}.js`)
 
+  let baseConfig
+  if (fs.existsSync(basepath)) {
+    baseConfig = require(basepath)
+    logger.info(`从[${basepath}]加载配置`)
+  } else {
+    logger.warn(`[${name}]配置文件[${basepath}]不存在`)
+  }
+  let localpath = path.resolve('config', `${name}.local.js`)
+  let localConfig
+  if (fs.existsSync(localpath)) {
+    localConfig = require(localpath)
+    logger.info(`从[${localpath}]加载本地配置`)
+  }
+  if (defaultConfig || baseConfig || localConfig) {
+    return _.merge({}, defaultConfig, baseConfig, localConfig)
+  }
+
+  return false
+}
+/**
+ * 
+ */
 function findCtrlClassInControllers(ctrlName, path) {
   // 从控制器路径查找
   let ctrlPath = process.cwd() + `/plugins/${ctrlName}.js`
@@ -41,7 +57,6 @@ function findCtrlClassInControllers(ctrlName, path) {
 }
 /**
  *
- * @param {*} ctx
  */
 function findCtrlClassAndMethodName(ctx) {
   let { path } = ctx.request
@@ -87,8 +102,6 @@ function findCtrlClassAndMethodName(ctx) {
 }
 /**
  * 获得请求中传递的access_token
- *
- * @param {*} ctx
  */
 function getAccessTokenByRequest(ctx) {
   let access_token
@@ -106,20 +119,19 @@ function getAccessTokenByRequest(ctx) {
 }
 /**
  * 根据请求找到对应的控制器并执行
- *
- * @param {Context} ctx
- *
  */
 async function fnCtrlWrapper(ctx, next) {
   let { request, response } = ctx
-
   // 只处理api请求，其它返回找不到
   if (/\./.test(request.path)) {
     response.status = 404
     response.body = 'not found'
     return
   }
-
+  //
+  const { ResultFault, AccessTokenFault } = require('tms-koa/lib/response')
+  const { DbContext, MongoContext, MongooseContext, PushContext } = require('tms-koa').Context
+  //
   const [ctrlName, CtrlClass, method] = findCtrlClassAndMethodName(ctx)
 
   let tmsClient
@@ -179,6 +191,7 @@ async function fnCtrlWrapper(ctx, next) {
       tmsClient = aResult[1]
     }
   }
+  
   // 数据库连接
   let dbContext, mongoClient, mongoose, pushContext
   try {
