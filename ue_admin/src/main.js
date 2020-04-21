@@ -2,7 +2,7 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
-import apiUser from './apis/user'
+import apiLogin from './apis/login'
 import { Login } from 'tms-vue-ui'
 import {
   TmsAxiosPlugin,
@@ -18,35 +18,36 @@ Vue.use(ElementUI)
 
 Vue.use(TmsAxiosPlugin).use(TmsErrorPlugin)
 
+const { fnGetCaptcha, fnGetToken } = apiLogin
 const schema = [
   {
-    key: 'username',
+    key: process.env.VUE_APP_LOGIN_KEY_USERNAME || 'username',
     type: 'text',
     placeholder: '用户名'
   },
   {
-    key: 'password',
+    key: process.env.VUE_APP_LOGIN_KEY_PASSWORD || 'password',
     type: 'password',
     placeholder: '密码'
   },
   {
-    key: 'pin',
+    key: process.env.VUE_APP_LOGIN_KEY_PIN || 'pin',
     type: 'code',
     placeholder: '验证码'
   }
 ]
-
+Vue.use(Login, { schema, fnGetCaptcha, fnGetToken })
 Vue.config.productionTip = false
 
 /**
  * 请求中需要包含认证信息
  */
 const LoginPromise = (function() {
-  let login = new Login(schema, apiUser.getCaptcha, apiUser.getToken)
+  let login = new Login(schema, fnGetCaptcha, fnGetToken)
   return new TmsLockPromise(function() {
     return login
       .showAsDialog(function(res) {
-        Message({ message: res.msg, type: 'error' })
+        Message({ message: res.msg, type: 'error', customClass: 'mzindex'  })
       })
       .then(token => {
         sessionStorage.setItem('access_token', token)
@@ -79,11 +80,12 @@ function onRetryAttempt(res) {
 }
 
 function onResultFault(res) {
-  this.$message({
+  Message({
     showClose: true,
     message: res.data.msg,
     type: 'error',
-    duration: 0
+    duration: 0,
+    customClass:'mzindex'
   })
   return Promise.reject(new TmsIgnorableError(res.data))
 }
@@ -136,14 +138,6 @@ function mountCustomMethod() {
               showClose: true
             })
           })
-          .catch(err => {
-            const { msg } = err
-            this.$message({
-              message: msg || '接口异常',
-              type: 'error',
-              showClose: true
-            })
-          })
       })
       .catch(() => {
         this.$message({ message: '已取消删除', type: 'info', showClose: true })
@@ -155,7 +149,7 @@ function initFunc() {
   mountCustomMethod()
   let rules = []
   let rulesObj = { onResultFault, onResponseRejected }
-  if (process.env.VUE_APP_BACK_AUTH_BASE_REWRITE) {
+  if (process.env.VUE_APP_BACK_AUTH_SERVER) {
     rulesObj = {
       ...rulesObj,
       requestHeaders: new Map([['Authorization', getAccessToken]]),
@@ -166,6 +160,7 @@ function initFunc() {
   rules.push(responseRule)
 
   Vue.TmsAxios({ name: 'mongodb-api', rules })
+  Vue.TmsAxios({ name: 'auth-api' })
 }
 
 new Vue({
