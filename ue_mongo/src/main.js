@@ -2,7 +2,7 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
-import '@/assets/css/element-ui.css'
+import '@/assets/css/common.less'
 import { Message } from 'element-ui'
 import { Login } from 'tms-vue-ui'
 import apiLogin from './apis/login.js'
@@ -36,7 +36,7 @@ Vue.use(Login, { schema: LoginSchema, fnGetCaptcha, fnGetToken: fnGetJwt })
 const LoginPromise = (function() {
   let login = new Login(LoginSchema, fnGetCaptcha, fnGetJwt)
   let ins = new TmsLockPromise(function() {
-    return login.showAsDialog().then(token => {
+    return login.showAsDialog(function(res) {Message({ message: res.msg, type: 'error', customClass: 'mzindex'})}).then(token => {
       sessionStorage.setItem('access_token', token)
       return `Bearer ${token}`
     })
