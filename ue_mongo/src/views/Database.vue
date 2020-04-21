@@ -29,7 +29,7 @@
           width="180"
         ></el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
-        <el-table-column fixed="right" label="操作" width="120">
+        <el-table-column fixed="right" label="操作" width="120" v-if="false">
           <template slot-scope="scope">
             <el-button @click="editCollection(scope.row)"  size="mini" type="text">修改</el-button>
             <el-button @click="removeCollection(scope.row)" size="mini"  type="text" v-if="false">删除</el-button>
