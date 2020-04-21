@@ -1,13 +1,9 @@
 const { ResultData, ResultFault, ResultObjectNotFound } = require('tms-koa')
 const DocBase = require('../documentBase')
-const log4js = require('log4js')
-const logger = log4js.getLogger('tms-xlsx-etd')
 const _ = require('lodash')
 const fs = require('fs')
 const ObjectId = require('mongodb').ObjectId
 const modelColl = require('../../models/mgdb/collection')
-// 上传
-const moment = require('tms-koa/node_modules/moment')
 
 class Document extends DocBase {
   constructor(...args) {
@@ -17,22 +13,29 @@ class Document extends DocBase {
    * 上传单个文件
    */
   async uploadToImport() {
-    const { LocalFS } = require('tms-koa/lib/model/fs/local')
-
     if (!this.request.files || !this.request.files.file) {
         return new ResultFault('没有上传文件')
     }
-    let { db: dbName, cl: clName, checkRepeatColumns = "", keepFirstRepeatData = false } = this.request.query
+    const { db: dbName, cl: clName, checkRepeatColumns = "", keepFirstRepeatData = false } = this.request.query
     if (!dbName || !clName) {
         return new ResultData('参数不完整')
     }
-    
-    const file = this.request.files.file
-    let filePath = moment().format('YYYYMM/DDHH/')
-    filePath += file.name
 
-    let fs = new LocalFS('upload')
-    let filepath2 = await fs.writeStream(filePath, file)
+    const { UploadPlain } = require('tms-koa/lib/model/fs/upload')
+    const { LocalFS } = require('tms-koa/lib/model/fs/local')
+    const { FsContext } = require('tms-koa').Context
+    
+    const fsContextIns = FsContext.insSync()
+    const domain = fsContextIns.getDomain(fsContextIns.defaultDomain)
+    const tmsFs = new LocalFS(domain)
+    const file = this.request.files.file
+    const upload = new UploadPlain(tmsFs)
+    let filepath
+    try {
+      filepath = await upload.store(file, '', "Y")
+    } catch (e) {
+      return new ResultFault(e.message)
+    }
 
     let options = {}
     if (checkRepeatColumns) {
@@ -40,7 +43,7 @@ class Document extends DocBase {
       options.unrepeat.columns = checkRepeatColumns.split(',')
       options.unrepeat.keepFirstRepeatData = keepFirstRepeatData ? keepFirstRepeatData : false
     }
-    let rst = await this._importToColl(dbName, clName, filepath2, options)
+    let rst = await this._importToColl(dbName, clName, filepath, options)
 
     if (rst[0] === true) {
       return new ResultData("ok")
@@ -164,19 +167,19 @@ class Document extends DocBase {
     return new ResultData(data)
   }
   /**
-   *  根据规则获取数据
+   * 
    */
-  async getDocsByRule() {
+  async _getDocsByRule(again = false) {
     let { ruleDb, ruleCl, db, cl, markResultColumn = "import_status", planTotalColumn = "need_sum" } = this.request.query
-    if ( !ruleDb || !ruleCl || !db || !cl ) return new ResultFault('参数不完整')
+    if ( !ruleDb || !ruleCl || !db || !cl ) return [ false, '参数不完整' ]
     
     // 获取规则表表头
     let schemas = await modelColl.getSchemaByCollection(ruleDb, ruleCl)
     if (!schemas) {
-      return new ResultFault('指定的集合没有指定集合列')
+      return [ false, '指定的集合没有指定集合列' ]
     }
-    if (markResultColumn && !schemas[markResultColumn]) return new ResultFault('需求表缺少完成状态（' + markResultColumn + '）列')
-    if (planTotalColumn && !schemas[planTotalColumn]) return new ResultFault('需求表缺少需求数量（' + planTotalColumn + '）列')
+    if (markResultColumn && !schemas[markResultColumn]) return [ false, '需求表缺少完成状态（' + markResultColumn + '）列' ]
+    if (planTotalColumn && !schemas[planTotalColumn]) return [ false, '需求表缺少需求数量（' + planTotalColumn + '）列' ]
 
     schemas.exist_total = {type: "string", title: "匹配总数"}
 
@@ -184,12 +187,12 @@ class Document extends DocBase {
     const client = this.mongoClient
     let find = {}
     find[planTotalColumn] = { $not: {$in: [null, "", "0"]} }
-    find[markResultColumn] = { $in: [null, ""] }
+    if (again !== true) find[markResultColumn] = { $in: [null, ""] }
     let rules = await client.db(ruleDb).collection(ruleCl).find(find).toArray()
-    if (rules.length == 0) return new ResultFault("未指定规则")
+    if (rules.length == 0) return [ false, "未指定规则或已使用的规则" ]
 
     let data = await this.getDocsByRule2(db, cl, rules, planTotalColumn)
-    if (data[0] === false) return new ResultFault(data[1])
+    if (data[0] === false) return [ false, data[1] ]
 
     data = data[1]
     let failed = []
@@ -202,7 +205,43 @@ class Document extends DocBase {
         }
     }
 
-    return new ResultData({schemas, failed, passed}) 
+    return [true, {schemas, failed, passed}]
+  }
+  /**
+   *  根据规则获取数据
+   */
+  async getDocsByRule() {
+    let data = await this._getDocsByRule()
+    if (data[0] === false) return new ResultFault(data[1])
+
+    return new ResultData(data[1]) 
+  }
+
+  /**
+   *  导出根据规则获取得数据详情
+   */
+  async exportDocsByRule() {
+    let data = await this._getDocsByRule(true)
+    if (data[0] === false) return new ResultFault(data[1])
+    
+    let {schemas, failed, passed} = data[1]
+    schemas.msg = {type: 'string', title: '自动分配情况'}
+    let docs = _.concat(failed, passed)
+    docs.forEach(doc => {
+      if (doc.import_status === "成功") {
+        doc.msg = ""
+        doc.exist_total = ""
+      }
+    })
+
+    const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
+    let rst = ExcelCtrl.export(schemas, docs, '根据规则表【' + this.request.query.ruleCl + '】获取数据')
+    if (rst[0] === false) {
+      return new ResultFault(rst[1])
+    }
+    rst = rst[1]
+
+    return new ResultData(rst)
   }
   /**
    * 根据规则替换数据
@@ -211,8 +250,8 @@ class Document extends DocBase {
     let { db, cl } = this.request.query
     let { rule, dels } = this.request.body
 
-    dels = dels.join(";")
-    rule.byId = "notin," + dels
+    dels = dels.join(",")
+    rule.byId = "notin:" + dels
     let rules = [rule]
     let data = await this.getDocsByRule2(db, cl, rules)
     if (data[0] === false) return new ResultFault(data[1])
