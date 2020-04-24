@@ -20,6 +20,7 @@ RUN apk update && apk add bash tzdata \
   && cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 COPY --from=builder /usr/src/app/node_modules node_modules
 #copy code && config port  && start 
+RUN mkdir -p /data/root && mkdir -p /data/upload
 COPY . .
 EXPOSE 3000
 CMD [ "node", "./server.js" ]
