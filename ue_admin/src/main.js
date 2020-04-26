@@ -84,7 +84,6 @@ function onResultFault(res) {
     showClose: true,
     message: res.data.msg,
     type: 'error',
-    duration: 0,
     customClass:'mzindex'
   })
   return Promise.reject(new TmsIgnorableError(res.data))

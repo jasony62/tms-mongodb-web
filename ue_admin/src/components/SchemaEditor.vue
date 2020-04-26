@@ -10,7 +10,7 @@
       </el-form-item>
       <el-form-item label="类型" v-if="showRadio">
         <el-radio v-model="schema.scope" label="db">数据库</el-radio >
-        <el-radio v-model="schema.scope" label="collection">文件</el-radio >
+        <el-radio v-model="schema.scope" label="collection">文档</el-radio >
       </el-form-item>
       <el-form-item label="说明">
         <el-input type="textarea" v-model="schema.description"></el-input>
@@ -49,7 +49,7 @@ export default {
   },
   computed: {
     showName() {
-      return this.type === 'schema' ? '集合列定义显示名（中文）' : this.type === 'attribute' ? '库文件属性定义显示名（中文）' : ''
+      return this.type === 'schema' ? '集合列定义显示名（中文）' : this.type === 'attribute' ? '库文档属性定义显示名（中文）' : ''
     },
     showRadio() {
       return this.type === 'schema' ? false : this.type === 'attribute' ? true : ''

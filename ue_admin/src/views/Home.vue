@@ -10,7 +10,7 @@
         <el-radio-group v-model="activeTab">
           <el-radio-button label="database">数据库</el-radio-button>
           <el-radio-button label="schema">集合列定义</el-radio-button>
-          <el-radio-button label="attribute">库文件属性定义</el-radio-button>
+          <el-radio-button label="attribute">库文档属性定义</el-radio-button>
         </el-radio-group>
       </el-form>
       <el-table
@@ -94,7 +94,7 @@
         >添加集合列定义</el-button
       >
       <el-button @click="createSchema('attribute')" v-if="activeTab === 'attribute'"
-        >添加库文件属性定义</el-button
+        >添加库文档属性定义</el-button
       >
     </template>
   </tms-frame>
