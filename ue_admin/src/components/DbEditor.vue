@@ -44,6 +44,10 @@ export default {
   },
   methods: {
     onSubmit() {
+      const reg = /^[a-zA-z]/
+      if (!reg.test(this.database.name)) {
+        return this.$message.error('请输入以英文字母开头的库名')
+      }
       if (this.mode === 'update') {
         apiDb
           .update(this.database.name, this.database)
