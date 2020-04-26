@@ -48,7 +48,7 @@
       </el-table>
     </template>
     <template v-slot:right>
-      <el-button @click="createCollection">添加文件</el-button>
+      <el-button @click="createCollection">添加文档</el-button>
     </template>
   </tms-frame>
 </template>
