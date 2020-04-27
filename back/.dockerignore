@@ -1,6 +1,5 @@
-.*
-node_modules
-config
-tests
-ecosystem.config.js
-public
+node_modules/*
+Dockerfile
+.git
+.gitignore
+
