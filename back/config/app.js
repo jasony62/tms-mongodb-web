@@ -52,8 +52,4 @@ let appConfig = {
   }
 }
 
-//
-const fs = require('fs')
-if (fs.existsSync(process.cwd() + "/config/app.local.js")) Object.assign(appConfig, require(process.cwd() + "/config/app.local.js"))
-
 module.exports = appConfig
