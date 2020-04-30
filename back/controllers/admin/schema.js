@@ -13,15 +13,12 @@ class Schema extends SchemaBase {
   async create() {
     let info = this.request.body
     info.type = 'schema'
-    if (!info.scope)
-      info.scope = 'document'
+    if (!info.scope) info.scope = 'document'
+    if (this.bucket) info.bucket = this.bucket
 
-    const client = this.mongoClient
-    return client
-      .db('tms_admin')
-      .collection('mongodb_object')
+    return this.clMongoObj
       .insertOne(info)
-      .then(result => new ResultData(result.ops[0]))
+      .then((result) => new ResultData(result.ops[0]))
   }
   /**
    *
@@ -29,11 +26,9 @@ class Schema extends SchemaBase {
   async update() {
     const { id } = this.request.query
     let info = this.request.body
-    info = _.omit(info, ['_id', 'name'])
-    const client = this.mongoClient
-    return client
-      .db('tms_admin')
-      .collection('mongodb_object')
+    info = _.omit(info, ['_id', 'name', 'bucket'])
+
+    return this.clMongoObj
       .updateOne(
         { _id: new ObjectId(id), type: 'schema' },
         { $set: info },
@@ -46,18 +41,18 @@ class Schema extends SchemaBase {
    */
   async remove() {
     const { id } = this.request.query
-    if (!id) return new ResultFault("参数不完整")
+    if (!id) return new ResultFault('参数不完整')
 
-    const client = this.mongoClient
-    const cl = client.db('tms_admin').collection('mongodb_object')
-    
     // 是否正在使用
-    let rst = await cl.findOne({schema_id: id, type: "collection"})
+    let rst = await this.clMongoObj.findOne({
+      schema_id: id,
+      type: 'collection',
+    })
     if (rst) {
-      return new ResultFault("集合列正在被使用不能删除")
+      return new ResultFault('集合列正在被使用不能删除')
     }
 
-    return cl
+    return this.clMongoObj
       .deleteOne({ _id: new ObjectId(id), type: 'schema' })
       .then(() => new ResultData('ok'))
   }

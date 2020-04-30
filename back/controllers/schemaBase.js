@@ -1,10 +1,21 @@
-const { Ctrl, ResultData } = require('tms-koa')
+const { ResultData } = require('tms-koa')
+const { Base } = require('./base')
 
-class SchemaBase extends Ctrl {
-    constructor(...args) {
-        super(...args)
-    }
-    /**
+class SchemaBase extends Base {
+  constructor(...args) {
+    super(...args)
+  }
+  async tmsBeforeEach() {
+    let result = await super.tmsBeforeEach()
+    if (true !== result) return result
+
+    const client = this.mongoClient
+    const cl = client.db('tms_admin').collection('mongodb_object')
+    this.clMongoObj = cl
+
+    return true
+  }
+  /**
    * 完成信息列表
    */
   async list() {
@@ -13,17 +24,16 @@ class SchemaBase extends Ctrl {
     let find = { type: 'schema' }
     if (scope) {
       let scope2 = scope.split(',')
-      find.scope = {$in: scope2}
+      find.scope = { $in: scope2 }
     } else {
-      find.scope = "document"
+      find.scope = 'document'
     }
-    const client = this.mongoClient
-    return client
-      .db('tms_admin')
-      .collection('mongodb_object')
+    if (this.bucket) find.bucket = this.bucket
+
+    return this.clMongoObj
       .find(find)
       .toArray()
-      .then(schemas => new ResultData(schemas))
+      .then((schemas) => new ResultData(schemas))
   }
   /**
    * 简单信息列表
@@ -34,20 +44,18 @@ class SchemaBase extends Ctrl {
     let find = { type: 'schema' }
     if (scope) {
       let scope2 = scope.split(',')
-      find.scope = {$in: scope2}
+      find.scope = { $in: scope2 }
     } else {
-      find.scope = "document"
+      find.scope = 'document'
     }
-    const client = this.mongoClient
-    return client
-      .db('tms_admin')
-      .collection('mongodb_object')
-      .find(
-        find,
-        { projection: { _id: 1, title: 1, description: 1, scope: 1 } }
-      )
+    if (this.bucket) find.bucket = this.bucket
+
+    return this.clMongoObj
+      .find(find, {
+        projection: { _id: 1, title: 1, description: 1, scope: 1 },
+      })
       .toArray()
-      .then(schemas => new ResultData(schemas))
+      .then((schemas) => new ResultData(schemas))
   }
 }
 

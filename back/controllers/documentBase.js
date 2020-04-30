@@ -1,4 +1,5 @@
-const { Ctrl, ResultData, ResultFault, ResultObjectNotFound } = require('tms-koa')
+const { ResultData, ResultFault } = require('tms-koa')
+const { Base } = require('./base')
 const fs = require('fs')
 const modelBase = require('../models/mgdb/base')
 const modelColl = require('../models/mgdb/collection')
@@ -8,10 +9,20 @@ const _ = require('lodash')
 const { unrepeatByArray } = require('../tms/utilities')
 const TMSCONFIG = require('../config')
 
-class DocBase extends Ctrl {
+class DocBase extends Base {
     constructor(...args) {
         super(...args)
     }
+    async tmsBeforeEach() {
+        let result = await super.tmsBeforeEach()
+        if (true !== result) return result
+    
+        const client = this.mongoClient
+        const cl = client.db('tms_admin').collection('mongodb_object')
+        this.clMongoObj = cl
+    
+        return true
+      }
     /**
      * 指定数据库指定集合下新建文档
      */

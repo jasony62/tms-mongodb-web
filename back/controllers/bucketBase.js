@@ -1,5 +1,4 @@
-const _ = require('lodash')
-const { Ctrl, ResultData, ResultFault } = require('tms-koa')
+const { Ctrl } = require('tms-koa')
 
 class BucketBase extends Ctrl {
   constructor(...args) {
