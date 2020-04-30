@@ -92,8 +92,14 @@ module.exports = {
 ```javascript
 module.exports = {
   local: {
-    rootDir: process.env.TMS_FINDER_FS_ROOTDIR || 'storage',   // 指定保存文件的目录, 需在/data文件夹下建立/data/upload文件夹
-    outDir: process.env.TMS_FINDER_FS_OUTDIR || 'storage'     //导出文件输出目录
+    rootDir: process.env.TMS_FINDER_FS_ROOTDIR || 'storage',   // 指定保存文件的目录
+    outDir: process.env.TMS_FINDER_FS_OUTDIR || 'storage'     // 系统生成文件存放目录
   }
 }
+```
+
+# 数据操作日志
+
+系统支持记录数据操作日志，通过也没操作在添加、修改、删除、批量删除、移动数据时会把相关数据以及操作类型记录到日志(tms_admin库下的 tms_app_data_action_log 集合)表中。
+默认不记录，如需记录可在./back/config/app.js中设置tmsConfig.TMS_APP_DATA_ACTION_LOG = 'Y'
 ```

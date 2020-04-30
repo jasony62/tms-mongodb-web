@@ -6,12 +6,12 @@
   >
     <template v-slot:header>
       <el-breadcrumb separator-class="el-icon-arrow-right">
-        <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
         <el-breadcrumb-item>{{dbName}}</el-breadcrumb-item>
       </el-breadcrumb>
     </template>
     <template v-slot:center>
-      <el-table :data="collections" stripe style="width: 100%">
+      <el-table :data="collections" stripe style="width: 100%" class="tms-table">
         <el-table-column label="collection" width="180">
           <template slot-scope="scope">
             <router-link
@@ -31,8 +31,8 @@
         <el-table-column prop="description" label="说明"></el-table-column>
         <el-table-column fixed="right" label="操作" width="120">
           <template slot-scope="scope">
-            <el-button @click="editCollection(scope.row)"  size="mini">修改</el-button>
-            <el-button @click="removeCollection(scope.row)" size="mini"  v-if="false">删除</el-button>
+            <el-button @click="editCollection(scope.row)"  size="mini" type="text">修改</el-button>
+            <el-button @click="removeCollection(scope.row)" size="mini"  type="text" v-if="false">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

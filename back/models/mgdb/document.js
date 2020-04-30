@@ -1,7 +1,7 @@
 const ObjectId = require('mongodb').ObjectId
 const Base = require('./base')
 const moment = require('moment')
-const TMSCONFIG = require('../../config')
+const TMSCONFIG = require('tms-koa').Context.appConfig.tmwConfig
 
 class Document extends Base {
   /**
@@ -19,6 +19,44 @@ class Document extends Base {
     if (options.filter) {
       find = this._assembleFind(options.filter, like)
     }
+
+    const client = await this.mongoClient()
+    let cl = client.db(dbName).collection(clName)
+    let data = {}
+    let skip = 0
+    let limit = 0
+    if (page && page > 0 && size && size > 0) {
+      skip = (parseInt(page) - 1) * parseInt(size)
+      limit = parseInt(size)
+    }
+    // 排序
+    let sort = {}
+    if (
+      options.orderBy &&
+      typeof options.orderBy === 'object' &&
+      Object.keys(options.orderBy).length
+    ) {
+      for (const key in options.orderBy) {
+        let val = options.orderBy[key]
+        if (val === 'desc') {
+          sort[key] = -1
+        } else {
+          sort[key] = 1
+        }
+      }
+    } else {
+      sort._id = -1
+    }
+
+    data.docs = await cl
+      .find(find)
+      .skip(skip)
+      .limit(limit)
+      .sort(sort)
+      .toArray()
+      .then((docs) => docs)
+
+    data.total = await cl.find(find).count()
 
     const client = await this.mongoClient()
     let cl = client.db(dbName).collection(clName)

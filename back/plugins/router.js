@@ -1,70 +1,107 @@
-const log4js = require('log4js')
-const logger = log4js.getLogger('mgdb-pool-plugins')
+const log4js = require('tms-koa/node_modules/@log4js-node/log4js-api')
+const logger = log4js.getLogger('tms-koa-plugins')
 const Router = require('tms-koa/node_modules/koa-router')
-const _ = require('lodash')
+const _ = require('tms-koa/node_modules/lodash')
 const jwt = require('tms-koa/node_modules/jsonwebtoken')
-
 const fs = require('fs')
-const appConfig = require(process.cwd() + '/config/app')
-const { ResultFault, AccessTokenFault } = require('tms-koa/lib/response')
-const { RequestTransaction } = require('tms-koa/lib/model/transaction')
+const path = require('path')
 
+const appConfig = loadConfig('app')
+const trustedHosts = loadConfig('trusted-hosts') || {}
+// const { RequestTransaction } = require('tms-koa/lib/model/transaction')
 /**
- * 根据请求路径找到匹配的控制器和方法
- *
- * 最后1段作为方法
- * 倒数第2端为文件名（加.js）
- * 如果文件不存在，倒数第2段作为目录名，查找main.js文件
- *
- * @param {Request} ctx
- * @param {Client} client 客户端
- * @param {DbContext} dbContext 数据库实例
- * @param {MongoClient} mongoClient mongodb实例
- *
+ * 获得配置数据
  */
-function findCtrlAndMethod(ctx, client, dbContext, mongoClient, mongoose) {
-  let { path } = ctx.request
+function loadConfig(name, defaultConfig) {
+  let basepath = path.resolve('config', `${name}.js`)
 
-  if (prefix) path = path.replace(prefix, '')
-
-  let pieces = path.split('/').filter(p => p)
-  if (pieces.length === 0) {
-    let logMsg = '参数错误，请求的控制器不存在(1)'
-    logger.isDebugEnabled()
-      ? logger.debug(logMsg, pieces)
-      : logger.error(logMsg)
-    throw new Error(logMsg)
+  let baseConfig
+  if (fs.existsSync(basepath)) {
+    baseConfig = require(basepath)
+    logger.info(`从[${basepath}]加载配置`)
+  } else {
+    logger.warn(`[${name}]配置文件[${basepath}]不存在`)
+  }
+  let localpath = path.resolve('config', `${name}.local.js`)
+  let localConfig
+  if (fs.existsSync(localpath)) {
+    localConfig = require(localpath)
+    logger.info(`从[${localpath}]加载本地配置`)
+  }
+  if (defaultConfig || baseConfig || localConfig) {
+    return _.merge({}, defaultConfig, baseConfig, localConfig)
   }
 
-  let method = pieces.splice(-1, 1)[0]
-  let ctrlName = pieces.length ? pieces.join('/') : 'main'
-
+  return false
+}
+/**
+ * 
+ */
+function findCtrlClassInControllers(ctrlName, path) {
+  // 从控制器路径查找
   let ctrlPath = process.cwd() + `/plugins/${ctrlName}.js`
   if (!fs.existsSync(ctrlPath)) {
     ctrlPath = process.cwd() + `/plugins/${ctrlName}/main.js`
     if (!fs.existsSync(ctrlPath)) {
       let logMsg = `参数错误，请求的控制器不存在(2)`
       logger.isDebugEnabled()
-        ? logger.debug(logMsg, ctrlPath)
+        ? logger.debug(logMsg, path, ctrlPath)
         : logger.error(logMsg)
       throw new Error(logMsg)
     }
   }
 
   const CtrlClass = require(ctrlPath)
-  const oCtrl = new CtrlClass(ctx, client, dbContext, mongoClient, mongoose)
-  if (oCtrl[method] === undefined && typeof oCtrl[method] !== 'function') {
-    let logMsg = '参数错误，请求的控制器不存在(3)'
-    logger.isDebugEnabled() ? logger.debug(logMsg, oCtrl) : logger.error(logMsg)
+
+  return CtrlClass
+}
+/**
+ *
+ */
+function findCtrlClassAndMethodName(ctx) {
+  let { path } = ctx.request
+
+  if (prefix) path = path.replace(prefix, '')
+
+  let pieces = path.split('/').filter((p) => p)
+  if (pieces.length === 0) {
+    let logMsg = '参数错误，请求的控制器不存在(1)'
+    logger.isDebugEnabled()
+      ? logger.debug(logMsg, path, pieces)
+      : logger.error(logMsg)
     throw new Error(logMsg)
   }
+  let CtrlClass
+  const method = pieces.splice(-1, 1)[0]
+  const ctrlName = pieces.length ? pieces.join('/') : 'main'
+  const npmCtrls = _.get(appConfig, 'router.plugins.plugins_npm')
+  let npmCtrl
+  if (Array.isArray(npmCtrls) && npmCtrls.length) {
+    npmCtrl = npmCtrls.find((nc) =>
+      new RegExp(`${nc.alias}|${nc.id}`).test(ctrlName.split('/')[0])
+    )
+  }
+  if (npmCtrl) {
+    try {
+      // 先检查是否存在包
+      if (ctrlName.split('/')[0] === npmCtrl.alias) {
+        CtrlClass = require(ctrlName.replace(npmCtrl.alias, npmCtrl.id))
+      } else {
+        CtrlClass = require(ctrlName)
+      }
+    } catch (e) {
+      // 从控制器路径查找
+      CtrlClass = findCtrlClassInControllers(ctrlName, path)
+    }
+  } else {
+    // 从控制器路径查找
+    CtrlClass = findCtrlClassInControllers(ctrlName, path)
+  }
 
-  return [oCtrl, method]
+  return [ctrlName, CtrlClass, method]
 }
 /**
  * 获得请求中传递的access_token
- *
- * @param {*} ctx
  */
 function getAccessTokenByRequest(ctx) {
   let access_token
@@ -82,14 +119,53 @@ function getAccessTokenByRequest(ctx) {
 }
 /**
  * 根据请求找到对应的控制器并执行
- *
- * @param {Context} ctx
- *
  */
 async function fnCtrlWrapper(ctx, next) {
   let { request, response } = ctx
+  // 只处理api请求，其它返回找不到
+  if (/\./.test(request.path)) {
+    response.status = 404
+    response.body = 'not found'
+    return
+  }
+  //
+  const { ResultFault, AccessTokenFault } = require('tms-koa/lib/response')
+  const { DbContext, MongoContext, MongooseContext, PushContext } = require('tms-koa').Context
+  //
+  const [ctrlName, CtrlClass, method] = findCtrlClassAndMethodName(ctx)
+
   let tmsClient
-  if (typeof appConfig.auth === 'object') {
+
+  if (Object.prototype.hasOwnProperty.call(CtrlClass, 'tmsAuthTrustedHosts')) {
+    // 检查是否来源于可信主机
+    if (
+      !trustedHosts[ctrlName] ||
+      !Array.isArray(trustedHosts[ctrlName]) ||
+      trustedHosts[ctrlName].length === 0
+    ) {
+      return (response.body = new ResultFault('没有指定可信任的请求来源主机'))
+    }
+
+    if (!request.ip)
+      return (response.body = new ResultFault('无法获得请求来源主机的ip地址'))
+
+    const ipv4 = request.ip.split(':').pop()
+
+    const ctrlTrustedHosts = trustedHosts[ctrlName]
+    if (
+      !ctrlTrustedHosts.some((rule) => {
+        const re = new RegExp(rule)
+        return re.test(request.ip) || re.test(ipv4)
+      })
+    ) {
+      logger.warn(`未被信任的主机进行请求[${request.ip}]`)
+      return (response.body = new ResultFault('请求来源主机不在信任列表中'))
+    }
+  } else if (
+    typeof appConfig.auth === 'object' &&
+    appConfig.auth.disabled !== true
+  ) {
+    // 进行用户鉴权
     let [success, access_token] = getAccessTokenByRequest(ctx)
     if (false === success)
       return (response.body = new ResultFault(access_token))
@@ -115,56 +191,63 @@ async function fnCtrlWrapper(ctx, next) {
       tmsClient = aResult[1]
     }
   }
+  
   // 数据库连接
-  let dbContext, mongoClient, mongoose
+  let dbContext, mongoClient, mongoose, pushContext
   try {
-    if (fs.existsSync(process.cwd() + '/config/db.js')) {
-      let { DbContext } = require('tms-db')
-      /**
-       * 获取数据库连接
-       */
+    if (DbContext) {
       dbContext = new DbContext()
     }
-    if (fs.existsSync(process.cwd() + '/config/mongodb.js')) {
-      let MongoContext = require('tms-koa/lib/mongodb').Context
+    if (MongoContext) {
       mongoClient = await MongoContext.mongoClient()
     }
-    if (fs.existsSync(process.cwd() + '/config/mongoose.js')) {
-      let MongooseContext = require('tms-koa/lib/mongoose').Context
+    if (MongooseContext) {
       mongoose = await MongooseContext.mongoose()
     }
+    if (PushContext) pushContext = await PushContext.ins()
     /**
-     * 找到对应的控制器
+     * 创建控制器实例
      */
-    let [oCtrl, method] = findCtrlAndMethod(
+    const oCtrl = new CtrlClass(
       ctx,
       tmsClient,
       dbContext,
       mongoClient,
-      mongoose
+      mongoose,
+      pushContext
     )
+    /**
+     * 检查指定的方法是否存在
+     */
+    if (oCtrl[method] === undefined && typeof oCtrl[method] !== 'function') {
+      let logMsg = '参数错误，请求的控制器不存在(3)'
+      logger.isDebugEnabled()
+        ? logger.debug(logMsg, oCtrl)
+        : logger.error(logMsg)
+      throw new Error(logMsg)
+    }
     /**
      * 是否需要事物？
      */
-    if (dbContext) {
-      let moTrans, trans
-      if (appConfig.tmsTransaction === true) {
-        if (
-          oCtrl.tmsRequireTransaction &&
-          typeof oCtrl.tmsRequireTransaction === 'function'
-        ) {
-          let transMethodes = oCtrl.tmsRequireTransaction()
-          if (transMethodes && transMethodes[method]) {
-            moTrans = new RequestTransaction(oCtrl, {
-              db: dbContext.mysql,
-              userid: tmsClient.id
-            })
-            trans = await moTrans.begin()
-            //dbIns.transaction = trans
-          }
-        }
-      }
-    }
+    // if (dbContext) {
+    //   let moTrans, trans
+    //   if (appConfig.tmsTransaction === true) {
+    //     if (
+    //       oCtrl.tmsRequireTransaction &&
+    //       typeof oCtrl.tmsRequireTransaction === 'function'
+    //     ) {
+    //       let transMethodes = oCtrl.tmsRequireTransaction()
+    //       if (transMethodes && transMethodes[method]) {
+    //         moTrans = new RequestTransaction(oCtrl, {
+    //           db: dbContext.mysql,
+    //           userid: tmsClient.id
+    //         })
+    //         trans = await moTrans.begin()
+    //         dbIns.transaction = trans
+    //       }
+    //     }
+    //   }
+    // }
     /**
      * 前置操作
      */
@@ -202,7 +285,7 @@ async function fnCtrlWrapper(ctx, next) {
 let prefix = _.get(appConfig, ['router', 'plugins', 'prefix'], '')
 if (prefix && !/^\//.test(prefix)) prefix = `/${prefix}`
 
-logger.info(`指定API控制器前缀：${prefix}`)
+logger.info(`指定PLUGINS控制器前缀：${prefix}`)
 
 const router = new Router({ prefix })
 router.all('/*', fnCtrlWrapper)

@@ -1,8 +1,8 @@
 const log4js = require('log4js')
 const logger = log4js.getLogger('tms-xlsx-etd-models')
-const MongoContext = require('tms-koa/lib/mongodb').Context
+const { MongoContext } = require('tms-koa').Context
 const moment = require('moment')
-const TMSCONFIG = require('../../config')
+const TMSCONFIG = require('tms-koa').Context.appConfig.tmwConfig
 
 class Base {
   constructor() {}
@@ -31,15 +31,24 @@ class Base {
             if (Array.isArray(val.keyword)) {
               find2 = { $in: val.keyword }
             }
-          } else {
+          } else if (val.feature === 'between') {
+            if (Array.isArray(val.keyword) && val.keyword.length === 2) {
+              find2 = { $gte: val.keyword[0], $lte: val.keyword[1] }
+            }
+          } else if (typeof val.keyword === 'string') {
             find2 = { $regex: val.keyword }
           }
-        } else if (typeof val === 'object' && !val.keyword) {
-        } else {
+        } else if (
+          typeof val === 'object' &&
+          !val.keyword &&
+          typeof val.keyword !== 'undefined'
+        ) {
+          find2 = val.keyword
+        } else if (typeof val === 'string') {
           find2 = { $regex: val }
         }
 
-        if (find2) find[fk] = find2
+        if (typeof find2 !== 'undefined') find[fk] = find2
       }
     } else {
       for (let fk of fKeys) {

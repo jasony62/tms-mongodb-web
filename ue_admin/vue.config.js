@@ -9,17 +9,14 @@ devServer.proxy[`${process.env.VUE_APP_BACK_API_BASE}`] = {
 devServer.proxy[`${process.env.VUE_APP_BACK_API_BASE}/admin`] = {
   target: process.env.VUE_APP_BACK_API_SERVER,
 }
-devServer.proxy[`${process.env.VUE_APP_BACK_DOWNLOAD_BASE}`] = {
-  target: process.env.VUE_APP_BACK_API_SERVER,
-}
 // 代理api请求
-devServer.proxy[`${process.env.VUE_APP_BACK_AUTH_BASE_REWRITE}`] = {
-  target: process.env.VUE_APP_BACK_API_SERVER
+devServer.proxy[`${process.env.VUE_APP_BACK_AUTH_BASE}`] = {
+  target: process.env.VUE_APP_BACK_AUTH_SERVER
 }
 
 module.exports = {
-  publicPath: '/admin/',
-  outputDir: './dist/admin',
+  publicPath: `${process.env.VUE_APP_BASE_URL}`,
+  outputDir: `./dist${process.env.VUE_APP_BASE_URL}`,
   filenameHashing: true,
   pages: {
     index: {

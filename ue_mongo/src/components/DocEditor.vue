@@ -27,10 +27,7 @@ export default {
       collection: null,
       destroyOnClose: true,
       closeOnClickModal: false,
-      document: {
-        type: Object,
-        default: () => ({})
-      }
+      document: {}
     }
   },
   methods: {

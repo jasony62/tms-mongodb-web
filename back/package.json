@@ -12,13 +12,10 @@
   "license": "MIT",
   "dependencies": {
     "dotenv": "^8.2.0",
-    "glob": "^7.1.6",
     "lodash": "^4.17.15",
     "log4js": "^6.1.0",
     "mongodb": "^3.3.4",
-    "mysql": "^2.17.1",
     "redis": "^2.8.0",
-    "tms-db": "^0.0.12",
     "tms-koa": "^0.0.36"
   }
 }

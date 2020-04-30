@@ -10,18 +10,21 @@
   width: calc(75% - 16px);
   background-color:rgb(240, 243, 246) !important;
 }
-.tmw-filter {
-  > .tmw-filter__inputWithSelect {
-    width: 350px;
-  }
-  > .tmw-filter__button {
-    margin-left: auto !important;
-  }
+.tms-table {
+	/deep/ .el-table__fixed-right {
+		height: 100% !important;
+	}
+	/deep/ .el-table__fixed {
+		height: 100% !important;
+	}
 }
 .tmw-tags {
   display: flex;
   flex-wrap: wrap;
-  margin: 5px 0;
+	margin: 5px 0;
+	.el-tag + .el-tag {
+		margin-left: 10px;
+	}
 }
 .tmw-pagination {
   margin-top: 5px;
@@ -35,4 +38,7 @@
     color: #606266;
     letter-spacing: 3px;
   }
+}
+.mzindex {
+	z-index: 9999 !important;
 }

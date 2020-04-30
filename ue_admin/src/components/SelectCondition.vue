@@ -169,9 +169,6 @@ export default {
         this.condition.rule.filter[this.columnName].keyword = this.condition.multipleSelection.map(ele => ele.title)
         this.condition.rule.filter[this.columnName].feature = 'in'
       }
-      if (!this.selectedLen){
-        delete this.condition.rule.filter[this.columnName]
-      }
       this.$emit('submit', {rule: this.condition.rule})
     },
     open(columnName, dbName, clName, page) {
