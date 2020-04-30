@@ -97,14 +97,15 @@ export default new Vuex.Store({
         commit({ type: 'documents', documents })
         return {  result }
       })
-    },
+		},
+		removeDatabase() {},
     removeCollection({ commit }, payload) {
       const { db, collection } = payload
       apis.collection.remove(db, collection.name).then(() => {
         commit({ type: 'removeCollection', collection })
         return { collection }
       })
-    }
+		}
   },
   modules: {}
 })

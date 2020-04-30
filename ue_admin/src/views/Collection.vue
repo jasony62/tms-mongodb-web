@@ -6,7 +6,7 @@
   >
     <template v-slot:header>
       <el-breadcrumb separator-class="el-icon-arrow-right">
-        <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'database', params: { dbName: dbName } }">{{dbName}}</el-breadcrumb-item>
         <el-breadcrumb-item>{{clName}}</el-breadcrumb-item>
       </el-breadcrumb>
@@ -16,6 +16,7 @@
         :data="documents" 
         stripe 
         id="tables"
+        class="table-fixed"
         style="width: 100%">
         <el-table-column
           v-for="(s, k) in collection.schema.body.properties"
@@ -218,19 +219,21 @@ export default {
   }
 }
 </script>
-<style scoped>
-.tmw-collection .icon-style {
-  margin-left: 10px;
-  cursor: pointer;
-}
-.tmw-collection .icon-heightlight {
-  color: #409EFF;
-}
-.tmw-collection .icon_filter {
-  width: 15px;
-  height: 15px;
-  vertical-align: middle;
-  cursor: pointer;
+<style lang="less" scoped>
+.tmw-collection {
+  .icon-style {
+    margin-left: 10px;
+    cursor: pointer;
+  }
+  .icon-heightlight {
+    color: #409EFF;
+  }
+  .icon_filter {
+    width: 15px;
+    height: 15px;
+    vertical-align: middle;
+    cursor: pointer;
+  }
 }
 </style>
 

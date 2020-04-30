@@ -6,7 +6,7 @@
   >
     <template v-slot:header>
       <el-breadcrumb separator-class="el-icon-arrow-right">
-        <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
         <el-breadcrumb-item>{{dbName}}</el-breadcrumb-item>
       </el-breadcrumb>
     </template>
@@ -48,7 +48,7 @@
       </el-table>
     </template>
     <template v-slot:right>
-      <el-button @click="createCollection">添加文件</el-button>
+      <el-button @click="createCollection">添加文档</el-button>
     </template>
   </tms-frame>
 </template>

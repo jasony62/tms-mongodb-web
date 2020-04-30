@@ -101,6 +101,3 @@ export default {
   }
 }
 </script>
-<style lang="css">
-@import "../assets/css/common.css"
-</style>
