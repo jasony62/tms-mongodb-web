@@ -1,5 +1,5 @@
 const { ResultData } = require('tms-koa')
-const { Base } = require('./base')
+const Base = require('./base')
 
 class SchemaBase extends Base {
   constructor(...args) {
@@ -28,7 +28,7 @@ class SchemaBase extends Base {
     } else {
       find.scope = 'document'
     }
-    if (this.bucket) find.bucket = this.bucket
+    if (this.bucket) find.bucket = this.bucket.name
 
     return this.clMongoObj
       .find(find)
@@ -41,17 +41,17 @@ class SchemaBase extends Base {
   async listSimple() {
     let { scope } = this.request.query
 
-    let find = { type: 'schema' }
+    let query = { type: 'schema' }
     if (scope) {
       let scope2 = scope.split(',')
-      find.scope = { $in: scope2 }
+      query.scope = { $in: scope2 }
     } else {
-      find.scope = 'document'
+      query.scope = 'document'
     }
-    if (this.bucket) find.bucket = this.bucket
+    if (this.bucket) query.bucket = this.bucket.name
 
     return this.clMongoObj
-      .find(find, {
+      .find(query, {
         projection: { _id: 1, title: 1, description: 1, scope: 1 },
       })
       .toArray()

@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const { ResultData, ResultFault } = require('tms-koa')
-const { Base } = require('./base')
+const Base = require('./base')
 const ObjectId = require('mongodb').ObjectId
 const modelDb = require('../models/mgdb/db')
 
@@ -23,7 +23,7 @@ class DbBase extends Base {
    */
   async list() {
     const query = { type: 'database' }
-    if (this.bucket) query.bucket = this.bucket
+    if (this.bucket) query.bucket = this.bucket.name
     const tmsDbs = await this.clMongoObj.find(query).sort({ top: -1 }).toArray()
 
     return new ResultData(tmsDbs)
@@ -36,7 +36,7 @@ class DbBase extends Base {
 
     let top = type === 'up' ? '10000' : null
     const query = { _id: ObjectId(id) }
-    if (this.bucket) query.bucket = this.bucket
+    if (this.bucket) query.bucket = this.bucket.name
     return this.clMongoObj
       .updateOne(query, { $set: { top } })
       .then((rst) => new ResultData(rst.result))
@@ -49,7 +49,7 @@ class DbBase extends Base {
   async create() {
     let info = this.request.body
     info.type = 'database'
-    if (this.bucket) info.bucket = bucket
+    if (this.bucket) info.bucket = this.bucket.name
 
     // 检查集合名
     let model = new modelDb()
@@ -74,7 +74,7 @@ class DbBase extends Base {
     let info = this.request.body
     let { _id, name, bucket, ...updatedInfo } = info
     const query = { name: dbName, type: 'database' }
-    if (this.bucket) query.bucket = this.bucket
+    if (this.bucket) query.bucket = this.bucket.name
 
     return this.clMongoObj
       .updateOne(query, { $set: updatedInfo })

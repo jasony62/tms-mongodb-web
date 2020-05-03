@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const { ResultData, ResultFault } = require('tms-koa')
-const { Base } = require('./base')
+const Base = require('./base')
 const ObjectId = require('mongodb').ObjectId
 const modelColl = require('../models/mgdb/collection')
 
@@ -25,7 +25,7 @@ class CollectionBase extends Base {
     const { db: dbName, cl: clName } = this.request.query
     const cl = this.clMongoObj
     const query = { database: dbName, name: clName, type: 'collection' }
-    if (this.bucket) query.bucket = this.bucket
+    if (this.bucket) query.bucket = this.bucket.name
 
     return cl
       .findOne(query)
@@ -57,9 +57,9 @@ class CollectionBase extends Base {
       .toArray()
       .then((collections) => collections.map((c) => c.name))
 
-    const p2 = this.clMongoObj
-      .find({ type: 'collection', database: dbName })
-      .toArray()
+    const query = { type: 'collection', database: dbName }
+    if (this.bucket) query.bucket = this.bucket.name
+    const p2 = this.clMongoObj.find(query).toArray()
 
     return Promise.all([p1, p2]).then((values) => {
       const [rawClNames, tmsCls] = values
@@ -84,7 +84,7 @@ class CollectionBase extends Base {
     const info = this.request.body
     info.type = 'collection'
     info.database = dbName
-    if (this.bucket) info.bucket = this.bucket
+    if (this.bucket) info.bucket = this.bucket.name
 
     // 检查集合名
     let newName = this._checkClName(info.name)
@@ -129,13 +129,11 @@ class CollectionBase extends Base {
       return new ResultFault('指定的集合不存在')
     }
 
-    let { _id, name, database, type, ...info2 } = info
-    let rst = await this.clMongoObj
-      .updateOne(
-        { database: dbName, name: clName, type: 'collection' },
-        { $set: info2 },
-        { upsert: true }
-      )
+    const query = { database: dbName, name: clName, type: 'collection' }
+    if (this.bucket) query.bucket = this.bucket.name
+    const { _id, name, database, type, bucket, ...updatedInfo } = info
+    const rst = await this.clMongoObj
+      .updateOne(query, { $set: updatedInfo }, { upsert: true })
       .then((rst) => [true, rst.result])
       .catch((err) => [false, err.message])
 
@@ -144,7 +142,7 @@ class CollectionBase extends Base {
       return new ResultData(info)
     }
     // 更改集合名
-    let rst2 = await this._rename(dbName, clName, newClName)
+    const rst2 = await this._rename(dbName, clName, newClName)
 
     if (rst2[0] === true) return new ResultData(info)
     else return new ResultFault(rst2[1])
@@ -177,15 +175,12 @@ class CollectionBase extends Base {
     if (equalNameSum !== 0) return [false, '集合名修改失败！已存在同名集合']
 
     // 修改集合名
+    const query = { name: clName, database: dbName, type: 'collection' }
+    if (this.bucket) query.bucket = this.bucket.name
     let clDb = client.db(dbName).collection(clName)
     return clDb
       .rename(newName)
-      .then(() =>
-        this.clMongoObj.updateOne(
-          { name: clName, database: dbName, type: 'collection' },
-          { $set: { name: newName } }
-        )
-      )
+      .then(() => this.clMongoObj.updateOne(query, { $set: { name: newName } }))
       .then((rst) => [true, rst.result])
       .catch((err) => [false, err.message])
   }
@@ -206,7 +201,7 @@ class CollectionBase extends Base {
 
     const client = this.mongoClient
     const query = { name: clName, type: 'collection' }
-    if (this.bucket) query.bucket = this.bucket
+    if (this.bucket) query.bucket = this.bucket.name
 
     return this.clMongoObj
       .deleteOne(query)

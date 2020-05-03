@@ -3,9 +3,11 @@ import { TmsAxios } from 'tms-vue'
 const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/mongo/db'
 
 export default {
-  list() {
+  list(bucket) {
+    const params = {}
+    if (bucket) params.bucket = bucket
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/list`)
+      .get(`${base}/list`, { params })
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
   },

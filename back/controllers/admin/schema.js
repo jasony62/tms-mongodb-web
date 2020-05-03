@@ -14,7 +14,7 @@ class Schema extends SchemaBase {
     let info = this.request.body
     info.type = 'schema'
     if (!info.scope) info.scope = 'document'
-    if (this.bucket) info.bucket = this.bucket
+    if (this.bucket) info.bucket = this.bucket.name
 
     return this.clMongoObj
       .insertOne(info)
@@ -28,12 +28,11 @@ class Schema extends SchemaBase {
     let info = this.request.body
     info = _.omit(info, ['_id', 'name', 'bucket'])
 
+    const query = { _id: new ObjectId(id), type: 'schema' }
+    if (this.bucket) query.bucket = this.bucket.name
+
     return this.clMongoObj
-      .updateOne(
-        { _id: new ObjectId(id), type: 'schema' },
-        { $set: info },
-        { upsert: true }
-      )
+      .updateOne(query, { $set: info }, { upsert: true })
       .then(() => new ResultData(info))
   }
   /**
@@ -51,10 +50,9 @@ class Schema extends SchemaBase {
     if (rst) {
       return new ResultFault('集合列正在被使用不能删除')
     }
-
-    return this.clMongoObj
-      .deleteOne({ _id: new ObjectId(id), type: 'schema' })
-      .then(() => new ResultData('ok'))
+    const query = { _id: new ObjectId(id), type: 'schema' }
+    if (this.bucket) query.bucket = this.bucket.name
+    return this.clMongoObj.deleteOne(query).then(() => new ResultData('ok'))
   }
 }
 

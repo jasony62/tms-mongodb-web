@@ -16,10 +16,10 @@ class Db extends DbBase {
 
     const client = this.mongoClient
     const cl = this.clMongoObj
+    const query = { database: dbName, type: 'collection' }
+    if (this.bucket) query.bucket = this.bucket.name
     // 查找数据库下是否有集合，如果有则不能删除
-    let colls = await cl
-      .find({ database: dbName, type: 'collection' })
-      .toArray()
+    let colls = await cl.find(query).toArray()
     if (colls.length > 0)
       return new ResultFault('删除失败，此库中存在未删除的集合')
 

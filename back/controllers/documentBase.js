@@ -9,7 +9,7 @@ const _ = require('lodash')
 const { unrepeatByArray } = require('../tms/utilities')
 const TMSCONFIG = require('tms-koa').Context.appConfig.tmwConfig
 
-class DocBase extends Ctrl {
+class DocBase extends Base {
   constructor(...args) {
     super(...args)
   }
