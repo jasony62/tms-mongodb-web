@@ -2,9 +2,9 @@ const Base = require('./base')
 
 class Db extends Base {
   /**
-   *  检查集合名
+   *  检查数据库名
    */
-  _checkClName(clName) {
+  _checkDbName(clName) {
     //格式化库名
     if (clName.search(/[\u4E00-\u9FA5]|[\uFE30-\uFFA0]/gi) !== -1)
       return [false, '库名不能包含中文']

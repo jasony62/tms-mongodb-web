@@ -44,7 +44,7 @@ class DbBase extends Base {
   /**
    * 新建数据库
    *
-   * 只有创建集合（foo），创建数据库才生效
+   * 只有创建集合，创建数据库才生效
    */
   async create() {
     let info = this.request.body
@@ -53,13 +53,14 @@ class DbBase extends Base {
 
     // 检查集合名
     let model = new modelDb()
-    let newName = model._checkClName(info.name)
+    let newName = model._checkDbName(info.name)
     if (newName[0] === false) return new ResultFault(newName[1])
     info.name = newName[1]
 
     let cl = this.clMongoObj
     // 查询是否存在同名库
-    let dbs = await cl.find({ name: info.name, type: 'database' }).toArray()
+    const query = { name: info.name, type: 'database' }
+    let dbs = await cl.find(query).toArray()
     if (dbs.length > 0) {
       return new ResultFault('已存在同名数据库')
     }
