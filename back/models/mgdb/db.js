@@ -4,12 +4,12 @@ class Db extends Base {
   /**
    *  检查数据库名
    */
-  _checkDbName(clName) {
+  _checkDbName(dbName) {
     //格式化库名
-    if (clName.search(/[\u4E00-\u9FA5]|[\uFE30-\uFFA0]/gi) !== -1)
+    if (dbName.search(/[\u4E00-\u9FA5]|[\uFE30-\uFFA0]/gi) !== -1)
       return [false, '库名不能包含中文']
 
-    let newName = clName.replace(/\s/g, '')
+    let newName = dbName.replace(/\s/g, '')
 
     //
     if (!newName) return [false, '库名不能为空']
