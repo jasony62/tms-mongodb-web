@@ -30,11 +30,17 @@ export default {
     onJsonDocSubmit(newDoc) {
       if (this.document && this.document._id) {
         apiDoc
-          .update(this.dbName, this.collection.name, this.document._id, newDoc)
+          .update(
+            this.bucketName,
+            this.dbName,
+            this.collection.name,
+            this.document._id,
+            newDoc
+          )
           .then(newDoc => this.$emit('submit', newDoc))
       } else {
         apiDoc
-          .create(this.dbName, this.collection.name, newDoc)
+          .create(this.bucketName, this.dbName, this.collection.name, newDoc)
           .then(newDoc => this.$emit('submit', newDoc))
       }
     },

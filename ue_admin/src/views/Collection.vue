@@ -100,6 +100,7 @@ export default {
         const { filter, orderBy } = rule
         apiDoc
           .byColumnVal(
+            this.bucketName,
             this.dbName,
             this.clName,
             columnName,
@@ -118,6 +119,7 @@ export default {
       } else {
         apiDoc
           .byColumnVal(
+            this.bucketName,
             this.dbName,
             this.clName,
             columnName,
@@ -180,21 +182,23 @@ export default {
     },
     createDocument() {
       let editor = new Vue(DocEditor)
-      editor.open(this.dbName, this.collection).then(() => {
+      editor.open(this.bucketName, this.dbName, this.collection).then(() => {
         this.listDocument()
       })
     },
     editDocument(doc) {
       let editor = new Vue(DocEditor)
-      editor.open(this.dbName, this.collection, doc).then(newDoc => {
-        Object.assign(doc, newDoc)
-        this.updateDocument({ document: newDoc })
-      })
+      editor
+        .open(this.bucketName, this.dbName, this.collection, doc)
+        .then(newDoc => {
+          Object.assign(doc, newDoc)
+          this.updateDocument({ document: newDoc })
+        })
     },
     handleDocument(document) {
       this.$customeConfirm('数据库', () => {
         return apiDoc
-          .remove(this.dbName, this.clName, document._id)
+          .remove(this.bucketName, this.dbName, this.clName, document._id)
           .then(() => {
             this.listDocument()
           })
@@ -206,6 +210,7 @@ export default {
       this.$store
         .dispatch({
           type: 'listDocument',
+          bucket: this.bucketName,
           db: this.dbName,
           cl: this.clName,
           page: this.page,
@@ -226,10 +231,12 @@ export default {
     }
   },
   mounted() {
-    apiCol.byName(this.dbName, this.clName).then(collection => {
-      this.collection = collection
-      this.listDocument()
-    })
+    apiCol
+      .byName(this.bucketName, this.dbName, this.clName)
+      .then(collection => {
+        this.collection = collection
+        this.listDocument()
+      })
   },
   beforeDestroy() {
     this.conditionReset()

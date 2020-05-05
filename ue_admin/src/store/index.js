@@ -130,19 +130,21 @@ export default new Vuex.Store({
       })
     },
     listCollection({ commit }, payload) {
-      const { db } = payload
-      return apis.collection.list(db).then(collections => {
+      const { bucket, db } = payload
+      return apis.collection.list(bucket, db).then(collections => {
         commit({ type: 'collections', collections })
         return { collections }
       })
     },
     listDocument({ commit }, payload) {
-      const { db, cl, orderBy, filter, page } = payload
-      return apis.doc.list(db, cl, orderBy, filter, page).then(result => {
-        const documents = result.docs
-        commit({ type: 'documents', documents })
-        return result
-      })
+      const { bucket, db, cl, orderBy, filter, page } = payload
+      return apis.doc
+        .list(bucket, db, cl, orderBy, filter, page)
+        .then(result => {
+          const documents = result.docs
+          commit({ type: 'documents', documents })
+          return result
+        })
     },
     removeBucket({ commit }, payload) {
       const { bucket } = payload
@@ -154,21 +156,21 @@ export default new Vuex.Store({
       const { bucket, db } = payload
       return apis.db.remove(bucket, db).then(() => {
         commit({ type: 'removeDatabase', db })
-        // return { db }
+        return { db }
       })
     },
     removeSchema({ commit }, playload) {
       const { bucket, schema, type } = playload
       return apis.schema.remove(bucket, schema).then(() => {
         commit({ type: 'removeSchema', schema, types: type })
-        // return { schema }
+        return { schema }
       })
     },
     removeCollection({ commit }, payload) {
-      const { db, collection } = payload
-      return apis.collection.remove(db, collection.name).then(() => {
+      const { bucket, db, collection } = payload
+      return apis.collection.remove(bucket, db, collection.name).then(() => {
         commit({ type: 'removeCollection', collection })
-        // return { collection }
+        return { collection }
       })
     }
   },

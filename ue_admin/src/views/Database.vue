@@ -27,7 +27,7 @@
       </el-table>
     </template>
     <template v-slot:right>
-      <el-button @click="createCollection">添加文档</el-button>
+      <el-button @click="createCollection">添加集合</el-button>
     </template>
   </tms-frame>
 </template>
@@ -53,14 +53,16 @@ export default {
     ...mapActions(['listCollection', 'removeCollection']),
     createCollection() {
       let editor = new Vue(CollectionEditor)
-      editor.open('create', this.dbName).then(newCollection => {
-        this.appendCollection({ collection: newCollection })
-      })
+      editor
+        .open('create', this.bucketName, this.dbName)
+        .then(newCollection => {
+          this.appendCollection({ collection: newCollection })
+        })
     },
     editCollection(collection, index) {
       let editor = new Vue(CollectionEditor)
       editor
-        .open('update', this.dbName, {
+        .open('update', this.bucketName, this.dbName, {
           ...collection,
           fromDatabase: collection.name
         })
@@ -70,12 +72,16 @@ export default {
     },
     handleCollection(collection) {
       this.$customeConfirm('集合', () => {
-        return this.removeCollection({ db: this.dbName, collection })
+        return this.removeCollection({
+          bucket: this.bucketName,
+          db: this.dbName,
+          collection
+        })
       })
     }
   },
   mounted() {
-    this.listCollection({ db: this.dbName })
+    this.listCollection({ bucket: this.bucketName, db: this.dbName })
   }
 }
 </script>
