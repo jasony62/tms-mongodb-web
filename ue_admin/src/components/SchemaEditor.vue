@@ -9,8 +9,8 @@
         <el-input v-model="schema.title"></el-input>
       </el-form-item>
       <el-form-item label="类型" v-if="showRadio">
-        <el-radio v-model="schema.scope" label="db">数据库</el-radio >
-        <el-radio v-model="schema.scope" label="collection">文档</el-radio >
+        <el-radio v-model="schema.scope" label="db">数据库</el-radio>
+        <el-radio v-model="schema.scope" label="collection">文档</el-radio>
       </el-form-item>
       <el-form-item label="说明">
         <el-input type="textarea" v-model="schema.description"></el-input>
@@ -32,6 +32,7 @@ export default {
   components: { TmsJsonSchema },
   props: {
     dialogVisible: { default: true },
+    bucketName: { type: String },
     schema: {
       type: Object,
       default: function() {
@@ -49,10 +50,18 @@ export default {
   },
   computed: {
     showName() {
-      return this.type === 'schema' ? '集合列定义显示名（中文）' : this.type === 'attribute' ? '库文档属性定义显示名（中文）' : ''
+      return this.type === 'schema'
+        ? '集合列定义显示名（中文）'
+        : this.type === 'attribute'
+        ? '库文档属性定义显示名（中文）'
+        : ''
     },
     showRadio() {
-      return this.type === 'schema' ? false : this.type === 'attribute' ? true : ''
+      return this.type === 'schema'
+        ? false
+        : this.type === 'attribute'
+        ? true
+        : ''
     }
   },
   methods: {
@@ -60,16 +69,19 @@ export default {
     onSubmit() {
       if (this.schema && this.schema._id) {
         apiSchema
-          .update(this.schema, this.schema)
-          .then(newSchema => this.$emit('submit', {...newSchema, _id: this.schema._id}))
+          .update(this.bucketName, this.schema, this.schema)
+          .then(newSchema =>
+            this.$emit('submit', { ...newSchema, _id: this.schema._id })
+          )
       } else {
         if (!this.showRadio) delete this.schema.scope
         apiSchema
-          .create(this.schema)
+          .create(this.bucketName, this.schema)
           .then(newSchema => this.$emit('submit', newSchema))
       }
     },
-    open(schema, type, isCopy) {
+    open(schema, bucketName, type, isCopy) {
+      this.bucketName = bucketName
       this.type = type
       if ((schema && schema._id) || isCopy) Object.assign(this.schema, schema)
       this.$mount()

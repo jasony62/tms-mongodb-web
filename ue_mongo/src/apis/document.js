@@ -18,7 +18,6 @@ export default {
         { filter, orderBy }
       )
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
   list(bucketName, dbName, clName, page, filter = {}, orderBy = {}) {
     const params = { db: dbName, cl: clName, page: page.at, size: page.size }
@@ -26,7 +25,6 @@ export default {
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/list`, { filter, orderBy }, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
   create(bucketName, dbName, clName, proto) {
     const params = { db: dbName, cl: clName }
@@ -34,7 +32,6 @@ export default {
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/create`, proto, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
   update(bucketName, dbName, clName, id, updated) {
     const params = { db: dbName, cl: clName, id }
@@ -42,25 +39,23 @@ export default {
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/update`, updated, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
   batchUpdate(dbName, clName, param) {
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/updateMany?db=${dbName}&cl=${clName}`, param)
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
-  remove(dbName, clName, id) {
+  remove(bucketName, dbName, clName, id) {
+    const params = { db: dbName, cl: clName, id }
+    if (bucketName) params.bucket = bucketName
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/remove?db=${dbName}&cl=${clName}&id=${id}`)
+      .get(`${base}/remove`, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
   batchRemove(dbName, clName, param) {
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/removeMany?db=${dbName}&cl=${clName}`, param)
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
   move(
     oldDbName,
@@ -80,24 +75,20 @@ export default {
         param
       )
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
   import(dbName, clName, file, config) {
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/uploadToImport?db=${dbName}&cl=${clName}`, file, config)
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
   export(dbName, clName) {
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/export?db=${dbName}&cl=${clName}`)
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
   download(params) {
     return TmsAxios.ins('mongodb-api')
       .get('/mgdb/api/download/down', { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   }
 }

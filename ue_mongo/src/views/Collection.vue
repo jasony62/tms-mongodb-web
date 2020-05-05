@@ -439,10 +439,12 @@ export default {
         type: 'warning'
       })
         .then(() => {
-          apiDoc.remove(this.dbName, this.clName, document._id).then(() => {
-            Message.success({ message: '删除成功' })
-            this.fnHandleResResult({ n: 1 }, false)
-          })
+          apiDoc
+            .remove(this.bucketName, this.dbName, this.clName, document._id)
+            .then(() => {
+              Message.success({ message: '删除成功' })
+              this.fnHandleResResult({ n: 1 }, false)
+            })
         })
         .catch(() => {})
     },

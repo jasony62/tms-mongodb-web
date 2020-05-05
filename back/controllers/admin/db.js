@@ -1,5 +1,6 @@
 const DbBase = require('../dbBase')
 const { ResultData, ResultFault } = require('tms-koa')
+const ObjectId = require('mongodb').ObjectId
 
 class Db extends DbBase {
   constructor(...args) {

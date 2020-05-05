@@ -8,40 +8,35 @@ import Collection from '../views/Collection.vue'
 import { TmsRouterHistoryPlugin } from 'tms-vue'
 import store from '../store'
 
-const VUE_APP_BASE_URL = process.env.VUE_APP_BASE_URL
-  ? process.env.VUE_APP_BASE_URL
-  : ''
-
 const BucketPart = /yes|true/i.test(process.env.VUE_APP_TMW_REQUIRE_BUCKET)
   ? '/b/:bucketName'
   : ''
 
 const routes = [
   {
-    path: `${VUE_APP_BASE_URL}/login`,
+    path: '/login',
     name: 'login',
     component: Login
   },
   {
-    path: `${VUE_APP_BASE_URL}/bucket`,
+    path: '/bucket',
     name: 'bucket',
-    component: Bucket,
-    props: true
+    component: Bucket
   },
   {
-    path: `${VUE_APP_BASE_URL}${BucketPart}/home`,
+    path: `${BucketPart}/home`,
     name: 'home',
     component: Home,
     props: true
   },
   {
-    path: `${VUE_APP_BASE_URL}${BucketPart}/database/:dbName`,
+    path: `${BucketPart}/database/:dbName`,
     name: 'database',
     component: Database,
     props: true
   },
   {
-    path: `${VUE_APP_BASE_URL}${BucketPart}/collection/:dbName/:clName`,
+    path: `${BucketPart}/collection/:dbName/:clName`,
     name: 'collection',
     component: Collection,
     props: true
@@ -56,6 +51,7 @@ Vue.use(VueRouter).use(TmsRouterHistoryPlugin)
 
 let router = new VueRouter({
   mode: 'history',
+  base: process.env.VUE_APP_BASE_URL,
   routes
 })
 

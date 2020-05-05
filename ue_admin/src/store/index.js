@@ -114,15 +114,16 @@ export default new Vuex.Store({
         return { buckets }
       })
     },
-    listDatabase({ commit }) {
-      return apis.db.list().then(dbs => {
+    listDatabase({ commit }, payload) {
+      const { bucket } = payload
+      return apis.db.list(bucket).then(dbs => {
         commit({ type: 'dbs', dbs })
         return { dbs }
       })
     },
     listSchema({ commit }, payload) {
-      const { scope } = payload
-      return apis.schema.list(scope).then(schemas => {
+      const { bucket, scope } = payload
+      return apis.schema.list(bucket, scope).then(schemas => {
         const types = typeof scope === 'string' ? 'schemas' : 'attributes'
         commit({ type: 'schemas', schemas, types })
         return { schemas }
@@ -150,15 +151,15 @@ export default new Vuex.Store({
       })
     },
     removeDb({ commit }, payload) {
-      const { db } = payload
-      return apis.db.remove(db).then(() => {
+      const { bucket, db } = payload
+      return apis.db.remove(bucket, db).then(() => {
         commit({ type: 'removeDatabase', db })
         // return { db }
       })
     },
     removeSchema({ commit }, playload) {
-      const { schema, type } = playload
-      return apis.schema.remove(schema).then(() => {
+      const { bucket, schema, type } = playload
+      return apis.schema.remove(bucket, schema).then(() => {
         commit({ type: 'removeSchema', schema, types: type })
         // return { schema }
       })

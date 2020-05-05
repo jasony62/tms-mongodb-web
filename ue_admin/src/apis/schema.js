@@ -3,35 +3,38 @@ import { TmsAxios } from 'tms-vue'
 const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/admin/schema'
 
 export default {
-  list(scope) {
-    const type = typeof(scope) === 'object' ? scope.join(',') : scope
+  list(bucket, scope) {
+    const type = typeof scope === 'object' ? scope.join(',') : scope
+    const params = { scope: type }
+    if (bucket) params.bucket = bucket
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/list?scope=${type}`)
+      .get(`${base}/list`, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
   listSimple() {
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/listSimple`)
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
-  create(proto) {
+  create(bucket, proto) {
+    const params = {}
+    if (bucket) params.bucket = bucket
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/create`, proto)
+      .post(`${base}/create`, proto, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
-  update(schema, updated) {
+  update(bucket, schema, updated) {
+    const params = {}
+    if (bucket) params.bucket = bucket
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/update?id=${schema._id}`, updated)
+      .post(`${base}/update?id=${schema._id}`, updated, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
-  remove(schema) {
+  remove(bucket, schema) {
+    const params = { id: schema._id }
+    if (bucket) params.bucket = bucket
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/remove?id=${schema._id}`)
+      .get(`${base}/remove`, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   }
 }

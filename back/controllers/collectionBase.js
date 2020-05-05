@@ -33,7 +33,7 @@ class CollectionBase extends Base {
       .then((result) => result)
       .then((myCl) => {
         if (myCl.schema_id) {
-          return cl
+          return this.clMongoObj
             .findOne({ type: 'schema', _id: new ObjectId(myCl.schema_id) })
             .then((schema) => {
               myCl.schema = schema

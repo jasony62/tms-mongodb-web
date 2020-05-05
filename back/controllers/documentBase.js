@@ -1,5 +1,6 @@
 const { ResultData, ResultFault } = require('tms-koa')
 const Base = require('./base')
+const DocumentHelper = require('./documentHelper')
 const fs = require('fs')
 const modelBase = require('../models/mgdb/base')
 const modelColl = require('../models/mgdb/collection')
@@ -12,23 +13,27 @@ const TMSCONFIG = require('tms-koa').Context.appConfig.tmwConfig
 class DocBase extends Base {
   constructor(...args) {
     super(...args)
+    this.docHelper = new DocumentHelper(this)
   }
   /**
    * 指定数据库指定集合下新建文档
    */
   async create() {
-    const { db: dbName, cl: clName } = this.request.query
+    const existDb = await this.docHelper.findRequestDb()
+
+    const { cl: clName } = this.request.query
     let doc = this.request.body
+    if (this.bucket) doc.bucket = this.bucket.name
     // 加工数据
     this._beforeProcessByInAndUp(doc, 'insert')
 
     return this.mongoClient
-      .db(dbName)
+      .db(existDb.name)
       .collection(clName)
       .insertOne(doc)
       .then(async (r) => {
         let modelD = new modelDocu()
-        await modelD.dataActionLog(r.ops, '创建', dbName, clName)
+        await modelD.dataActionLog(r.ops, '创建', existDb.name, clName)
         return new ResultData(doc)
       })
   }
@@ -214,13 +219,15 @@ class DocBase extends Base {
    * 更新指定数据库指定集合下的文档
    */
   async update() {
-    const { db: dbName, cl: clName, id } = this.request.query
+    const existDb = await this.docHelper.findRequestDb()
+
+    const { cl: clName, id } = this.request.query
     let doc = this.request.body
-    doc = _.omit(doc, ['_id'])
+    doc = _.omit(doc, ['_id', 'bucket'])
     // 加工数据
     this._beforeProcessByInAndUp(doc, 'update')
 
-    let cl = this.mongoClient.db(dbName).collection(clName)
+    let cl = this.mongoClient.db(existDb.name).collection(clName)
     let find = { _id: ObjectId(id) }
 
     // 日志
@@ -231,7 +238,7 @@ class DocBase extends Base {
       await modelD.dataActionLog(
         doc,
         '修改',
-        dbName,
+        existDb.name,
         clName,
         '',
         '',
