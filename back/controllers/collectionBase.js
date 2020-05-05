@@ -94,7 +94,7 @@ class CollectionBase extends Base {
     info.name = newName[1]
 
     const client = this.mongoClient
-    let mgdb = client.db(existDb.name)
+    const mgdb = client.db(existDb.sysname)
 
     // 查询是否已存在同名集合
     const repeatCls = await mgdb
@@ -126,7 +126,7 @@ class CollectionBase extends Base {
     // 查询集合是否存在
     const client = this.mongoClient
     let repeatCls = await client
-      .db(existDb.name)
+      .db(existDb.sysname)
       .listCollections({ name: clName }, { nameOnly: true })
       .toArray()
     if (repeatCls.length === 0) {
@@ -146,7 +146,7 @@ class CollectionBase extends Base {
       return new ResultData(info)
     }
     // 更改集合名
-    const rst2 = await this._rename(existDb.name, clName, newClName)
+    const rst2 = await this._rename(existDb, clName, newClName)
 
     if (rst2[0] === true) return new ResultData(info)
     else return new ResultFault(rst2[1])
@@ -164,15 +164,16 @@ class CollectionBase extends Base {
     if (newName[0] === false) return new ResultFault(newName[1])
     newName = newName[1]
 
-    let rst = await this._rename(existDb.name, clName, newName)
+    let rst = await this._rename(existDb, clName, newName)
 
     if (rst[0] === true) return new ResultData(rst[1])
     else return new ResultFault(rst[1])
   }
   /**
-   *
+   * 修改集合名称
    */
-  async _rename(dbName, clName, newName) {
+  async _rename(db, clName, newName) {
+    const { name: dbName, sysname } = db
     const client = this.mongoClient
     // 检查是否已存在同名集合
     let equalNameSum = await this.clMongoObj
@@ -183,7 +184,7 @@ class CollectionBase extends Base {
     // 修改集合名
     const query = { name: clName, database: dbName, type: 'collection' }
     if (this.bucket) query.bucket = this.bucket.name
-    let clDb = client.db(dbName).collection(clName)
+    let clDb = client.db(sysname).collection(clName)
     return clDb
       .rename(newName)
       .then(() => this.clMongoObj.updateOne(query, { $set: { name: newName } }))
@@ -196,7 +197,7 @@ class CollectionBase extends Base {
   async remove() {
     let { db: dbName, cl: clName } = this.request.query
 
-    // 如(果是系统自带集合不能删除
+    // 如果是系统自带集合不能删除
     if (
       (dbName === 'admin' && clName === 'system.version') ||
       (dbName === 'config' && clName === 'system.sessions') ||
@@ -213,7 +214,7 @@ class CollectionBase extends Base {
 
     return this.clMongoObj
       .deleteOne(query)
-      .then(() => client.db(existDb.name).dropCollection(clName))
+      .then(() => client.db(existDb.sysname).dropCollection(clName))
       .then(() => new ResultData('ok'))
       .catch((err) => new ResultFault(err.message))
   }

@@ -4,6 +4,7 @@ const Base = require('./base')
 const DbHelper = require('./dbHelper')
 const ObjectId = require('mongodb').ObjectId
 const modelDb = require('../models/mgdb/db')
+const { nanoid } = require('nanoid')
 /**
  * 数据库控制器基类
  */
@@ -40,15 +41,27 @@ class DbBase extends Base {
     info.type = 'database'
     if (this.bucket) info.bucket = this.bucket.name
 
-    // 检查集合名
+    // 检查数据库名
     let model = new modelDb()
     let newName = model._checkDbName(info.name)
     if (newName[0] === false) return new ResultFault(newName[1])
     info.name = newName[1]
 
     // 查询是否存在同名库
-    const existDb = await this.dbHelper.byName(info.name)
+    let existDb = await this.dbHelper.dbByName(info.name)
     if (existDb) return new ResultFault('已存在同名数据库')
+
+    // 生成数据库系统名
+    let tries = 0
+    let sysname = nanoid(10)
+    while (tries <= 2) {
+      existDb = await this.dbHelper.dbBySysname(sysname)
+      sysname = nanoid(10)
+      tries++
+    }
+    if (existDb) return new ResultFault('无法生成有效数据库名称')
+
+    info.sysname = sysname
 
     return this.clMongoObj
       .insertOne(info)

@@ -15,18 +15,6 @@ class Helper {
     return cl
   }
   /**
-   *
-   * @param {*} name
-   */
-  async byName(name) {
-    const query = { name, type: 'database' }
-    if (this.ctrl.bucket) query.bucket = this.ctrl.bucket.name
-
-    const db = await this.clMongoObj.findOne(query)
-
-    return db
-  }
-  /**
    * 获得请求的数据库
    *
    * @param {boolean} bThrowNotFound 如果不可访问是否抛出异常

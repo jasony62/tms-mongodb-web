@@ -28,7 +28,7 @@ class DocBase extends Base {
     this._beforeProcessByInAndUp(doc, 'insert')
 
     return this.mongoClient
-      .db(existDb.name)
+      .db(existDb.sysname)
       .collection(clName)
       .insertOne(doc)
       .then(async (r) => {
@@ -53,7 +53,7 @@ class DocBase extends Base {
     const existDb = await this.docHelper.findRequestDb()
 
     const { cl: clName, id } = this.request.query
-    const cl = this.mongoClient.db(existDb.name).collection(clName)
+    const cl = this.mongoClient.db(existDb.sysname).collection(clName)
 
     if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       // 记录操作日志
@@ -76,7 +76,7 @@ class DocBase extends Base {
     let { filter } = this.request.body
 
     const client = this.mongoClient
-    let cl = client.db(existDb.name).collection(clName)
+    let cl = client.db(existDb.sysname).collection(clName)
 
     let find = {}
     if (filter) {
@@ -120,7 +120,7 @@ class DocBase extends Base {
 
     let options = { filter, orderBy }
     let model = new modelDocu()
-    let data = await model.listDocs(existDb.name, clName, options, page, size)
+    let data = await model.listDocs(existDb, clName, options, page, size)
     if (data[0] === false) {
       return new ResultFault(data[1])
     }
@@ -143,7 +143,7 @@ class DocBase extends Base {
 
     let { cl: clName, transforms } = this.request.query
     const { docIds, filter } = this.request.body
-    let cl = this.mongoClient.db(existDb.name).collection(clName)
+    let cl = this.mongoClient.db(existDb.sysname).collection(clName)
 
     let find, operate_type
     if (docIds && docIds.length > 0) {
@@ -224,7 +224,7 @@ class DocBase extends Base {
     // 加工数据
     this._beforeProcessByInAndUp(doc, 'update')
 
-    let cl = this.mongoClient.db(existDb.name).collection(clName)
+    let cl = this.mongoClient.db(existDb.sysname).collection(clName)
     let find = { _id: ObjectId(id) }
 
     // 日志
@@ -617,7 +617,7 @@ class DocBase extends Base {
 
     const client = this.mongoClient
     return client
-      .db(existDb.name)
+      .db(existDb.sysname)
       .collection(clName)
       .updateMany(find, { $set: set })
       .then((rst) => {

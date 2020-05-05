@@ -41,7 +41,6 @@ class Document extends DocBase {
     } catch (e) {
       return new ResultFault(e.message)
     }
-
     let options = {}
     if (checkRepeatColumns) {
       options.unrepeat = {}

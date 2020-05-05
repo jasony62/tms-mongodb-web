@@ -8,7 +8,7 @@ class Document extends Base {
    * 模糊搜索数据
    */
   async listDocs(
-    dbName,
+    db,
     clName,
     options = {},
     page = null,
@@ -21,7 +21,7 @@ class Document extends Base {
     }
 
     const client = await this.mongoClient()
-    let cl = client.db(dbName).collection(clName)
+    let cl = client.db(db.sysname).collection(clName)
     let data = {}
     let skip = 0
     let limit = 0

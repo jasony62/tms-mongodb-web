@@ -1,13 +1,13 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <el-form ref="form" :model="collection" label-position="top">
-      <el-form-item label="文档名称（英文）">
+      <el-form-item label="集合名称（英文）">
         <el-input v-model="collection.name"></el-input>
       </el-form-item>
-      <el-form-item label="文档显示名（中文）">
+      <el-form-item label="集合显示名（中文）">
         <el-input v-model="collection.title"></el-input>
       </el-form-item>
-      <el-form-item label="文档列定义">
+      <el-form-item label="集合列定义">
         <el-select v-model="collection.schema_id" clearable placeholder="请选择">
           <el-option v-for="item in schemas" :key="item._id" :label="item.title" :value="item._id">
           </el-option>
