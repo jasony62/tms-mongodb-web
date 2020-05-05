@@ -50,14 +50,16 @@ class DocBase extends Base {
    *
    */
   async remove() {
-    const { db: dbName, cl: clName, id } = this.request.query
-    const cl = this.mongoClient.db(dbName).collection(clName)
+    const existDb = await this.docHelper.findRequestDb()
+
+    const { cl: clName, id } = this.request.query
+    const cl = this.mongoClient.db(existDb.name).collection(clName)
 
     if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       // 记录操作日志
       let data = await cl.findOne({ _id: ObjectId(id) })
       let modelD = new modelDocu()
-      await modelD.dataActionLog(data, '删除', dbName, clName)
+      await modelD.dataActionLog(data, '删除', existDb.name, clName)
     }
 
     return cl
@@ -68,17 +70,13 @@ class DocBase extends Base {
    *  根据某一列的值分组
    */
   async getGroupByColumnVal() {
-    let {
-      db: dbName,
-      cl: clName,
-      column,
-      page = null,
-      size = null,
-    } = this.request.query
+    const existDb = await this.docHelper.findRequestDb()
+
+    let { cl: clName, column, page = null, size = null } = this.request.query
     let { filter } = this.request.body
 
     const client = this.mongoClient
-    let cl = client.db(dbName).collection(clName)
+    let cl = client.db(existDb.name).collection(clName)
 
     let find = {}
     if (filter) {
@@ -115,17 +113,14 @@ class DocBase extends Base {
    * 指定数据库指定集合下的文档
    */
   async list() {
-    const {
-      db: dbName,
-      cl: clName,
-      page = null,
-      size = null,
-    } = this.request.query
+    const existDb = await this.docHelper.findRequestDb()
+
+    const { cl: clName, page = null, size = null } = this.request.query
     const { filter = null, orderBy = null } = this.request.body
 
     let options = { filter, orderBy }
     let model = new modelDocu()
-    let data = await model.listDocs(dbName, clName, options, page, size)
+    let data = await model.listDocs(existDb.name, clName, options, page, size)
     if (data[0] === false) {
       return new ResultFault(data[1])
     }
@@ -144,9 +139,11 @@ class DocBase extends Base {
    * 批量删除
    */
   async removeMany() {
-    let { db: dbName, cl: clName, transforms } = this.request.query
+    const existDb = await this.docHelper.findRequestDb()
+
+    let { cl: clName, transforms } = this.request.query
     const { docIds, filter } = this.request.body
-    let cl = this.mongoClient.db(dbName).collection(clName)
+    let cl = this.mongoClient.db(existDb.name).collection(clName)
 
     let find, operate_type
     if (docIds && docIds.length > 0) {
@@ -186,7 +183,7 @@ class DocBase extends Base {
             if (!transforms2.includes(tf.name)) continue
             if (fs.existsSync(process.cwd() + '/' + tf.name + '.js')) {
               let func = require(process.cwd() + '/' + tf.name)
-              tf.db = dbName
+              tf.db = existDb.name
               tf.cl = clName
               notRemoveDatas = await func(datas, notRemoveDatas, tf)
             }
@@ -210,7 +207,7 @@ class DocBase extends Base {
       // 记录操作日志
       let datas2 = await cl.find(find).toArray()
       let modelD = new modelDocu()
-      await modelD.dataActionLog(datas2, operate_type, dbName, clName)
+      await modelD.dataActionLog(datas2, operate_type, existDb.name, clName)
     }
 
     return cl.deleteMany(find).then((result) => new ResultData(result.result))
@@ -584,8 +581,10 @@ class DocBase extends Base {
    * 批量修改数据
    */
   async updateMany() {
-    let { db: dbName, cl: clName } = this.request.query
-    if (!dbName || !clName) return new ResultFault('参数不完整')
+    const existDb = await this.docHelper.findRequestDb()
+
+    let { cl: clName } = this.request.query
+    if (!clName) return new ResultFault('参数不完整')
 
     let { docIds, filter, columns } = this.request.body
     if (!columns || Object.keys(columns).length === 0)
@@ -618,14 +617,14 @@ class DocBase extends Base {
 
     const client = this.mongoClient
     return client
-      .db(dbName)
+      .db(existDb.name)
       .collection(clName)
       .updateMany(find, { $set: set })
       .then((rst) => {
         // 日志
         if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
           let modelD = new modelDocu()
-          modelD.dataActionLog({}, '批量修改', dbName, clName)
+          modelD.dataActionLog({}, '批量修改', existDb.name, clName)
         }
 
         return new ResultData(rst.result)

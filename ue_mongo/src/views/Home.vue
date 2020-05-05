@@ -92,7 +92,7 @@ export default {
       })
     },
     topDb(db, type) {
-      apiDb.top(db._id, type).then(() => {
+      apiDb.top(this.bucketName, db._id, type).then(() => {
         this.listDatabase()
       })
     }

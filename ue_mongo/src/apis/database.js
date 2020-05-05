@@ -4,36 +4,33 @@ const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/mongo/db'
 
 export default {
   list(bucket) {
-    const params = {}
-    if (bucket) params.bucket = bucket
+    const params = { bucket }
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/list`, { params })
       .then(rst => rst.data.result)
   },
   create(bucket, proto) {
-    const params = {}
-    if (bucket) params.bucket = bucket
+    const params = { bucket }
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/create`, proto, { params })
       .then(rst => rst.data.result)
   },
   update(bucket, dbName, updated) {
-    const params = { db: dbName }
-    if (bucket) params.bucket = bucket
+    const params = { bucket, db: dbName }
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/update`, updated, { params })
       .then(rst => rst.data.result)
   },
   remove(bucket, db) {
-    const params = { db: db.name }
-    if (bucket) params.bucket = bucket
+    const params = { bucket, db: db.name }
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/remove`)
+      .get(`${base}/remove`, { params })
       .then(rst => rst.data.result)
   },
-  top(id, type) {
+  top(bucket, id, type) {
+    const params = { bucket, id, type }
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/top?id=${id}&type=${type}`)
+      .get(`${base}/top`, { params })
       .then(rst => rst.data.result)
   }
 }

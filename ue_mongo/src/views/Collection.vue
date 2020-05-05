@@ -253,6 +253,7 @@ export default {
         const { filter, orderBy } = rule
         apiDoc
           .byColumnVal(
+            this.bucketName,
             this.dbName,
             this.clName,
             columnName,
@@ -271,6 +272,7 @@ export default {
       } else {
         apiDoc
           .byColumnVal(
+            this.bucketName,
             this.dbName,
             this.clName,
             columnName,
@@ -284,7 +286,13 @@ export default {
           })
       }
       select
-        .open(columnName, this.dbName, this.clName, this.dialogPage)
+        .open(
+          this.bucketName,
+          columnName,
+          this.dbName,
+          this.clName,
+          this.dialogPage
+        )
         .then(rsl => {
           const { condition, isClear, isCheckBtn } = rsl
           this.$store.commit('conditionAddColumn', { condition })
@@ -424,7 +432,12 @@ export default {
       editor.open(this.collection).then(columns => {
         Object.assign(param, { columns })
         apiDoc
-          .batchUpdate(this.dbName, this.collection.name, param)
+          .batchUpdate(
+            this.bucketName,
+            this.dbName,
+            this.collection.name,
+            param
+          )
           .then(result => {
             Message.success({ message: '已成功修改' + result.n + '条' })
             this.listDocument()
@@ -457,10 +470,12 @@ export default {
         type: 'warning'
       })
         .then(() => {
-          apiDoc.batchRemove(this.dbName, this.clName, param).then(result => {
-            Message.success({ message: '已成功删除' + result.n + '条' })
-            this.fnHandleResResult(result, true)
-          })
+          apiDoc
+            .batchRemove(this.bucketName, this.dbName, this.clName, param)
+            .then(result => {
+              Message.success({ message: '已成功删除' + result.n + '条' })
+              this.fnHandleResResult(result, true)
+            })
         })
         .catch(() => {})
     },
@@ -486,6 +501,7 @@ export default {
       ) {
         let result = await apiDoc
           .move(
+            this.bucketName,
             _this.dbName,
             _this.clName,
             dbName,
@@ -568,13 +584,15 @@ export default {
       let formData = new FormData()
       const msg = Message.info({ message: '正在导入数据...', duration: 0 })
       formData.append('file', data.file)
-      apiDoc.import(this.dbName, this.clName, formData).then(() => {
-        this.listDocument()
-        setTimeout(() => msg.close(), 1000)
-      })
+      apiDoc
+        .import(this.bucketName, this.dbName, this.clName, formData)
+        .then(() => {
+          this.listDocument()
+          setTimeout(() => msg.close(), 1000)
+        })
     },
     exportDocument() {
-      apiDoc.export(this.dbName, this.clName).then(result => {
+      apiDoc.export(this.bucketName, this.dbName, this.clName).then(result => {
         const access_token = sessionStorage.getItem('access_token')
         window.open(
           `${process.env.VUE_APP_BACK_API_BASE}/download/down?access_token=${access_token}&file=${result}`
