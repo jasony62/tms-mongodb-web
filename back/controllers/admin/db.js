@@ -14,7 +14,8 @@ class Db extends DbBase {
     if (['admin', 'config', 'local', 'tms_admin'].includes(dbName))
       return new ResultFault('不能删除系统自带数据库')
 
-    const client = this.mongoClient
+    const existBb = await this.dbHelper.findRequestDb()
+
     const cl = this.clMongoObj
     const query = { database: dbName, type: 'collection' }
     if (this.bucket) query.bucket = this.bucket.name
@@ -23,9 +24,10 @@ class Db extends DbBase {
     if (colls.length > 0)
       return new ResultFault('删除失败，此库中存在未删除的集合')
 
+    const client = this.mongoClient
     return cl
-      .deleteOne({ name: dbName, type: 'database' })
-      .then(() => client.db(dbName).dropDatabase())
+      .deleteOne({ _id: ObjectId(existBb._id) })
+      .then(() => client.db(existBb.name).dropDatabase())
       .then(() => new ResultData('ok'))
   }
 }

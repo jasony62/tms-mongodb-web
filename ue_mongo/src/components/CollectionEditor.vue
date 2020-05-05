@@ -1,22 +1,18 @@
 <template>
-  <el-dialog
-    :visible.sync="dialogVisible"
-    :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal"
-  >
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <el-form ref="form" :model="collection" label-position="top">
-      <el-form-item label="文档名称（英文）">
+      <el-form-item label="集合名称（英文）">
         <el-input v-model="collection.name"></el-input>
       </el-form-item>
-      <el-form-item label="文档显示名（中文）">
+      <el-form-item label="集合显示名（中文）">
         <el-input v-model="collection.title"></el-input>
       </el-form-item>
-      <el-form-item label="文档列定义">
+      <el-form-item label="集合列定义">
         <el-select placeholder="请选择" v-model="collection.schema_id" clearable filterable>
           <el-option v-for="item in schemas" :key="item._id" :label="item.title" :value="item._id"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="文档拓展属性（选填）">
+      <el-form-item label="集合拓展属性（选填）">
         <el-select placeholder="请选择" v-model="collection.extensionInfo.schemaId" clearable filterable>
           <el-option v-for="item in extensions" :key="item._id" :label="item.title" :value="item._id"></el-option>
         </el-select>
@@ -51,11 +47,18 @@ export default {
   name: 'CollectionEditor',
   props: {
     dialogVisible: { default: true },
+    bucketName: { type: String },
     dbName: { type: String },
     collection: {
       type: Object,
       default: function() {
-        return { name: '', title: '', description: '', schema_id: '', extensionInfo: { schemaId: '', info: {} }}
+        return {
+          name: '',
+          title: '',
+          description: '',
+          schema_id: '',
+          extensionInfo: { schemaId: '', info: {} }
+        }
       }
     }
   },
@@ -71,27 +74,27 @@ export default {
     }
   },
   mounted() {
-    apiSchema.listSimple('document').then(schemas => {
+    apiSchema.list(this.bucketName, 'document').then(schemas => {
       this.schemas = schemas
     })
-    apiSchema.list('collection').then(extensions => {
+    apiSchema.list(this.bucketName, 'collection').then(extensions => {
       this.extensions = extensions
     })
   },
   methods: {
     onSubmit() {
-      
       if (this.mode === 'create')
         apiCollection
-          .create(this.dbName, this.collection)
+          .create(this.bucketName, this.dbName, this.collection)
           .then(newCollection => this.$emit('submit', newCollection))
       else if (this.mode === 'update')
         apiCollection
-          .update(this.dbName, this.clName, this.collection)
+          .update(this.bucketName, this.dbName, this.clName, this.collection)
           .then(newCollection => this.$emit('submit', newCollection))
     },
-    open(mode, dbName, collection) {
+    open(mode, bucketName, dbName, collection) {
       this.mode = mode
+      this.bucketName = bucketName
       this.dbName = dbName
       if (mode === 'update') {
         this.clName = collection.name

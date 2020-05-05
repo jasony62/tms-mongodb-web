@@ -63,7 +63,7 @@ export default {
     },
     createDb() {
       const editor = new Vue(DbEditor)
-      editor.open('create').then(newDb => {
+      editor.open('create', this.bucketName).then(newDb => {
         this.$store.commit({
           type: 'appendDatabase',
           db: newDb,
@@ -73,7 +73,7 @@ export default {
     },
     editDb(db) {
       const editor = new Vue(DbEditor)
-      editor.open('update', db).then(newDb => {
+      editor.open('update', this.bucketName, db).then(newDb => {
         Object.keys(newDb).forEach(k => {
           Vue.set(db, k, newDb[k])
         })

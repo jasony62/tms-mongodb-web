@@ -1,20 +1,22 @@
 const _ = require('lodash')
 const { ResultData, ResultFault } = require('tms-koa')
 const Base = require('./base')
+const DbHelper = require('./dbHelper')
 const ObjectId = require('mongodb').ObjectId
 const modelDb = require('../models/mgdb/db')
-
+/**
+ * 数据库控制器基类
+ */
 class DbBase extends Base {
   constructor(...args) {
     super(...args)
+    this.dbHelper = new DbHelper(this)
   }
   async tmsBeforeEach() {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
 
-    const client = this.mongoClient
-    const cl = client.db('tms_admin').collection('mongodb_object')
-    this.clMongoObj = cl
+    this.clMongoObj = this.dbHelper.clMongoObj
 
     return true
   }
@@ -27,19 +29,6 @@ class DbBase extends Base {
     const tmsDbs = await this.clMongoObj.find(query).sort({ top: -1 }).toArray()
 
     return new ResultData(tmsDbs)
-  }
-  /**
-   * 置顶
-   */
-  async top() {
-    let { id, type = 'up' } = this.request.query
-
-    let top = type === 'up' ? '10000' : null
-    const query = { _id: ObjectId(id) }
-    if (this.bucket) query.bucket = this.bucket.name
-    return this.clMongoObj
-      .updateOne(query, { $set: { top } })
-      .then((rst) => new ResultData(rst.result))
   }
   /**
    * 新建数据库
@@ -57,29 +46,43 @@ class DbBase extends Base {
     if (newName[0] === false) return new ResultFault(newName[1])
     info.name = newName[1]
 
-    let cl = this.clMongoObj
     // 查询是否存在同名库
-    const query = { name: info.name, type: 'database' }
-    let dbs = await cl.find(query).toArray()
-    if (dbs.length > 0) {
-      return new ResultFault('已存在同名数据库')
-    }
+    const existDb = await this.dbHelper.byName(info.name)
+    if (existDb) return new ResultFault('已存在同名数据库')
 
-    return cl.insertOne(info).then((result) => new ResultData(result.ops[0]))
+    return this.clMongoObj
+      .insertOne(info)
+      .then((result) => new ResultData(result.ops[0]))
   }
   /**
    * 更新数据库对象信息
    */
   async update() {
-    const dbName = this.request.query.db
+    const beforeDb = await this.dbHelper.findRequestDb()
+
     let info = this.request.body
     let { _id, name, bucket, ...updatedInfo } = info
-    const query = { name: dbName, type: 'database' }
-    if (this.bucket) query.bucket = this.bucket.name
+
+    const query = { _id: ObjectId(beforeDb._id) }
 
     return this.clMongoObj
       .updateOne(query, { $set: updatedInfo })
       .then(() => new ResultData(info))
   }
+  /**
+   * 置顶
+   */
+  async top() {
+    let { id, type = 'up' } = this.request.query
+
+    let top = type === 'up' ? '10000' : null
+    const query = { _id: ObjectId(id) }
+    if (this.bucket) query.bucket = this.bucket.name
+
+    return this.clMongoObj
+      .updateOne(query, { $set: { top } })
+      .then((rst) => new ResultData(rst.result))
+  }
 }
+
 module.exports = DbBase

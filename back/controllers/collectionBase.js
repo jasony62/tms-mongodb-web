@@ -1,33 +1,34 @@
 const _ = require('lodash')
 const { ResultData, ResultFault } = require('tms-koa')
 const Base = require('./base')
+const CollectionHelper = require('./CollectionHelper')
 const ObjectId = require('mongodb').ObjectId
 const modelColl = require('../models/mgdb/collection')
 
 class CollectionBase extends Base {
   constructor(...args) {
     super(...args)
+    this.colHelper = new CollectionHelper(this)
   }
   async tmsBeforeEach() {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
 
-    const client = this.mongoClient
-    const cl = client.db('tms_admin').collection('mongodb_object')
-    this.clMongoObj = cl
+    this.clMongoObj = this.colHelper.clMongoObj
 
     return true
   }
   /**
-   *
+   * 根据名称返回指定集合
    */
   async byName() {
-    const { db: dbName, cl: clName } = this.request.query
-    const cl = this.clMongoObj
-    const query = { database: dbName, name: clName, type: 'collection' }
+    const existDb = await this.colHelper.findRequestDb()
+
+    const { cl: clName } = this.request.query
+    const query = { database: existDb.name, name: clName, type: 'collection' }
     if (this.bucket) query.bucket = this.bucket.name
 
-    return cl
+    return this.clMongoObj
       .findOne(query)
       .then((result) => result)
       .then((myCl) => {
@@ -49,15 +50,15 @@ class CollectionBase extends Base {
    * 指定库下所有的集合
    */
   async list() {
-    let { db: dbName } = this.request.query
+    const existDb = await this.colHelper.findRequestDb()
     const client = this.mongoClient
     const p1 = client
-      .db(dbName)
+      .db(existDb.name)
       .listCollections({}, { nameOnly: true })
       .toArray()
       .then((collections) => collections.map((c) => c.name))
 
-    const query = { type: 'collection', database: dbName }
+    const query = { type: 'collection', database: existDb.name }
     if (this.bucket) query.bucket = this.bucket.name
     const p2 = this.clMongoObj.find(query).toArray()
 
@@ -80,10 +81,11 @@ class CollectionBase extends Base {
    * 指定数据库下新建集合
    */
   async create() {
-    let { db: dbName } = this.request.query
+    const existDb = await this.colHelper.findRequestDb()
+
     const info = this.request.body
     info.type = 'collection'
-    info.database = dbName
+    info.database = existDb.name
     if (this.bucket) info.bucket = this.bucket.name
 
     // 检查集合名
@@ -92,17 +94,17 @@ class CollectionBase extends Base {
     info.name = newName[1]
 
     const client = this.mongoClient
-    let cl = client.db(dbName)
+    let mgdb = client.db(existDb.name)
 
     // 查询是否已存在同名集合
-    let repeatCls = await cl
+    const repeatCls = await mgdb
       .listCollections({ name: info.name }, { nameOnly: true })
       .toArray()
     if (repeatCls.length > 0) {
       return new ResultFault('已存在同名集合')
     }
 
-    return cl
+    return mgdb
       .createCollection(info.name)
       .then(() => this.clMongoObj.insertOne(info))
       .then((result) => new ResultData(result.ops[0]))
@@ -111,7 +113,9 @@ class CollectionBase extends Base {
    * 更新集合对象信息
    */
   async update() {
-    let { db: dbName, cl: clName } = this.request.query
+    const existDb = await this.colHelper.findRequestDb()
+
+    let { cl: clName } = this.request.query
     let info = this.request.body
 
     // 格式化集合名
@@ -122,14 +126,14 @@ class CollectionBase extends Base {
     // 查询集合是否存在
     const client = this.mongoClient
     let repeatCls = await client
-      .db(dbName)
+      .db(existDb.name)
       .listCollections({ name: clName }, { nameOnly: true })
       .toArray()
     if (repeatCls.length === 0) {
       return new ResultFault('指定的集合不存在')
     }
 
-    const query = { database: dbName, name: clName, type: 'collection' }
+    const query = { database: existDb.name, name: clName, type: 'collection' }
     if (this.bucket) query.bucket = this.bucket.name
     const { _id, name, database, type, bucket, ...updatedInfo } = info
     const rst = await this.clMongoObj
@@ -142,7 +146,7 @@ class CollectionBase extends Base {
       return new ResultData(info)
     }
     // 更改集合名
-    const rst2 = await this._rename(dbName, clName, newClName)
+    const rst2 = await this._rename(existDb.name, clName, newClName)
 
     if (rst2[0] === true) return new ResultData(info)
     else return new ResultFault(rst2[1])
@@ -151,14 +155,16 @@ class CollectionBase extends Base {
    * 修改集合名称
    */
   async rename() {
-    let { db: dbName, cl: clName, newName } = this.request.query
+    const existDb = await this.colHelper.findRequestDb()
+
+    let { cl: clName, newName } = this.request.query
 
     //格式化集合名
     newName = this._checkClName(info.name)
     if (newName[0] === false) return new ResultFault(newName[1])
     newName = newName[1]
 
-    let rst = await this._rename(dbName, clName, newName)
+    let rst = await this._rename(existDb.name, clName, newName)
 
     if (rst[0] === true) return new ResultData(rst[1])
     else return new ResultFault(rst[1])
@@ -199,13 +205,15 @@ class CollectionBase extends Base {
     )
       return new ResultFault('系统自带集合，不能删除')
 
+    const existDb = await this.colHelper.findRequestDb()
+
     const client = this.mongoClient
     const query = { name: clName, type: 'collection' }
     if (this.bucket) query.bucket = this.bucket.name
 
     return this.clMongoObj
       .deleteOne(query)
-      .then(() => client.db(dbName).dropCollection(clName))
+      .then(() => client.db(existDb.name).dropCollection(clName))
       .then(() => new ResultData('ok'))
       .catch((err) => new ResultFault(err.message))
   }

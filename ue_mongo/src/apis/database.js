@@ -11,21 +11,27 @@ export default {
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
   },
-  create(proto) {
+  create(bucket, proto) {
+    const params = {}
+    if (bucket) params.bucket = bucket
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/create`, proto)
+      .post(`${base}/create`, proto, { params })
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
   },
-  update(dbName, updated) {
+  update(bucket, dbName, updated) {
+    const params = { db: dbName }
+    if (bucket) params.bucket = bucket
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/update?db=${dbName}`, updated)
+      .post(`${base}/update`, updated, { params })
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
   },
-  remove(db) {
+  remove(bucket, db) {
+    const params = { db: db.name }
+    if (bucket) params.bucket = bucket
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/remove?db=${db.name}`)
+      .get(`${base}/remove`)
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
   },

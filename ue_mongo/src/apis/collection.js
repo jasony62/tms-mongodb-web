@@ -3,37 +3,47 @@ import { TmsAxios } from 'tms-vue'
 const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/mongo/collection'
 
 export default {
-  byName(dbName, clName) {
+  byName(bucketName, dbName, clName) {
+    const params = { db: dbName, cl: clName }
+    if (bucketName) params.bucket = bucketName
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/byName?db=${dbName}&cl=${clName}`)
+      .get(`${base}/byName`, { params })
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
   },
   /**
    *
-   * @param {*} db
+   * @param {*} dbName
    */
-  list(db) {
+  list(bucketName, dbName) {
+    const params = { db: dbName }
+    if (bucketName) params.bucket = bucketName
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/list?db=${db}`)
+      .get(`${base}/list`, { params })
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
   },
-  create(dbName, proto) {
+  create(bucketName, dbName, proto) {
+    const params = { db: dbName }
+    if (bucketName) params.bucket = bucketName
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/create?db=${dbName}`, proto)
+      .post(`${base}/create`, proto, { params })
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
   },
-  update(dbName, clName, proto) {
+  update(bucketName, dbName, clName, proto) {
+    const params = { db: dbName, cl: clName }
+    if (bucketName) params.bucket = bucketName
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/update?db=${dbName}&cl=${clName}`, proto)
+      .post(`${base}/update`, proto, { params })
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
   },
-  remove(dbName, clName) {
+  remove(bucketName, dbName, clName) {
+    const params = { db: dbName, cl: clName }
+    if (bucketName) params.bucket = bucketName
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/remove?db=${dbName}&cl=${clName}`)
+      .get(`${base}/remove`, { params })
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
   }

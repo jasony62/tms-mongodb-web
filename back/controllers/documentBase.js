@@ -1,5 +1,5 @@
 const { ResultData, ResultFault } = require('tms-koa')
-const { Base } = require('./base')
+const Base = require('./base')
 const fs = require('fs')
 const modelBase = require('../models/mgdb/base')
 const modelColl = require('../models/mgdb/collection')
@@ -22,8 +22,7 @@ class DocBase extends Base {
     // 加工数据
     this._beforeProcessByInAndUp(doc, 'insert')
 
-    const client = this.mongoClient
-    return client
+    return this.mongoClient
       .db(dbName)
       .collection(clName)
       .insertOne(doc)
@@ -47,8 +46,7 @@ class DocBase extends Base {
    */
   async remove() {
     const { db: dbName, cl: clName, id } = this.request.query
-    const client = this.mongoClient
-    const cl = client.db(dbName).collection(clName)
+    const cl = this.mongoClient.db(dbName).collection(clName)
 
     if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       // 记录操作日志
@@ -143,8 +141,7 @@ class DocBase extends Base {
   async removeMany() {
     let { db: dbName, cl: clName, transforms } = this.request.query
     const { docIds, filter } = this.request.body
-    const client = this.mongoClient
-    let cl = client.db(dbName).collection(clName)
+    let cl = this.mongoClient.db(dbName).collection(clName)
 
     let find, operate_type
     if (docIds && docIds.length > 0) {
@@ -223,8 +220,7 @@ class DocBase extends Base {
     // 加工数据
     this._beforeProcessByInAndUp(doc, 'update')
 
-    const client = this.mongoClient
-    let cl = client.db(dbName).collection(clName)
+    let cl = this.mongoClient.db(dbName).collection(clName)
     let find = { _id: ObjectId(id) }
 
     // 日志

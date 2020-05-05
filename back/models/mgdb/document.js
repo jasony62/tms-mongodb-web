@@ -58,38 +58,6 @@ class Document extends Base {
 
     data.total = await cl.find(find).count()
 
-    const client = await this.mongoClient()
-    let cl = client.db(dbName).collection(clName)
-    let data = {}
-    let skip = 0
-    let limit = 0
-    if (page && page > 0 && size && size > 0) {
-      skip = (parseInt(page) - 1) * parseInt(size)
-      limit = parseInt(size)
-    }
-    // 排序
-    let sort = {}
-    if (options.orderBy) {
-      for (const key in options.orderBy) {
-        let val = options.orderBy[key]
-        if (val === 'desc') {
-          sort[key] = -1
-        } else {
-          sort[key] = 1
-        }
-      }
-    }
-
-    data.docs = await cl
-      .find(find)
-      .skip(skip)
-      .limit(limit)
-      .sort(sort)
-      .toArray()
-      .then((docs) => docs)
-
-    data.total = await cl.find(find).count()
-
     return [true, data]
   }
   //

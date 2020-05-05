@@ -99,19 +99,21 @@ export default new Vuex.Store({
       })
     },
     listCollection({ commit }, payload) {
-      const { db } = payload
-      return apis.collection.list(db).then(collections => {
+      const { bucket, db } = payload
+      return apis.collection.list(bucket, db).then(collections => {
         commit({ type: 'collections', collections })
         return { collections }
       })
     },
     listDocument({ commit }, payload) {
-      const { db, cl, orderBy, page, filter } = payload
-      return apis.doc.list(db, cl, page, filter, orderBy).then(result => {
-        const documents = result.docs
-        commit({ type: 'documents', documents })
-        return { result }
-      })
+      const { bucket, db, cl, orderBy, page, filter } = payload
+      return apis.doc
+        .list(bucket, db, cl, page, filter, orderBy)
+        .then(result => {
+          const documents = result.docs
+          commit({ type: 'documents', documents })
+          return { result }
+        })
     },
     removeDatabase() {},
     removeCollection({ commit }, payload) {
