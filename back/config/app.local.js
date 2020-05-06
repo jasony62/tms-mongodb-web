@@ -1,4 +1,4 @@
-module.exports = {
+let appConfig = {
   router: {
     auth: {
       prefix: '/order/auth' // 接口调用url的前缀
@@ -25,3 +25,9 @@ module.exports = {
     TMS_APP_DATA_ACTION_LOG: 'Y'
   }
 }
+
+//
+const fs = require('fs')
+if (fs.existsSync(process.cwd() + "/config/app.local2.js")) Object.assign(appConfig, require(process.cwd() + "/config/app.local2.js"))
+
+module.exports = appConfig
