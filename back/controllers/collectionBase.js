@@ -202,7 +202,9 @@ class CollectionBase extends Base {
       (dbName === 'admin' && clName === 'system.version') ||
       (dbName === 'config' && clName === 'system.sessions') ||
       (dbName === 'local' && clName === 'startup_log') ||
-      (dbName === 'tms_admin' && clName === 'mongodb_object')
+      (dbName === 'tms_admin' && clName === 'mongodb_object') || 
+      (dbName === 'tms_admin' && clName === 'bucket') || 
+      (dbName === 'tms_admin' && clName === 'tms_app_data_action_log')
     )
       return new ResultFault('系统自带集合，不能删除')
 
