@@ -1,8 +1,8 @@
 version: '3.7'
 services:
-    mongodb:
+    omongodb:
       volumes:
-        - ./mongodb/data:/data/db
+        - /home/devops/mongodata/order:/data/db
       ports:
         - '27013:27017'
       logging:
