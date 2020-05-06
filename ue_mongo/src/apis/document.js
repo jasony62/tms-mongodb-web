@@ -47,7 +47,7 @@ export default {
   },
   move(oldDbName, oldClName, dbName, clName, transfroms, param, pTotal, aMTotal, aMPTotal, execNum=100) {
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/move?oldDb=${oldDbName}&oldCl=${oldClName}&newDb=${dbName}&newCl=${clName}&transforms=${transfroms}&planTotal=${pTotal}&alreadyMoveTotal=${aMTotal}&alreadyMovePassTotal=${aMPTotal}execNum=${execNum}`, param)
+      .post(`${base}/move?oldDb=${oldDbName}&oldCl=${oldClName}&newDb=${dbName}&newCl=${clName}&transforms=${transfroms}&planTotal=${pTotal}&alreadyMoveTotal=${aMTotal}&alreadyMovePassTotal=${aMPTotal}&execNum=${execNum}`, param)
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
   },

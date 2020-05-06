@@ -12,12 +12,12 @@
         <el-input v-model="database.title"></el-input>
       </el-form-item>
       <el-form-item label="库拓展属性（选填）">
-        <el-select placeholder="请选择" v-model="database.extensionInfo.schemaId" clearable filterable>
+        <el-select placeholder="请选择" v-model="database.extensionInfo.schemaId" clearable filterable @change="handleExtendId(database.extensionInfo.schemaId, false)">
           <el-option v-for="item in extensions" :key="item._id" :label="item.title" :value="item._id"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="拓展属性详情（选填）" v-show="database.extensionInfo.schemaId">
-        <tms-attr-editor :schemas="extensions" :id="database.extensionInfo.schemaId" :doc="database.extensionInfo.info"></tms-attr-editor>
+      <el-form-item label="拓展属性详情（选填）" v-if="JSON.stringify(extendSchema)!=='{}'">
+        <tms-el-json-doc class="tmw-attr-form" ref="attrForm" :schema="extendSchema" :doc="database.extensionInfo.info" ></tms-el-json-doc>
       </el-form-item>
       <el-form-item label="说明">
         <el-input type="textarea" v-model="database.description"></el-input>
@@ -31,14 +31,14 @@
 </template>
 <script>
 import Vue from 'vue'
-import { Dialog, Form, FormItem, Input, Button } from 'element-ui'
+import { Dialog, Form, FormItem, Input, Button, Message } from 'element-ui'
 Vue.use(Dialog)
   .use(Form)
   .use(FormItem)
   .use(Input)
   .use(Button)
 
-import TmsAttrEditor from './AttrEditor.vue'
+import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
 import apiDb from '../apis/database'
 import apiSchema from '../apis/schema'
 
@@ -53,33 +53,58 @@ export default {
       }
     }
   },
-  components: { TmsAttrEditor },
+  components: { TmsElJsonDoc },
   data() {
     return {
       mode: '',
       destroyOnClose: true,
       closeOnClickModal: false,
-      extensions: []
+			extensions: [],
+			extendSchema: {}
     }
   },
   mounted() {
     apiSchema.list('db').then(extensions => {
-      this.extensions = extensions
+			this.extensions = extensions
+			this.handleExtendId(this.database.extensionInfo.schemaId, true)
     })
   },
   methods: {
+		handleExtendId(id, init) {
+			this.extendSchema = {}
+			this.extensions.find(item => {
+				if (item._id==id) {
+					this.$nextTick(() => {
+						this.extendSchema = item.body
+						if (!init) {
+							this.database.extensionInfo.info = {}
+						}
+					})
+				}
+			})
+		},
+		fnSubmit() {
+			if (this.mode === 'update') {
+				apiDb
+					.update(this.database.name, this.database)
+					.then(newDb => this.$emit('submit', newDb))
+			} else if (this.mode === 'create') {
+				apiDb.create(this.database).then(newDb => this.$emit('submit', newDb))
+			}
+		},
     onSubmit() {
-      if (this.mode === 'update') {
-        apiDb
-          .update(this.database.name, this.database)
-          .then(newDb => this.$emit('submit', newDb))
-      } else if (this.mode === 'create') {
-        apiDb.create(this.database).then(newDb => this.$emit('submit', newDb))
-      }
+			if (this.$refs.attrForm) {
+				const tmsAttrForm = this.$refs.attrForm.$refs.TmsJsonDoc
+				tmsAttrForm.form().validate(valid => {
+					valid ? this.fnSubmit() : Message.error({message: '请填写必填字段'})
+				})
+				return false;
+			}
+			this.fnSubmit()
     },
     open(mode, db) {
       this.mode = mode
-      if (mode === 'update') Object.assign(this.database, db)
+      if (mode === 'update') this.database = JSON.parse(JSON.stringify(Object.assign(this.database, db)))
       this.$mount()
       document.body.appendChild(this.$el)
       return new Promise(resolve => {
