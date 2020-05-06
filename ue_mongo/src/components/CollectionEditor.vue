@@ -17,12 +17,12 @@
         </el-select>
       </el-form-item>
       <el-form-item label="文档拓展属性（选填）">
-        <el-select placeholder="请选择" v-model="collection.extensionInfo.schemaId" clearable filterable>
+        <el-select placeholder="请选择" v-model="collection.extensionInfo.schemaId" clearable filterable @change="handleExtendId(collection.extensionInfo.schemaId, false)">
           <el-option v-for="item in extensions" :key="item._id" :label="item.title" :value="item._id"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="拓展属性详情（选填）" v-show="collection.extensionInfo.schemaId">
-        <tms-attr-editor :schemas="extensions" :id="collection.extensionInfo.schemaId" :doc="collection.extensionInfo.info"></tms-attr-editor>
+      <el-form-item label="拓展属性详情（选填）" v-if="JSON.stringify(extendSchema)!=='{}'">
+				<tms-el-json-doc class="tmw-attr-form" ref="attrForm" :schema="extendSchema" :doc="collection.extensionInfo.info" ></tms-el-json-doc>
       </el-form-item>
       <el-form-item label="说明">
         <el-input type="textarea" v-model="collection.description"></el-input>
@@ -36,14 +36,14 @@
 </template>
 <script>
 import Vue from 'vue'
-import { Dialog, Form, FormItem, Input, Button } from 'element-ui'
+import { Dialog, Form, FormItem, Input, Button, Message } from 'element-ui'
 Vue.use(Dialog)
   .use(Form)
   .use(FormItem)
   .use(Input)
   .use(Button)
 
-import TmsAttrEditor from './AttrEditor.vue'
+import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
 import apiCollection from '../apis/collection'
 import apiSchema from '../apis/schema'
 
@@ -59,7 +59,7 @@ export default {
       }
     }
   },
-  components: { TmsAttrEditor },
+  components: { TmsElJsonDoc },
   data() {
     return {
       mode: '',
@@ -67,7 +67,8 @@ export default {
       destroyOnClose: true,
       closeOnClickModal: false,
       schemas: [],
-      extensions: []
+			extensions: [],
+			extendSchema: {}
     }
   },
   mounted() {
@@ -75,27 +76,50 @@ export default {
       this.schemas = schemas
     })
     apiSchema.list('collection').then(extensions => {
-      this.extensions = extensions
+			this.extensions = extensions
+			this.handleExtendId(this.collection.extensionInfo.schemaId, true)
     })
-  },
+	},
   methods: {
+		handleExtendId(id, init) {
+			this.extendSchema = {}
+			this.extensions.find(item => {
+				if (item._id==id) {
+					this.$nextTick(() => {
+						this.extendSchema = item.body
+						if (!init) {
+							this.collection.extensionInfo.info = {}
+						}
+					})
+				}
+			})
+		},
+		fnSubmit() {
+			if (this.mode === 'create')
+				apiCollection
+					.create(this.dbName, this.collection)
+					.then(newCollection => this.$emit('submit', newCollection))
+			else if (this.mode === 'update')
+				apiCollection
+					.update(this.dbName, this.clName, this.collection)
+					.then(newCollection => this.$emit('submit', newCollection))
+		},
     onSubmit() {
-      
-      if (this.mode === 'create')
-        apiCollection
-          .create(this.dbName, this.collection)
-          .then(newCollection => this.$emit('submit', newCollection))
-      else if (this.mode === 'update')
-        apiCollection
-          .update(this.dbName, this.clName, this.collection)
-          .then(newCollection => this.$emit('submit', newCollection))
+			if (this.$refs.attrForm) {
+				const tmsAttrForm = this.$refs.attrForm.$refs.TmsJsonDoc
+				tmsAttrForm.form().validate(valid => {
+					valid ? this.fnSubmit() : Message.error({message: '请填写必填字段'})
+				})
+				return false;
+			}
+			this.fnSubmit()
     },
     open(mode, dbName, collection) {
       this.mode = mode
       this.dbName = dbName
       if (mode === 'update') {
-        this.clName = collection.name
-        Object.assign(this.collection, collection)
+				this.clName = collection.name
+				this.collection = JSON.parse(JSON.stringify(Object.assign(this.collection, collection)))
       }
       this.$mount()
       document.body.appendChild(this.$el)
