@@ -23,8 +23,14 @@
           :key="k"
           :prop="k">
           <template slot="header">
-            <span>{{ s.title }}</span>
-            <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
+						<i v-if="s.description" class="el-icon-info" :title="s.description"></i>
+						<i v-if="s.required" style="color:red">*</i>
+						<span> {{ s.title }} </span>
+						<img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
+          </template>
+					<template slot-scope="scope">
+            <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
+						<span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作" width="180">
