@@ -7,17 +7,17 @@
       <el-form-item label="集合显示名（中文）">
         <el-input v-model="collection.title"></el-input>
       </el-form-item>
-      <el-form-item label="集合列定义">
+      <el-form-item label="集合文档内容定义">
         <el-select placeholder="请选择" v-model="collection.schema_id" clearable filterable>
           <el-option v-for="item in schemas" :key="item._id" :label="item.title" :value="item._id"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="集合拓展属性（选填）">
+      <el-form-item label="集合扩展属性（选填）">
         <el-select placeholder="请选择" v-model="collection.extensionInfo.schemaId" clearable filterable>
           <el-option v-for="item in extensions" :key="item._id" :label="item.title" :value="item._id"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="拓展属性详情（选填）" v-show="collection.extensionInfo.schemaId">
+      <el-form-item label="扩展属性详情（选填）" v-show="collection.extensionInfo.schemaId">
         <tms-attr-editor :schemas="extensions" :id="collection.extensionInfo.schemaId" :doc="collection.extensionInfo.info"></tms-attr-editor>
       </el-form-item>
       <el-form-item label="说明">

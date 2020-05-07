@@ -7,7 +7,7 @@
       <el-form-item label="集合显示名（中文）">
         <el-input v-model="collection.title"></el-input>
       </el-form-item>
-      <el-form-item label="集合列定义">
+      <el-form-item label="集合文档内容定义">
         <el-select v-model="collection.schema_id" clearable placeholder="请选择">
           <el-option v-for="item in schemas" :key="item._id" :label="item.title" :value="item._id">
           </el-option>

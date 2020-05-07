@@ -7,12 +7,12 @@
       <el-form-item label="数据库显示名（中文）">
         <el-input v-model="database.title"></el-input>
       </el-form-item>
-      <el-form-item label="库拓展属性（选填）">
+      <el-form-item label="扩展属性（选填）">
         <el-select placeholder="请选择" v-model="database.extensionInfo.schemaId" clearable filterable>
           <el-option v-for="item in extensions" :key="item._id" :label="item.title" :value="item._id"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="拓展属性详情（选填）" v-show="database.extensionInfo.schemaId">
+      <el-form-item label="扩展属性详情（选填）" v-show="database.extensionInfo.schemaId">
         <tms-attr-editor :schemas="extensions" :id="database.extensionInfo.schemaId" :doc="database.extensionInfo.info"></tms-attr-editor>
       </el-form-item>
       <el-form-item label="说明">

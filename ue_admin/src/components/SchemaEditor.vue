@@ -5,12 +5,8 @@
       <el-tab-pane label="列定义" name="second"></el-tab-pane>
     </el-tabs>
     <el-form v-show="activeTab === 'first'" :model="schema" label-position="top">
-      <el-form-item :label="showName">
+      <el-form-item label="显示名（中文）">
         <el-input v-model="schema.title"></el-input>
-      </el-form-item>
-      <el-form-item label="类型" v-if="showRadio">
-        <el-radio v-model="schema.scope" label="db">数据库</el-radio>
-        <el-radio v-model="schema.scope" label="collection">文档</el-radio>
       </el-form-item>
       <el-form-item label="说明">
         <el-input type="textarea" v-model="schema.description"></el-input>
@@ -36,7 +32,7 @@ export default {
     schema: {
       type: Object,
       default: function() {
-        return { title: '', description: '', scope: 'db', body: {} }
+        return { title: '', description: '', scope: '', body: {} }
       }
     }
   },
@@ -44,46 +40,27 @@ export default {
     return {
       activeTab: 'first',
       destroyOnClose: true,
-      closeOnClickModal: false,
-      type: ''
-    }
-  },
-  computed: {
-    showName() {
-      return this.type === 'schema'
-        ? '集合列定义显示名（中文）'
-        : this.type === 'attribute'
-        ? '库文档属性定义显示名（中文）'
-        : ''
-    },
-    showRadio() {
-      return this.type === 'schema'
-        ? false
-        : this.type === 'attribute'
-        ? true
-        : ''
+      closeOnClickModal: false
     }
   },
   methods: {
     onTabClick() {},
     onSubmit() {
-      if (this.schema && this.schema._id) {
+      if (this.schema._id) {
         apiSchema
           .update(this.bucketName, this.schema, this.schema)
           .then(newSchema =>
             this.$emit('submit', { ...newSchema, _id: this.schema._id })
           )
       } else {
-        if (!this.showRadio) delete this.schema.scope
         apiSchema
           .create(this.bucketName, this.schema)
           .then(newSchema => this.$emit('submit', newSchema))
       }
     },
-    open(schema, bucketName, type, isCopy) {
+    open(schema, bucketName) {
       this.bucketName = bucketName
-      this.type = type
-      if ((schema && schema._id) || isCopy) Object.assign(this.schema, schema)
+      Object.assign(this.schema, schema)
       this.$mount()
       document.body.appendChild(this.$el)
       return new Promise(resolve => {
