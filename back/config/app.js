@@ -43,6 +43,11 @@ let appConfig = {
           username: 'root',
           password: 'root',
         },
+        {
+          id: 2,
+          username: 'user1',
+          password: 'user1',
+        },
       ],
     },
   },

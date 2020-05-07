@@ -65,7 +65,7 @@ router.beforeEach((to, from, next) => {
   }
   if (/yes|true/i.test(process.env.VUE_APP_TMW_REQUIRE_BUCKET)) {
     // 多租户模式下，添加bucket参数
-    if (to.name !== 'bucket') {
+    if (!/bucket|login/.test(to.name)) {
       if (!to.params.bucketName) {
         if (store.state.buckets.length === 1) {
           const bucket = store.state.buckets[0]
