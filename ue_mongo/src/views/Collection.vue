@@ -291,7 +291,8 @@ export default {
           columnName,
           this.dbName,
           this.clName,
-          this.dialogPage
+          this.dialogPage,
+          this.handleCondition()
         )
         .then(rsl => {
           const { condition, isClear, isCheckBtn } = rsl

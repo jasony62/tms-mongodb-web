@@ -82,7 +82,8 @@ export default {
       timer: null,
       dbName: '',
       clName: '',
-      page: {}
+      page: {},
+      conditions: []
     }
   },
   computed: {
@@ -124,6 +125,11 @@ export default {
       this.condition.multipleSelection = this.condition.selectResult
     },
     handleInputChange(val) {
+      this.condition.rule.filter = this.conditions.filter
+      this.condition.rule.orderBy = this.conditions.orderBy
+      if (!this.condition.rule.filter[this.columnName]){
+        this.condition.rule.filter[this.columnName] = {}
+      }
       this.condition.rule.filter[this.columnName].keyword = val
       clearTimeout(this.timer)
       this.timer = setTimeout(() => {
@@ -179,13 +185,14 @@ export default {
       }
       this.$emit('submit', { rule: this.condition.rule })
     },
-    open(bucketName, columnName, dbName, clName, page) {
+    open(bucketName, columnName, dbName, clName, page, conditions) {
       this.bucketName = bucketName
       this.columnName = columnName
       this.dbName = dbName
       this.clName = clName
       this.page = page
-      if (!this.condition.rule.filter[this.columnName]) {
+      this.conditions = conditions
+      if (!this.condition.rule.filter[this.columnName]){
         this.condition.rule.filter[this.columnName] = {}
       }
       this.$mount()

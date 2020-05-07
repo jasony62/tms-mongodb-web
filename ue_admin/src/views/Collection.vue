@@ -133,7 +133,13 @@ export default {
           })
       }
       select
-        .open(columnName, this.dbName, this.clName, this.dialogPage)
+        .open(
+          columnName, 
+          this.dbName, 
+          this.clName, 
+          this.dialogPage, 
+          this.handleCondition()
+        )
         .then(rsl => {
           const { condition, isClear, isCheckBtn } = rsl
           this.$store.commit('conditionAddColumn', { condition })
