@@ -32,13 +32,11 @@
   </el-dialog>
 </template>
 <script>
-import { doc as apiDoc } from '../apis'
 
 export default {
   name: 'SchemaEditor',
   props: {
     dialogVisible: { default: true },
-    bucketName: { type: String },
     condition: {
       type: Object,
       default: function() {
@@ -80,8 +78,7 @@ export default {
       closeOnClickModal: false,
       columnName: '',
       timer: null,
-      dbName: '',
-      clName: '',
+      listByColumn: null,
       page: {},
       conditions: []
     }
@@ -137,17 +134,13 @@ export default {
       }, 500)
     },
     updateByColumn(isLoadMore) {
-      apiDoc
-        .byColumnVal(
-          this.bucketName,
-          this.dbName,
-          this.clName,
-          this.columnName,
-          this.condition.rule.filter,
-          this.condition.rule.orderBy,
-          this.page.at,
-          this.page.size
-        )
+      this.listByColumn(
+        this.columnName, 
+        this.condition.rule.filter, 
+        this.condition.rule.orderBy, 
+        this.page.at, 
+        this.page.size
+      )
         .then(matchRes => {
           if (isLoadMore) {
             this.condition.selectResult.push(...matchRes)
@@ -185,13 +178,11 @@ export default {
       }
       this.$emit('submit', { rule: this.condition.rule })
     },
-    open(bucketName, columnName, dbName, clName, page, conditions) {
-      this.bucketName = bucketName
+    open(columnName, page, conditions, listByColumn) {
       this.columnName = columnName
-      this.dbName = dbName
-      this.clName = clName
       this.page = page
       this.conditions = conditions
+      this.listByColumn = listByColumn
       if (!this.condition.rule.filter[this.columnName]){
         this.condition.rule.filter[this.columnName] = {}
       }
