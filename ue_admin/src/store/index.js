@@ -9,10 +9,11 @@ export default new Vuex.Store({
   state: {
     buckets: [],
     dbs: [],
-    schemas: [],
+    documentSchemas: [],
+    dbSchemas: [],
+    collectionSchemas: [],
     collections: [],
     documents: [],
-    attributes: [],
     conditions: []
   },
   mutations: {
@@ -43,20 +44,21 @@ export default new Vuex.Store({
       state.dbs.splice(state.dbs.indexOf(payload.db), 1)
     },
     schemas(state, payload) {
-      const { schemas, types } = payload
-      state[types] = schemas
+      const { schemas, scope } = payload
+      state[`${scope}Schemas`] = schemas
     },
     appendSchema(state, payload) {
-      const { schema, type } = payload
-      state[type + 's'].push(schema)
+      const { schema } = payload
+      state[`${schema.scope}Schemas`].push(schema)
     },
     updateSchema(state, payload) {
-      const { index, schema, type } = payload
-      state[type + 's'].splice(index, 1, schema)
+      const { index, schema } = payload
+      state[`${schema.scope}Schemas`].splice(index, 1, schema)
     },
     removeSchema(state, payload) {
-      const { schema, types } = payload
-      state[types + 's'].splice(state[types + 's'].indexOf(schema), 1)
+      const { schema } = payload
+      const scopeSchemas = state[`${schema.scope}Schemas`]
+      scopeSchemas.splice(scopeSchemas.indexOf(schema), 1)
     },
     collections(state, payload) {
       state.collections = payload.collections
@@ -124,8 +126,7 @@ export default new Vuex.Store({
     listSchema({ commit }, payload) {
       const { bucket, scope } = payload
       return apis.schema.list(bucket, scope).then(schemas => {
-        const types = typeof scope === 'string' ? 'schemas' : 'attributes'
-        commit({ type: 'schemas', schemas, types })
+        commit({ type: 'schemas', schemas, scope })
         return { schemas }
       })
     },
@@ -160,9 +161,9 @@ export default new Vuex.Store({
       })
     },
     removeSchema({ commit }, playload) {
-      const { bucket, schema, type } = playload
+      const { bucket, schema } = playload
       return apis.schema.remove(bucket, schema).then(() => {
-        commit({ type: 'removeSchema', schema, types: type })
+        commit({ type: 'removeSchema', schema })
         return { schema }
       })
     },

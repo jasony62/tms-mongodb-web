@@ -23,8 +23,7 @@ class SchemaBase extends Base {
 
     let find = { type: 'schema' }
     if (scope) {
-      let scope2 = scope.split(',')
-      find.scope = { $in: scope2 }
+      find.scope = { $in: scope.split(',') }
     } else {
       find.scope = 'document'
     }
@@ -36,15 +35,14 @@ class SchemaBase extends Base {
       .then((schemas) => new ResultData(schemas))
   }
   /**
-   * 简单信息列表
+   * 简单信息列表，不包含schema定义
    */
   async listSimple() {
     let { scope } = this.request.query
 
     let query = { type: 'schema' }
     if (scope) {
-      let scope2 = scope.split(',')
-      query.scope = { $in: scope2 }
+      query.scope = { $in: scope.split(',') }
     } else {
       query.scope = 'document'
     }
