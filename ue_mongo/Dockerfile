@@ -1,7 +1,7 @@
 # 标准基础镜像（构建阶段）
 FROM node:alpine
 
-RUN npm install cnpm -g
+RUN npm install -g cnpm --registry=https://registry.npm.taobao.org
 
 WORKDIR /home/node/app
 
