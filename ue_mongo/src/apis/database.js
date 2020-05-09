@@ -3,34 +3,34 @@ import { TmsAxios } from 'tms-vue'
 const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/mongo/db'
 
 export default {
-  list() {
+  list(bucket) {
+    const params = { bucket }
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/list`)
+      .get(`${base}/list`, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
-  create(proto) {
+  create(bucket, proto) {
+    const params = { bucket }
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/create`, proto)
+      .post(`${base}/create`, proto, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
-  update(dbName, updated) {
+  update(bucket, dbName, updated) {
+    const params = { bucket, db: dbName }
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/update?db=${dbName}`, updated)
+      .post(`${base}/update`, updated, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
-  remove(db) {
+  remove(bucket, db) {
+    const params = { bucket, db: db.name }
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/remove?db=${db.name}`)
+      .get(`${base}/remove`, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
-  top(id, type) {
+  top(bucket, id, type) {
+    const params = { bucket, id, type }
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/top?id=${id}&type=${type}`)
+      .get(`${base}/top`, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   }
 }

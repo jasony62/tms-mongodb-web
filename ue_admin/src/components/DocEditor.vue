@@ -11,7 +11,8 @@ export default {
   name: 'DocEditor',
   components: { TmsElJsonDoc },
   props: {
-    dialogVisible: { default: true }
+    dialogVisible: { default: true },
+    bucketName: { type: String }
   },
   data() {
     return {
@@ -29,15 +30,22 @@ export default {
     onJsonDocSubmit(newDoc) {
       if (this.document && this.document._id) {
         apiDoc
-          .update(this.dbName, this.collection.name, this.document._id, newDoc)
+          .update(
+            this.bucketName,
+            this.dbName,
+            this.collection.name,
+            this.document._id,
+            newDoc
+          )
           .then(newDoc => this.$emit('submit', newDoc))
       } else {
         apiDoc
-          .create(this.dbName, this.collection.name, newDoc)
+          .create(this.bucketName, this.dbName, this.collection.name, newDoc)
           .then(newDoc => this.$emit('submit', newDoc))
       }
     },
-    open(dbName, collection, doc) {
+    open(bucketName, dbName, collection, doc) {
+      this.bucketName = bucketName
       this.dbName = dbName
       this.collection = collection
       if (doc && doc._id) this.document = doc

@@ -7,7 +7,14 @@
     </template>
     <template v-slot:center>
       <el-table :data="buckets" stripe style="width: 100%">
-        <el-table-column prop="name" label="ID" width="180"></el-table-column>
+        <el-table-column label="ID" width="180">
+          <template slot-scope="scope">
+            <router-link :to="{
+                name: 'home',
+                params: { bucketName: scope.row.name }
+              }">{{ scope.row.name }}</router-link>
+          </template>
+        </el-table-column>
         <el-table-column prop="title" label="名称" width="180"></el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
         <el-table-column fixed="right" label="操作" width="120">

@@ -4,17 +4,18 @@ services:
     build: ./mongodb
     image: tms-mongodb/mongo:latest
     container_name: tms-mongo-mongo
-  
+
   back:
     build: ./back
     image: tms-mongodb/back:latest
     container_name: tms-mongodb-back
     environment:
-         - NODE_ENV=production
-         - TMS__MONGODB_HOST=mongodb
-         - TMS__MONGODB_PORT=27017
-    command: ['./wait-for.sh', 'mongodb:27017', '-t', '300', '--', 'node', 'server']
-  
+      - NODE_ENV=production
+      - TMS__MONGODB_HOST=mongodb
+      - TMS__MONGODB_PORT=27017
+    command:
+      ['./wait-for.sh', 'mongodb:27017', '-t', '300', '--', 'node', 'server']
+
   ue_admin:
     build:
       context: ./ue_admin
@@ -27,7 +28,7 @@ services:
     container_name: tms-mongodb-ue_admin
     environment:
       - NGINX_WEB_BASE_URL=/admin
-      
+
   ue_mongo:
     build:
       context: ./ue_mongo

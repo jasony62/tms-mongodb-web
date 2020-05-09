@@ -12,7 +12,6 @@ export default {
     return TmsAxios.ins('auth-api')
       .get(`${baseAuth}/captcha?width=150&height=44`)
       .then(rst => rst.data)
-      .catch(err => Promise.reject(err))
   },
   /**
    * 获取token
@@ -23,6 +22,5 @@ export default {
     return TmsAxios.ins('auth-api')
       .post(`${baseAuth}/authorize`, userArg)
       .then(rst => rst.data)
-      .catch(err => Promise.reject(err))
   }
 }

@@ -11,11 +11,11 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "dotenv": "^8.2.0",
     "lodash": "^4.17.15",
     "log4js": "^6.1.0",
     "mongodb": "^3.3.4",
+    "nanoid": "^3.1.4",
     "redis": "^2.8.0",
-    "tms-koa": "^0.0.36"
+    "tms-koa": "^0.0.39"
   }
 }
