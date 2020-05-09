@@ -47,7 +47,7 @@ const LoginPromise = (function() {
   return new TmsLockPromise(function() {
     return login
       .showAsDialog(function(res) {
-        Message({ message: res.msg, type: 'error', customClass: 'mzindex'  })
+        Message({ message: res.msg, type: 'error', customClass: 'mzindex' })
       })
       .then(token => {
         sessionStorage.setItem('access_token', token)
@@ -84,7 +84,7 @@ function onResultFault(res) {
     showClose: true,
     message: res.data.msg,
     type: 'error',
-    customClass:'mzindex'
+    customClass: 'mzindex'
   })
   return Promise.reject(new TmsIgnorableError(res.data))
 }
@@ -123,20 +123,19 @@ function mountCustomMethod() {
       return Promise.reject()
     }
   ) {
-    this.$confirm(`此操作将永久删除该${msg}, 是否继续?`, '提示', {
+    this.$confirm(`此操作将永久删除该【${msg}】, 是否继续?`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
       .then(() => {
-        successCB()
-          .then(() => {
-            this.$message({
-              message: '删除成功!',
-              type: 'success',
-              showClose: true
-            })
+        successCB().then(() => {
+          this.$message({
+            message: '删除成功!',
+            type: 'success',
+            showClose: true
           })
+        })
       })
       .catch(() => {
         this.$message({ message: '已取消删除', type: 'info', showClose: true })

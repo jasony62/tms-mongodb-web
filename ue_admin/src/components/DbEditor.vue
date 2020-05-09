@@ -1,9 +1,5 @@
 <template>
-  <el-dialog
-    :visible.sync="dialogVisible"
-    :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal"
-  >
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <el-form ref="form" :model="database" label-position="top">
       <el-form-item label="数据库名称（英文）">
         <el-input v-model="database.name"></el-input>
@@ -28,6 +24,7 @@ export default {
   name: 'DbEditor',
   props: {
     dialogVisible: { default: true },
+    bucketName: { type: String },
     database: {
       type: Object,
       default: function() {
@@ -50,14 +47,17 @@ export default {
       }
       if (this.mode === 'update') {
         apiDb
-          .update(this.database.name, this.database)
+          .update(this.bucketName, this.database.name, this.database)
           .then(newDb => this.$emit('submit', newDb))
       } else if (this.mode === 'create') {
-        apiDb.create(this.database).then(newDb => this.$emit('submit', newDb))
+        apiDb
+          .create(this.bucketName, this.database)
+          .then(newDb => this.$emit('submit', newDb))
       }
     },
-    open(mode, db) {
+    open(mode, bucketName, db) {
       this.mode = mode
+      this.bucketName = bucketName
       if (mode === 'update') Object.assign(this.database, db)
       this.$mount()
       document.body.appendChild(this.$el)

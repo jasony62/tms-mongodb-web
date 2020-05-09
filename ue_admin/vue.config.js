@@ -4,10 +4,10 @@ const devServer = {
 
 // 代理auth请求
 devServer.proxy[`${process.env.VUE_APP_BACK_API_BASE}`] = {
-  target: process.env.VUE_APP_BACK_API_SERVER,
+  target: process.env.VUE_APP_BACK_API_SERVER
 }
 devServer.proxy[`${process.env.VUE_APP_BACK_API_BASE}/admin`] = {
-  target: process.env.VUE_APP_BACK_API_SERVER,
+  target: process.env.VUE_APP_BACK_API_SERVER
 }
 // 代理api请求
 devServer.proxy[`${process.env.VUE_APP_BACK_AUTH_BASE}`] = {
@@ -25,10 +25,16 @@ module.exports = {
       filename: './index.html',
       title: process.env.VUE_APP_TITLE,
       chunks: ['chunk-vendors', 'chunk-common', 'index']
+    },
+    invite: {
+      entry: 'src/invite.js',
+      template: 'public/index.html',
+      filename: './invite.html',
+      title: process.env.VUE_APP_TITLE,
+      chunks: ['chunk-vendors', 'chunk-common', 'invite']
     }
   },
   devServer,
   parallel: require('os').cpus().length > 1,
   runtimeCompiler: true
 }
-
