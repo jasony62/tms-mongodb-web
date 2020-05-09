@@ -10,10 +10,15 @@
     <template v-slot:center>
       <el-table id="tables" :data="documents" stripe ref="multipleTable" :height="tableHeight" @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55"></el-table-column>
-        <el-table-column v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k">
-          <template slot="header">
-            <span>{{ s.title }}</span>
-            <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
+        <el-table-column
+          v-for="(s, k) in collection.schema.body.properties"
+          :key="k"
+          :prop="k">
+					<template slot="header">
+						<i v-if="s.description" class="el-icon-info" :title="s.description"></i>
+						<i v-if="s.required" style="color:red">*</i>
+						<span> {{s.title}} </span>
+						<img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
           </template>
           <template slot-scope="scope">
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
