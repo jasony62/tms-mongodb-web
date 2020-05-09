@@ -13,7 +13,6 @@ export default new Vuex.Store({
     dbSchemas: [],
     collectionSchemas: [],
     collections: [],
-    documents: [],
     conditions: []
   },
   mutations: {
@@ -73,10 +72,6 @@ export default new Vuex.Store({
     removeCollection(state, payload) {
       state.collections.splice(state.collections.indexOf(payload.collection), 1)
     },
-    documents(state, payload) {
-      state.documents = payload.documents
-    },
-    updateDocument() {},
     conditionAddColumn(state, payload) {
       const { condition } = payload
       const index = state.conditions.findIndex(
@@ -136,16 +131,6 @@ export default new Vuex.Store({
         commit({ type: 'collections', collections })
         return { collections }
       })
-    },
-    listDocument({ commit }, payload) {
-      const { bucket, db, cl, orderBy, filter, page } = payload
-      return apis.doc
-        .list(bucket, db, cl, orderBy, filter, page)
-        .then(result => {
-          const documents = result.docs
-          commit({ type: 'documents', documents })
-          return result
-        })
     },
     removeBucket({ commit }, payload) {
       const { bucket } = payload
