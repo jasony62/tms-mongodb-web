@@ -3,13 +3,13 @@ const Base = require('./base')
 
 class Collection extends Base {
   //
-  static async getSchemaByCollection(dbName, clName) {
+  static async getSchemaByCollection(existDb, clName) {
     const model = new Base()
     const client = await model.mongoClient()
     const cl = client.db('tms_admin').collection('mongodb_object')
     // 获取表列
     return cl
-      .findOne({ database: dbName, name: clName, type: 'collection' })
+      .findOne({ database: existDb.name, name: clName, type: 'collection' })
       .then((myCl) => {
         if (!myCl) {
           return false
@@ -30,13 +30,13 @@ class Collection extends Base {
       })
   }
   //
-  static async getCollection(dbName, clName) {
+  static async getCollection(existDb, clName) {
     const model = new Base()
     const client = await model.mongoClient()
     const cl = client.db('tms_admin').collection('mongodb_object')
     //
     return cl
-      .findOne({ database: dbName, name: clName, type: 'collection' })
+      .findOne({ database: existDb.name, name: clName, type: 'collection' })
       .then((result) => result)
       .then((myCl) => {
         if (myCl.schema_id) {

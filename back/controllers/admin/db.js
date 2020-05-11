@@ -15,7 +15,7 @@ class Db extends DbBase {
     if (['admin', 'config', 'local', 'tms_admin'].includes(dbName))
       return new ResultFault('不能删除系统自带数据库')
 
-    const existBb = await this.dbHelper.findRequestDb()
+    const existDb = await this.dbHelper.findRequestDb()
 
     const cl = this.clMongoObj
     const query = { database: dbName, type: 'collection' }
@@ -27,8 +27,8 @@ class Db extends DbBase {
 
     const client = this.mongoClient
     return cl
-      .deleteOne({ _id: ObjectId(existBb._id) })
-      .then(() => client.db(existBb.name).dropDatabase())
+      .deleteOne({ _id: ObjectId(existDb._id) })
+      .then(() => client.db(existDb.name).dropDatabase())
       .then(() => new ResultData('ok'))
   }
 }

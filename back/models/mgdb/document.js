@@ -8,7 +8,7 @@ class Document extends Base {
    * 模糊搜索数据
    */
   async listDocs(
-    db,
+    existDb,
     clName,
     options = {},
     page = null,
@@ -21,7 +21,7 @@ class Document extends Base {
     }
 
     const client = await this.mongoClient()
-    let cl = client.db(db.sysname).collection(clName)
+    let cl = client.db(existDb.sysname).collection(clName)
     let data = {}
     let skip = 0
     let limit = 0
@@ -61,8 +61,8 @@ class Document extends Base {
     return [true, data]
   }
   //
-  static async getDocumentByIds(dbName, clName, ids, fields = {}) {
-    if (!dbName || !clName || !ids) {
+  static async getDocumentByIds(existDb, clName, ids, fields = {}) {
+    if (!existDb || !clName || !ids) {
       return [false, '参数不完整']
     }
 
@@ -75,7 +75,7 @@ class Document extends Base {
     })
     let find = { _id: { $in: docIds } }
 
-    const cl = client.db(dbName).collection(clName)
+    const cl = client.db(existDb.sysname).collection(clName)
     // 获取表列
     return cl
       .find(find)

@@ -183,7 +183,7 @@ class DocBase extends Base {
             if (!transforms2.includes(tf.name)) continue
             if (fs.existsSync(process.cwd() + '/' + tf.name + '.js')) {
               let func = require(process.cwd() + '/' + tf.name)
-              tf.db = existDb.name
+              tf.existDb = existDb
               tf.cl = clName
               notRemoveDatas = await func(datas, notRemoveDatas, tf)
             }
@@ -249,23 +249,23 @@ class DocBase extends Base {
    *  剪切数据到指定集合中
    */
   async cutDocs(
-    oldDb,
+    oldExistDb,
     oldCl,
-    newDb,
+    newExistDb,
     newCl,
     docIds = null,
     options = {},
     oldDocus = null
   ) {
     //获取指定集合的列
-    let newClSchema = await modelColl.getSchemaByCollection(newDb, newCl)
+    let newClSchema = await modelColl.getSchemaByCollection(newExistDb, newCl)
     if (!newClSchema) return [false, '指定的集合未指定集合列']
 
     // 查询获取旧数据
     let fields = {}
     if (!oldDocus || oldDocus.length === 0) {
       if (!docIds || docIds.length === 0) return [false, '没有要移动的数据']
-      oldDocus = await modelDocu.getDocumentByIds(oldDb, oldCl, docIds, fields)
+      oldDocus = await modelDocu.getDocumentByIds(oldExistDb, oldCl, docIds, fields)
       if (oldDocus[0] === false) return [false, oldDocus[1]]
       oldDocus = oldDocus[1]
     }
@@ -299,9 +299,9 @@ class DocBase extends Base {
 
             if (fs.existsSync(process.cwd() + '/' + tf.name + '.js')) {
               let func = require(process.cwd() + '/' + tf.name)
-              tf.oldDb = oldDb
+              tf.oldExistDb = { name: oldExistDb.name, sysname: oldExistDb.sysname}
               tf.oldCl = oldCl
-              tf.newDb = newDb
+              tf.newExistDb = { name: newExistDb.name, sysname: newExistDb.sysname}
               tf.newCl = newCl
               newDocs = await func(newDocs, tf)
             }
@@ -326,7 +326,7 @@ class DocBase extends Base {
 
     const client = this.mongoClient
     // 将数据插入到指定表中
-    const clNew = client.db(newDb).collection(newCl)
+    const clNew = client.db(newExistDb.sysname).collection(newCl)
     let rst = await clNew
       .insertMany(newDocs2)
       .then((rst) => [true, rst])
@@ -354,7 +354,7 @@ class DocBase extends Base {
     newDocs.forEach((nd) => {
       passDocIds.push(new ObjectId(nd._id))
     })
-    const clOld = client.db(oldDb).collection(oldCl)
+    const clOld = client.db(oldExistDb.sysname).collection(oldCl)
     let rstDelOld = await clOld
       .deleteMany({ _id: { $in: passDocIds } })
       .then((rst) => [true, rst])
@@ -376,9 +376,9 @@ class DocBase extends Base {
       await modelD.dataActionLog(
         newDocs,
         '移动',
-        oldDb,
+        oldExistDb.name,
         oldCl,
-        newDb,
+        newExistDb.name,
         newCl,
         moveOldDatas
       )
@@ -396,7 +396,7 @@ class DocBase extends Base {
    *  提取excel数据到集合中
    *  unrepeat 是否对数据去重
    */
-  async _importToColl(dbName, clName, filename, options = {}) {
+  async _importToColl(existDb, clName, filename, options = {}) {
     if (!fs.existsSync(filename)) return [false, '指定的文件不存在']
     let unrepeat = options.unrepeat ? options.unrepeat : false
 
@@ -407,7 +407,7 @@ class DocBase extends Base {
     const rowsJson = xlsx.utils.sheet_to_json(sh)
 
     const client = this.mongoClient
-    let columns = await modelColl.getSchemaByCollection(dbName, clName)
+    let columns = await modelColl.getSchemaByCollection(existDb, clName)
     if (!columns) {
       return [false, '指定的集合没有指定集合列']
     }
@@ -442,14 +442,14 @@ class DocBase extends Base {
 
     try {
       return client
-        .db(dbName)
+        .db(existDb.sysname)
         .collection(clName)
         .insertMany(jsonFinishRows)
         .then(async () => {
           if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
             // 记录日志
             let modelD = new modelDocu()
-            await modelD.dataActionLog(jsonFinishRows, '导入', dbName, clName)
+            await modelD.dataActionLog(jsonFinishRows, '导入', existDb.name, clName)
           }
           return [true, jsonFinishRows]
         })
@@ -462,10 +462,10 @@ class DocBase extends Base {
    *  根据规则取出数据
    *  规则格式 [{city: 北京, city: 开头是:北京, city: 开头是:北京&结尾不是:市 }]
    */
-  async getDocsByRule2(dbName, clName, rules, planTotalColumn = 'need_sum') {
+  async getDocsByRule2(existDb, clName, rules, planTotalColumn = 'need_sum') {
     // 根据规则取出数据
     const client = this.mongoClient
-    let cl = client.db(dbName).collection(clName)
+    let cl = client.db(existDb.sysname).collection(clName)
     let docs = rules.map(async (rule) => {
       if (
         !planTotalColumn ||
