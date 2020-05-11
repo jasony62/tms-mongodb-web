@@ -1,5 +1,5 @@
 const { ResultData } = require('tms-koa')
-const BucketBase = require('../bucketBase')
+const BucketBase = require('../../bucketBase')
 
 class Bucket extends BucketBase {
   constructor(...args) {
@@ -10,7 +10,9 @@ class Bucket extends BucketBase {
    */
   async list() {
     const tmsBuckets = await this.clBucket
-      .find({ creator: this.client.id })
+      .find({
+        $or: [{ creator: this.client.id }, { 'coworkers.id': this.client.id }],
+      })
       .toArray()
 
     return new ResultData(tmsBuckets)

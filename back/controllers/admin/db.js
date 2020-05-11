@@ -18,7 +18,7 @@ class Db extends DbBase {
     const existDb = await this.dbHelper.findRequestDb()
 
     const cl = this.clMongoObj
-    const query = { database: dbName, type: 'collection' }
+    const query = { database: existDb.name, type: 'collection' }
     if (this.bucket) query.bucket = this.bucket.name
     // 查找数据库下是否有集合，如果有则不能删除
     let colls = await cl.find(query).toArray()

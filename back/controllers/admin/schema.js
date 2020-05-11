@@ -26,7 +26,7 @@ class Schema extends SchemaBase {
   async update() {
     const { id } = this.request.query
     let info = this.request.body
-    info = _.omit(info, ['_id', 'name', 'bucket'])
+    info = _.omit(info, ['_id', 'name', 'scope', 'bucket'])
 
     const query = { _id: new ObjectId(id), type: 'schema' }
     if (this.bucket) query.bucket = this.bucket.name
@@ -48,7 +48,7 @@ class Schema extends SchemaBase {
       type: 'collection',
     })
     if (rst) {
-      return new ResultFault('集合列正在被使用不能删除')
+      return new ResultFault('属性定义正在被使用不能删除')
     }
     const query = { _id: new ObjectId(id), type: 'schema' }
     if (this.bucket) query.bucket = this.bucket.name

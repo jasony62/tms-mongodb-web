@@ -236,6 +236,28 @@ export default {
           }
         })
     },
+    listByColumn(
+      columnName, 
+      filter, 
+      orderBy, 
+      at, 
+      size, 
+      bucketName = this.bucketName, 
+      dbName = this.dbName, 
+      clName = this.clName
+    ) {
+      return apiDoc
+          .byColumnVal(
+            bucketName, 
+            dbName, 
+            clName, 
+            columnName, 
+            filter, 
+            orderBy, 
+            at, 
+            size
+          )
+    },
     handleSelect(obj, columnName) {
       this.dialogPage.at = 1
       const select = new Vue(SelectCondition)
@@ -251,11 +273,8 @@ export default {
           select.condition.rule = columnobj.rule
         }
         const { filter, orderBy } = rule
-        apiDoc
-          .byColumnVal(
-            this.bucketName,
-            this.dbName,
-            this.clName,
+        this
+          .listByColumn(
             columnName,
             filter,
             orderBy,
@@ -270,11 +289,8 @@ export default {
             }, 0)
           })
       } else {
-        apiDoc
-          .byColumnVal(
-            this.bucketName,
-            this.dbName,
-            this.clName,
+        this
+          .listByColumn(
             columnName,
             undefined,
             undefined,
@@ -287,11 +303,10 @@ export default {
       }
       select
         .open(
-          this.bucketName,
-          columnName,
-          this.dbName,
-          this.clName,
-          this.dialogPage
+          columnName, 
+          this.dialogPage, 
+          this.handleCondition(),
+          this.listByColumn
         )
         .then(rsl => {
           const { condition, isClear, isCheckBtn } = rsl

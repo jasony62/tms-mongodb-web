@@ -23,7 +23,6 @@ class DocBase extends Base {
 
     const { cl: clName } = this.request.query
     let doc = this.request.body
-    if (this.bucket) doc.bucket = this.bucket.name
     // 加工数据
     this._beforeProcessByInAndUp(doc, 'insert')
 
