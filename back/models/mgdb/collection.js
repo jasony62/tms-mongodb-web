@@ -56,8 +56,8 @@ class Collection extends Base {
    *  检查集合名
    */
   _checkClName(clName) {
-    if (new RegExp('^[a-zA-Z]+[0-9a-zA-Z_]{0,9}$').test(clName) !== true)
-      return [false, '表名必须以小写英文字母开头，仅限小写英文字母或_或数字组合，且最长64位']
+    if (new RegExp('^[a-zA-Z]+[0-9a-zA-Z_]{0,63}$').test(clName) !== true)
+      return [false, '表名必须以英文字母开头，仅限英文字母或_或数字组合，且最长64位']
 
     // 集合名是否存在关键字中
     let keyWord = []
