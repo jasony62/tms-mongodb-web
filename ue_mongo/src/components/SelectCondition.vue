@@ -122,7 +122,7 @@ export default {
       this.condition.multipleSelection = this.condition.selectResult
     },
     handleInputChange(val) {
-      this.condition.rule.filter = this.conditions.filter
+      this.condition.rule.filter = {...this.condition.rule.filter, ...this.conditions.filter}
       this.condition.rule.orderBy = this.conditions.orderBy
       if (!this.condition.rule.filter[this.columnName]){
         this.condition.rule.filter[this.columnName] = {}
