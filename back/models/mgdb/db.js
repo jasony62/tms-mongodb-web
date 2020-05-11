@@ -6,19 +6,14 @@ class Db extends Base {
    */
   _checkDbName(dbName) {
     //格式化库名
-    if (dbName.search(/[\u4E00-\u9FA5]|[\uFE30-\uFFA0]/gi) !== -1)
-      return [false, '库名不能包含中文']
+    if (new RegExp('^[a-zA-Z]+[0-9a-zA-Z_]{0,9}$').test(dbName) !== true)
+      return [false, '库名必须以小写英文字母开头，可与小写英文字母或_或数字组合，且最长64位']
 
-    let newName = dbName.replace(/\s/g, '')
-
-    //
-    if (!newName) return [false, '库名不能为空']
-    if (!isNaN(newName)) return [false, '库名不能全为数字']
     // 查询库名是否是mongodb自带数据库
-    if (['admin', 'config', 'local'].includes(newName))
+    if (['admin', 'config', 'local'].includes(dbName))
       return [false, '不能用mongodb自带数据库(admin, config, local)作为库名']
 
-    return [true, newName]
+    return [true, dbName]
   }
 }
 
