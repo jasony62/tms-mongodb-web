@@ -12,6 +12,7 @@ let appConfig = {
 	},
 	tmsTransaction: false,
   auth: {
+		jwt: false,
     redis: {
       prefix: process.env.TMS_REDIS_PREFIX,
       host: process.env.TMS_REDIS_HOST,
