@@ -6,10 +6,6 @@ import Bucket from '../views/Bucket.vue'
 import Database from '../views/Database.vue'
 import { TmsRouterHistoryPlugin } from 'tms-vue'
 
-const BucketPart = /yes|true/i.test(process.env.VUE_APP_TMW_REQUIRE_BUCKET)
-  ? '/b/:bucketName'
-  : ''
-
 const routes = [
   {
     path: '/login',
@@ -22,13 +18,13 @@ const routes = [
     component: Bucket
   },
   {
-    path: `${BucketPart}/home`,
+    path: `/home`,
     name: 'home',
     component: Home,
     props: true
   },
   {
-    path: `${BucketPart}/database/:dbName`,
+    path: `/database/:dbName`,
     name: 'database',
     component: Database,
     props: true
