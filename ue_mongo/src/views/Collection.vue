@@ -521,7 +521,7 @@ export default {
       ) {
         let result = await apiDoc
           .move(
-            this.bucketName,
+            _this.bucketName,
             _this.dbName,
             _this.clName,
             dbName,
@@ -582,7 +582,7 @@ export default {
         config
       confirm = new Vue(DomainEditor)
       config = { title: '迁移到' }
-      confirm.open(config).then(fields => {
+      confirm.open(this.bucketName, config).then(fields => {
         const { dbName, clName } = fields
         if (command === 'checked') {
           this.fnMoveDocument(dbName, clName, transforms, param, 0, 0, 0).then(
@@ -623,7 +623,7 @@ export default {
       let confirm, config
       confirm = new Vue(DomainEditor)
       config = { title: '选定规则表' }
-      confirm.open(config).then(fields => {
+      confirm.open(this.bucketName, config).then(fields => {
         const { dbName: ruleDbName, clName: ruleClName } = fields
         let moveByRule = new Vue(MoveByRulePlugin)
         moveByRule.showDialog(

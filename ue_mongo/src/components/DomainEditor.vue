@@ -38,7 +38,8 @@ import apiCollection from '../apis/collection'
 export default {
   name: 'DomainEditor',
   props: {
-    dialogVisible: { default: true }
+		dialogVisible: { default: true },
+		bucketName: { type: String }
   },
   data() {
     return {
@@ -53,20 +54,21 @@ export default {
     }
   },
   mounted() {
-    apiDb.list().then(dbs => {
+    apiDb.list(this.bucketName).then(dbs => {
       this.dbs = dbs
     })
   },
   methods: {
     changeDdName() {
-      apiCollection.list(this.form.dbName).then(cls => {
+      apiCollection.list(this.bucketName, this.form.dbName).then(cls => {
         this.cls = cls
       })
     },
     confirm() {
       this.$emit('submit', this.form)
     },
-    open(config) {
+    open(bucketName, config) {
+			this.bucketName = bucketName
       this.title = config.title ? config.title : ""
       this.$mount()
       document.body.appendChild(this.$el)
