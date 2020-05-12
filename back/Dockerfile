@@ -3,11 +3,7 @@ FROM node:12.10.0-alpine AS builder
 MAINTAINER made nodejs by p21 from lit29@chinatelecom.cn
 WORKDIR /usr/src/app
 #Install dependencied of nodejs on alpine
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
-RUN apk update
-RUN apk add --no-cache  python gcc g++ make
 RUN npm install -g cnpm --registry=https://registry.npm.taobao.org
-RUN npm install node-gyp
 #Install node_modules
 COPY ./package.json ./
 RUN cnpm install --production
