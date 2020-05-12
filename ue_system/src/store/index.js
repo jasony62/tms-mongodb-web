@@ -9,7 +9,6 @@ export default new Vuex.Store({
   state: {
     buckets: [],
     dbs: [],
-    documentSchemas: [],
     dbSchemas: [],
     collectionSchemas: [],
     collections: [],
