@@ -15,6 +15,7 @@ ARG vue_app_back_auth_base
 ARG vue_app_back_api_base
 ARG vue_app_back_api_plugin
 ARG vue_app_back_api_server
+ARG vue_app_submit_valitor_field
 
 RUN echo VUE_APP_TITLE=$vue_app_title > .env && \
   echo VUE_APP_BASE_URL=$vue_app_base_url >> .env && \
@@ -22,7 +23,8 @@ RUN echo VUE_APP_TITLE=$vue_app_title > .env && \
   echo VUE_APP_BACK_AUTH_BASE=$vue_app_back_auth_base >> .env && \
   echo VUE_APP_BACK_API_BASE=$vue_app_back_api_base >> .env && \
   echo VUE_APP_BACK_API_PLUGIN=$vue_app_back_api_plugin >> .env && \
-  echo VUE_APP_BACK_API_SERVER=$vue_app_back_api_server >> .env
+  echo VUE_APP_BACK_API_SERVER=$vue_app_back_api_server >> .env && \
+  echo VUE_APP_SUBMIT_VALITOR_FIELD=$vue_app_submit_valitor_field >> .env
 
 
 # 安装依赖包，构建代码
