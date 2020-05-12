@@ -17,7 +17,7 @@ services:
        - TMS_FINDER_FS_ROOTDIR=/data/
        - TMS_MONGODB_HOST=omongodb
        - TMS_MONGODB_PORT=27017
-    command: ['sh', './wait-for.sh', 'mongodb:27017', '-t', '300', '--', 'node', 'server']
+    command: ['sh', './wait-for.sh', 'omongodb:27017', '-t', '300', '--', 'node', 'server']
   
   ue_admin:
     build:
@@ -27,6 +27,7 @@ services:
         vue_app_back_auth_base: /order/auth
         vue_app_back_api_base: /order/api
         vue_app_back_api_plugin: /order/plugin
+        vue_app_submit_valitor_field: dismoney_a_yly, dismoney_b_yly, dismoney_c_yly, dismoney_d_yly, dismoney_e_yly, dismoney_f_yly, disovermoney_yly, discost_month_gzh, dismoney_a_gzh, dismoney_b_gzh, dismoney_c_gzh, dismoney_d_gzh, disovermoney_gzh, discost_call_gzh, discost_msg_gzh
     image: tms-mongodb-order/ue-admin:latest
     container_name: order-ue_admin
     environment:
@@ -40,6 +41,7 @@ services:
         vue_app_back_auth_base: /order/auth
         vue_app_back_api_base: /order/api
         vue_app_back_api_plugin: /order/plugin
+        vue_app_submit_valitor_field: dismoney_a_yly, dismoney_b_yly, dismoney_c_yly, dismoney_d_yly, dismoney_e_yly, dismoney_f_yly, disovermoney_yly, discost_month_gzh, dismoney_a_gzh, dismoney_b_gzh, dismoney_c_gzh, dismoney_d_gzh, disovermoney_gzh, discost_call_gzh, discost_msg_gzh
     image: tms-mongodb-order/ue-mongo:latest
     container_name: order-ue_mongo
     environment:

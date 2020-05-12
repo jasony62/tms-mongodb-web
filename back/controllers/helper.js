@@ -19,8 +19,8 @@ class Helper {
    *
    * @param {boolean} bThrowNotFound 如果不可访问是否抛出异常
    */
-  async findRequestDb(bThrowNotFound = true) {
-    const dbName = this.ctrl.request.query.db
+  async findRequestDb(bThrowNotFound = true, dbName = null) {
+    if (!dbName) dbName = this.ctrl.request.query.db
     const query = { name: dbName, type: 'database' }
     if (this.ctrl.bucket) query.bucket = this.ctrl.bucket.name
 

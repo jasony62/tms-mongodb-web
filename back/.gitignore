@@ -3,4 +3,3 @@ node_modules/
 public/
 .env.local
 *.xlsx
-app.local2.js

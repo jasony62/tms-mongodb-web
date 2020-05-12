@@ -83,9 +83,23 @@ export default {
           delete this.column[tag.id]
         }
       })
-    },
-    onSubmit() {
-      this.$emit('submit', this.column)
+		},
+    async onSubmit() {
+			let validate = true
+			if (process.env.VUE_APP_SUBMIT_VALITOR_FIELD) {
+				const config = process.env.VUE_APP_SUBMIT_VALITOR_FIELD	
+				let { priceValidate: onValidate, priceFormat: onFormat } = await import('../tms/utils.js')	
+				validate =  Object.entries(this.column).map(([key, value]) => {
+					if (config.indexOf(key)!==-1) {
+						const flag = onValidate(this.collection.schema.body.properties, key, value)
+						if (flag) this.column[key] = onFormat(value)
+						return flag
+					}
+				}).every(ele => ele === true)
+			}
+			if (validate) {
+				this.$emit('submit', this.column)
+			}
     },
     open(collection) {
       this.collection = collection
