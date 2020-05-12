@@ -83,9 +83,59 @@ export default {
           delete this.column[tag.id]
         }
       })
-    },
+		},
+		onValidate(schema, key, val) {
+			if (isNaN(Number(val))) {
+				Message.error({message: schema[key].title + '应填入正确的数字', customClass: 'mzindex'})
+				return false
+			} 
+			if (Number(val) < 0) {
+				Message.error({message: schema[key].title + '的值不能小于0', customClass: 'mzindex'})
+				return false
+			}
+			const value = val.split('.')
+			if (value.length > 2) {
+				Message.error({message: schema[key].title + '格式错误', customClass: 'mzindex'})
+				return false
+			}
+			if (value.length !== 1) {
+				const float = value[1]
+				if (float.length > 3) {
+					Message.error({message: this.schema[key].title + '格式错误,小数点后不能大于3位', customClass: 'mzindex'})
+					return false
+				}
+			}
+			return true
+		},
+		onFormatPrice(val) {
+			let arrOfVal = val.split('.')
+			if (arrOfVal.length===1) {
+				val = val + '.00'
+			} else {
+				let floatVal = arrOfVal[1].split('')
+				if (floatVal.length===1) {
+					val = val + '0'
+				} else if(floatVal.length===3 && floatVal[2]==='0') {
+					val = val.substr(0, val.length-1)
+				} 
+			}
+			return val
+		},
     onSubmit() {
-      this.$emit('submit', this.column)
+			let validate = true
+			if (process.env.VUE_APP_VALITOR_FIELD) {
+				const config = process.env.VUE_APP_VALITOR_FIELD		
+				validate =  Object.entries(this.column).map(([key, value]) => {
+					if (config.indexOf(key)!==-1) {
+						const flag = this.onValidate(this.collection.schema.body.properties, key, value)
+						if (flag) this.column[key] = this.onFormatPrice(value)
+						return flag
+					}
+				}).every(ele => ele === true)
+			}
+			if (validate) {
+				this.$emit('submit', this.column)
+			}
     },
     open(collection) {
       this.collection = collection
