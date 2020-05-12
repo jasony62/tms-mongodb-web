@@ -56,20 +56,15 @@ class Collection extends Base {
    *  检查集合名
    */
   _checkClName(clName) {
-    if (clName.search(/[\u4E00-\u9FA5]|[\uFE30-\uFFA0]/gi) !== -1)
-      return [false, '集合名不能包含中文']
+    if (new RegExp('^[a-zA-Z]+[0-9a-zA-Z_]{0,63}$').test(clName) !== true)
+      return [false, '集合名必须以英文字母开头，仅限英文字母或_或数字组合，且最长64位']
 
-    let newName = clName.replace(/\s/g, '')
-
-    // 格式要求
-    if (!newName) return [false, '集合名不能为空']
-    if (!isNaN(newName)) return [false, '集合名不能全为数字']
     // 集合名是否存在关键字中
     let keyWord = []
-    if (keyWord.includes(newName))
+    if (keyWord.includes(clName))
       return [false, '不能以此名作为集合名，请更换为其它名称']
 
-    return [true, newName]
+    return [true, clName]
   }
 }
 
