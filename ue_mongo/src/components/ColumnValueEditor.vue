@@ -86,8 +86,8 @@ export default {
 		},
     async onSubmit() {
 			let validate = true
-			if (process.env.VUE_APP_VALITOR_FIELD) {
-				const config = process.env.VUE_APP_VALITOR_FIELD	
+			if (process.env.VUE_APP_SUBMIT_VALITOR_FIELD) {
+				const config = process.env.VUE_APP_SUBMIT_VALITOR_FIELD	
 				let { priceValidate: onValidate, priceFormat: onFormat } = await import('../tms/utils.js')	
 				validate =  Object.entries(this.column).map(([key, value]) => {
 					if (config.indexOf(key)!==-1) {
