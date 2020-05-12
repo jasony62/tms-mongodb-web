@@ -32,7 +32,7 @@
   </el-dialog>
 </template>
 <script>
-
+import { Message } from 'element-ui'
 export default {
   name: 'SchemaEditor',
   props: {
@@ -122,7 +122,7 @@ export default {
       this.condition.multipleSelection = this.condition.selectResult
     },
     handleInputChange(val) {
-      this.condition.rule.filter = {...this.condition.rule.filter, ...this.conditions.filter}
+      this.condition.rule.filter = {...this.conditions.filter, ...this.condition.rule.filter}
       this.condition.rule.orderBy = this.conditions.orderBy
       if (!this.condition.rule.filter[this.columnName]){
         this.condition.rule.filter[this.columnName] = {}
@@ -144,6 +144,14 @@ export default {
         .then(matchRes => {
           if (isLoadMore) {
             this.condition.selectResult.push(...matchRes)
+            const message = matchRes.length > 0 ? `成功加载${matchRes.length}条数据` : '全部数据加载完毕'
+            Message({ message, type: 'success', customClass: 'mzindex' })
+            if (matchRes.length) {
+              matchRes.forEach(ele => {
+                this.$refs.multipleTable.toggleRowSelection(ele, true)
+              })
+              this.condition.multipleSelection = this.condition.selectResult
+            }
           } else {
             this.condition.selectResult = matchRes
             this.handleMultipleTable()
