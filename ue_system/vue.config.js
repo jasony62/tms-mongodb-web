@@ -25,13 +25,6 @@ module.exports = {
       filename: './index.html',
       title: process.env.VUE_APP_TITLE,
       chunks: ['chunk-vendors', 'chunk-common', 'index']
-    },
-    invite: {
-      entry: 'src/invite.js',
-      template: 'public/index.html',
-      filename: './invite.html',
-      title: process.env.VUE_APP_TITLE,
-      chunks: ['chunk-vendors', 'chunk-common', 'invite']
     }
   },
   devServer,
