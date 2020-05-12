@@ -223,7 +223,7 @@ export default {
         })
     },
     handleDocument(document) {
-      this.$customeConfirm('数据库', () => {
+      this.$customeConfirm('数据', () => {
         return apiDoc
           .remove(this.bucketName, this.dbName, this.clName, document._id)
           .then(() => {
