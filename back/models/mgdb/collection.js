@@ -3,13 +3,13 @@ const Base = require('./base')
 
 class Collection extends Base {
   //
-  static async getSchemaByCollection(dbName, clName) {
+  static async getSchemaByCollection(existDb, clName) {
     const model = new Base()
     const client = await model.mongoClient()
     const cl = client.db('tms_admin').collection('mongodb_object')
     // 获取表列
     return cl
-      .findOne({ database: dbName, name: clName, type: 'collection' })
+      .findOne({ database: existDb.name, name: clName, type: 'collection' })
       .then((myCl) => {
         if (!myCl) {
           return false
@@ -30,13 +30,13 @@ class Collection extends Base {
       })
   }
   //
-  static async getCollection(dbName, clName) {
+  static async getCollection(existDb, clName) {
     const model = new Base()
     const client = await model.mongoClient()
     const cl = client.db('tms_admin').collection('mongodb_object')
     //
     return cl
-      .findOne({ database: dbName, name: clName, type: 'collection' })
+      .findOne({ database: existDb.name, name: clName, type: 'collection' })
       .then((result) => result)
       .then((myCl) => {
         if (myCl.schema_id) {
@@ -56,20 +56,15 @@ class Collection extends Base {
    *  检查集合名
    */
   _checkClName(clName) {
-    if (clName.search(/[\u4E00-\u9FA5]|[\uFE30-\uFFA0]/gi) !== -1)
-      return [false, '集合名不能包含中文']
+    if (new RegExp('^[a-zA-Z]+[0-9a-zA-Z_]{0,63}$').test(clName) !== true)
+      return [false, '集合名必须以英文字母开头，仅限英文字母或_或数字组合，且最长64位']
 
-    let newName = clName.replace(/\s/g, '')
-
-    // 格式要求
-    if (!newName) return [false, '集合名不能为空']
-    if (!isNaN(newName)) return [false, '集合名不能全为数字']
     // 集合名是否存在关键字中
     let keyWord = []
-    if (keyWord.includes(newName))
+    if (keyWord.includes(clName))
       return [false, '不能以此名作为集合名，请更换为其它名称']
 
-    return [true, newName]
+    return [true, clName]
   }
 }
 
