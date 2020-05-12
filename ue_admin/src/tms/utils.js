@@ -24,8 +24,9 @@ function priceValidate(schema, key, val) {
 	return true
 }
 
-function priceFormat(val) {
-	let arrOfVal = Number(val).split('.')
+function priceFormat(value) {
+	let val = String(Number(value))
+	let arrOfVal = val.split('.')
 	if (arrOfVal.length===1) {
 		val = val + '.00'
 	} else {
