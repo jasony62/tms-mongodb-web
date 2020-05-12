@@ -1,23 +1,23 @@
 let appConfig = {
-  name: process.env.TMS_APP_NAME || "tms-mongodb-web", // 如需自定义可在项目根目录下创建/back/.env文件配置成环境变量
+  name: process.env.TMS_APP_NAME || 'tms-mongodb-web', // 如需自定义可在项目根目录下创建/back/.env文件配置成环境变量
   port: process.env.TMS_APP_PORT || 3000, // 如需自定义可在项目根目录下创建/back/.env文件配置成环境变量
   router: {
     auth: {
-      prefix: 'auth' // 鉴权接口调用url的前缀
+      prefix: 'auth', // 鉴权接口调用url的前缀
     },
     controllers: {
-      prefix: 'api' // 控制器接口调用url的前缀，例如：/api
+      prefix: 'api', // 控制器接口调用url的前缀，例如：/api
     },
     plugins: {
-      prefix: 'plugin' // 插件接口调用url的前缀
-    }
+      prefix: 'plugin', // 插件接口调用url的前缀
+    },
   },
   tmsTransaction: false,
   // 鉴权 jwt
   auth: {
     jwt: {
-      privateKey: "tms-mongodb-web",
-      expiresIn: 3600
+      privateKey: 'tms-mongodb-web',
+      expiresIn: 3600,
     },
     // 鉴权 redis  如果鉴权信息要从redis中获取，可在此连接redis需注释上面jwt对象，redis中端口、地址等信息可在项目根目录下创建/back/.env文件配置成环境变量，并且需要在/back/config/文件夹中依据redis.sample.js创建redis.js
     // redis: {
@@ -30,30 +30,32 @@ let appConfig = {
     captcha: {
       // 如需自定义验证码，可在项目根目录下创建生成验证码文件，将文件路径命名给path并注释code
       // path: "files"
-      code: "1234"
+      code: '1234',
     },
-    // 
+    //
     client: {
       // 如需自定义鉴权函数，可在项目根目录下创建鉴权函数, 将文件路径命名给path并注释 accounts
       // path: "files"
-      accounts: [ // 默认用户组
+      accounts: [
+        // 默认用户组
         {
           id: 1,
-          username: "root",
-          password: "root"
-        }
-      ]
-    }
+          username: 'root',
+          password: 'root',
+        },
+        {
+          id: 2,
+          username: 'user1',
+          password: 'user1',
+        },
+      ],
+    },
   },
   tmwConfig: {
     TMS_APP_DEFAULT_CREATETIME: 'TMS_DEFAULT_CREATE_TIME', // 集合中添加、创建、导入数据时默认添加创建时间字段，字段名
     TMS_APP_DEFAULT_UPDATETIME: 'TMS_DEFAULT_UPDATE_TIME', // 修改集合中文档时默认增加修改时间字段，字段名名
-    TMS_APP_DATA_ACTION_LOG: 'N' // 数据操作日志， 日志会记录到tms_admin库下的 tms_app_data_action_log 集合中
-  }
+    TMS_APP_DATA_ACTION_LOG: 'N', // 数据操作日志， 日志会记录到tms_admin库下的 tms_app_data_action_log 集合中
+  },
 }
-
-//
-const fs = require('fs')
-if (fs.existsSync(process.cwd() + "/config/app.local.js")) Object.assign(appConfig, require(process.cwd() + "/config/app.local.js"))
 
 module.exports = appConfig

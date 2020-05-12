@@ -1,9 +1,5 @@
 <template>
-  <el-dialog
-    :visible.sync="dialogVisible"
-    :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal"
-  >
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <el-form ref="form" :model="database" label-position="top">
       <el-form-item label="数据库名称（英文）">
         <el-input v-model="database.name" :disabled="mode==='update'"></el-input>
@@ -46,10 +42,16 @@ export default {
   name: 'DbEditor',
   props: {
     dialogVisible: { default: true },
+    bucketName: { type: String },
     database: {
       type: Object,
       default: function() {
-        return { name: '', title: '', description: '', extensionInfo: { schemaId: '', info: {} } }
+        return {
+          name: '',
+          title: '',
+          description: '',
+          extensionInfo: { schemaId: '', info: {} }
+        }
       }
     }
   },
@@ -64,7 +66,7 @@ export default {
     }
   },
   mounted() {
-    apiSchema.list('db').then(extensions => {
+    apiSchema.list(this.bucketName, 'db').then(extensions => {
 			this.extensions = extensions
 			this.handleExtendId(this.database.extensionInfo.schemaId, true)
     })
@@ -85,12 +87,14 @@ export default {
 		},
 		fnSubmit() {
 			if (this.mode === 'update') {
-				apiDb
-					.update(this.database.name, this.database)
-					.then(newDb => this.$emit('submit', newDb))
-			} else if (this.mode === 'create') {
-				apiDb.create(this.database).then(newDb => this.$emit('submit', newDb))
-			}
+        apiDb
+          .update(this.bucketName, this.database.name, this.database)
+          .then(newDb => this.$emit('submit', newDb))
+      } else if (this.mode === 'create') {
+        apiDb
+          .create(this.bucketName, this.database)
+          .then(newDb => this.$emit('submit', newDb))
+      }
 		},
     onSubmit() {
 			if (this.$refs.attrForm) {
@@ -102,8 +106,9 @@ export default {
 			}
 			this.fnSubmit()
     },
-    open(mode, db) {
-      this.mode = mode
+    open(mode, bucketName, db) {
+			this.mode = mode
+			this.bucketName = bucketName
       if (mode === 'update') this.database = JSON.parse(JSON.stringify(Object.assign(this.database, db)))
       this.$mount()
       document.body.appendChild(this.$el)

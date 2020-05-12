@@ -1,6 +1,8 @@
 const { ResultData, ResultFault } = require('tms-koa')
-const BucketBase = require('../bucketBase')
-
+const BucketBase = require('../../bucketBase')
+/**
+ * 用于给用户分配租户空间
+ */
 class Bucket extends BucketBase {
   constructor(...args) {
     super(...args)

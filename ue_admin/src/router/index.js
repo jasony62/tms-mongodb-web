@@ -7,41 +7,42 @@ import Database from '../views/Database.vue'
 import Collection from '../views/Collection.vue'
 import { TmsRouterHistoryPlugin } from 'tms-vue'
 
+const BucketPart = /yes|true/i.test(process.env.VUE_APP_TMW_REQUIRE_BUCKET)
+  ? '/b/:bucketName'
+  : ''
+
 const routes = [
-  {
-    path: '/home',
-    name: 'home',
-    component: Home
-  },
-  {
-    path: '/',
-    name: 'login',
-    component: Login,
-    props: true
-  },
   {
     path: '/login',
     name: 'login',
-    component: Login,
-    props: true
+    component: Login
   },
   {
     path: '/bucket',
     name: 'bucket',
-    component: Bucket,
+    component: Bucket
+  },
+  {
+    path: `${BucketPart}/home`,
+    name: 'home',
+    component: Home,
     props: true
   },
   {
-    path: '/database/:dbName',
+    path: `${BucketPart}/database/:dbName`,
     name: 'database',
     component: Database,
     props: true
   },
   {
-    path: '/collection/:dbName/:clName',
+    path: `${BucketPart}/collection/:dbName/:clName`,
     name: 'collection',
     component: Collection,
     props: true
+  },
+  {
+    path: '*',
+    redirect: { name: 'login' }
   }
 ]
 
@@ -53,12 +54,12 @@ let router = new VueRouter({
   routes
 })
 
-router.beforeEach((to, from, next)=> {
-  if (to.name!=='login') {
+router.beforeEach((to, from, next) => {
+  if (to.name !== 'login') {
     let token = sessionStorage.getItem('access_token')
     if (!token) {
       Vue.TmsRouterHistory.push(to.path)
-      return next({name: 'login'})
+      return next({ name: 'login' })
     }
   }
   next()
