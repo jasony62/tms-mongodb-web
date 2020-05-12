@@ -117,8 +117,8 @@ export default new Vuex.Store({
     },
     removeDatabase() {},
     removeCollection({ commit }, payload) {
-      const { db, collection } = payload
-      apis.collection.remove(db, collection.name).then(() => {
+      const { bucket, db, collection } = payload
+      apis.collection.remove(bucket, db, collection.name).then(() => {
         commit({ type: 'removeCollection', collection })
         return { collection }
       })
