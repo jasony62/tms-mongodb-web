@@ -105,7 +105,7 @@ export default {
   export(bucket, dbName, clName) {
     const params = { bucket, db: dbName, cl: clName }
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/export`, params)
+      .get(`${base}/export`, { params })
       .then(rst => rst.data.result)
   }
 }
