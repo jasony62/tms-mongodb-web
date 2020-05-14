@@ -1,6 +1,6 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <tms-el-json-doc :schema="collection.schema.body" :doc="document" v-on:submit="onJsonDocSubmit"></tms-el-json-doc>
+    <tms-el-json-doc :schema="collection.schema.body" :doc="document" v-on:submit="onJsonDocSubmit" v-on:on-file-submit="handleFileSubmit"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
@@ -27,7 +27,17 @@ export default {
     }
   },
   methods: {
-    onJsonDocSubmit(newDoc) {
+		handleFileSubmit(ref, files) {
+			let result = {}
+			result[ref] = files.map(file => {
+				if (file.hasOwnProperty('url')) {
+					return file
+				}
+				return {'name': file.name, 'url': location.href}
+			})
+			return Promise.resolve(result)
+		},
+    onJsonDocSubmit(slimDoc, newDoc) {
       if (this.document && this.document._id) {
         apiDoc
           .update(

@@ -18,6 +18,11 @@
           </template>
 					<template slot-scope="scope">
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
+						<span v-else-if="s.type==='array'&&s.format==='file'">
+							<span v-for="(i, v) in scope.row[k]" :key="v">
+								<a @click="handleDownload(i)">{{i.name}}</a><br/>
+							</span>
+						</span>
 						<span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
@@ -247,7 +252,11 @@ export default {
         .then(result => {
           this.page.total = result.total
         })
-    },
+		},
+		handleDownload(file) {
+			const access_token = sessionStorage.getItem('access_token')
+      window.open(`${process.env.VUE_APP_BACK_API_BASE}/download/down?access_token=${access_token}&file=${file.url}`)
+		},
     handleSize(val) {
       this.page.size = val
       this.listDocument()

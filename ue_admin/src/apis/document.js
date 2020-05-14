@@ -68,5 +68,11 @@ export default {
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/remove`, { params })
       .then(rst => rst.data.result)
-  }
+	},
+	upload(bucket, file) {
+		const params = { bucket }
+		return TmsAxios.ins('mongodb-api')
+			.post(`${base}/upload/plain`, file, { params })
+			.then(rst => rst.data.result)
+	}
 }

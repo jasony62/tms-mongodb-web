@@ -32,7 +32,7 @@ export default {
     return {
       destroyOnClose: true,
       closeOnClickModal: false,
-      collection: null,
+      collection: {},
       select: "",
       input: "",
       column: {},
@@ -88,7 +88,10 @@ export default {
       this.$emit('submit', this.column)
     },
     open(collection) {
-      this.collection = collection
+			this.collection = JSON.parse(JSON.stringify(Object.assign(this.collection, collection)))
+			Object.entries(this.collection.schema.body.properties).forEach(([key, value]) => {
+				if (value.type==='array'&&value.format==='file') delete this.collection.schema.body.properties[key]
+			})
       this.$mount()
       document.body.appendChild(this.$el)
       return new Promise(resolve => {
