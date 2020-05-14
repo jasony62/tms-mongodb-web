@@ -1,7 +1,7 @@
 const _ = require('lodash')
 const { ResultData, ResultFault } = require('tms-koa')
 const Base = require('./base')
-const CollectionHelper = require('./CollectionHelper')
+const CollectionHelper = require('./collectionHelper')
 const ObjectId = require('mongodb').ObjectId
 const modelColl = require('../models/mgdb/collection')
 
