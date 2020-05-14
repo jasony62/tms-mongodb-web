@@ -42,11 +42,11 @@ export default {
 				const config = process.env.VUE_APP_SUBMIT_VALITOR_FIELD
 				let { priceValidate: onValidate, priceFormat: onFormat } = await import('../tms/utils.js')	
 				validate =  Object.entries(newDoc).map(([key, value]) => {
-					if (config.indexOf(key)!==-1) {
-						const flag = onValidate(this.collection.schema.body.properties, key, value)
-						if (flag) newDoc[key] = onFormat(value)
-						return flag
-					}
+					if (config.indexOf(key)===-1) return true
+			
+					const flag = onValidate(this.collection.schema.body.properties, key, value)
+					if (flag) newDoc[key] = onFormat(value)
+					return flag
 				}).every(ele => ele === true)
 			}
 			if (validate) {
