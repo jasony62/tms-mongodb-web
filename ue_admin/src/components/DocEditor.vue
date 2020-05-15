@@ -1,6 +1,6 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <tms-el-json-doc :schema="collection.schema.body" :doc="document" v-on:submit="onJsonDocSubmit" v-on:on-file-submit="handleFileSubmit"></tms-el-json-doc>
+    <tms-el-json-doc :schema="collection.schema.body" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
@@ -29,13 +29,25 @@ export default {
   methods: {
 		handleFileSubmit(ref, files) {
 			let result = {}
-			result[ref] = files.map(file => {
+			let objPromises = files.map(file => {
 				if (file.hasOwnProperty('url')) {
-					return file
+					return {'name': file.name, 'url': file.url}
 				}
-				return {'name': file.name, 'url': location.href}
+				const fileData = new FormData()
+				fileData.append('file', file)
+				const config = { 'Content-Type': 'multipart/form-data' }
+				return apiDoc.upload(this.bucketName, fileData, config)
+					.then(path => {
+            return Promise.resolve({'url': path, 'name': file.name})
+          })
+					.catch(err => Promise.reject(err))
 			})
-			return Promise.resolve(result)
+			return Promise.all(objPromises)
+				.then(rsl => { 
+					result[ref] = rsl
+          return Promise.resolve(result)
+				})
+				.catch(err => Promise.reject(err))
 		},
     onJsonDocSubmit(slimDoc, newDoc) {
       if (this.document && this.document._id) {

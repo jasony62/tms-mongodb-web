@@ -20,7 +20,7 @@
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
 						<span v-else-if="s.type==='array'&&s.format==='file'">
 							<span v-for="(i, v) in scope.row[k]" :key="v">
-								<a @click="handleDownload(i)">{{i.name}}</a><br/>
+								<a href @click="handleDownload(i)">{{i.name}}</a><br/>
 							</span>
 						</span>
 						<span v-else>{{ scope.row[k] }}</span>
