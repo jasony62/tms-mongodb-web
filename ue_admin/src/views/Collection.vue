@@ -65,7 +65,7 @@ export default {
       },
       dialogPage: {
         at: 1,
-        size: 10
+        size: 100
       }
     }
   },
@@ -259,6 +259,7 @@ export default {
 		},
     handleSize(val) {
       this.page.size = val
+      this.dialogPage.size = val
       this.listDocument()
     },
     handleCurrentPage(val) {

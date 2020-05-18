@@ -179,7 +179,7 @@ export default {
       plugins: { document: { submits: [], transforms: {} } },
       dialogPage: {
         at: 1,
-        size: 20
+        size: 100
       }
     }
   },
@@ -675,6 +675,7 @@ export default {
     },
     handleSize(val) {
       this.page.size = val
+      this.dialogPage.size = val
       this.listDocument()
     },
     handleCurrentPage(val) {
