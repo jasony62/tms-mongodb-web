@@ -13,8 +13,9 @@ services:
        - TMS_APP_PORT=3000
        - TMS_APP_NAME=dev-op
        - TMS_APP_LOG4JS_LEVEL=debug
-       - TMS_FINDER_FS_OUTDIR=/data/
-       - TMS_FINDER_FS_ROOTDIR=/data/
+       - TMS_FINDER_FS_OUTDIR=/data
+       - TMS_FINDER_FS_ROOTDIR=/data
+       - TMS_FINDER_FS_CUSTOMNAME=true
        - TMS_MONGODB_HOST=omongodb
        - TMS_MONGODB_PORT=27017
     command: ['sh', './wait-for.sh', 'omongodb:27017', '-t', '300', '--', 'node', 'server']

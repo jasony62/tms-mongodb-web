@@ -32,7 +32,7 @@ export default {
     return {
       destroyOnClose: true,
       closeOnClickModal: false,
-      collection: null,
+      collection: {},
       select: "",
       input: "",
       column: {},
@@ -90,11 +90,11 @@ export default {
 				const config = process.env.VUE_APP_SUBMIT_VALITOR_FIELD	
 				let { priceValidate: onValidate, priceFormat: onFormat } = await import('../tms/utils.js')	
 				validate =  Object.entries(this.column).map(([key, value]) => {
-					if (config.indexOf(key)!==-1) {
-						const flag = onValidate(this.collection.schema.body.properties, key, value)
-						if (flag) this.column[key] = onFormat(value)
-						return flag
-					}
+					if (config.indexOf(key)===-1) return true
+			
+					const flag = onValidate(this.collection.schema.body.properties, key, value)
+					if (flag) this.column[key] = onFormat(value)
+					return flag
 				}).every(ele => ele === true)
 			}
 			if (validate) {
@@ -102,7 +102,17 @@ export default {
 			}
     },
     open(collection) {
-      this.collection = collection
+			this.collection = JSON.parse(JSON.stringify(Object.assign(this.collection, collection)))
+			Object.entries(this.collection.schema.body.properties).forEach(([key, value]) => {
+				switch(value.type) {
+					case 'array':
+						if (value.format==='file') delete this.collection.schema.body.properties[key]
+					break;
+					case 'string':
+						if (value.disabled===true) delete this.collection.schema.body.properties[key]
+					break;
+				}
+			})
       this.$mount()
       document.body.appendChild(this.$el)
       return new Promise(resolve => {

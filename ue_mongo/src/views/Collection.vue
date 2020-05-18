@@ -22,6 +22,11 @@
           </template>
           <template slot-scope="scope">
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
+						<span v-else-if="s.type==='array'&&s.format==='file'">
+							<span v-for="(i, v) in scope.row[k]" :key="v">
+								<a href @click="handleDownload(i)">{{i.name}}</a><br/>
+							</span>
+						</span>
             <span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
@@ -163,11 +168,7 @@ export default {
     return {
       tableHeight: 0,
       moveCheckList: [],
-      option: '',
-      keyword: '',
-      feature: '',
       filter: {},
-      tags: [],
       page: {
         at: 1,
         size: 100,
@@ -178,33 +179,12 @@ export default {
       plugins: { document: { submits: [], transforms: {} } },
       dialogPage: {
         at: 1,
-        size: 20
+        size: 100
       }
     }
   },
   computed: {
     ...mapState(['documents', 'conditions']),
-    features() {
-      let features = {
-        start: {
-          title: '以"' + this.keyword + '"开头',
-          value: 'start'
-        },
-        notStart: {
-          title: '不以"' + this.keyword + '"开头',
-          value: 'notStart'
-        },
-        end: {
-          title: '以"' + this.keyword + '"结尾',
-          value: 'end'
-        },
-        notEnd: {
-          title: '不以"' + this.keyword + '"结尾',
-          value: 'notEnd'
-        }
-      }
-      return features
-    },
     totalByAll() {
       return Object.keys(this.filter).length ? 0 : this.page.total
     },
@@ -400,7 +380,11 @@ export default {
           this.page.total = result.result.total
           this.tableHeight = window.innerHeight * 0.8
         })
-    },
+		},
+		handleDownload(file) {
+			const access_token = sessionStorage.getItem('access_token')
+      window.open(`${process.env.VUE_APP_BACK_API_BASE}/download/down?access_token=${access_token}&file=${file.url}`)
+		},
     createDocument() {
       let editor = new Vue(DocEditor)
       editor.open(this.bucketName, this.dbName, this.collection).then(() => {
@@ -691,6 +675,7 @@ export default {
     },
     handleSize(val) {
       this.page.size = val
+      this.dialogPage.size = val
       this.listDocument()
     },
     handleCurrentPage(val) {
