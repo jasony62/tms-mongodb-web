@@ -104,7 +104,14 @@ export default {
     open(collection) {
 			this.collection = JSON.parse(JSON.stringify(Object.assign(this.collection, collection)))
 			Object.entries(this.collection.schema.body.properties).forEach(([key, value]) => {
-				if (value.type==='array'&&value.format==='file') delete this.collection.schema.body.properties[key]
+				switch(value.type) {
+					case 'array':
+						if (value.format==='file') delete this.collection.schema.body.properties[key]
+					break;
+					case 'string':
+						if (value.disabled===true) delete this.collection.schema.body.properties[key]
+					break;
+				}
 			})
       this.$mount()
       document.body.appendChild(this.$el)

@@ -1,6 +1,6 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <tms-el-json-doc :schema="schema" :doc="document" v-on:submit="onJsonDocSubmit"></tms-el-json-doc>
+    <tms-el-json-doc :schema="schema" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
