@@ -36,7 +36,29 @@ export default {
     }
   },
   methods: {
-    async onJsonDocSubmit(newDoc) {
+		handleFileSubmit(ref, files) {
+			let result = {}
+			let objPromises = files.map(file => {
+				if (file.hasOwnProperty('url')) {
+					return {'name': file.name, 'url': file.url}
+				}
+				const fileData = new FormData()
+				fileData.append('file', file)
+				const config = { 'Content-Type': 'multipart/form-data' }
+				return apiDoc.upload(this.bucketName, fileData, config)
+					.then(path => {
+            return Promise.resolve({'url': path, 'name': file.name})
+          })
+					.catch(err => Promise.reject(err))
+			})
+			return Promise.all(objPromises)
+				.then(rsl => { 
+					result[ref] = rsl
+          return Promise.resolve(result)
+				})
+				.catch(err => Promise.reject(err))
+		},
+    async onJsonDocSubmit(slimDoc, newDoc) {
 			let validate = true
 			if (process.env.VUE_APP_SUBMIT_VALITOR_FIELD) {
 				const config = process.env.VUE_APP_SUBMIT_VALITOR_FIELD

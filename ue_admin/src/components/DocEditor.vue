@@ -1,6 +1,6 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <tms-el-json-doc :schema="collection.schema.body" :doc="document" v-on:submit="onJsonDocSubmit"></tms-el-json-doc>
+    <tms-el-json-doc :schema="collection.schema.body" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
@@ -27,7 +27,29 @@ export default {
     }
   },
   methods: {
-    async onJsonDocSubmit(newDoc) {
+		handleFileSubmit(ref, files) {
+			let result = {}
+			let objPromises = files.map(file => {
+				if (file.hasOwnProperty('url')) {
+					return {'name': file.name, 'url': file.url}
+				}
+				const fileData = new FormData()
+				fileData.append('file', file)
+				const config = { 'Content-Type': 'multipart/form-data' }
+				return apiDoc.upload(this.bucketName, fileData, config)
+					.then(path => {
+            return Promise.resolve({'url': path, 'name': file.name})
+          })
+					.catch(err => Promise.reject(err))
+			})
+			return Promise.all(objPromises)
+				.then(rsl => { 
+					result[ref] = rsl
+          return Promise.resolve(result)
+				})
+				.catch(err => Promise.reject(err))
+		},
+    async onJsonDocSubmit(slimDoc, newDoc) {
 			let validate = true
 			if (process.env.VUE_APP_SUBMIT_VALITOR_FIELD) {
 				const config = process.env.VUE_APP_SUBMIT_VALITOR_FIELD	

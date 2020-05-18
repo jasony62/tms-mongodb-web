@@ -12,12 +12,12 @@
           <el-option v-for="item in schemas" :key="item._id" :label="item.title" :value="item._id"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="文档拓展属性（选填）">
+      <el-form-item label="集合扩展属性（选填）">
         <el-select placeholder="请选择" v-model="collection.extensionInfo.schemaId" clearable filterable @change="handleExtendId(collection.extensionInfo.schemaId, false)">
           <el-option v-for="item in extensions" :key="item._id" :label="item.title" :value="item._id"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="拓展属性详情（选填）" v-if="JSON.stringify(extendSchema)!=='{}'">
+      <el-form-item label="扩展属性详情（选填）" v-if="JSON.stringify(extendSchema)!=='{}'">
 				<tms-el-json-doc class="tmw-attr-form" ref="attrForm" :schema="extendSchema" :doc="collection.extensionInfo.info" ></tms-el-json-doc>
       </el-form-item>
       <el-form-item label="说明">
