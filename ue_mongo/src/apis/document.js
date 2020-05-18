@@ -107,5 +107,11 @@ export default {
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/export`, { params })
       .then(rst => rst.data.result)
-  }
+	},
+	upload(bucket, fileData, config) {
+		const params = { bucket }
+		return TmsAxios.ins('mongodb-api')
+			.post(`${process.env.VUE_APP_BACK_API_BASE}/upload/plain`, fileData, config, { params })
+			.then(rst => rst.data.result)
+	}
 }
