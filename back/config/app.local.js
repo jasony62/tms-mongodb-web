@@ -8,7 +8,10 @@ let appConfig = {
     },
     plugins: {
       prefix: '/order/plugin' // 接口调用url的前缀
-    }
+		},
+		fsdomain: {
+			prefix: '/order/fs'
+		}
 	},
 	tmsTransaction: false,
   auth: {

@@ -33,7 +33,10 @@ export default {
 				const fileData = new FormData()
 				fileData.append('file', file)
 				const config = { 'Content-Type': 'multipart/form-data' }
-				return apiDoc.upload(this.bucketName, fileData, config)
+				const dirPath = this.dbName + '/' + this.collection.name + '/' + this.document.order_id
+				return apiDoc.upload(
+					{ bucket: this.bucketName, dir: dirPath }, fileData, config
+					)
 					.then(path => {
             return Promise.resolve({'url': path, 'name': file.name})
           })

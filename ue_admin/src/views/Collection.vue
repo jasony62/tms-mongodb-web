@@ -255,7 +255,8 @@ export default {
 		},
 		handleDownload(file) {
 			const access_token = sessionStorage.getItem('access_token')
-      window.open(`${process.env.VUE_APP_BACK_API_BASE}/download/down?access_token=${access_token}&file=${file.url}`)
+			let url = `${process.env.VUE_APP_BACK_API_SERVER}${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`
+      window.open(url)
 		},
     handleSize(val) {
       this.page.size = val
