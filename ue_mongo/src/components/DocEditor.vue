@@ -45,7 +45,7 @@ export default {
 				const fileData = new FormData()
 				fileData.append('file', file)
 				const config = { 'Content-Type': 'multipart/form-data' }
-				const dirPath = this.dbName + '/' + this.collection.name + '/' + this.document.order_id
+				const dirPath = this.dbName + '/' + this.collection.name + '/' + this.document.order_id + '/' + ref
 				return apiDoc.upload(
 					{ bucket: this.bucketName, dir: dirPath }, fileData, config
 					)
