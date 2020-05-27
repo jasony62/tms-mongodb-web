@@ -69,10 +69,11 @@ export default {
       .get(`${base}/remove`, { params })
       .then(rst => rst.data.result)
 	},
-	upload(bucket, fileData, config) {
-		const params = { bucket }
+	upload(query, fileData, config) {
+		let url = `${process.env.VUE_APP_BACK_API_BASE}/upload/plain`
+		if (query && query.dir) url += `?dir=${query.dir}`
 		return TmsAxios.ins('mongodb-api')
-			.post(`${process.env.VUE_APP_BACK_API_BASE}/upload/plain`, fileData, config, { params })
+			.post(url, fileData, config)
 			.then(rst => rst.data.result)
 	}
 }
