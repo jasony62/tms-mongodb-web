@@ -24,6 +24,10 @@ services:
         vue_app_login_key_username: username
         vue_app_login_key_password: password
         vue_app_login_key_pin: pin
+				vue_app_back_auth_base: /auth
+        vue_app_back_api_base: /api
+        vue_app_back_api_plugin: /plugin
+        vue_app_back_api_fs: /fs
     image: tms-mongodb/ue-admin:latest
     container_name: tms-mongodb-ue_admin
     environment:
@@ -37,6 +41,10 @@ services:
         vue_app_login_key_username: username
         vue_app_login_key_password: password
         vue_app_login_key_pin: pin
+        vue_app_back_auth_base: /auth
+        vue_app_back_api_base: /api
+        vue_app_back_api_plugin: /plugin
+        vue_app_back_api_fs: /fs
     image: tms-mongodb/ue-mongo:latest
     container_name: tms-mongodb-ue_mongo
     environment:

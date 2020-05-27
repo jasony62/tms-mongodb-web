@@ -13,7 +13,11 @@ services:
       - '3000:3000'
 
   ue_admin:
-    build: ./ue_admin
+		build: 
+			context: ./ue_admin
+      args:
+        vue_app_back_auth_server: http://localhost:3000
+        vue_app_back_api_server: http://localhost:3000
     ports:
       - '3840:80'
     dns:
@@ -21,7 +25,11 @@ services:
       - 223.5.5.5
 
   ue_mongo:
-    build: ./ue_mongo
+		build: 
+			context: ./ue_mongo
+			args:
+				vue_app_back_auth_server: http://localhost:3000
+				vue_app_back_api_server: http://localhost:3000
     ports:
       - '3830:80'
     dns:
