@@ -13,6 +13,9 @@ devServer.proxy[`${process.env.VUE_APP_BACK_API_BASE}/admin`] = {
 devServer.proxy[`${process.env.VUE_APP_BACK_AUTH_BASE}`] = {
   target: process.env.VUE_APP_BACK_AUTH_SERVER
 }
+devServer.proxy[`${process.env.VUE_APP_BACK_API_FS}`] = {
+  target: process.env.VUE_APP_BACK_API_SERVER
+}
 
 module.exports = {
   publicPath: `${process.env.VUE_APP_BASE_URL}`,
