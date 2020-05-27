@@ -10,7 +10,10 @@ let appConfig = {
     },
     plugins: {
       prefix: 'plugin', // 插件接口调用url的前缀
-    },
+		},
+		fsdomain: {
+			prefix: 'fs'
+		}
   },
   tmsTransaction: false,
   // 鉴权 jwt
