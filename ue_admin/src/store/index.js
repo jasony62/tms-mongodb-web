@@ -85,6 +85,7 @@ export default new Vuex.Store({
       if (index !== -1) {
         state.conditions.splice(index, 1)
       }
+      condition.rule.filter = {[condition.columnName]: condition.rule.filter[condition.columnName]}
       state.conditions.push(condition)
     },
     conditionDelBtn(state, payload) {
