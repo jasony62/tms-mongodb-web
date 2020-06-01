@@ -4,13 +4,7 @@ import Login from '../views/Login.vue'
 import Home from '../views/Home.vue'
 import Bucket from '../views/Bucket.vue'
 import Database from '../views/Database.vue'
-import Collection from '../views/Collection.vue'
-import store from '../store'
 import { TmsRouterHistoryPlugin } from 'tms-vue'
-
-const BucketPart = /yes|true/i.test(process.env.VUE_APP_TMW_REQUIRE_BUCKET)
-  ? '/b/:bucketName'
-  : ''
 
 const routes = [
   {
@@ -24,21 +18,15 @@ const routes = [
     component: Bucket
   },
   {
-    path: `${BucketPart}/home`,
+    path: `/home`,
     name: 'home',
     component: Home,
     props: true
   },
   {
-    path: `${BucketPart}/database/:dbName`,
+    path: `/database/:dbName`,
     name: 'database',
     component: Database,
-    props: true
-  },
-  {
-    path: `${BucketPart}/collection/:dbName/:clName`,
-    name: 'collection',
-    component: Collection,
     props: true
   },
   {
@@ -61,20 +49,6 @@ router.beforeEach((to, from, next) => {
     if (!token) {
       Vue.TmsRouterHistory.push(to.path)
       return next({ name: 'login' })
-    }
-  }
-  if (/yes|true/i.test(process.env.VUE_APP_TMW_REQUIRE_BUCKET)) {
-    // 多租户模式下，添加bucket参数
-    if (!/bucket|login/.test(to.name)) {
-      console.log(to)
-      if (!to.params.bucketName) {
-        if (store.state.buckets.length === 1) {
-          const bucket = store.state.buckets[0]
-          return next({ name: to.name, params: { bucketName: bucket.name } })
-        } else {
-          return next({ name: 'bucket' })
-        }
-      }
     }
   }
   next()
