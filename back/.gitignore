@@ -4,4 +4,3 @@ public/
 .env
 .env.*
 *.xlsx
-config/*.local.js
