@@ -20,10 +20,10 @@ services:
     build:
       context: ./ue_admin
       args:
-        vue_app_base_url: /admin
         vue_app_login_key_username: username
         vue_app_login_key_password: password
         vue_app_login_key_pin: pin
+        vue_app_base_url: /admin
         vue_app_back_auth_base: /auth
         vue_app_back_api_base: /api
         vue_app_back_api_plugin: /plugin
@@ -37,10 +37,10 @@ services:
     build:
       context: ./ue_mongo
       args:
-        vue_app_base_url: /mongo
         vue_app_login_key_username: username
         vue_app_login_key_password: password
         vue_app_login_key_pin: pin
+        vue_app_base_url: /mongo
         vue_app_back_auth_base: /auth
         vue_app_back_api_base: /api
         vue_app_back_api_plugin: /plugin
