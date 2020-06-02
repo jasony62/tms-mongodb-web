@@ -4,3 +4,4 @@ public/
 .env
 .env.*
 *.xlsx
+config/app.local2.js
