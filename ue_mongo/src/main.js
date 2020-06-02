@@ -79,7 +79,7 @@ function onResultFault(res) {
   Message({
     showClose: true,
     message: res.data.msg,
-    duration: 0,
+		duration: 3000,
     type: 'error'
   })
   return Promise.reject(new TmsIgnorableError(res.data))

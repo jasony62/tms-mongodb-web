@@ -119,6 +119,7 @@ export default {
     handleSelect(obj, columnName) {
       this.dialogPage.at = 1
       const select = new Vue(SelectCondition)
+      let filter, orderBy
       if (this.conditions.length) {
         const columnobj = this.conditions.find(
           ele => ele.columnName === columnName
@@ -130,35 +131,25 @@ export default {
           select.condition.selectValue = columnobj.selectValue
           select.condition.rule = columnobj.rule
         }
-        const { filter, orderBy } = rule
-        this
-          .listByColumn(
-            columnName,
-            filter,
-            orderBy,
-            this.dialogPage.at,
-            this.dialogPage.size
-          )
-          .then(columnResult => {
-            select.condition.selectResult = columnResult
-            // 暂时先用延迟解决，该方法还需改进
-            setTimeout(() => {
-              select.toggleSelection(columnResult)
-            }, 0)
-          })
-      } else {
-        this
-          .listByColumn(
-            columnName,
-            undefined,
-            undefined,
-            this.dialogPage.at,
-            this.dialogPage.size
-          )
-          .then(columnResult => {
-            select.condition.selectResult = columnResult
-          })
+        filter = rule.filter
+        orderBy = rule.orderBy
       }
+      this
+        .listByColumn(
+          columnName,
+          this.conditions.length ? filter: undefined,
+          this.conditions.length ? orderBy: undefined,
+          this.dialogPage.at,
+          this.dialogPage.size
+        )
+        .then(columnResult => {
+          select.condition.selectResult = columnResult
+          select.condition.multipleSelection = columnResult
+          // 暂时先用延迟解决，该方法还需改进
+          setTimeout(() => {
+            select.toggleSelection(columnResult)
+          }, 0)
+        })
       select
         .open(
           columnName, 
