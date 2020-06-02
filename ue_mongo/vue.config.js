@@ -14,6 +14,9 @@ devServer.proxy[`${process.env.VUE_APP_BACK_API_BASE}`] = {
 devServer.proxy[`${process.env.VUE_APP_BACK_API_PLUGIN}`] = {
   target: process.env.VUE_APP_BACK_API_SERVER
 }
+devServer.proxy[`${process.env.VUE_APP_BACK_API_FS}`] = {
+  target: process.env.VUE_APP_BACK_API_SERVER
+}
 
 module.exports = {
   publicPath: `${VUE_APP_BASE_URL}/`,

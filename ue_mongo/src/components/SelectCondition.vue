@@ -5,7 +5,7 @@
         <el-button type="primary" :plain="condition.isCheckBtn[0]" @click="handleSort('asc')">升序</el-button>
         <el-button type="success" :plain="condition.isCheckBtn[1]" @click="handleSort('desc')">降序</el-button>
       </el-form-item>
-      <el-form-item label="筛选器" style="font-weight: bold">
+      <el-form-item label="筛选器" style="font-weight: bold;">
         <el-select v-model="condition.selectValue" clearable placeholder="请选择文本筛选规则" @change="handleSelectChange">
           <el-option v-for="item in condition.selectRules" :key="item.value" :label="item.label" :value="item.value">
           </el-option>
@@ -136,8 +136,8 @@ export default {
     updateByColumn(isLoadMore) {
       this.listByColumn(
         this.columnName, 
-        this.condition.rule.filter, 
-        this.condition.rule.orderBy, 
+        {...this.conditions.filter, ...this.condition.rule.filter}, 
+        JSON.stringify(this.condition.rule.orderBy) === '{}' ? this.conditions.orderBy : this.condition.rule.orderBy, 
         this.page.at, 
         this.page.size
       )
@@ -167,7 +167,7 @@ export default {
       } else if (type === 'desc') {
         this.condition.isCheckBtn = [true, false]
       }
-      this.handleMultipleTable()
+      
       this.condition.rule.orderBy[this.columnName] = type
       this.$emit('submit', { rule: this.condition.rule, isCheckBtn: true })
     },

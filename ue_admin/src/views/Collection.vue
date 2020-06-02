@@ -18,6 +18,11 @@
           </template>
 					<template slot-scope="scope">
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
+						<span v-else-if="s.type==='array'&&s.format==='file'">
+							<span v-for="(i, v) in scope.row[k]" :key="v">
+								<a href @click="handleDownload(i)">{{i.name}}</a><br/>
+							</span>
+						</span>
 						<span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
@@ -114,6 +119,7 @@ export default {
     handleSelect(obj, columnName) {
       this.dialogPage.at = 1
       const select = new Vue(SelectCondition)
+      let filter, orderBy
       if (this.conditions.length) {
         const columnobj = this.conditions.find(
           ele => ele.columnName === columnName
@@ -125,35 +131,25 @@ export default {
           select.condition.selectValue = columnobj.selectValue
           select.condition.rule = columnobj.rule
         }
-        const { filter, orderBy } = rule
-        this
-          .listByColumn(
-            columnName,
-            filter,
-            orderBy,
-            this.dialogPage.at,
-            this.dialogPage.size
-          )
-          .then(columnResult => {
-            select.condition.selectResult = columnResult
-            // 暂时先用延迟解决，该方法还需改进
-            setTimeout(() => {
-              select.toggleSelection(columnResult)
-            }, 0)
-          })
-      } else {
-        this
-          .listByColumn(
-            columnName,
-            undefined,
-            undefined,
-            this.dialogPage.at,
-            this.dialogPage.size
-          )
-          .then(columnResult => {
-            select.condition.selectResult = columnResult
-          })
+        filter = rule.filter
+        orderBy = rule.orderBy
       }
+      this
+        .listByColumn(
+          columnName,
+          this.conditions.length ? filter: undefined,
+          this.conditions.length ? orderBy: undefined,
+          this.dialogPage.at,
+          this.dialogPage.size
+        )
+        .then(columnResult => {
+          select.condition.selectResult = columnResult
+          select.condition.multipleSelection = columnResult
+          // 暂时先用延迟解决，该方法还需改进
+          setTimeout(() => {
+            select.toggleSelection(columnResult)
+          }, 0)
+        })
       select
         .open(
           columnName, 
@@ -247,7 +243,11 @@ export default {
         .then(result => {
           this.page.total = result.total
         })
-    },
+		},
+		handleDownload(file) {
+			const access_token = sessionStorage.getItem('access_token')
+			window.open(`${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`)
+		},
     handleSize(val) {
       this.page.size = val
       this.dialogPage.size = val
