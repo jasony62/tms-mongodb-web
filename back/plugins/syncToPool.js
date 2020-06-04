@@ -1,0 +1,253 @@
+const { ResultData, ResultFault } = require('tms-koa')
+const Base = require('./base')
+const modelDocu = require('../models/mgdb/document')
+const MODELCOLL = require('../models/mgdb/collection')
+const moment = require('moment')
+const ObjectId = require('mongodb').ObjectId
+const _ = require('lodash')
+const log4js = require('log4js')
+const logger = log4js.getLogger('mongodb-web-syncToPool')
+const request = require('request')
+const DocumentHelper = require('../controllers/documentHelper')
+
+/**
+ * 处理http请求的接口
+ */
+const { httpApiUrl } = require("../config/plugins")
+const HTTP_SYNCTOPOOL_URL = httpApiUrl.syncToPool.syncOrder
+const myURL = new URL(HTTP_SYNCTOPOOL_URL)
+
+class SyncToPool extends Base {
+  constructor(...args) {
+    super(...args)
+    this.docHelper = new DocumentHelper(this)
+	}
+  /**
+   * @execNum 本次最大迁移数
+   * @planTotal 总计划迁移数
+   * @alreadySyncTotal 已经迁移的个数
+   * @alreadySyncPassTotal 已经迁移成功的个数
+   */
+  async syncOrder() {
+    let { db, cl, execNum = 200, planTotal = 0, alreadySyncTotal = 0, alreadySyncPassTotal = 0 } = this.request.query
+    if (!db || !cl || !execNum) return new ResultFault("参数不完整")
+
+    let { docIds, filter } = this.request.body
+    if (!filter && (!docIds || !Array.isArray(docIds) || docIds.length == 0)) {
+      return new ResultFault("没有要同步的数据")
+    }
+
+    const existDb = await this.docHelper.findRequestDb()
+    let client = this.mongoClient
+    let colle = client.db(existDb.sysname).collection(cl)
+		// 获取集合
+    let dbObj = await MODELCOLL.getCollection(existDb, cl)
+    if (!dbObj || !dbObj.schema || !dbObj.schema.body || !dbObj.schema.body.properties) return new ResultFault("文件没有指定集合列定义")
+		// 校验必须列
+		let dbSchema = dbObj.schema.body.properties
+		let requireFields = ["pool_sync_time", "pool_sync_status", "cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "cdrpush_url", "discost_month_gzh", "discost_call_gzh", "call_url", "flag_playtips ", "costtype_yly"]
+		let missFields = requireFields.filter(field => !dbSchema[field])
+		if (missFields.length) return new ResultFault("缺少同步必须列("+ missFields.join(',') +")")
+		
+		// 获取要同步的数据 同步时间为空或者有同步时间但修改时间大于同步时间
+    let find = {
+      $or: [
+        {
+          sync_time: { $in: [null, ""] },
+          sync_status: { $in: [null, ""] }
+        },
+        {
+          sync_time: { $not: { $in: [null, ""] } },
+          TMS_DEFAULT_UPDATE_TIME: { $not: { $in: [null, ""] } },
+          $where: "this.TMS_DEFAULT_UPDATE_TIME > this.sync_time"
+        }
+      ]
+    }
+    let operate_type
+    if (filter) {
+      if (_.toUpper(filter) !== "ALL") {
+        if (filter.sync_time) delete filter.sync_time
+        if (filter.sync_status) delete filter.sync_status
+        let find2 = this._assembleFind(filter)
+        Object.assign(find, find2)
+        operate_type = "按筛选"
+      } else {
+        operate_type = "按全部"
+      }
+    } else {
+      let docIds2 = []
+      docIds.forEach(id => {
+        docIds2.push(new ObjectId(id))
+      })
+      find._id = { $in: docIds2 }
+      operate_type = "按选中"
+    }
+
+    // 需要同步的数据的总数
+    let total = await colle.find(find).count()
+    if (total === 0) return new ResultFault("没有要同步的数据")
+    // 分批次插入, 一次默认插入200条
+    let orders = await colle.find(find).limit(parseInt(execNum)).toArray()
+
+    let rst
+    if (dbSchema.pro_type === 3) { 
+      rst = await this.fnSyncGZH(orders, dbSchema, colle, {db: existDb.name, cl, operate_type})
+    } else if (dbSchema.pro_type === 1) {
+      rst = await this.fnSyncYLY(orders, dbSchema, colle, {db: existDb.name, cl, operate_type})
+    }
+    if (rst[0] === false) {
+      return new ResultFault(rst[1])
+    }
+    rst = rst[1]
+    
+    planTotal = parseInt(planTotal)
+    if (planTotal == 0) planTotal = parseInt(total) // 计划总需要同步数
+    alreadySyncTotal = parseInt(alreadySyncTotal) + orders.length // 已经同步数
+    alreadySyncPassTotal = rst.passTotal + parseInt(alreadySyncPassTotal) // 已经成功迁移数
+    let alreadySyncFailTotal = alreadySyncTotal - alreadySyncPassTotal // 已经迁移失败的数量
+    let spareTotal = await colle.find(find).count() // 剩余数量
+
+    return new ResultData({ planTotal, alreadySyncTotal, alreadySyncPassTotal, alreadySyncFailTotal, spareTotal })
+  }
+	
+	/**
+	 *  
+	 *  
+	 *  
+   */
+	fn() {
+
+	}
+
+  /**
+   *  同步工作号 (接口方式)
+	 *  @orders 待同步的数据
+	 *  @schema 集合列定义
+	 *  @colle 当前集合
+	 *  @options 请求参数
+   */
+  async fnSyncGZH(orders, schema, colle, options) {
+    let abnormalTotal = 0 // 异常数
+    let passTotal = 0 // 成功数
+    let rst = orders.map(async order => {
+      let current = moment().format('YYYY-MM-DD HH:mm:ss')
+			let insStatus = "失败："
+			
+      // 判断是新增(1)还是修改(2), 有同步时间且修改时间大于同步时间是修改
+			let operation = order.pool_sync_time ? "2" : "1"
+
+			// 检查同步时必要字段的值
+			let ghzFields = ["cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "discost_month_gzh", "discost_call_gzh", "call_url", "cdrpush_url"]
+			let errorField = ghzFields.filter(field => !order[field])
+      if (errorField.length) {
+        abnormalTotal++
+        insStatus += "errorFields.join(',')的值为空"
+        let syncTime = (operation === "1") ? "" : current
+        await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
+        return Promise.resolve({ status: false, msg: insStatus })
+			}
+			
+			// 检查审批状态与审批价格
+			let disFields = ["discost_month_gzh", "discost_call_gzh", "discost_msg_gzh", "dismoney_a_gzh", "dismoney_b_gzh", "dismoney_c_gzh", "dismoney_d_gzh"]
+			function checkprice(order, field) {
+				if (order[field] && order.auditing_status==='N') {
+					abnormalTotal++
+					insStatus += "需要审批的价格已修改但未经过审批"
+					let syncTime = (operation === "1") ? "" : current
+					await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
+					return Promise.resolve({ status: false, msg: insStatus })
+				}
+				const newField = field.replace("dis", "")
+				order[field] = order[field] ? order[field] : order[newField]
+			}
+
+			// 开始同步
+			let postData = {
+				"cust_id": order.cust_id,
+				"cust_name": order.cust_name,
+				"operation": operation,
+				"orderId": order.order_id,
+				"orderSource": order.source,
+				"order_name": order.order_name,
+				"customer_id": order.customer_id,
+				"pro_type": order.pro_type,
+				"cost_month": order.discost_month_gzh,
+				"cost_call": order.discost_call_gzh,
+				"requestUrl": order.call_url,
+				"pushUrl": order.cdrpush_url,
+				"cost_msg": order.discost_msg_gzh,
+				"money_a": order.dismoney_a_gzh,
+				"money_b": order.dismoney_b_gzh,
+				"money_c": order.dismoney_c_gzh,
+				"money_d": order.dismoney_d_gzh,
+				"msgUrl": order.msg_url ? order.msg_url : ""
+			}
+      return new Promise(async (resolve) => {
+        request({
+          url: HTTP_SYNCTOPOOL_URL,
+          method: "POST",
+          json: true,
+          headers: {
+              "Content-Type": "application/json",
+              "Host": myURL.host
+          },
+          body: postData
+        }, async function(error, response, body) {
+          // logger.debug(HTTP_SYNCTEL_URL, response.request.headers, response.request.body)
+          if (error) {
+            logger.error("gzh", error)
+            insStatus += "接口发送失败; "
+            return resolve({ status: false, msg: insStatus })
+          }
+          if (!body) {
+            insStatus += "body为空; "
+            return resolve({ status: false, msg: insStatus })
+          } else if (typeof body === 'string') {
+              try {
+                body = JSON.parse(body)
+              } catch (error) {
+                insStatus += ("返回解析失败：" + body)
+                return resolve({ status: false, msg: insStatus })
+              }
+          }
+          if (body.returnCode != "0") {
+            insStatus += ("msg: " + body.msg)
+            return resolve({ status: false, msg: insStatus })
+          }
+          return resolve({ status: true, msg: "成功" })
+        })
+      }).then(async rstSync => { // 修改客户表同步状态 需要等到都插入完毕以后
+        let returnData
+        let retrunMsg
+        if (rstSync.status === true) {
+          passTotal++
+          retrunMsg = (operation === "1") ? "新增成功" : "修改成功"
+          await colle.updateOne({ _id: ObjectId(tel._id) }, { $set: { sync_time: current, sync_status: retrunMsg } })
+          returnData = { status: true, retrunMsg }
+        } else {
+          abnormalTotal++
+          retrunMsg = rstSync.msg
+          let syncTime = (operation === "1") ? "" : current
+          await colle.updateOne({ _id: ObjectId(tel._id) }, { $set: { sync_time: syncTime, sync_status: retrunMsg } })
+          returnData = { status: false, msg: retrunMsg }
+        }
+
+        // 记录日志
+        const modelD = new modelDocu()
+        tel.sync_time = current
+        tel.sync_status = retrunMsg
+        let {db, cl, operate_type} = options
+        await modelD.dataActionLog(tel, "工作号号码同步(" + operate_type + ")", db, cl)
+
+        return Promise.resolve(returnData)
+      })
+    })
+
+    return Promise.all(rst).then(async () => {
+      return [true, { abnormalTotal, passTotal }]
+    })
+  }
+  
+}
+
+module.exports = SyncToPool
