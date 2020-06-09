@@ -17,8 +17,8 @@ module.exports = {
     syncToPool: {
       syncOrder: process.env.TMS_HTTP_SYNCTOPOOL_URL
     },
-    syncToWorkLayer: {
-			syncOrder: process.env.TMS_HTTP_SYNCTOWORKLAYER_URL
+    syncToWork: {
+			syncOrder: process.env.TMS_HTTP_SYNCTOWORK_URL
 		}
   }
 }

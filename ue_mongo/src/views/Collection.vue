@@ -608,54 +608,10 @@ export default {
         )
       })
     },
-    pluginOfSync(transforms, param, pTotal, aSTotal, aSPTotal) {
+    pluginOfSync(type, transforms, param, pTotal, aSTotal, aSPTotal) {
       let msg = Message.info({ message: '开始同步数据...', duration: 0 }),
         _this = this
-      async function fnsync(transforms, param, pTotal, aSTotal, aSPTotal) {
-        let {
-          planTotal,
-          alreadySyncTotal,
-          alreadySyncPassTotal,
-          alreadySyncFailTotal,
-          spareTotal
-        } = await apiPlugins.sync
-          .syncMobilePool(
-            _this.dbName,
-            _this.clName,
-            transforms,
-            param,
-            pTotal,
-            aSTotal,
-            aSPTotal
-          )
-          .catch(() => msg.close())
-        msg.message = '正在同步数据...'
-        if (spareTotal <= 0) {
-          msg.message =
-            '成功迁移' +
-            alreadySyncPassTotal +
-            '条，失败' +
-            alreadySyncFailTotal +
-            '条'
-          _this.listDocument()
-          setTimeout(() => msg.close(), 1500)
-          return false
-        }
-        fnsync(
-          transforms,
-          param,
-          planTotal,
-          alreadySyncTotal,
-          alreadySyncPassTotal
-        )
-      }
-      fnsync(transforms, param, pTotal, aSTotal, aSPTotal)
-		},
-		pluginOfSyncOrder(type, transforms, param, pTotal, aSTotal, aSPTotal) {
-			console.log(type)
-			let msg = Message.info({ message: '开始同步数据...', duration: 0 }),
-        _this = this
-      async function fnsync(transforms, param, pTotal, aSTotal, aSPTotal) {
+      async function fnsync(type, transforms, param, pTotal, aSTotal, aSPTotal) {
         let {
           planTotal,
           alreadySyncTotal,
@@ -674,26 +630,15 @@ export default {
           .catch(() => msg.close())
         msg.message = '正在同步数据...'
         if (spareTotal <= 0) {
-          msg.message =
-            '成功迁移' +
-            alreadySyncPassTotal +
-            '条，失败' +
-            alreadySyncFailTotal +
-            '条'
+          msg.message = '成功迁移' + alreadySyncPassTotal + '条，失败' + alreadySyncFailTotal + '条'
           _this.listDocument()
           setTimeout(() => msg.close(), 1500)
           return false
         }
-        fnsync(
-          transforms,
-          param,
-          planTotal,
-          alreadySyncTotal,
-          alreadySyncPassTotal
-        )
+        fnsync(type, transforms, param, planTotal, alreadySyncTotal, alreadySyncPassTotal)
       }
-      fnsync(transforms, param, pTotal, aSTotal, aSPTotal)
-		},
+      fnsync(type, transforms, param, pTotal, aSTotal, aSPTotal)
+    },
     handlePlugin(submit, type) {
       let transforms = submit.checkList ? submit.checkList.join(',') : ""
       let { param } = type ? this.fnSetReqParam(type) : { param: null }
@@ -702,15 +647,7 @@ export default {
           this.pluginOfMoveByRule(transforms, param)
           break;
         case 'syncMobilePool':
-					this.pluginOfSync(transforms, param, 0, 0, 0)
-					break;
-				case 'syncToPool':
-				case 'syncToWork':
-					this.pluginOfSyncOrder(submit.id, transforms, param, 0, 0, 0)
-					break;
-				default:
-					console.log('没有匹配的值')
-					//this.pluginOfSyncOrder(submit.id, transforms, param, 0, 0, 0)
+          this.pluginOfSync(submit.id, transforms, param, 0, 0, 0)
       }
     },
     handleSize(val) {
