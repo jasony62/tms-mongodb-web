@@ -71,7 +71,7 @@
           </el-dropdown-menu>
         </el-dropdown>
         <hr />
-        <el-checkbox-group v-model="moveCheckList">
+        <el-checkbox-group v-model="moveCheckList" v-if="plugins.document.transforms&&plugins.document.transforms.move">
           <el-checkbox v-for="(t, k) in plugins.document.transforms.move" :label="t.name" :key="k">{{t.label}}</el-checkbox>
         </el-checkbox-group>
         <el-dropdown @command="batchMoveDocument">
@@ -84,7 +84,7 @@
         </el-dropdown>
         <hr />
         <div v-for="s in plugins.document.submits" :key="s.id">
-          <el-checkbox-group v-model="s.checkList">
+          <el-checkbox-group v-model="s.checkList" v-if="plugins.document.transforms&&plugins.document.transforms[s.id]">
             <el-checkbox v-for="(t, k) in plugins.document.transforms[s.id]" :label="t.name" :key="k">{{t.label}}</el-checkbox>
           </el-checkbox-group>
           <el-button @click="handlePlugin(s, null)" v-if="!s.batch">{{s.name}}</el-button>
@@ -102,7 +102,7 @@
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
-          <hr v-if="plugins.document.transforms[s.id]" />
+          <hr v-if="plugins.document.transforms&&plugins.document.transforms[s.id]" />
         </div>
       </tms-flex>
     </template>
@@ -340,15 +340,13 @@ export default {
     listPlugin() {
       apiPlugins.plugin.list().then(plugins => {
         if (JSON.stringify(plugins) !== '{}') {
-          this.moveCheckList = plugins.document.transforms.move.map(
-            option => option.name
-          )
-          plugins.document.submits.forEach(submit => {
-            let transforms = plugins.document.transforms[submit.id]
-            submit.checkList = transforms
-              ? transforms.map(item => item.name)
-              : []
-          })
+					if (plugins.document.transforms) {
+						this.moveCheckList = plugins.document.transforms.move.map(option => option.name)
+						plugins.document.submits.forEach(submit => {
+							let transforms = plugins.document.transforms[submit.id]
+							submit.checkList = transforms ? transforms.map(item => item.name) : []
+						})
+					}
           this.plugins = plugins
         }
       })
@@ -610,7 +608,7 @@ export default {
         )
       })
     },
-    pluginOfSync(transforms, param, pTotal, aSTotal, aSPTotal) {
+    pluginOfSync(type, transforms, param, pTotal, aSTotal, aSPTotal) {
       let msg = Message.info({ message: '开始同步数据...', duration: 0 }),
         _this = this
       async function fnsync(transforms, param, pTotal, aSTotal, aSPTotal) {
@@ -620,8 +618,7 @@ export default {
           alreadySyncPassTotal,
           alreadySyncFailTotal,
           spareTotal
-        } = await apiPlugins.sync
-          .syncMobilePool(
+        } = await apiPlugins.sync[type](
             _this.dbName,
             _this.clName,
             transforms,
@@ -633,35 +630,24 @@ export default {
           .catch(() => msg.close())
         msg.message = '正在同步数据...'
         if (spareTotal <= 0) {
-          msg.message =
-            '成功迁移' +
-            alreadySyncPassTotal +
-            '条，失败' +
-            alreadySyncFailTotal +
-            '条'
+          msg.message = '成功迁移' + alreadySyncPassTotal + '条，失败' + alreadySyncFailTotal + '条'
           _this.listDocument()
           setTimeout(() => msg.close(), 1500)
           return false
         }
-        fnsync(
-          transforms,
-          param,
-          planTotal,
-          alreadySyncTotal,
-          alreadySyncPassTotal
-        )
+        fnsync(type, transforms, param, planTotal, alreadySyncTotal, alreadySyncPassTotal)
       }
-      fnsync(transforms, param, pTotal, aSTotal, aSPTotal)
+      fnsync(type, transforms, param, pTotal, aSTotal, aSPTotal)
     },
     handlePlugin(submit, type) {
-      let transforms = submit.checkList.join(',')
+      let transforms = submit.checkList ? submit.checkList.join(',') : ""
       let { param } = type ? this.fnSetReqParam(type) : { param: null }
       switch (submit.id) {
         case 'moveByRule':
           this.pluginOfMoveByRule(transforms, param)
           break
         case 'syncMobilePool':
-          this.pluginOfSync(transforms, param, 0, 0, 0)
+          this.pluginOfSync(submit.id, transforms, param, 0, 0, 0)
       }
     },
     handleSize(val) {
