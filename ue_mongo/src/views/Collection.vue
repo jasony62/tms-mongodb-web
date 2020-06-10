@@ -647,6 +647,8 @@ export default {
           this.pluginOfMoveByRule(transforms, param)
           break;
         case 'syncMobilePool':
+				case 'syncToPool':
+				case 'syncToWork':
           this.pluginOfSync(submit.id, transforms, param, 0, 0, 0)
       }
     },

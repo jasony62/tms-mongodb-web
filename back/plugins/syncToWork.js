@@ -201,8 +201,9 @@ class SyncToWork extends Base {
 			
 			// 开始同步
       return new Promise(async (resolve) => {
+				logger.debug('开始调用业务接口')
         request({
-          url: HTTP_SYNCTEL_URL,
+          url: HTTP_SYNCTOWORK_URL,
           method: "POST",
           json: true,
           headers: {
@@ -211,7 +212,7 @@ class SyncToWork extends Base {
           },
           body: postData
         }, async function(error, response, body) {
-					// logger.debug(HTTP_SYNCTEL_URL, response.request.headers, response.request.body)
+					logger.debug('业务', body)
 					let type = tel.pro_type==='1' ? 'yly' : (tel.pro_type==='2' ? 'yzj' : 'gzh')
           if (error) {
             logger.error(type, error)
@@ -257,7 +258,7 @@ class SyncToWork extends Base {
         tel.work_sync_time = current
         tel.work_sync_status = returnMsg
         let {db, cl, operate_type} = options
-        await modelD.dataActionLog(tel, "订单同步(" + operate_type + ")", db, cl)
+        await modelD.dataActionLog(tel, type + "订单同步(" + operate_type + ")", db, cl)
 
         return Promise.resolve(returnData)
       })

@@ -45,7 +45,7 @@ class SyncToPool extends Base {
     if (!dbObj || !dbObj.schema || !dbObj.schema.body || !dbObj.schema.body.properties) return new ResultFault("文件没有指定集合列定义")
 		// 校验必须列
 		let dbSchema = dbObj.schema.body.properties
-		let requireFields = ["pool_sync_time", "pool_sync_status", "cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "cdrpush_url", "discost_month_gzh", "discost_call_gzh", "call_url", "flag_playtips ", "costtype_yly"]
+		let requireFields = ["pool_sync_time", "pool_sync_status", "cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "cdrpush_url", "discost_month_gzh", "discost_call_gzh", "call_url", "flag_playtips", "costtype_yly"]
 		let missFields = requireFields.filter(field => !dbSchema[field])
 		if (missFields.length) return new ResultFault("缺少同步必须列("+ missFields.join(',') +")")
 		
@@ -53,21 +53,21 @@ class SyncToPool extends Base {
     let find = {
       $or: [
         {
-          sync_time: { $in: [null, ""] },
-          sync_status: { $in: [null, ""] }
+          pool_sync_time: { $in: [null, ""] },
+          pool_sync_status: { $in: [null, ""] }
         },
         {
-          sync_time: { $not: { $in: [null, ""] } },
+          pool_sync_time: { $not: { $in: [null, ""] } },
           TMS_DEFAULT_UPDATE_TIME: { $not: { $in: [null, ""] } },
-          $where: "this.TMS_DEFAULT_UPDATE_TIME > this.sync_time"
+          $where: "this.TMS_DEFAULT_UPDATE_TIME > this.pool_sync_time"
         }
       ]
     }
     let operate_type
     if (filter) {
       if (_.toUpper(filter) !== "ALL") {
-        if (filter.sync_time) delete filter.sync_time
-        if (filter.sync_status) delete filter.sync_status
+        if (filter.pool_sync_time) delete filter.pool_sync_time
+        if (filter.pool_sync_status) delete filter.pool_sync_status
         let find2 = this._assembleFind(filter)
         Object.assign(find, find2)
         operate_type = "按筛选"
@@ -89,13 +89,7 @@ class SyncToPool extends Base {
     // 分批次插入, 一次默认插入200条
     let orders = await colle.find(find).limit(parseInt(execNum)).toArray()
 
-		let rst
-		if (dbSchema.pro_type) return new ResultFault("未选择产品类型") 
-    if (dbSchema.pro_type === 3) { 
-      rst = await this.fnSyncGZH(orders, dbSchema, colle, {db: existDb.name, cl, operate_type})
-    } else if (dbSchema.pro_type === 1) {
-      rst = await this.fnSyncYLY(orders, dbSchema, colle, {db: existDb.name, cl, operate_type})
-    }
+		let rst = await this.fnSync(orders, dbSchema, colle, {db: existDb.name, cl, operate_type})
     if (rst[0] === false) {
       return new ResultFault(rst[1])
     }
@@ -111,18 +105,19 @@ class SyncToPool extends Base {
     return new ResultData({ planTotal, alreadySyncTotal, alreadySyncPassTotal, alreadySyncFailTotal, spareTotal })
 	}
   /**
-   *  同步工作号 (接口方式)
+   *  同步 (接口方式)
 	 *  @orders 待同步的数据
 	 *  @schema 集合列定义
 	 *  @colle 当前集合
 	 *  @options 请求参数
    */
-  async fnSyncGZH(orders, schema, colle, options) {
+  async fnSync(orders, schema, colle, options) {
     let abnormalTotal = 0 // 异常数
     let passTotal = 0 // 成功数
     let rst = orders.map(async order => {
-      let current = moment().format('YYYY-MM-DD HH:mm:ss')
-			let insStatus = "失败："
+			let current, insStatus, postData
+			current = moment().format('YYYY-MM-DD HH:mm:ss')
+			insStatus = "失败："
 			
       // 判断是新增(1)还是修改(2), 有同步时间且修改时间大于同步时间是修改
 			let operation = order.pool_sync_time ? "2" : "1"
@@ -136,69 +131,127 @@ class SyncToPool extends Base {
         return Promise.resolve({ status: false, msg: insStatus })
 			}
 
-			// 检查同步时必要字段的值
-			let ghzFields = ["cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "discost_month_gzh", "discost_call_gzh", "call_url", "cdrpush_url"]
-			let errorField = ghzFields.filter(field => !order[field])
-      if (errorField.length) {
-        abnormalTotal++
-        insStatus += errorFields.join(',') + "的值为空"
-        let syncTime = (operation === "1") ? "" : current
-        await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
-        return Promise.resolve({ status: false, msg: insStatus })
-			}
+			// 工作号
+			if (order.pro_type==='3') {
+				// 检查同步时必要字段的值
+				let ghzFields = ["cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "discost_month_gzh", "discost_call_gzh", "call_url", "cdrpush_url"]
+				let errorField = ghzFields.filter(field => !order[field])
+				if (errorField.length) {
+					abnormalTotal++
+					insStatus += errorFields.join(',') + "的值为空"
+					let syncTime = (operation === "1") ? "" : current
+					await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
+					return Promise.resolve({ status: false, msg: insStatus })
+				}
+				
+				// 检查costtype_gzh/msg_url/flag_playtips
+				if (order.biz_function && (order.biz_function==='1' || order.biz_function==='1,2')) {
+					let flag = false
+					if (schema.costtype_gzh && !order.costtype_gzh) {
+						insStatus += "costtype_gzh列不存在或值为空"
+						flag = true
+					}
+					if (schema.msg_url && !order.msg_url) {
+						insStatus += "msg_url列不存在或值为空"
+						flag = true
+					}
+					if (!order.flag_playtips) {
+						insStatus += "flag_playtips的值为空"
+						flag = true
+					}
+					if (flag) {
+						abnormalTotal++
+						let syncTime = (operation === "1") ? "" : current
+						await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
+						return Promise.resolve({ status: false, msg: insStatus })
+					}
+				}
 			
-			// 检查costtype_gzh/msg_url/flag_playtips
-			if (order.biz_function && (order.biz_function==='1' || order.biz_function==='1,2')) {
-				if (schema.costtype_gzh && !order.costtype_gzh) {
-					insStatus += "costtype_gzh列不存在或值为空"
+				// 准备数据
+				postData = {
+					"cust_id": order.cust_id,
+					"cust_name": order.cust_name,
+					"operation": operation,
+					"orderId": order.order_id,
+					"orderSource": order.source,
+					"order_name": order.order_name,
+					"customer_id": order.customer_id,
+					"pro_type": order.pro_type,
+					"requestUrl": order.call_url,
+					"pushUrl": order.cdrpush_url,
+					"cost_month": order.discost_month_gzh,
+					"cost_call": order.discost_call_gzh 
 				}
-				if (schema.msg_url && !order.msg_url) {
-					insStatus += "msg_url列不存在或值为空"
-				}
-				if (!order.flag_playtips) {
-					insStatus += "flag_playtips的值为空"
-				}
-				abnormalTotal++
-				let syncTime = (operation === "1") ? "" : current
-				await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
-				return Promise.resolve({ status: false, msg: insStatus })
-			}
-		
-			// 开始同步
-			let postData = {
-				"cust_id": order.cust_id,
-				"cust_name": order.cust_name,
-				"operation": operation,
-				"orderId": order.order_id,
-				"orderSource": order.source,
-				"order_name": order.order_name,
-				"customer_id": order.customer_id,
-				"pro_type": order.pro_type,
-				"requestUrl": order.call_url,
-				"pushUrl": order.cdrpush_url,
-				"cost_month": order.discost_month_gzh,
-				"cost_call": order.discost_call_gzh 
-			}
-			if (order.biz_function) {
-				postData.bizFunction = order.biz_function
-				if (order.biz_function==='1'||order.biz_function==='1,2') {
-					postData.costType = order.costtype_gzh
-					postData.msgUrl = order.msg_url
-					postData.voiceUrl = order.flag_playtips==='Y' ?  '1' : '2'
-					postData.money_a = order.dismoney_a_gzh ? order.dismoney_a_gzh : order.money_a_gzh
-					postData.money_b = order.dismoney_b_gzh ? order.dismoney_b_gzh : order.money_b_gzh
-					postData.money_c = order.dismoney_c_gzh ? order.dismoney_c_gzh : order.money_c_gzh
-					postData.money_d = order.dismoney_d_gzh ? order.dismoney_d_gzh : order.money_d_gzh
-					postData.money_e = order.dismoney_e_gzh ? order.dismoney_e_gzh : order.money_e_gzh
-					postData.money_f = order.dismoney_f_gzh ? order.dismoney_f_gzh : order.money_f_gzh
-					postData.duration_price = order.disovermoney_time_gzh ? order.disovermoney_time_gzh : order.overmoney_time_gzh
-					postData.money_ex = order.disovermoney_gzh ? order.disovermoney_gzh : order.overmoney_gzh
-				}
-				if (order.biz_function==='2'||order.biz_function==='1,2') {
-					postData.cost_msg = order.discost_msg_gzh ? order.discost_msg_gzh : order.cost_msg_gzh
+				if (order.biz_function) {
+					postData.bizFunction = order.biz_function
+					if (order.biz_function==='1'||order.biz_function==='1,2') {
+						postData.costType = order.costtype_gzh
+						postData.msgUrl = order.msg_url
+						postData.voiceUrl = order.flag_playtips==='Y' ?  '1' : '2'
+						postData.money_a = order.dismoney_a_gzh ? order.dismoney_a_gzh : order.money_a_gzh
+						postData.money_b = order.dismoney_b_gzh ? order.dismoney_b_gzh : order.money_b_gzh
+						postData.money_c = order.dismoney_c_gzh ? order.dismoney_c_gzh : order.money_c_gzh
+						postData.money_d = order.dismoney_d_gzh ? order.dismoney_d_gzh : order.money_d_gzh
+						postData.money_e = order.dismoney_e_gzh ? order.dismoney_e_gzh : order.money_e_gzh
+						postData.money_f = order.dismoney_f_gzh ? order.dismoney_f_gzh : order.money_f_gzh
+						postData.duration_price = order.disovermoney_time_gzh ? order.disovermoney_time_gzh : order.overmoney_time_gzh
+						postData.money_ex = order.disovermoney_gzh ? order.disovermoney_gzh : order.overmoney_gzh
+					}
+					if (order.biz_function==='2'||order.biz_function==='1,2') {
+						postData.cost_msg = order.discost_msg_gzh ? order.discost_msg_gzh : order.cost_msg_gzh
+					}
 				}
 			}
-      return new Promise(async (resolve) => {
+
+			// 云录音
+			if (order.pro_type==='1') {
+				// 检查同步时必要字段的值
+				let ylyFields = ["cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "cdrpush_url", "flag_playtips", "costtype_yly"]
+				let errorFields = ylyFields.filter(field => !order[field])
+				if (errorFields.length) {
+					abnormalTotal++
+					insStatus += errorFields.join(',') + "的值为空"
+					let syncTime = (operation === "1") ? "" : current
+					await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
+					return Promise.resolve({ status: false, msg: insStatus })
+				}
+				
+				// 检查biz_function
+				if (schema.biz_function && !order.biz_function) {
+					insStatus += "biz_function列不存在或值为空"
+					abnormalTotal++
+					let syncTime = (operation === "1") ? "" : current
+					await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
+					return Promise.resolve({ status: false, msg: insStatus })
+				}
+			
+				// 开始同步
+				postData = {
+					"cust_id": order.cust_id,
+					"cust_name": order.cust_name,
+					"operation": operation,
+					"orderId": order.order_id,
+					"orderSource": order.source,
+					"order_name": order.order_name,
+					"customer_id": order.customer_id,
+					"pro_type": order.pro_type,
+					"pushUrl": order.cdrpush_url,
+					"voiceUrl": order.flag_playtips==='Y' ? '1' : '2',
+					"costType": order.costtype_yly,
+					"bizFunction": order.biz_function,
+					"money_a": order.dismoney_a_yly ? order.dismoney_a_yly : order.money_a_yly, 
+					"money_b": order.dismoney_b_yly ? order.dismoney_b_yly : order.money_b_yly, 
+					"money_c": order.dismoney_c_yly ? order.dismoney_c_yly : order.money_c_yly, 
+					"money_d": order.dismoney_d_yly ? order.dismoney_d_yly : order.money_d_yly, 
+					"money_e": order.dismoney_e_yly ? order.dismoney_e_yly : order.money_e_yly, 
+					"money_f": order.dismoney_f_yly ? order.dismoney_f_yly : order.money_f_yly, 
+					"duration_price": order.disovermoney_time_yly ? order.disovermoney_time_yly : order.overmoney_time_yly,
+					"money_ex": order.disovermoney_yly ? order.disovermoney_yly : order.overmoney_yly
+				}
+			}
+
+      return new Promise( async resolve => {
+				logger.debug('开始调用号池接口')
         request({
           url: HTTP_SYNCTOPOOL_URL,
           method: "POST",
@@ -209,9 +262,10 @@ class SyncToPool extends Base {
           },
           body: postData
         }, async function(error, response, body) {
-          // logger.debug(HTTP_SYNCTEL_URL, response.request.headers, response.request.body)
+          logger.debug('号池', body)
           if (error) {
-            logger.error("gzh", error)
+						let type = order.pro_type==='1' ? 'yly' : (order.pro_type==='2' ? 'yzj' : 'gzh')
+            logger.error(type, error)
             insStatus += "接口发送失败; "
             return resolve({ status: false, msg: insStatus })
           }
@@ -226,15 +280,15 @@ class SyncToPool extends Base {
                 return resolve({ status: false, msg: insStatus })
               }
           }
-          if (body.returnCode != "0") {
+          if (body.code != "0") {
             insStatus += ("msg: " + body.msg)
             return resolve({ status: false, msg: insStatus })
           }
           return resolve({ status: true, msg: "成功" })
         })
       }).then(async rstSync => { // 修改客户表同步状态 需要等到都插入完毕以后
-        let returnData
-        let returnMsg
+				let returnData, returnMsg, type
+				type = order.pro_type==='1' ? '云录音' : (order.pro_type==='2' ? '云中继' : '工作号')
         if (rstSync.status === true) {
           passTotal++
           returnMsg = (operation === "1") ? "新增成功" : "修改成功"
@@ -250,145 +304,11 @@ class SyncToPool extends Base {
 
         // 记录日志
         const modelD = new modelDocu()
-        tel.sync_time = current
-        tel.sync_status = returnMsg
-        let {db, cl, operate_type} = options
-        await modelD.dataActionLog(tel, "工作号号码同步(" + operate_type + ")", db, cl)
-
-        return Promise.resolve(returnData)
-      })
-    })
-
-    return Promise.all(rst).then(async () => {
-      return [true, { abnormalTotal, passTotal }]
-    })
-  }
-  /**
-   *  同步云录音 (接口方式)
-	 *  @orders 待同步的数据
-	 *  @schema 集合列定义
-	 *  @colle 当前集合
-	 *  @options 请求参数
-   */
-  async fnSyncYLY(orders, schema, colle, options) {
-    let abnormalTotal = 0 // 异常数
-    let passTotal = 0 // 成功数
-    let rst = orders.map(async order => {
-      let current = moment().format('YYYY-MM-DD HH:mm:ss')
-			let insStatus = "失败："
-			
-      // 判断是新增(1)还是修改(2), 有同步时间且修改时间大于同步时间是修改
-			let operation = order.pool_sync_time ? "2" : "1"
-
-			// 检查审核状态 0:无需审核 2:等待审核 1:审核通过 99:驳回
-			if (order.auditing_status!=='1') {
-				abnormalTotal++
-        insStatus += "此订单未通过审核"
-        let syncTime = (operation === "1") ? "" : current
-        await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
-        return Promise.resolve({ status: false, msg: insStatus })
-			}
-
-			// 检查同步时必要字段的值
-			let ylyFields = ["cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "cdrpush_url", "flag_playtips", "costtype_yly"]
-			let errorField = ylyFields.filter(field => !order[field])
-      if (errorField.length) {
-        abnormalTotal++
-        insStatus += errorFields.join(',') + "的值为空"
-        let syncTime = (operation === "1") ? "" : current
-        await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
-        return Promise.resolve({ status: false, msg: insStatus })
-			}
-			
-			// 检查biz_function
-			if (schema.biz_function && !order.biz_function) {
-				insStatus += "biz_function列不存在或值为空"
-				abnormalTotal++
-				let syncTime = (operation === "1") ? "" : current
-				await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
-				return Promise.resolve({ status: false, msg: insStatus })
-			}
-		
-			// 开始同步
-			let postData = {
-				"cust_id": order.cust_id,
-				"cust_name": order.cust_name,
-				"operation": operation,
-				"orderId": order.order_id,
-				"orderSource": order.source,
-				"order_name": order.order_name,
-				"customer_id": order.customer_id,
-				"pro_type": order.pro_type,
-				"pushUrl": order.cdrpush_url,
-				"voiceUrl": order.flag_playtips==='Y' ? '1' : '2',
-				"costType": order.costtype_yly,
-				"bizFunction": order.biz_function,
-				"money_a": order.dismoney_a_yly ? order.dismoney_a_yly : order.money_a_yly, 
-				"money_b": order.dismoney_b_yly ? order.dismoney_b_yly : order.money_b_yly, 
-				"money_c": order.dismoney_c_yly ? order.dismoney_c_yly : order.money_c_yly, 
-				"money_d": order.dismoney_d_yly ? order.dismoney_d_yly : order.money_d_yly, 
-				"money_e": order.dismoney_e_yly ? order.dismoney_e_yly : order.money_e_yly, 
-				"money_f": order.dismoney_f_yly ? order.dismoney_f_yly : order.money_f_yly, 
-				"duration_price": order.disovermoney_time_yly ? order.disovermoney_time_yly : order.overmoney_time_yly,
-				"money_ex": order.disovermoney_yly ? order.disovermoney_yly : order.overmoney_yly
-			}
-			
-      return new Promise(async (resolve) => {
-        request({
-          url: HTTP_SYNCTOPOOL_URL,
-          method: "POST",
-          json: true,
-          headers: {
-              "Content-Type": "application/json",
-              "Host": myURL.host
-          },
-          body: postData
-        }, async function(error, response, body) {
-          // logger.debug(HTTP_SYNCTEL_URL, response.request.headers, response.request.body)
-          if (error) {
-            logger.error("gzh", error)
-            insStatus += "接口发送失败; "
-            return resolve({ status: false, msg: insStatus })
-          }
-          if (!body) {
-            insStatus += "body为空; "
-            return resolve({ status: false, msg: insStatus })
-          } else if (typeof body === 'string') {
-              try {
-                body = JSON.parse(body)
-              } catch (error) {
-                insStatus += ("返回解析失败：" + body)
-                return resolve({ status: false, msg: insStatus })
-              }
-          }
-          if (body.returnCode != "0") {
-            insStatus += ("msg: " + body.msg)
-            return resolve({ status: false, msg: insStatus })
-          }
-          return resolve({ status: true, msg: "成功" })
-        })
-      }).then(async rstSync => { // 修改客户表同步状态 需要等到都插入完毕以后
-        let returnData
-        let returnMsg
-        if (rstSync.status === true) {
-          passTotal++
-          returnMsg = (operation === "1") ? "新增成功" : "修改成功"
-          await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: current, pool_sync_status: returnMsg } })
-          returnData = { status: true, returnMsg }
-        } else {
-          abnormalTotal++
-          returnMsg = rstSync.msg
-          let syncTime = (operation === "1") ? "" : current
-          await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: returnMsg } })
-          returnData = { status: false, msg: returnMsg }
-        }
-
-        // 记录日志
-        const modelD = new modelDocu()
-        tel.sync_time = current
-        tel.sync_status = returnMsg
-        let {db, cl, operate_type} = options
-        await modelD.dataActionLog(tel, "云录音号码同步(" + operate_type + ")", db, cl)
+        order.pool_sync_time = current
+        order.pool_sync_status = returnMsg
+				let {db, cl, operate_type} = options
+				
+        await modelD.dataActionLog(order, type + "订单同步(" + operate_type + ")", db, cl)
 
         return Promise.resolve(returnData)
       })
