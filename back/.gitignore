@@ -1,6 +1,7 @@
 .vscode
 node_modules/
 public/
-.env.local
+.env
+.env.*
 *.xlsx
-config/app.local.js
+config/*.local.js
