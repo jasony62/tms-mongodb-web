@@ -53,21 +53,21 @@ class SyncToWork extends Base {
     let find = {
       $or: [
         {
-          sync_time: { $in: [null, ""] },
-          sync_status: { $in: [null, ""] }
+          work_sync_time: { $in: [null, ""] },
+          work_sync_status: { $in: [null, ""] }
         },
         {
-          sync_time: { $not: { $in: [null, ""] } },
+          work_sync_time: { $not: { $in: [null, ""] } },
           TMS_DEFAULT_UPDATE_TIME: { $not: { $in: [null, ""] } },
-          $where: "this.TMS_DEFAULT_UPDATE_TIME > this.sync_time"
+          $where: "this.TMS_DEFAULT_UPDATE_TIME > this.work_sync_time"
         }
       ]
     }
     let operate_type
     if (filter) {
       if (_.toUpper(filter) !== "ALL") {
-        if (filter.sync_time) delete filter.sync_time
-        if (filter.sync_status) delete filter.sync_status
+        if (filter.work_sync_time) delete filter.work_sync_time
+        if (filter.work_sync_status) delete filter.work_sync_status
         let find2 = this._assembleFind(filter)
         Object.assign(find, find2)
         operate_type = "按筛选"
@@ -120,8 +120,8 @@ class SyncToWork extends Base {
 
 			// 检查同步时必要字段的值
 			let ghzFields = ["order_id", "order_name", "source", "status", "cust_id", "cust_name", "pro_type", "customer_id"]
-			let errorField = ghzFields.filter(field => !tel[field])
-      if (errorField.length) {
+			let errorFields = ghzFields.filter(field => !tel[field])
+      if (errorFields.length) {
 				abnormalTotal++
         insStatus += errorFields.join(',') + "的值为空"
         let syncTime = operation === "1" ? "" : current
