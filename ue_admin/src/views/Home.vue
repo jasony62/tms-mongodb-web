@@ -31,8 +31,8 @@
         <el-table-column prop="description" label="说明"> </el-table-column>
         <el-table-column fixed="right" label="操作" width="120">
           <template slot-scope="scope">
-            <el-button type="text" size="mini" @click="editSchema(scope.row, scope.$index, true)">复制</el-button>
-            <el-button type="text" size="mini" @click="editSchema(scope.row, scope.$index)">修改</el-button>
+            <el-button type="text" size="mini" @click="editSchema('document', scope.row, scope.$index, true)">复制</el-button>
+            <el-button type="text" size="mini" @click="editSchema('document', scope.row, scope.$index)">修改</el-button>
             <el-button type="text" size="mini" @click="handleSchema(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -43,8 +43,8 @@
         <el-table-column prop="description" label="说明"> </el-table-column>
         <el-table-column fixed="right" label="操作" width="120">
           <template slot-scope="scope">
-            <el-button type="text" size="mini" @click="editSchema(scope.row, scope.$index, true)">复制</el-button>
-            <el-button type="text" size="mini" @click="editSchema(scope.row, scope.$index)">修改</el-button>
+            <el-button type="text" size="mini" @click="editSchema('db', scope.row, scope.$index, true)">复制</el-button>
+            <el-button type="text" size="mini" @click="editSchema('db', scope.row, scope.$index)">修改</el-button>
             <el-button type="text" size="mini" @click="handleSchema(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -55,8 +55,8 @@
         <el-table-column prop="description" label="说明"> </el-table-column>
         <el-table-column fixed="right" label="操作" width="120">
           <template slot-scope="scope">
-            <el-button type="text" size="mini" @click="editSchema(scope.row, scope.$index, true)">复制</el-button>
-            <el-button type="text" size="mini" @click="editSchema(scope.row, scope.$index)">修改</el-button>
+            <el-button type="text" size="mini" @click="editSchema('collection', scope.row, scope.$index, true)">复制</el-button>
+            <el-button type="text" size="mini" @click="editSchema('collection', scope.row, scope.$index)">修改</el-button>
             <el-button type="text" size="mini" @click="handleSchema(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -122,7 +122,7 @@ export default {
         this.appendSchema({ schema: newSchema })
       })
     },
-    editSchema(schema, index, isCopy = false) {
+    editSchema(scope, schema, index, isCopy = false) {
       let newObj = { ...schema }
       if (isCopy) {
         newObj.title = newObj.title + '-复制'
@@ -133,7 +133,7 @@ export default {
         if (isCopy) {
           this.appendSchema({ schema: newSchema })
         } else {
-          this.updateSchema({ schema: newSchema, index })
+          this.updateSchema({ schema: newSchema, scope, index })
         }
       })
     },
