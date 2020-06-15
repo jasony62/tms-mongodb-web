@@ -263,6 +263,7 @@ class SyncToPool extends Base {
           },
           body: postData
         }, async function(error, response, body) {
+					logger.debug(HTTP_SYNCTOPOOL_URL)
           logger.debug('号池', body)
           if (error) {
 						let type = order.pro_type==='1' ? 'yly' : (order.pro_type==='2' ? 'yzj' : 'gzh')
