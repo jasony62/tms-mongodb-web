@@ -252,6 +252,7 @@ class SyncToPool extends Base {
 
       return new Promise( async resolve => {
 				logger.debug('开始调用号池接口')
+				logger.debug(HTTP_SYNCTOPOOL_URL)
         request({
           url: HTTP_SYNCTOPOOL_URL,
           method: "POST",
