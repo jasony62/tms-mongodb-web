@@ -45,7 +45,7 @@ class SyncToPool extends Base {
     if (!dbObj || !dbObj.schema || !dbObj.schema.body || !dbObj.schema.body.properties) return new ResultFault("文件没有指定集合列定义")
 		// 校验必须列
 		let dbSchema = dbObj.schema.body.properties
-		let requireFields = ["pool_sync_time", "pool_sync_status", "cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "cdrpush_url", "discost_month_gzh", "discost_call_gzh", "call_url", "flag_playtips", "costtype_yly"]
+		let requireFields = ["pool_sync_time", "pool_sync_status", "auditing_status", "cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "cdrpush_url", "discost_month_gzh", "discost_call_gzh", "call_url", "flag_playtips", "costtype_yly"]
 		let missFields = requireFields.filter(field => !dbSchema[field])
 		if (missFields.length) return new ResultFault("缺少同步必须列("+ missFields.join(',') +")")
 		

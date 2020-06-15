@@ -45,7 +45,7 @@ class SyncToWork extends Base {
 		if (!dbObj || !dbObj.schema || !dbObj.schema.body || !dbObj.schema.body.properties) return new ResultFault("指定文件没有集合列定义")
 		// 校验必须列
 		let dbSchema = dbObj.schema.body.properties
-		let requireFields = ["work_sync_time", "work_sync_status", "order_id", "order_name", "source", "status", "cust_id", "cust_name", "pro_type", "customer_id"]
+		let requireFields = ["work_sync_time", "work_sync_status", "auditing_status", "order_id", "order_name", "source", "status", "cust_id", "cust_name", "pro_type", "customer_id"]
 		let missFields = requireFields.filter(field => !dbSchema[field])
 		if (missFields.length) return new ResultFault("缺少同步必须列("+ missFields.join(',') +")")
 
@@ -116,7 +116,16 @@ class SyncToWork extends Base {
 			let insStatus = "失败："
 			
       // 判断是新增(1)还是修改(2), 有同步时间且修改时间大于同步时间是修改
-			let operation = tel.pool_sync_time ? "2" : "1"
+			let operation = tel.work_sync_time ? "2" : "1"
+
+			// 检查审核状态 0:无需审核 2:等待审核 1:审核通过 99:驳回
+			if (tel.auditing_status!=='1') {
+				abnormalTotal++
+        insStatus += "此订单未通过审核"
+        let syncTime = (operation === "1") ? "" : current
+        await colle.updateOne({ _id: ObjectId(tel._id) }, { $set: { work_sync_time: syncTime, work_sync_status: insStatus } })
+        return Promise.resolve({ status: false, msg: insStatus })
+			}
 
 			// 检查同步时必要字段的值
 			let ghzFields = ["order_id", "order_name", "source", "status", "cust_id", "cust_name", "pro_type", "customer_id"]
