@@ -17,7 +17,7 @@ services:
       - TMS_REDIS_PREFIX=dev-op
       - TMS_REDIS_HOST=192.168.20.247
       - TMS_REDIS_PORT=6300
-      - TMS_HTTP_SYNCTOPOOL_URL=http://192.168.20.248/plugin/order/updateInfo
+      - TMS_HTTP_SYNCTOPOOL_URL=http://192.168.20.248/pool/plugin/order/updateInfo
       - TMS_HTTP_SYNCTOWORK_URL=http://back/plugin/order/updateInfo
       networks:
       - portal

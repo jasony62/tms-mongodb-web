@@ -252,7 +252,7 @@ class SyncToPool extends Base {
 
       return new Promise( async resolve => {
 				logger.debug('开始调用号池接口')
-				logger.debug(HTTP_SYNCTOPOOL_URL)
+				logger.debug('调用前的接口',HTTP_SYNCTOPOOL_URL)
         request({
           url: HTTP_SYNCTOPOOL_URL,
           method: "POST",
@@ -263,7 +263,6 @@ class SyncToPool extends Base {
           },
           body: postData
         }, async function(error, response, body) {
-					logger.debug(HTTP_SYNCTOPOOL_URL)
           logger.debug('号池', body)
           if (error) {
 						let type = order.pro_type==='1' ? 'yly' : (order.pro_type==='2' ? 'yzj' : 'gzh')
