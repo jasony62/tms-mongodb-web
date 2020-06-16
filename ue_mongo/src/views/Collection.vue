@@ -630,7 +630,7 @@ export default {
           .catch(() => msg.close())
         msg.message = '正在同步数据...'
         if (spareTotal <= 0) {
-          msg.message = '成功迁移' + alreadySyncPassTotal + '条，失败' + alreadySyncFailTotal + '条'
+          msg.message = '成功同步' + alreadySyncPassTotal + '条，失败' + alreadySyncFailTotal + '条'
           _this.listDocument()
           setTimeout(() => msg.close(), 1500)
           return false
