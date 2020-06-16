@@ -59,9 +59,14 @@
         <el-upload action="#" :show-file-list="false" :http-request="importDocument">
           <el-button>导入数据</el-button>
         </el-upload>
-        <div>
-          <el-button @click="exportDocument">导出数据</el-button>
-        </div>
+				<el-dropdown @command="exportDocument">
+          <el-button>导出数据<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
+            <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
+            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
         <el-dropdown @command="batchRemoveDocument">
           <el-button>批量删除<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
@@ -584,8 +589,9 @@ export default {
           setTimeout(() => msg.close(), 1000)
         })
     },
-    exportDocument() {
-      apiDoc.export(this.bucketName, this.dbName, this.clName).then(result => {
+    exportDocument(command) {
+			let { param } = this.fnSetReqParam(command)
+      apiDoc.export(this.bucketName, this.dbName, this.clName, param).then(result => {
         const access_token = sessionStorage.getItem('access_token')
         window.open(
           `${process.env.VUE_APP_BACK_API_BASE}/download/down?access_token=${access_token}&file=${result}`
@@ -611,7 +617,7 @@ export default {
     pluginOfSync(type, transforms, param, pTotal, aSTotal, aSPTotal) {
       let msg = Message.info({ message: '开始同步数据...', duration: 0 }),
         _this = this
-      async function fnsync(transforms, param, pTotal, aSTotal, aSPTotal) {
+      async function fnsync(type, transforms, param, pTotal, aSTotal, aSPTotal) {
         let {
           planTotal,
           alreadySyncTotal,
@@ -630,7 +636,7 @@ export default {
           .catch(() => msg.close())
         msg.message = '正在同步数据...'
         if (spareTotal <= 0) {
-          msg.message = '成功迁移' + alreadySyncPassTotal + '条，失败' + alreadySyncFailTotal + '条'
+          msg.message = '成功同步' + alreadySyncPassTotal + '条，失败' + alreadySyncFailTotal + '条'
           _this.listDocument()
           setTimeout(() => msg.close(), 1500)
           return false
