@@ -194,7 +194,7 @@ class SyncToPool extends Base {
 						postData.money_d = order.dismoney_d_gzh ? order.dismoney_d_gzh : order.money_d_gzh
 						postData.money_e = order.dismoney_e_gzh ? order.dismoney_e_gzh : order.money_e_gzh
 						postData.money_f = order.dismoney_f_gzh ? order.dismoney_f_gzh : order.money_f_gzh
-						postData.duration_price = order.disovermoney_time_gzh ? order.disovermoney_time_gzh : order.money_time_gzh
+						postData.duration_price = order.dismoney_time_gzh ? order.dismoney_time_gzh : order.money_time_gzh
 						postData.money_ex = order.disovermoney_gzh ? order.disovermoney_gzh : order.overmoney_gzh
 					}
 					if (order.biz_function==='2'||order.biz_function==='1,2') {
@@ -246,7 +246,7 @@ class SyncToPool extends Base {
 					"money_d": order.dismoney_d_yly ? order.dismoney_d_yly : order.money_d_yly, 
 					"money_e": order.dismoney_e_yly ? order.dismoney_e_yly : order.money_e_yly, 
 					"money_f": order.dismoney_f_yly ? order.dismoney_f_yly : order.money_f_yly, 
-					"duration_price": order.disovermoney_time_yly ? order.disovermoney_time_yly : order.money_time_yly,
+					"duration_price": order.dismoney_time_yly ? order.dismoney_time_yly : order.money_time_yly,
 					"money_ex": order.disovermoney_yly ? order.disovermoney_yly : order.overmoney_yly
 				}
 			}
