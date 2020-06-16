@@ -134,9 +134,9 @@ class SyncToPool extends Base {
 			// 工作号
 			if (order.pro_type==='3') {
 				// 检查同步时必要字段的值
-				let ghzFields = ["cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "discost_month_gzh", "discost_call_gzh", "call_url", "cdrpush_url"]
-				let errorField = ghzFields.filter(field => !order[field])
-				if (errorField.length) {
+				let ghzFields = ["cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "call_url", "cdrpush_url"]
+				let errorFields = ghzFields.filter(field => !order[field])
+				if (errorFields.length) {
 					abnormalTotal++
 					insStatus += errorFields.join(',') + "的值为空"
 					let syncTime = (operation === "1") ? "" : current
@@ -179,8 +179,8 @@ class SyncToPool extends Base {
 					"pro_type": order.pro_type,
 					"requestUrl": order.call_url,
 					"pushUrl": order.cdrpush_url,
-					"cost_month": order.discost_month_gzh,
-					"cost_call": order.discost_call_gzh 
+					"cost_month": order.discost_month_gzh ? order.discost_month_gzh : order.cost_month_gzh,
+					"cost_call": order.discost_call_gzh ? order.discost_call_gzh : order.cost_call_gzh
 				}
 				if (order.biz_function) {
 					postData.bizFunction = order.biz_function
@@ -194,7 +194,7 @@ class SyncToPool extends Base {
 						postData.money_d = order.dismoney_d_gzh ? order.dismoney_d_gzh : order.money_d_gzh
 						postData.money_e = order.dismoney_e_gzh ? order.dismoney_e_gzh : order.money_e_gzh
 						postData.money_f = order.dismoney_f_gzh ? order.dismoney_f_gzh : order.money_f_gzh
-						postData.duration_price = order.disovermoney_time_gzh ? order.disovermoney_time_gzh : order.overmoney_time_gzh
+						postData.duration_price = order.disovermoney_time_gzh ? order.disovermoney_time_gzh : order.money_time_gzh
 						postData.money_ex = order.disovermoney_gzh ? order.disovermoney_gzh : order.overmoney_gzh
 					}
 					if (order.biz_function==='2'||order.biz_function==='1,2') {
@@ -224,7 +224,8 @@ class SyncToPool extends Base {
 					await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
 					return Promise.resolve({ status: false, msg: insStatus })
 				}
-			
+				console.log(order)
+
 				// 开始同步
 				postData = {
 					"cust_id": order.cust_id,
@@ -245,14 +246,14 @@ class SyncToPool extends Base {
 					"money_d": order.dismoney_d_yly ? order.dismoney_d_yly : order.money_d_yly, 
 					"money_e": order.dismoney_e_yly ? order.dismoney_e_yly : order.money_e_yly, 
 					"money_f": order.dismoney_f_yly ? order.dismoney_f_yly : order.money_f_yly, 
-					"duration_price": order.disovermoney_time_yly ? order.disovermoney_time_yly : order.overmoney_time_yly,
+					"duration_price": order.disovermoney_time_yly ? order.disovermoney_time_yly : order.money_time_yly,
 					"money_ex": order.disovermoney_yly ? order.disovermoney_yly : order.overmoney_yly
 				}
 			}
 
       return new Promise( async resolve => {
 				logger.debug('开始调用号池接口')
-				logger.debug('调用前的接口',HTTP_SYNCTOPOOL_URL)
+				logger.debug('传递的数据',postData)
         request({
           url: HTTP_SYNCTOPOOL_URL,
           method: "POST",
@@ -263,7 +264,7 @@ class SyncToPool extends Base {
           },
           body: postData
         }, async function(error, response, body) {
-          logger.debug('号池', body)
+          logger.debug('号池返回的内容', body)
           if (error) {
 						let type = order.pro_type==='1' ? 'yly' : (order.pro_type==='2' ? 'yzj' : 'gzh')
             logger.error(type, error)

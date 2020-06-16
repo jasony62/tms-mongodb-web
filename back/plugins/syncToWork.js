@@ -177,16 +177,16 @@ class SyncToWork extends Base {
 				"status": tel.status, 
 				"custId": tel.cust_id, 
 				"custName": tel.cust_name, 
-				"managerName": tel.manager_name, 
-				"managerAccount": tel.account, 
-				"custAccount": tel.cust_account, 
-				"managerTel": tel.manager_tel, 
-				"entpriseProvince": tel.entprise_province, 
+				"managerName": tel.manager_name ? tel.manager_name : "", 
+				"managerAccount": tel.account ? tel.account : "", 
+				"custAccount": tel.cust_account ? tel.cust_account : "", 
+				"managerTel": tel.manager_tel ? tel.manager_tel : "", 
+				"entpriseProvince": tel.entprise_province ? tel.entprise_province : "", 
 				"bizFunction": tel.biz_function, 
 				"proType": tel.pro_type, 
 				"customerId": tel.customer_id, 
-				"managerNetWork": tel.managerNetWork, 
-				"numSum": tel.num_sum
+				"managerNetWork": tel.managerNetWork ? tel.managerNetWork : "", 
+				"numSum": tel.num_sum ? tel.num_sum : ""
 			}
 			if (tel.pro_type==='1') {
 				postData.voiceUrl = voiceUrl
@@ -211,6 +211,7 @@ class SyncToWork extends Base {
 			// 开始同步
       return new Promise(async (resolve) => {
 				logger.debug('开始调用业务接口')
+				logger.debug('传递的数据',postData)
         request({
           url: HTTP_SYNCTOWORK_URL,
           method: "POST",
@@ -221,7 +222,7 @@ class SyncToWork extends Base {
           },
           body: postData
         }, async function(error, response, body) {
-					logger.debug('业务', body)
+					logger.debug('业务层返回的内容', body)
 					let type = tel.pro_type==='1' ? 'yly' : (tel.pro_type==='2' ? 'yzj' : 'gzh')
           if (error) {
             logger.error(type, error)
