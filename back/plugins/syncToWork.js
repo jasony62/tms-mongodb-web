@@ -128,7 +128,7 @@ class SyncToWork extends Base {
 			}
 
 			// 检查同步时必要字段的值
-			let ghzFields = ["order_id", "order_name", "source", "status", "cust_id", "cust_name", "pro_type", "customer_id"]
+			let ghzFields = ["order_id", "order_name", "source", "status", "cust_id", "cust_name", "pro_type", "customer_id", "cdrpush_url"]
 			let errorFields = ghzFields.filter(field => !tel[field])
       if (errorFields.length) {
 				abnormalTotal++
@@ -138,27 +138,88 @@ class SyncToWork extends Base {
         return Promise.resolve({ status: false, msg: insStatus })
 			}
 			
-			// 检查不同产品类型的特有必需字段是否有值
-			if (tel.pro_type==='1' && (!schema.product_version || !schema.num_type) && (!tel.product_version || !tel.num_type)) {
-				abnormalTotal++
-        insStatus += "product_version或num_type的列不存在或值为空"
-        let syncTime = (operation === "1") ? "" : current
-        await colle.updateOne({ _id: ObjectId(tel._id) }, { $set: { work_sync_time: syncTime, work_sync_status: insStatus } })
-        return Promise.resolve({ status: false, msg: insStatus })
-			}
-
-			if (tel.pro_type==='3' && !schema.call_url && !tel.call_url) { 
-				abnormalTotal++
-        insStatus += "call_url的列不存在或值为空"
-        let syncTime = (operation === "1") ? "" : current
-        await colle.updateOne({ _id: ObjectId(tel._id) }, { $set: { work_sync_time: syncTime, work_sync_status: insStatus } })
-        return Promise.resolve({ status: false, msg: insStatus })
-			}
-
-			if (tel.pro_type==='3' && tel.biz_function && tel.biz_function.indexOf('2')!==-1 ) {
-				if (!schema.msg_url || !tel.msg_url) {
+			// 检查不同产品类型的特有必需字段是否有值-云录音
+			if (tel.pro_type==='1') {
+				let flag = false
+				if(!schema.product_version || !tel.product_version) {
+					insStatus += "product_version"
+					flag = true
+				}
+				if(!schema.num_type || !tel.num_type) {
+					insStatus += "num_type"
+					flag = true
+				}
+				if (!schema.flag_playtips || !tel.flag_playtips) {
+					insStatus += "flag_playtips"
+					flag = true
+				}
+				if(!schema.biz_function || !tel.biz_function) {
+					insStatus += "biz_function"
+					flag = true
+				}
+				if(!schema.num_sum || !tel.num_sum) {
+					insStatus += "num_sum"
+					flag = true
+				}
+				if(!schema.num_type || !tel.num_type) {
+					insStatus += "num_type"
+					flag = true
+				}
+				if (flag) {
 					abnormalTotal++
-					insStatus += "msg_url的列不存在或值为空"
+					insStatus += "的列不存在或值为空"
+					let syncTime = (operation === "1") ? "" : current
+					await colle.updateOne({ _id: ObjectId(tel._id) }, { $set: { work_sync_time: syncTime, work_sync_status: insStatus } })
+					return Promise.resolve({ status: false, msg: insStatus })
+				}
+			}
+
+			let vals = ['1','1,2','2','2,3','3']
+			if (tel.pro_type==='1' && !vals.includes(tel.num_type)) {
+				abnormalTotal++
+				insStatus += "num_type的值只能是1或1,2或2或2,3或3"
+				let syncTime = (operation === "1") ? "" : current
+				await colle.updateOne({ _id: ObjectId(tel._id) }, { $set: { work_sync_time: syncTime, work_sync_status: insStatus } })
+				return Promise.resolve({ status: false, msg: insStatus })
+			}
+
+			// 工作号
+			if (tel.pro_type==='3') { 
+				let flag = false
+				if (!schema.call_url || !tel.call_url) {
+					insStatus += "call_url"
+					flag = true
+				}
+				if (tel.biz_function && tel.biz_function.indexOf('2')!==-1) {
+					if (!schema.msg_url || !tel.msg_url) {
+						insStatus += "msg_url"
+						flag = true
+					}
+				}
+				if (tel.biz_function && tel.biz_function.indexOf('1')!==-1) {
+					if (!schema.flag_playtips || !tel.flag_playtips) {
+						insStatus += "flag_playtips"
+						flag = true
+					}
+				}
+				if (flag) {
+					abnormalTotal++
+					insStatus += "的列不存在或值为空"
+					let syncTime = (operation === "1") ? "" : current
+					await colle.updateOne({ _id: ObjectId(tel._id) }, { $set: { work_sync_time: syncTime, work_sync_status: insStatus } })
+					return Promise.resolve({ status: false, msg: insStatus })
+				}
+			}
+
+			if(tel.pro_type==='3' || tel.pro_type==='1') {
+				let flag = false	
+				if (!schema.cdrpush_url || !tel.cdrpush_url) {
+					insStatus += "cdrpush_url"
+					flag = true
+				}
+				if(flag) {
+					abnormalTotal++
+					insStatus += "的列不存在或值为空"
 					let syncTime = (operation === "1") ? "" : current
 					await colle.updateOne({ _id: ObjectId(tel._id) }, { $set: { work_sync_time: syncTime, work_sync_status: insStatus } })
 					return Promise.resolve({ status: false, msg: insStatus })
@@ -186,14 +247,14 @@ class SyncToWork extends Base {
 				"proType": tel.pro_type, 
 				"customerId": tel.customer_id, 
 				"managerNetWork": tel.managerNetWork ? tel.managerNetWork : "", 
-				"numSum": tel.num_sum ? tel.num_sum : ""
 			}
 			if (tel.pro_type==='1') {
 				postData.voiceUrl = voiceUrl
 				postData.productVersion = tel.product_version
 				postData.numType = tel.num_type
 				postData.recordpushUrl = tel.recordpush_url ? tel.recordpush_url : ""
-				postData.cdrpushUrl = tel.cdrpush_url ? tel.cdrpush_url : ""
+				postData.cdrpushUrl = tel.cdrpush_url
+				postData.numSum = tel.num_sum 
 
 			}
 			if (tel.pro_type==='3') {
@@ -201,13 +262,13 @@ class SyncToWork extends Base {
 					postData.voiceUrl = voiceUrl
 				}
 				postData.recordpushUrl = tel.recordpush_url ? tel.recordpush_url : ""
-				postData.cdrpushUrl = tel.cdrpush_url ? tel.cdrpush_url : ""
+				postData.cdrpushUrl = tel.cdrpush_url
 				postData.requestUrl = tel.call_url
 				if(tel.biz_function && tel.biz_function.indexOf('2')!==-1) {
 					postData.msgUrl = tel.msg_url
 				}
 			}
-			
+
 			// 开始同步
       return new Promise(async (resolve) => {
 				logger.debug('开始调用业务接口')

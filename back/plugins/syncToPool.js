@@ -144,7 +144,7 @@ class SyncToPool extends Base {
 					return Promise.resolve({ status: false, msg: insStatus })
 				}
 				
-				// 检查costtype_gzh/msg_url/flag_playtips
+				// 检查字段
 				if (order.biz_function && (order.biz_function==='1' || order.biz_function==='1,2')) {
 					let flag = false
 					if (schema.costtype_gzh && !order.costtype_gzh) {
@@ -157,6 +157,20 @@ class SyncToPool extends Base {
 					}
 					if (!order.flag_playtips) {
 						insStatus += "flag_playtips的值为空"
+						flag = true
+					}
+					if (flag) {
+						abnormalTotal++
+						let syncTime = (operation === "1") ? "" : current
+						await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
+						return Promise.resolve({ status: false, msg: insStatus })
+					}
+				}
+
+				if (order.biz_function && (order.biz_function==='2' || order.biz_function==='1,2')) {
+					let flag = false
+					if (schema.msg_url && !order.msg_url) {
+						insStatus += "msg_url列不存在或值为空"
 						flag = true
 					}
 					if (flag) {
@@ -186,7 +200,6 @@ class SyncToPool extends Base {
 					postData.bizFunction = order.biz_function
 					if (order.biz_function==='1'||order.biz_function==='1,2') {
 						postData.costType = order.costtype_gzh
-						postData.msgUrl = order.msg_url
 						postData.voiceUrl = order.flag_playtips==='Y' ?  '1' : '2'
 						postData.money_a = order.dismoney_a_gzh ? order.dismoney_a_gzh : order.money_a_gzh
 						postData.money_b = order.dismoney_b_gzh ? order.dismoney_b_gzh : order.money_b_gzh
@@ -198,6 +211,7 @@ class SyncToPool extends Base {
 						postData.money_ex = order.disovermoney_gzh ? order.disovermoney_gzh : order.overmoney_gzh
 					}
 					if (order.biz_function==='2'||order.biz_function==='1,2') {
+						postData.msgUrl = order.msg_url
 						postData.cost_msg = order.discost_msg_gzh ? order.discost_msg_gzh : order.cost_msg_gzh
 					}
 				}
