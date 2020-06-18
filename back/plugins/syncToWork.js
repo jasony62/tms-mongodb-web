@@ -142,27 +142,23 @@ class SyncToWork extends Base {
 			if (tel.pro_type==='1') {
 				let flag = false
 				if(!schema.product_version || !tel.product_version) {
-					insStatus += "product_version"
+					insStatus += "product_version,"
 					flag = true
 				}
 				if(!schema.num_type || !tel.num_type) {
-					insStatus += "num_type"
+					insStatus += "num_type,"
 					flag = true
 				}
 				if (!schema.flag_playtips || !tel.flag_playtips) {
-					insStatus += "flag_playtips"
+					insStatus += "flag_playtips,"
 					flag = true
 				}
 				if(!schema.biz_function || !tel.biz_function) {
-					insStatus += "biz_function"
+					insStatus += "biz_function,"
 					flag = true
 				}
 				if(!schema.num_sum || !tel.num_sum) {
-					insStatus += "num_sum"
-					flag = true
-				}
-				if(!schema.num_type || !tel.num_type) {
-					insStatus += "num_type"
+					insStatus += "num_sum,"
 					flag = true
 				}
 				if (flag) {
@@ -187,18 +183,18 @@ class SyncToWork extends Base {
 			if (tel.pro_type==='3') { 
 				let flag = false
 				if (!schema.call_url || !tel.call_url) {
-					insStatus += "call_url"
+					insStatus += "call_url,"
 					flag = true
 				}
 				if (tel.biz_function && tel.biz_function.indexOf('2')!==-1) {
 					if (!schema.msg_url || !tel.msg_url) {
-						insStatus += "msg_url"
+						insStatus += "msg_url,"
 						flag = true
 					}
 				}
 				if (tel.biz_function && tel.biz_function.indexOf('1')!==-1) {
 					if (!schema.flag_playtips || !tel.flag_playtips) {
-						insStatus += "flag_playtips"
+						insStatus += "flag_playtips,"
 						flag = true
 					}
 				}

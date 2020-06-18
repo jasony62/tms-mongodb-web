@@ -148,19 +148,16 @@ class SyncToPool extends Base {
 				if (order.biz_function && (order.biz_function==='1' || order.biz_function==='1,2')) {
 					let flag = false
 					if (schema.costtype_gzh && !order.costtype_gzh) {
-						insStatus += "costtype_gzh列不存在或值为空"
-						flag = true
-					}
-					if (schema.msg_url && !order.msg_url) {
-						insStatus += "msg_url列不存在或值为空"
+						insStatus += "costtype_gzh,"
 						flag = true
 					}
 					if (!order.flag_playtips) {
-						insStatus += "flag_playtips的值为空"
+						insStatus += "flag_playtips,"
 						flag = true
 					}
 					if (flag) {
 						abnormalTotal++
+						insStatus += "的列不存在或值为空"
 						let syncTime = (operation === "1") ? "" : current
 						await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
 						return Promise.resolve({ status: false, msg: insStatus })
