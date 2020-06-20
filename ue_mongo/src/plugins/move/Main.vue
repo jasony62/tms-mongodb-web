@@ -49,8 +49,8 @@ Vue.use(Table)
   
 import DomainEditor from '@/components/DomainEditor.vue'
 import CollectionDialog from '@/components/CollectionDialog.vue'
-import { collection as apiCol } from '@/apis'
- import api from './index'
+import createCollectionApi from '@/apis/collection'
+import api from './index'
 
 export default {
   name: 'Main',
@@ -86,7 +86,7 @@ export default {
               ruleId: rule._id,
               docIds: _this.fnGetTelIdsOfEachRule(rule)
             }]
-            await api.movebyRule(dbName, clName, _this.dbName, _this.clName, _this.ruleDbName, _this.ruleClName, _this.transfroms, args).then(result => {          
+            await createCollectionApi(this.TmsAxios('mongodb-api')).movebyRule(dbName, clName, _this.dbName, _this.clName, _this.ruleDbName, _this.ruleClName, _this.transfroms, args).then(result => {          
               rule.import_status = result[0].msg
             })
           }

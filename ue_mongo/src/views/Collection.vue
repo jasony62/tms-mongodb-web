@@ -163,12 +163,21 @@ import ColumnValueEditor from '../components/ColumnValueEditor.vue'
 import DomainEditor from '../components/DomainEditor.vue'
 import SelectCondition from '../components/SelectCondition.vue'
 import MoveByRulePlugin from '../plugins/move/Main.vue'
-import { collection as apiCol, doc as apiDoc } from '../apis'
+import createCollectionApi from '../apis/collection'
+import createDocApi from '../apis/document'
 import apiPlugins from '../plugins'
 
 export default {
   name: 'Collection',
-  props: ['bucketName', 'dbName', 'clName'],
+  props: {
+		bucketName: String, 
+		dbName: String, 
+		clName: String,
+		tmsAxiosName: {
+			type: String,
+			default: 'mongodb-api'
+		}
+	},
   data() {
     return {
       tableHeight: 0,
@@ -236,7 +245,7 @@ export default {
       dbName = this.dbName, 
       clName = this.clName
     ) {
-      return apiDoc
+      return createDocApi(this.TmsAxios(this.tmsAxiosName))
           .byColumnVal(
             bucketName, 
             dbName, 
@@ -381,14 +390,14 @@ export default {
 		},
     createDocument() {
       let editor = new Vue(DocEditor)
-      editor.open(this.bucketName, this.dbName, this.collection).then(() => {
+      editor.open(this.tmsAxiosName, this.bucketName, this.dbName, this.collection).then(() => {
         this.listDocument()
       })
     },
     editDocument(doc) {
       let editor = new Vue(DocEditor)
       editor
-        .open(this.bucketName, this.dbName, this.collection, doc)
+        .open(this.tmsAxiosName, this.bucketName, this.dbName, this.collection, doc)
         .then(newDoc => {
           Object.assign(doc, newDoc)
           this.$store.commit({
@@ -429,7 +438,7 @@ export default {
       editor = new Vue(ColumnValueEditor)
       editor.open(this.collection).then(columns => {
         Object.assign(param, { columns })
-        apiDoc
+        createDocApi(this.TmsAxios(this.tmsAxiosName))
           .batchUpdate(
             this.bucketName,
             this.dbName,
@@ -450,7 +459,7 @@ export default {
         type: 'warning'
       })
         .then(() => {
-          apiDoc
+          createDocApi(this.TmsAxios(this.tmsAxiosName))
             .remove(this.bucketName, this.dbName, this.clName, document._id)
             .then(() => {
               Message.success({ message: '删除成功' })
@@ -468,7 +477,7 @@ export default {
         type: 'warning'
       })
         .then(() => {
-          apiDoc
+          createDocApi(this.TmsAxios(this.tmsAxiosName))
             .batchRemove(this.bucketName, this.dbName, this.clName, param)
             .then(result => {
               Message.success({ message: '已成功删除' + result.n + '条' })
@@ -497,7 +506,7 @@ export default {
         aMTotal,
         aMPTotal
       ) {
-        let result = await apiDoc
+        let result = await createDocApi(this.TmsAxios(this.tmsAxiosName))
           .move(
             _this.bucketName,
             _this.dbName,
@@ -560,7 +569,7 @@ export default {
         config
       confirm = new Vue(DomainEditor)
       config = { title: '迁移到' }
-      confirm.open(this.bucketName, config).then(fields => {
+      confirm.open(this.tmsAxiosName, this.bucketName, config).then(fields => {
         const { dbName, clName } = fields
         if (command === 'checked') {
           this.fnMoveDocument(dbName, clName, transforms, param, 0, 0, 0).then(
@@ -582,7 +591,7 @@ export default {
       let formData = new FormData()
       const msg = Message.info({ message: '正在导入数据...', duration: 0 })
       formData.append('file', data.file)
-      apiDoc
+      createDocApi(this.TmsAxios(this.tmsAxiosName))
         .import(this.bucketName, this.dbName, this.clName, formData)
         .then(() => {
           this.listDocument()
@@ -591,7 +600,7 @@ export default {
     },
     exportDocument(command) {
 			let { param } = this.fnSetReqParam(command)
-      apiDoc.export(this.bucketName, this.dbName, this.clName, param).then(result => {
+      createDocApi(this.TmsAxios(this.tmsAxiosName)).export(this.bucketName, this.dbName, this.clName, param).then(result => {
         const access_token = sessionStorage.getItem('access_token')
         window.open(
           `${process.env.VUE_APP_BACK_API_BASE}/download/down?access_token=${access_token}&file=${result}`
@@ -602,7 +611,7 @@ export default {
       let confirm, config
       confirm = new Vue(DomainEditor)
       config = { title: '选定规则表' }
-      confirm.open(this.bucketName, config).then(fields => {
+      confirm.open(this.tmsAxiosName, this.bucketName, config).then(fields => {
         const { dbName: ruleDbName, clName: ruleClName } = fields
         let moveByRule = new Vue(MoveByRulePlugin)
         moveByRule.showDialog(
@@ -667,7 +676,7 @@ export default {
     }
   },
   mounted() {
-    apiCol
+    createCollectionApi(this.TmsAxios(this.tmsAxiosName))
       .byName(this.bucketName, this.dbName, this.clName)
       .then(collection => {
         this.collection = collection

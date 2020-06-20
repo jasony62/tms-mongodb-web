@@ -9,13 +9,14 @@ import { Dialog } from 'element-ui'
 Vue.use(Dialog)
 
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
-import apiDoc from '../apis/document'
+import createDocApi from '../apis/document'
 
 export default {
   name: 'DocEditor',
   components: { TmsElJsonDoc },
   props: {
-    dialogVisible: { default: true },
+		dialogVisible: { default: true },
+		tmsAxiosName: { type: String },
     bucketName: { type: String }
   },
   data() {
@@ -30,9 +31,7 @@ export default {
   computed: {
     schema() {
       const col = this.collection
-      return col && col.schema && typeof col.schema.body === 'object'
-        ? col.schema.body
-        : {}
+      return col && col.schema && typeof col.schema.body === 'object' ? col.schema.body : {}
     }
   },
   methods: {
@@ -45,9 +44,8 @@ export default {
 				const fileData = new FormData()
 				fileData.append('file', file)
 				const config = { 'Content-Type': 'multipart/form-data' }
-				return apiDoc.upload(
-					{ bucket: this.bucketName }, fileData, config
-					)
+				return createDocApi(this.TmsAxios(this.tmsAxiosName))
+					.upload({ bucket: this.bucketName }, fileData, config)
 					.then(path => {
             return Promise.resolve({'url': path, 'name': file.name})
           })
@@ -62,7 +60,7 @@ export default {
 		},
     onJsonDocSubmit(slimDoc, newDoc) {
       if (this.document && this.document._id) {
-        apiDoc
+        createDocApi(this.TmsAxios(this.tmsAxiosName))
           .update(
             this.bucketName,
             this.dbName,
@@ -72,12 +70,13 @@ export default {
           )
           .then(newDoc => this.$emit('submit', newDoc))
       } else {
-        apiDoc
+        createDocApi(this.TmsAxios(this.tmsAxiosName))
           .create(this.bucketName, this.dbName, this.collection.name, newDoc)
           .then(newDoc => this.$emit('submit', newDoc))
       }
     },
-    open(bucketName, dbName, collection, doc) {
+    open(tmsAxiosName, bucketName, dbName, collection, doc) {
+			this.tmsAxiosName = tmsAxiosName
       this.bucketName = bucketName
       this.dbName = dbName
       this.collection = collection

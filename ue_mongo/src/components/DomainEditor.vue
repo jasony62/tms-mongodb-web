@@ -32,13 +32,14 @@ Vue.use(Dialog)
   .use(Select)
   .use(Button)
 
-import apiDb from '../apis/database'
-import apiCollection from '../apis/collection'
+import createDbApi from '../apis/database'
+import createCollectionApi from '../apis/collection'
 
 export default {
   name: 'DomainEditor',
   props: {
 		dialogVisible: { default: true },
+		tmsAxiosName: { type: String },
 		bucketName: { type: String }
   },
   data() {
@@ -54,20 +55,23 @@ export default {
     }
   },
   mounted() {
-    apiDb.list(this.bucketName).then(dbs => {
-      this.dbs = dbs
-    })
+		createDbApi(this.TmsAxios(this.tmsAxiosName))
+			.list(this.bucketName).then(dbs => {
+				this.dbs = dbs
+			})
   },
   methods: {
     changeDdName() {
-      apiCollection.list(this.bucketName, this.form.dbName).then(cls => {
-        this.cls = cls
-      })
+			createCollectionApi(this.TmsAxios(this.tmsAxiosName))
+				.list(this.bucketName, this.form.dbName).then(cls => {
+					this.cls = cls
+				})
     },
     confirm() {
       this.$emit('submit', this.form)
     },
-    open(bucketName, config) {
+    open(tmsAxiosName, bucketName, config) {
+			this.tmsAxiosName = tmsAxiosName
 			this.bucketName = bucketName
       this.title = config.title ? config.title : ""
       this.$mount()

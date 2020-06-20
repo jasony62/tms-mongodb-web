@@ -35,13 +35,14 @@ Vue.use(Dialog)
   .use(Button)
 
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
-import apiDb from '../apis/database'
-import apiSchema from '../apis/schema'
+import createDbApi from '../apis/database'
+import createSchemaApi from '../apis/schema'
 
 export default {
   name: 'DbEditor',
   props: {
-    dialogVisible: { default: true },
+		dialogVisible: { default: true },
+		tmsAxiosName: { type: String },
     bucketName: { type: String },
     database: {
       type: Object,
@@ -66,10 +67,11 @@ export default {
     }
   },
   mounted() {
-    apiSchema.list(this.bucketName, 'db').then(extensions => {
-			this.extensions = extensions
-			this.handleExtendId(this.database.extensionInfo.schemaId, true)
-    })
+		createSchemaApi(this.TmsAxios(this.tmsAxiosName))
+			.list(this.bucketName, 'db').then(extensions => {
+				this.extensions = extensions
+				this.handleExtendId(this.database.extensionInfo.schemaId, true)
+			})
   },
   methods: {
 		handleExtendId(id, init) {
@@ -87,11 +89,11 @@ export default {
 		},
 		fnSubmit() {
 			if (this.mode === 'update') {
-        apiDb
+        createDbApi(this.TmsAxios(this.tmsAxiosName))
           .update(this.bucketName, this.database.name, this.database)
           .then(newDb => this.$emit('submit', newDb))
       } else if (this.mode === 'create') {
-        apiDb
+        createDbApi(this.TmsAxios(this.tmsAxiosName))
           .create(this.bucketName, this.database)
           .then(newDb => this.$emit('submit', newDb))
       }
@@ -106,8 +108,9 @@ export default {
 			}
 			this.fnSubmit()
     },
-    open(mode, bucketName, db) {
+    open(mode, tmsAxiosName, bucketName, db) {
 			this.mode = mode
+			this.tmsAxiosName = tmsAxiosName
 			this.bucketName = bucketName
       if (mode === 'update') this.database = JSON.parse(JSON.stringify(Object.assign(this.database, db)))
       this.$mount()

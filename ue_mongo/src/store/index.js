@@ -3,8 +3,6 @@ import Vuex from 'vuex'
 
 Vue.use(Vuex)
 
-import apis from '../apis'
-
 export default new Vuex.Store({
   state: {
     buckets: [],
@@ -87,42 +85,58 @@ export default new Vuex.Store({
   },
   actions: {
     listBuckets({ commit }) {
-      return apis.bucket.list().then(buckets => {
-        commit({ type: 'buckets', buckets })
-        return { buckets }
+      return new Promise(resolve => {
+        Vue.$apis.api.bucket.list().then(buckets => {
+          commit({ type: 'buckets', buckets })
+          resolve(buckets)
+        })
       })
     },
     listDatabase({ commit }, payload) {
-      const { bucket } = payload
-      return apis.db.list(bucket).then(dbs => {
-        commit({ type: 'dbs', dbs })
-        return { dbs }
-      })
+			const { bucket } = payload
+			return new Promise(resolve => {
+				Vue.$apis.api.db.list(bucket).then(dbs => {
+					commit({ type: 'dbs', dbs })
+					resolve({ dbs }) 
+				})
+			})
     },
     listCollection({ commit }, payload) {
-      const { bucket, db } = payload
-      return apis.collection.list(bucket, db).then(collections => {
-        commit({ type: 'collections', collections })
-        return { collections }
-      })
+			const { bucket, db } = payload
+			return new Promise(resolve => {
+				Vue.$apis.api.collection.list(bucket, db).then(collections => {
+					commit({ type: 'collections', collections })
+					resolve({ collections })
+				})
+			})
     },
     listDocument({ commit }, payload) {
-      const { bucket, db, cl, orderBy, page, filter } = payload
-      return apis.doc
-        .list(bucket, db, cl, page, filter, orderBy)
-        .then(result => {
+			const { bucket, db, cl, orderBy, page, filter } = payload
+			return new Promise(resolve => {
+				Vue.$apis.api.doc.list(bucket, db, cl, page, filter, orderBy).then(result => {
           const documents = result.docs
           commit({ type: 'documents', documents })
-          return { result }
+          resolve({ result })
         })
+			})
     },
-    removeDatabase() {},
+		removeDatabase({ commit }, payload) {
+			const { bucket, db } = payload
+			return new Promise(resolve => {
+				Vue.$apis.api.db.remove(bucket, db).then(() => {
+					commit({ type: 'removeDatabase', db })
+					resolve({ db }) 
+				})
+			})
+    },
     removeCollection({ commit }, payload) {
-      const { bucket, db, collection } = payload
-      apis.collection.remove(bucket, db, collection.name).then(() => {
-        commit({ type: 'removeCollection', collection })
-        return { collection }
-      })
+			const { bucket, db, collection } = payload
+			return new Promise(resolve => {
+				Vue.$apis.api.collection.remove(bucket, db, collection.name).then(() => {
+					commit({ type: 'removeCollection', collection })
+					resolve({ collection }) 
+				})
+			})
     }
   },
   modules: {}

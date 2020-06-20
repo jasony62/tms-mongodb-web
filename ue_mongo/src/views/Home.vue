@@ -29,7 +29,7 @@
 
 <script>
 import Vue from 'vue'
-import { mapState } from 'vuex'
+import store from '@/store'
 import { Frame, Flex } from 'tms-vue-ui'
 Vue.use(Frame).use(Flex)
 import {
@@ -48,22 +48,29 @@ Vue.use(Form)
   .use(Button)
 
 import DbEditor from '../components/DbEditor.vue'
-import { db as apiDb } from '../apis'
+import createDbApi from '../apis/database'
 
 export default {
   name: 'Home',
-  props: ['bucketName'],
-  computed: {
-    ...mapState(['dbs'])
-  },
+  props: {
+		bucketName: String,
+		tmsAxiosName: {
+			type: String,
+			default: 'mongodb-api'
+		}
+	},
+	computed: {
+		dbs() {
+			return this.$store.state.dbs
+		}
+	},
   methods: {
-    // 获取数据库列表
     listDatabase() {
-      this.$store.dispatch({ type: 'listDatabase', bucket: this.bucketName })
+      store.dispatch('listDatabase', { bucket: this.bucketName })
     },
     createDb() {
       const editor = new Vue(DbEditor)
-      editor.open('create', this.bucketName).then(newDb => {
+      editor.open('create', this.tmsAxiosName, this.bucketName).then(newDb => {
         this.$store.commit({
           type: 'appendDatabase',
           db: newDb,
@@ -73,7 +80,7 @@ export default {
     },
     editDb(db) {
       const editor = new Vue(DbEditor)
-      editor.open('update', this.bucketName, db).then(newDb => {
+      editor.open('update', this.tmsAxiosName, this.bucketName, db).then(newDb => {
         Object.keys(newDb).forEach(k => {
           Vue.set(db, k, newDb[k])
         })
@@ -85,16 +92,13 @@ export default {
       })
     },
     removeDb(db) {
-      this.$store.dispatch({
-        type: 'removeDatabase',
-        db,
-        bucket: this.bucketName
-      })
+      store.dispatch('removeDatabase', { db, bucket: this.bucketName })
     },
     topDb(db, type) {
-      apiDb.top(this.bucketName, db._id, type).then(() => {
-        this.listDatabase()
-      })
+			createDbApi(this.TmsAxios(this.tmsAxiosName))
+				.top(this.bucketName, db._id, type).then(() => {
+					this.listDatabase()
+				})
     }
   },
   mounted() {

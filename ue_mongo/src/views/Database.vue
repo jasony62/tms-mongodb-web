@@ -34,7 +34,7 @@
 
 <script>
 import Vue from 'vue'
-import { mapState } from 'vuex'
+import store from '@/store'
 import { Frame, Flex } from 'tms-vue-ui'
 Vue.use(Frame).use(Flex)
 import {
@@ -53,17 +53,22 @@ import CollectionEditor from '../components/CollectionEditor.vue'
 
 export default {
   name: 'Database',
-  props: ['bucketName', 'dbName'],
-  computed: {
-    ...mapState(['collections'])
-  },
-  data() {
-    return {}
-  },
+  props: {
+		bucketName: String, 
+		dbName: String,
+		tmsAxiosName: {
+			type: String,
+			default: 'mongodb-api'
+		}
+	},
+	computed: {
+		collections() {
+			return this.$store.state.collections
+		}
+	},
   methods: {
     listCollection() {
-      this.$store.dispatch({
-        type: 'listCollection',
+      store.dispatch('listCollection', {
         bucket: this.bucketName,
         db: this.dbName
       })
@@ -71,7 +76,7 @@ export default {
     createCollection() {
       let editor = new Vue(CollectionEditor)
       editor
-        .open('create', this.bucketName, this.dbName)
+        .open('create', this.tmsAxiosName, this.bucketName, this.dbName)
         .then(newCollection => {
           this.$store.commit({
             type: 'appendCollection',
@@ -82,7 +87,7 @@ export default {
     editCollection(collection) {
       let editor = new Vue(CollectionEditor)
       editor
-        .open('update', this.bucketName, this.dbName, collection)
+        .open('update', this.tmsAxiosName, this.bucketName, this.dbName, collection)
         .then(newCollection => {
           Object.keys(newCollection).forEach(k => {
             Vue.set(collection, k, newCollection[k])
@@ -94,8 +99,7 @@ export default {
         })
     },
     removeCollection(collection) {
-      this.$store.dispatch({
-        type: 'removeCollection',
+      store.dispatch('removeCollection', {
         bucket: this.bucketName,
         db: this.dbName,
         collection
