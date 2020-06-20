@@ -660,8 +660,10 @@ export default {
       switch (submit.id) {
         case 'moveByRule':
           this.pluginOfMoveByRule(transforms, param)
-          break
+          break;
         case 'syncMobilePool':
+				case 'syncToPool':
+				case 'syncToWork':
           this.pluginOfSync(submit.id, transforms, param, 0, 0, 0)
       }
     },

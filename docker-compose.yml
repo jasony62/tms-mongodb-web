@@ -1,51 +1,51 @@
 version: '3.7'
 services:
-  mongodb:
+  omongodb:
     build: ./mongodb
-    image: tms-mongodb/mongo:latest
-    container_name: tms-mongo-mongo
-
+    image: tms-mongodb-order/mongo:latest
+    container_name: order-mongo
+  
   back:
     build: ./back
-    image: tms-mongodb/back:latest
-    container_name: tms-mongodb-back
+    image: tms-mongodb-order/back:latest
+    container_name: order-back
     environment:
-      - NODE_ENV=production
-      - TMS__MONGODB_HOST=mongodb
-      - TMS__MONGODB_PORT=27017
-    command:
-      ['./wait-for.sh', 'mongodb:27017', '-t', '300', '--', 'node', 'server']
-
+       - TMS_APP_PORT=3000
+       - TMS_APP_NAME=dev-op
+       - TMS_APP_LOG4JS_LEVEL=debug
+       - TMS_FINDER_FS_OUTDIR=/data
+       - TMS_FINDER_FS_ROOTDIR=/data
+       - TMS_FINDER_FS_CUSTOMNAME=true
+       - TMS_MONGODB_HOST=omongodb
+       - TMS_MONGODB_PORT=27017
+    command: ['sh', './wait-for.sh', 'omongodb:27017', '-t', '300', '--', 'node', 'server']
+  
   ue_admin:
     build:
       context: ./ue_admin
       args:
-        vue_app_login_key_username: username
-        vue_app_login_key_password: password
-        vue_app_login_key_pin: pin
-        vue_app_base_url: /admin
-        vue_app_back_auth_base: /auth
-        vue_app_back_api_base: /api
-        vue_app_back_api_plugin: /plugin
-        vue_app_back_api_fs: /fs
-    image: tms-mongodb/ue-admin:latest
-    container_name: tms-mongodb-ue_admin
+        vue_app_base_url: /order/admin
+        vue_app_back_auth_base: /order/auth
+        vue_app_back_api_base: /order/api
+        vue_app_back_api_plugin: /order/plugin
+        vue_app_back_api_fs: /order/fs
+        vue_app_submit_valitor_field: dismoney_a_yly, dismoney_b_yly, dismoney_c_yly, dismoney_d_yly, dismoney_e_yly, dismoney_f_yly, disovermoney_yly, dismoney_time_yly, discost_month_gzh, dismoney_a_gzh, dismoney_b_gzh, dismoney_c_gzh, dismoney_d_gzh, dismoney_e_gzh, dismoney_f_gzh, dismoney_time_gzh, disovermoney_gzh, discost_call_gzh, discost_msg_gzh
+    image: tms-mongodb-order/ue-admin:latest
+    container_name: order-ue_admin
     environment:
-      - NGINX_WEB_BASE_URL=/admin
-
+      - NGINX_WEB_BASE_URL=/order/admin
+      
   ue_mongo:
     build:
       context: ./ue_mongo
       args:
-        vue_app_login_key_username: username
-        vue_app_login_key_password: password
-        vue_app_login_key_pin: pin
-        vue_app_base_url: /mongo
-        vue_app_back_auth_base: /auth
-        vue_app_back_api_base: /api
-        vue_app_back_api_plugin: /plugin
-        vue_app_back_api_fs: /fs
-    image: tms-mongodb/ue-mongo:latest
-    container_name: tms-mongodb-ue_mongo
+        vue_app_base_url: /order/mongo
+        vue_app_back_auth_base: /order/auth
+        vue_app_back_api_base: /order/api
+        vue_app_back_api_plugin: /order/plugin
+        vue_app_back_api_fs: /order/fs
+        vue_app_submit_valitor_field: dismoney_a_yly, dismoney_b_yly, dismoney_c_yly, dismoney_d_yly, dismoney_e_yly, dismoney_f_yly, disovermoney_yly, dismoney_time_yly, discost_month_gzh, dismoney_a_gzh, dismoney_b_gzh, dismoney_c_gzh, dismoney_d_gzh, dismoney_e_gzh, dismoney_f_gzh, dismoney_time_gzh, disovermoney_gzh, discost_call_gzh, discost_msg_gzh
+    image: tms-mongodb-order/ue-mongo:latest
+    container_name: order-ue_mongo
     environment:
-      - NGINX_WEB_BASE_URL=/mongo
+      - NGINX_WEB_BASE_URL=/order/mongo

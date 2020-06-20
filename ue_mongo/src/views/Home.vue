@@ -10,7 +10,7 @@
         </el-table-column>
         <el-table-column prop="title" label="名称" width="180"></el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
-        <el-table-column fixed="right" label="操作" width="250">
+        <el-table-column fixed="right" label="操作" width="250" v-if="false">
           <template slot-scope="scope">
             <el-button v-if="!scope.row.top||scope.row.top==0" @click="topDb(scope.row, 'up')" size="mini" type="text">置顶</el-button>
             <el-button v-if="scope.row.top==10000" disabled size="mini" type="text">已置顶</el-button>
@@ -22,7 +22,7 @@
       </el-table>
     </template>
     <template v-slot:right>
-      <el-button @click="createDb">添加数据库</el-button>
+      <el-button @click="createDb" v-if="false">添加数据库</el-button>
     </template>
   </tms-frame>
 </template>
