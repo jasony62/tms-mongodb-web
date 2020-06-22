@@ -8,7 +8,7 @@ services:
       logging:
         driver: 'none'
       networks:
-      - portal
+        - portal
 
     back:
       ports:
@@ -38,31 +38,31 @@ services:
    
     ue_mongo:
       build: 
-         context: ./ue_mongo
-         args:
-           vue_app_back_auth_server: http://192.168.20.71:3330
-           vue_app_back_api_server: http://back:3650
+        context: ./ue_mongo
+        args:
+          vue_app_back_auth_server: http://192.168.20.71:3330
+          vue_app_back_api_server: http://back:3650
       ports:
         - '3630:80'
       dns:
         - 223.6.6.6
         - 223.5.5.5
       networks:
-			- portal
+        - portal
 
-		ue_mongo:
-			build: 
-					context: ./ue_sale
-					args:
-						vue_app_auth_server: 
-						vue_app_api_server: http://back:3650
-			ports:
-				- ''
-			dns:
-				- 223.6.6.6
-				- 223.5.5.5
-			networks:
-			- portal
+    ue_sale:
+      build: 
+        context: ./ue_sale
+        args:
+          vue_app_auth_server: 
+          vue_app_api_server: http://back:3650
+      ports:
+        - ''
+      dns:
+        - 223.6.6.6
+        - 223.5.5.5
+      networks:
+        - portal
 networks:
   portal:
     driver: bridge
