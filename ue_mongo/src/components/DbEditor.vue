@@ -27,11 +27,13 @@
 </template>
 <script>
 import Vue from 'vue'
-import { Dialog, Form, FormItem, Input, Button, Message } from 'element-ui'
+import { Dialog, Form, FormItem, Input, Select, Option, Button, Message } from 'element-ui'
 Vue.use(Dialog)
   .use(Form)
   .use(FormItem)
-  .use(Input)
+	.use(Input)
+	.use(Select)
+  .use(Option)
   .use(Button)
 
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'

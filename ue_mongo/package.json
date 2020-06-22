@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-		"build": "vue-cli-service build",
+    "build": "vue-cli-service build",
 		"build.lib": "node ./build/build-lib.js",
     "lint": "vue-cli-service lint",
     "test:unit": "vue-cli-service test:unit"
@@ -30,7 +30,7 @@
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^5.0.0",
     "less": "^3.0.4",
-		"less-loader": "^5.0.0",
+    "less-loader": "^5.0.0",
 		"shelljs": "^0.8.3",
     "signale": "^1.4.0",
     "vue-template-compiler": "^2.6.10"

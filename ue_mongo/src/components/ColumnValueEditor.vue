@@ -20,8 +20,13 @@
 </template>
 <script>
 import Vue from 'vue'
-import { Dialog, Message } from 'element-ui'
+import { Dialog, Input, Select, Option, Button, Tag, Message } from 'element-ui'
 Vue.use(Dialog)
+	.use(Input)
+	.use(Select)
+	.use(Option)
+	.use(Button)
+	.use(Tag)
 
 export default {
   name: 'ColumnValueEditor',

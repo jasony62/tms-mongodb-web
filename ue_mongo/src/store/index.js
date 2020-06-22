@@ -110,16 +110,6 @@ export default new Vuex.Store({
 				})
 			})
     },
-    listDocument({ commit }, payload) {
-			const { bucket, db, cl, orderBy, page, filter } = payload
-			return new Promise(resolve => {
-				Vue.$apis.api.doc.list(bucket, db, cl, page, filter, orderBy).then(result => {
-          const documents = result.docs
-          commit({ type: 'documents', documents })
-          resolve({ result })
-        })
-			})
-    },
 		removeDatabase({ commit }, payload) {
 			const { bucket, db } = payload
 			return new Promise(resolve => {

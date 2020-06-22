@@ -1,9 +1,9 @@
 <template>
-	<list-comp :bucket-name="bucketName" :db-name="dbName" :cl-name="clName" :tms-axio-name="'mongodb-api'"></list-comp>
+	<div id="collection"></div>
 </template>
 
 <script>
-import ListComp from './List.vue'
+import Vue from 'vue'
 
 export default {
 	name: 'Collection',
@@ -12,6 +12,14 @@ export default {
 		dbName: String,
 		clName: String
 	},
-	components: { ListComp }
+	mounted() {
+		import('../components/List.vue').then(Module => {
+			Module.createAndMount(Vue, {
+				bucketName: this.bucketName,
+				dbName: this.dbName,
+				clName: this.clName
+			}, 'collection')
+		})
+	}
 }
 </script>

@@ -1,6 +1,6 @@
 <template>
   <tms-frame class="tmw-document" :display="{ header: true, footer: false, right: true }" :leftWidth="'20%'">
-    <template v-slot:header>
+    <template v-slot:header v-if="role==='admin'">
       <el-breadcrumb separator-class="el-icon-arrow-right">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'database', params: { dbName: dbName } }">{{dbName}}</el-breadcrumb-item>
@@ -24,7 +24,7 @@
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
 						<span v-else-if="s.type==='array'&&s.format==='file'">
 							<span v-for="(i, v) in scope.row[k]" :key="v">
-								<a href @click="handleDownload(i)">{{i.name}}</a><br/>
+								<a href @click="downloadFile(i)">{{i.name}}</a><br/>
 							</span>
 						</span>
             <span v-else>{{ scope.row[k] }}</span>
@@ -33,7 +33,7 @@
         <el-table-column fixed="right" label="操作" width="150">
           <template slot-scope="scope">
             <el-button size="mini" @click="editDocument(scope.row)">修改</el-button>
-            <el-button size="mini" @click="removeDocument(scope.row)">删除</el-button>
+            <el-button size="mini" @click="removeDocument(scope.row)" v-if="role==='admin'">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -43,7 +43,7 @@
         </el-pagination>
       </tms-flex>
     </template>
-    <template v-slot:right>
+    <template v-slot:right v-if="role==='admin'">
       <tms-flex direction="column">
         <div>
           <el-button @click="createDocument">添加数据</el-button>
@@ -116,60 +116,35 @@
 
 <script>
 import Vue from 'vue'
-import { mapState, mapMutations } from 'vuex'
+import store from '@/store'
 import { Frame, Flex } from 'tms-vue-ui'
-Vue.use(Frame).use(Flex)
-import {
-  Table,
-  TableColumn,
-  Input,
-  Row,
-  Col,
-  Button,
-  Upload,
-  Pagination,
-  Tag,
-  Message,
-  MessageBox,
-  Radio,
-  Checkbox,
-  CheckboxGroup,
-  Dropdown,
-  DropdownMenu,
-  DropdownItem,
-  Breadcrumb,
-  BreadcrumbItem
-} from 'element-ui'
-Vue.use(Table)
-  .use(TableColumn)
-  .use(Input)
-  .use(Row)
-  .use(Col)
-  .use(Button)
-  .use(Upload)
-  .use(Pagination)
-  .use(Tag)
-  .use(Radio)
-  .use(Checkbox)
-  .use(CheckboxGroup)
-  .use(Dropdown)
-  .use(DropdownMenu)
-  .use(DropdownItem)
-  .use(Breadcrumb)
-  .use(BreadcrumbItem)
+import { Breadcrumb, BreadcrumbItem, Table, TableColumn, Button, Checkbox, CheckboxGroup, Upload, Pagination, Message, MessageBox, Dropdown, DropdownMenu, DropdownItem } from 'element-ui'
 
-import DocEditor from '../components/DocEditor.vue'
-import ColumnValueEditor from '../components/ColumnValueEditor.vue'
-import DomainEditor from '../components/DomainEditor.vue'
-import SelectCondition from '../components/SelectCondition.vue'
+import DocEditor from './DocEditor.vue'
+import ColumnValueEditor from './ColumnValueEditor.vue'
+import DomainEditor from './DomainEditor.vue'
+import SelectCondition from './SelectCondition.vue'
 import MoveByRulePlugin from '../plugins/move/Main.vue'
 import createCollectionApi from '../apis/collection'
 import createDocApi from '../apis/document'
 import apiPlugins from '../plugins'
 
-export default {
-  name: 'ListComp',
-  props: {
+const componentOptions = {
+	components: {
+		'el-breadcrumb': Breadcrumb,
+		'el-breadcrumb-item': BreadcrumbItem,
+		'el-table': Table,
+		'el-table-column': TableColumn,
+		'el-button': Button,
+		'el-checkbox': Checkbox,
+		'el-checkbox-group': CheckboxGroup,
+		'el-upload': Upload,
+		'el-pagination': Pagination,
+		'el-dropdown': Dropdown,
+		'el-dropdown-menu': DropdownMenu,
+		'el-dropdown-item': DropdownItem
+	},
+	props: {
 		bucketName: String, 
 		dbName: String, 
 		clName: String,
@@ -180,7 +155,8 @@ export default {
 	},
   data() {
     return {
-      tableHeight: 0,
+			role: process.env.VUE_APP_USER_ROLE || 'admin',
+			tableHeight: 0,
       moveCheckList: [],
       filter: {},
       page: {
@@ -196,9 +172,14 @@ export default {
         size: 100
       }
     }
-  },
-  computed: {
-    ...mapState(['documents', 'conditions']),
+	},
+	computed: {
+		documents() {
+			return store.state.documents
+		},
+		conditions() {
+			return store.state.conditions
+		},
     totalByAll() {
       return Object.keys(this.filter).length ? 0 : this.page.total
     },
@@ -209,13 +190,17 @@ export default {
       return this.multipleDocuments.length
     }
   },
-  methods: {
-    ...mapMutations([
-      'conditionReset',
-      'conditionDelBtn',
-      'conditionDelColumn'
-    ]),
-    handleCondition() {
+	methods: {
+		conditionReset() {
+			return store.commit('conditionReset')
+		},
+		conditionDelBtn() {
+			return store.commit('conditionDelBtn')
+		},
+		conditionDelColumn() {
+			return store.commit('conditionDelColumn')
+		},
+		handleCondition() {
       let _obj = JSON.parse(JSON.stringify(this.conditions))
       if (!_obj.length) {
         return { filter: {}, orderBy: {} }
@@ -235,7 +220,7 @@ export default {
           }
         })
     },
-    listByColumn(
+		listByColumn(
       columnName, 
       filter, 
       orderBy, 
@@ -300,10 +285,10 @@ export default {
         )
         .then(rsl => {
           const { condition, isClear, isCheckBtn } = rsl
-          this.$store.commit('conditionAddColumn', { condition })
-          if (isClear) this.$store.commit('conditionDelColumn', { condition })
+          store.commit('conditionAddColumn', { condition })
+          if (isClear) store.commit('conditionDelColumn', { condition })
           let objPro = this.collection.schema.body.properties
-          if (isCheckBtn) this.$store.commit('conditionDelBtn', { columnName })
+          if (isCheckBtn) store.commit('conditionDelBtn', { columnName })
           Object.keys(objPro).map((ele, index) => {
             const attrs = document.querySelectorAll(
               '#tables thead.has-gutter img'
@@ -351,43 +336,6 @@ export default {
       let ids = this.multipleDocuments.map(document => document._id)
       return ids
     },
-    listPlugin() {
-      apiPlugins.plugin.list().then(plugins => {
-        if (JSON.stringify(plugins) !== '{}') {
-					if (plugins.document.transforms) {
-						this.moveCheckList = plugins.document.transforms.move.map(option => option.name)
-						plugins.document.submits.forEach(submit => {
-							let transforms = plugins.document.transforms[submit.id]
-							submit.checkList = transforms ? transforms.map(item => item.name) : []
-						})
-					}
-          this.plugins = plugins
-        }
-      })
-    },
-    listDocument() {
-      const rule = this.handleCondition()
-      this.filter = rule.filter
-      const { orderBy, filter } = rule
-      this.$store
-        .dispatch({
-          type: 'listDocument',
-          bucket: this.bucketName,
-          db: this.dbName,
-          cl: this.clName,
-          page: this.page,
-          filter,
-          orderBy
-        })
-        .then(result => {
-          this.page.total = result.result.total
-          this.tableHeight = window.innerHeight * 0.8
-        })
-		},
-		handleDownload(file) {
-			const access_token = sessionStorage.getItem('access_token')
-      window.open(`${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`)
-		},
     createDocument() {
       let editor = new Vue(DocEditor)
       editor.open(this.tmsAxiosName, this.bucketName, this.dbName, this.collection).then(() => {
@@ -400,10 +348,7 @@ export default {
         .open(this.tmsAxiosName, this.bucketName, this.dbName, this.collection, doc)
         .then(newDoc => {
           Object.assign(doc, newDoc)
-          this.$store.commit({
-            type: 'updateDocument',
-            document: newDoc
-          })
+          store.commit('updateDocument', { document: newDoc })
         })
     },
     fnSetReqParam(command, checkList) {
@@ -506,7 +451,7 @@ export default {
         aMTotal,
         aMPTotal
       ) {
-        let result = await createDocApi(_this.TmsAxios(_this.tmsAxiosName))
+        let result = await createDocApi(this.TmsAxios(this.tmsAxiosName))
           .move(
             _this.bucketName,
             _this.dbName,
@@ -606,7 +551,11 @@ export default {
           `${process.env.VUE_APP_BACK_API_BASE}/download/down?access_token=${access_token}&file=${result}`
         )
       })
-    },
+		},
+		downloadFile(file) {
+			const access_token = sessionStorage.getItem('access_token')
+      window.open(`${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`)
+		},
     pluginOfMoveByRule(transforms) {
       let confirm, config
       confirm = new Vue(DomainEditor)
@@ -660,10 +609,8 @@ export default {
       switch (submit.id) {
         case 'moveByRule':
           this.pluginOfMoveByRule(transforms, param)
-          break;
+          break
         case 'syncMobilePool':
-				case 'syncToPool':
-				case 'syncToWork':
           this.pluginOfSync(submit.id, transforms, param, 0, 0, 0)
       }
     },
@@ -675,9 +622,36 @@ export default {
     handleCurrentPage(val) {
       this.page.at = val
       this.listDocument()
-    }
-  },
-  mounted() {
+		},
+		listPlugin() {
+      apiPlugins.plugin.list().then(plugins => {
+        if (JSON.stringify(plugins) !== '{}') {
+					if (plugins.document.transforms) {
+						this.moveCheckList = plugins.document.transforms.move.map(option => option.name)
+						plugins.document.submits.forEach(submit => {
+							let transforms = plugins.document.transforms[submit.id]
+							submit.checkList = transforms ? transforms.map(item => item.name) : []
+						})
+					}
+          this.plugins = plugins
+        }
+      })
+    },
+    listDocument() {
+      const rule = this.handleCondition()
+      this.filter = rule.filter
+			const { orderBy, filter } = rule
+			createDocApi(this.TmsAxios(this.tmsAxiosName))
+				.list(this.bucketName, this.dbName, this.clName, this.page, filter, orderBy)
+				.then(result => {
+						const documents =  result.docs
+						store.commit('documents', { documents })
+						this.page.total = result.total
+						this.tableHeight = window.innerHeight * 0.8
+				})
+		}
+	},
+	mounted() {
     createCollectionApi(this.TmsAxios(this.tmsAxiosName))
       .byName(this.bucketName, this.dbName, this.clName)
       .then(collection => {
@@ -689,6 +663,23 @@ export default {
   beforeDestroy() {
     this.conditionReset()
   }
+}
+export default componentOptions
+
+export function createAndMount(Vue, props, id) {
+	const ele = document.getElementById(id)
+	const CompClass = Vue.extend(componentOptions)
+	
+	Vue.use(Flex).use(Frame)
+
+  const propsData = {
+    tmsAxiosName: 'mongodb-api'
+  }
+  if (props && typeof props === 'object') Object.assign(propsData, props)
+
+  new CompClass({
+    propsData
+	}).$mount(ele)
 }
 </script>
 <style lang="less" scoped>
