@@ -1,13 +1,13 @@
 <template>
-  <div id="home">
-		<p>dddd</p>
-	</div>
+  <div id="home"></div>
 </template>
 
 <script>
 import Vue from 'vue'
-
+import { Frame, Flex } from 'tms-vue-ui'
 import { tmsImportLib } from 'tms-vue'
+
+Vue.use(Frame).use(Flex)
 
 export default {
 	name: 'home',
@@ -29,11 +29,10 @@ export default {
         propsData: {
 					tmsAxiosName: 'mongodb-api',
 					bucketName: this.bucketName,
-					dbName: 'test2',
-					clName: 'testJH'
+					dbName: this.dbName,
+					clName: this.clName
         }
-      })
-      comp.$mount()
+      }).$mount('#home')
     }
   }
 }
