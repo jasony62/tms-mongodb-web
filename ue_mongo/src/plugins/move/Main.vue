@@ -126,9 +126,10 @@ export default {
       this.failed = data.failed
       this.rules = this.failed.concat(data.passed) 
     }).then(() => {
-      apiCol.byName(this.dbName, this.clName).then(collection => {
-        this.collection = collection
-      })
+			createCollectionApi(this.TmsAxios('mongodb-api'))
+				.byName(this.dbName, this.clName).then(collection => {
+					this.collection = collection
+				})
     })
   }
 }
