@@ -10,7 +10,7 @@ const VUE_APP_BASE_URL = process.env.VUE_APP_BASE_URL ? process.env.VUE_APP_BASE
 
 console.log(process.env.VUE_APP_BASE_URL)
 
-const files = [process.cwd() + '/src/views/Portal.vue']
+const files = [process.cwd() + '/src/components/List.vue']
 
 function compile() {
   files.forEach(filePath => {

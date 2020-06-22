@@ -25,11 +25,12 @@
 </template>
 <script>
 import Vue from 'vue'
-import { Dialog, Form, FormItem, Select, Button } from 'element-ui'
+import { Dialog, Form, FormItem, Select, Option, Button } from 'element-ui'
 Vue.use(Dialog)
   .use(Form)
   .use(FormItem)
-  .use(Select)
+	.use(Select)
+  .use(Option)
   .use(Button)
 
 import createDbApi from '../apis/database'
