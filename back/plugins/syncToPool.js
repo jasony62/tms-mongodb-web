@@ -235,7 +235,6 @@ class SyncToPool extends Base {
 					await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
 					return Promise.resolve({ status: false, msg: insStatus })
 				}
-				console.log(order)
 
 				// 开始同步
 				postData = {

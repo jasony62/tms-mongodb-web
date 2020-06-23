@@ -7,9 +7,6 @@ const { Signale } = signale
 
 const VUE_APP_BASE_URL = process.env.VUE_APP_BASE_URL ? process.env.VUE_APP_BASE_URL : '/mongo'
 
-
-console.log(process.env.VUE_APP_BASE_URL)
-
 const files = [process.cwd() + '/src/components/List.vue']
 
 function compile() {

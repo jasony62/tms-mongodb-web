@@ -656,8 +656,10 @@ const componentOptions = {
       .byName(this.bucketName, this.dbName, this.clName)
       .then(collection => {
         this.collection = collection
-        this.listDocument()
-        this.listPlugin()
+				this.listDocument()
+				if (process.env.VUE_APP_USER_ROLE==='admin') {
+					this.listPlugin()
+				}
       })
   },
   beforeDestroy() {
