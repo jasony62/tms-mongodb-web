@@ -1,9 +1,10 @@
 const { MongoContext } = require('tms-koa').Context
 const moment = require('moment')
-const TMSCONFIG = require('tms-koa').Context.appConfig.tmwConfig
+const APPCONTEXT = require('tms-koa').Context.AppContext
+const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
 
 class Base {
-  constructor() {}
+  constructor() { }
   /**
    * 组装 查询条件
    */
@@ -70,13 +71,13 @@ class Base {
     let current = today.format('YYYY-MM-DD HH:mm:ss')
 
     if (type === 'insert') {
-      if (typeof data[TMSCONFIG['TMS_APP_DEFAULT_UPDATETIME']] !== 'undefined')
-        delete data[TMSCONFIG['TMS_APP_DEFAULT_UPDATETIME']]
-      data[TMSCONFIG['TMS_APP_DEFAULT_CREATETIME']] = current
+      if (typeof data[TMWCONFIG['TMS_APP_DEFAULT_UPDATETIME']] !== 'undefined')
+        delete data[TMWCONFIG['TMS_APP_DEFAULT_UPDATETIME']]
+      data[TMWCONFIG['TMS_APP_DEFAULT_CREATETIME']] = current
     } else if (type === 'update') {
-      if (typeof data[TMSCONFIG['TMS_APP_DEFAULT_CREATETIME']] !== 'undefined')
-        delete data[TMSCONFIG['TMS_APP_DEFAULT_CREATETIME']]
-      data[TMSCONFIG['TMS_APP_DEFAULT_UPDATETIME']] = current
+      if (typeof data[TMWCONFIG['TMS_APP_DEFAULT_CREATETIME']] !== 'undefined')
+        delete data[TMWCONFIG['TMS_APP_DEFAULT_CREATETIME']]
+      data[TMWCONFIG['TMS_APP_DEFAULT_UPDATETIME']] = current
     }
 
     return data

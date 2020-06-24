@@ -10,12 +10,10 @@ class Db extends DbBase {
    * 删除数据
    */
   async remove() {
-    const dbName = this.request.query.db
-
-    if (['admin', 'config', 'local', 'tms_admin'].includes(dbName))
-      return new ResultFault('不能删除系统自带数据库')
-
     const existDb = await this.dbHelper.findRequestDb()
+
+    if (['admin', 'config', 'local', 'tms_admin'].includes(existDb.sysname))
+      return new ResultFault('不能删除系统自带数据库')
 
     const cl = this.clMongoObj
     const query = { database: existDb.name, type: 'collection' }
