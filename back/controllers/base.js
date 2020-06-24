@@ -15,9 +15,9 @@ class Base extends Ctrl {
     super(...args)
   }
   async tmsBeforeEach() {
-    const bucketName = this.request.query.bucket
     /* 多租户模式下，检查bucket访问权限 */
     if (/yes|true/i.test(process.env.TMW_REQUIRE_BUCKET)) {
+      const bucketName = this.request.query.bucket
       if (!bucketName) {
         return new ResultFault('没有提供bucket参数')
       }
