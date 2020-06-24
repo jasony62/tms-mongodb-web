@@ -1,7 +1,8 @@
 const ObjectId = require('mongodb').ObjectId
 const Base = require('./base')
 const moment = require('moment')
-const TMSCONFIG = require('tms-koa').Context.appConfig.tmwConfig
+const APPCONTEXT = require('tms-koa').Context.AppContext
+const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
 
 class Document extends Base {
   /**
@@ -95,7 +96,7 @@ class Document extends Base {
     operate_before_data = ''
   ) {
     if (!operate_type || !dbname || !clname) return false
-    if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG !== 'Y') return true
+    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG !== 'Y') return true
     if (dbname === 'tms_admin' && clname === 'tms_app_data_action_log')
       return false
 
