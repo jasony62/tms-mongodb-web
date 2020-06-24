@@ -155,6 +155,10 @@ class SyncToPool extends Base {
 						insStatus += "flag_playtips,"
 						flag = true
 					}
+					if (!order.recordMode_gzh) {
+						insStatus += "recordMode_gzh,"
+						flag = true
+					}
 					if (flag) {
 						abnormalTotal++
 						insStatus += "的列不存在或值为空"
@@ -206,6 +210,7 @@ class SyncToPool extends Base {
 						postData.money_f = order.dismoney_f_gzh ? order.dismoney_f_gzh : order.money_f_gzh
 						postData.duration_price = order.dismoney_time_gzh ? order.dismoney_time_gzh : order.money_time_gzh
 						postData.money_ex = order.disovermoney_gzh ? order.disovermoney_gzh : order.overmoney_gzh
+						postData.recordMode = order.recordMode_gzh ? order.recordMode_gzh : ""
 					}
 					if (order.biz_function==='2'||order.biz_function==='1,2') {
 						postData.msgUrl = order.msg_url
@@ -235,7 +240,15 @@ class SyncToPool extends Base {
 					await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
 					return Promise.resolve({ status: false, msg: insStatus })
 				}
-				console.log(order)
+
+				if (schema.recordMode_yly && String(order.recordMode_yly) && !order.recordMode_yly) {
+					insStatus += "recordMode_yly列不存在或值为空"
+					abnormalTotal++
+					let syncTime = (operation === "1") ? "" : current
+					await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
+					return Promise.resolve({ status: false, msg: insStatus })
+				}
+
 
 				// 开始同步
 				postData = {
@@ -258,7 +271,8 @@ class SyncToPool extends Base {
 					"money_e": order.dismoney_e_yly ? order.dismoney_e_yly : order.money_e_yly, 
 					"money_f": order.dismoney_f_yly ? order.dismoney_f_yly : order.money_f_yly, 
 					"duration_price": order.dismoney_time_yly ? order.dismoney_time_yly : order.money_time_yly,
-					"money_ex": order.disovermoney_yly ? order.disovermoney_yly : order.overmoney_yly
+					"money_ex": order.disovermoney_yly ? order.disovermoney_yly : order.overmoney_yly,
+					"recordMode": order.recordMode_yly ? order.recordMode_yly : 0
 				}
 			}
 

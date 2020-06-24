@@ -17,7 +17,9 @@ services:
        - TMS_FINDER_FS_ROOTDIR=/data
        - TMS_FINDER_FS_CUSTOMNAME=true
        - TMS_MONGODB_HOST=omongodb
-       - TMS_MONGODB_PORT=27017
+			 - TMS_MONGODB_PORT=27017
+			 - TMS_MONGODB_USER_NAME=order
+       - TMS_MONGODB_USER_PWD=123456
     command: ['sh', './wait-for.sh', 'omongodb:27017', '-t', '300', '--', 'node', 'server']
   
   ue_admin:
