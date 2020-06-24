@@ -53,9 +53,10 @@
 | msg      | String   | 执行结果说明  |
 | result   | Array    | 集合列表      |
 
-# 连接mysql
+# 连接 mysql
 
 在项目的根目录下建立文件`/config/db.js`，指定下列 MySQL 或 Sqlite 数据库（可选）连接信息：
+
 ```javascript
 module.exports = {
   mysql: {
@@ -65,7 +66,7 @@ module.exports = {
       port: '',
       user: '',
       password: '',
-      database: ''
+      database: '',
     },
     write: {
       connectionLimit: 10,
@@ -73,14 +74,15 @@ module.exports = {
       port: '',
       user: '',
       password: '',
-      database: ''
-    }
+      database: '',
+    },
   },
   sqlite: {
-    path: ''
-  }
+    path: '',
+  },
 }
 ```
+
 参考：https://www.npmjs.com/package/mysql
 
 参考：https://github.com/JoshuaWise/better-sqlite3/blob/HEAD/docs/api.md
@@ -88,18 +90,18 @@ module.exports = {
 # 上传导出文件
 
 上传文件需要在项目根目录`/back/config/fs.js`中指定文件保存目录`rootDir: '文件夹路径'`。
-导出文件时为将生成的excel文件保存在服务器中，默认保存在根目录/back/public/文件夹下，如需指定目录需在根目录`/back/config/fs.js`中指定生成文件保存目录`outDir: '文件夹路径'`。支持从环境变量中取值
+导出文件时为将生成的 excel 文件保存在服务器中，默认保存在根目录/back/public/文件夹下，如需指定目录需在根目录`/back/config/fs.js`中指定生成文件保存目录`outDir: '文件夹路径'`。支持从环境变量中取值
+
 ```javascript
 module.exports = {
   local: {
-    rootDir: process.env.TMS_FINDER_FS_ROOTDIR || 'storage',   // 指定保存文件的目录
-    outDir: process.env.TMS_FINDER_FS_OUTDIR || 'storage'     // 系统生成文件存放目录
-  }
+    rootDir: process.env.TMS_FINDER_FS_ROOTDIR || 'storage', // 指定保存文件的目录
+    outDir: process.env.TMS_FINDER_FS_OUTDIR || 'storage', // 系统生成文件存放目录
+  },
 }
 ```
 
 # 数据操作日志
 
-系统支持记录数据操作日志，通过也没操作在添加、修改、删除、批量删除、移动数据时会把相关数据以及操作类型记录到日志(tms_admin库下的 tms_app_data_action_log 集合)表中。
-默认不记录，如需记录可在./back/config/app.js中设置tmsConfig.TMS_APP_DATA_ACTION_LOG = 'Y'
-```
+系统支持记录数据操作日志，通过也没操作在添加、修改、删除、批量删除、移动数据时会把相关数据以及操作类型记录到日志(tms_admin 库下的 tms_app_data_action_log 集合)表中。
+默认不记录，如需记录可在./back/config/app.js 中设置 tmsConfig.TMS_APP_DATA_ACTION_LOG = 'Y'

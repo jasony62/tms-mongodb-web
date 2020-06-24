@@ -23,6 +23,16 @@
 								<a href @click="handleDownload(i)">{{i.name}}</a><br/>
 							</span>
 						</span>
+            <span v-else-if="s.type === 'array' && s.format === 'checkbox'">
+							<span v-for="(i, v) in s.anyOf" :key="v">
+                <span v-if="scope.row[k].includes(i.value)">{{i.label}}&nbsp;</span>
+							</span>
+						</span>
+            <span v-else-if="s.type === 'string' && s.radioType === 2">
+							<span v-for="(i, v) in s.oneOf" :key="v">
+                <span v-if="scope.row[k] === i.value">{{i.label}}</span>
+							</span>
+						</span>
 						<span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>

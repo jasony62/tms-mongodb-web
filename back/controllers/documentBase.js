@@ -590,6 +590,7 @@ class DocBase extends Base {
       return new ResultFault('没有要修改的列')
 
     let find
+    let logOperate
     if (docIds && docIds.length > 0) {
       // 按选中修改
       let docIds2 = []
@@ -597,12 +598,15 @@ class DocBase extends Base {
         docIds2.push(new ObjectId(id))
       })
       find = { _id: { $in: docIds2 } }
+      logOperate = "批量修改(按选中)"
     } else if (filter && typeof filter === 'object') {
       // 按条件修改
       find = this._assembleFind(filter)
+      logOperate = "批量修改(按条件)"
     } else if (typeof filter === 'string' && filter === 'ALL') {
       //修改全部
       find = {}
+      logOperate = "批量修改(按全部)"
     } else {
       return new ResultFault('没有要修改的数据')
     }
@@ -623,7 +627,7 @@ class DocBase extends Base {
         // 日志
         if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
           let modelD = new modelDocu()
-          modelD.dataActionLog({}, '批量修改', existDb.name, clName)
+          modelD.dataActionLog({}, logOperate, existDb.name, clName)
         }
 
         return new ResultData(rst.result)
