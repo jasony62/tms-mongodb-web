@@ -100,7 +100,7 @@ class Document extends DocBase {
       .toArray()
 
     const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
-    let rst = ExcelCtrl.export(columns, data, clName)
+    let rst = ExcelCtrl.export(columns, data, clName + '.xlsx')
 
     if (rst[0] === false) {
       return new ResultFault(rst[1])
