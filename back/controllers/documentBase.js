@@ -8,7 +8,8 @@ const modelDocu = require('../models/mgdb/document')
 const ObjectId = require('mongodb').ObjectId
 const _ = require('lodash')
 const { unrepeatByArray } = require('../tms/utilities')
-const TMSCONFIG = require('tms-koa').Context.appConfig.tmwConfig
+const APPCONTEXT = require('tms-koa').Context.AppContext
+const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
 
 class DocBase extends Base {
   constructor(...args) {
@@ -54,7 +55,7 @@ class DocBase extends Base {
     const { cl: clName, id } = this.request.query
     const cl = this.mongoClient.db(existDb.sysname).collection(clName)
 
-    if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
+    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       // 记录操作日志
       let data = await cl.findOne({ _id: ObjectId(id) })
       let modelD = new modelDocu()
@@ -202,7 +203,7 @@ class DocBase extends Base {
 
     let total = await cl.find(find).count()
     if (total === 0) return new ResultFault('没有数据或不能删除')
-    if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
+    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       // 记录操作日志
       let datas2 = await cl.find(find).toArray()
       let modelD = new modelDocu()
@@ -227,7 +228,7 @@ class DocBase extends Base {
     let find = { _id: ObjectId(id) }
 
     // 日志
-    if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
+    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       // 获取原始数据
       let oData = await cl.findOne(find)
       let modelD = new modelDocu()
@@ -298,9 +299,9 @@ class DocBase extends Base {
 
             if (fs.existsSync(process.cwd() + '/' + tf.name + '.js')) {
               let func = require(process.cwd() + '/' + tf.name)
-              tf.oldExistDb = { name: oldExistDb.name, sysname: oldExistDb.sysname}
+              tf.oldExistDb = { name: oldExistDb.name, sysname: oldExistDb.sysname }
               tf.oldCl = oldCl
-              tf.newExistDb = { name: newExistDb.name, sysname: newExistDb.sysname}
+              tf.newExistDb = { name: newExistDb.name, sysname: newExistDb.sysname }
               tf.newCl = newCl
               newDocs = await func(newDocs, tf)
             }
@@ -342,9 +343,9 @@ class DocBase extends Base {
       return [
         false,
         '插入数据数量错误需插入：' +
-          newDocs.length +
-          '；实际插入：' +
-          rst.insertedCount,
+        newDocs.length +
+        '；实际插入：' +
+        rst.insertedCount,
       ]
     }
 
@@ -364,7 +365,7 @@ class DocBase extends Base {
     rstDelOld = rstDelOld[1]
 
     // 记录日志
-    if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
+    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       let moveOldDatas = {}
       oldDocus.forEach((od) => {
         if (passDocIds.includes(od._id)) {
@@ -445,7 +446,7 @@ class DocBase extends Base {
         .collection(clName)
         .insertMany(jsonFinishRows)
         .then(async () => {
-          if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
+          if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
             // 记录日志
             let modelD = new modelDocu()
             await modelD.dataActionLog(jsonFinishRows, '导入', existDb.name, clName)
@@ -485,8 +486,8 @@ class DocBase extends Base {
         if (
           schemaKey === planTotalColumn ||
           schemaKey === '_id' ||
-          schemaKey === TMSCONFIG['TMS_APP_DEFAULT_UPDATETIME'] ||
-          schemaKey === TMSCONFIG['TMS_APP_DEFAULT_CREATETIME']
+          schemaKey === TMWCONFIG['TMS_APP_DEFAULT_UPDATETIME'] ||
+          schemaKey === TMWCONFIG['TMS_APP_DEFAULT_CREATETIME']
         )
           continue
         if (!rule[schemaKey]) continue
@@ -625,7 +626,7 @@ class DocBase extends Base {
       .updateMany(find, { $set: set })
       .then((rst) => {
         // 日志
-        if (TMSCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
+        if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
           let modelD = new modelDocu()
           modelD.dataActionLog({}, logOperate, existDb.name, clName)
         }

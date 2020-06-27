@@ -63,7 +63,26 @@ class Document extends DocBase {
    * 导出数据
    */
   async export() {
-    let { cl: clName } = this.request.query
+    let { db: dbName, cl: clName } = this.request.query
+    const { filter, docIds } = this.request.body
+
+    let find
+    if (docIds && docIds.length > 0) {
+      // 按选中修改
+      let docIds2 = []
+      docIds.forEach((id) => {
+        docIds2.push(new ObjectId(id))
+      })
+      find = { _id: { $in: docIds2 } }
+    } else if (filter && typeof filter === 'object') {
+      // 按条件修改
+      find = this._assembleFind(filter)
+    } else if (typeof filter === 'string' && filter === 'ALL') {
+      //修改全部
+      find = {}
+    } else {
+      return new ResultFault('没有要导出的数据')
+    }
 
     const existDb = await this.docHelper.findRequestDb()
     // 集合列
@@ -77,11 +96,11 @@ class Document extends DocBase {
     let data = await client
       .db(existDb.sysname)
       .collection(clName)
-      .find()
+      .find(find)
       .toArray()
 
     const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
-    let rst = ExcelCtrl.export(columns, data, clName)
+    let rst = ExcelCtrl.export(columns, data, clName + '.xlsx')
 
     if (rst[0] === false) {
       return new ResultFault(rst[1])
