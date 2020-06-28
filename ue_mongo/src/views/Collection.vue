@@ -10,23 +10,30 @@
     <template v-slot:center>
       <el-table id="tables" :data="documents" stripe ref="multipleTable" :height="tableHeight" @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55"></el-table-column>
-        <el-table-column
-          v-for="(s, k) in collection.schema.body.properties"
-          :key="k"
-          :prop="k">
-					<template slot="header">
-						<i v-if="s.description" class="el-icon-info" :title="s.description"></i>
-						<i v-if="s.required" style="color:red">*</i>
-						<span> {{s.title}} </span>
-						<img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
+        <el-table-column v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k">
+          <template slot="header">
+            <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
+            <i v-if="s.required" style="color:red">*</i>
+            <span> {{s.title}} </span>
+            <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
           </template>
           <template slot-scope="scope">
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
-						<span v-else-if="s.type==='array'&&s.format==='file'">
-							<span v-for="(i, v) in scope.row[k]" :key="v">
-								<a href @click="handleDownload(i)">{{i.name}}</a><br/>
-							</span>
-						</span>
+            <span v-else-if="s.type==='string'&&s.radioType===2">
+              <span v-for="(m,n) in s.oneOf" :key="n">
+                <span v-if="scope.row[k]===m.value">{{m.label}}</span>
+              </span>
+            </span>
+            <span v-else-if="s.type==='array'&&s.format==='checkbox'">
+              <span v-for="(i,v) in s.anyOf" :key="v">
+                <span v-if="scope.row[k].includes(i.value)">{{i.label}}&nbsp;</span>
+              </span>
+            </span>
+            <span v-else-if="s.type==='array'&&s.format==='file'">
+              <span v-for="(i, v) in scope.row[k]" :key="v">
+                <a href @click="handleDownload(i)">{{i.name}}</a><br />
+              </span>
+            </span>
             <span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
@@ -59,7 +66,7 @@
         <el-upload action="#" :show-file-list="false" :http-request="importDocument">
           <el-button>导入数据</el-button>
         </el-upload>
-				<el-dropdown @command="exportDocument">
+        <el-dropdown @command="exportDocument">
           <el-button>导出数据<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -345,13 +352,13 @@ export default {
     listPlugin() {
       apiPlugins.plugin.list().then(plugins => {
         if (JSON.stringify(plugins) !== '{}') {
-					if (plugins.document.transforms) {
-						this.moveCheckList = plugins.document.transforms.move.map(option => option.name)
-						plugins.document.submits.forEach(submit => {
-							let transforms = plugins.document.transforms[submit.id]
-							submit.checkList = transforms ? transforms.map(item => item.name) : []
-						})
-					}
+          if (plugins.document.transforms) {
+            this.moveCheckList = plugins.document.transforms.move.map(option => option.name)
+            plugins.document.submits.forEach(submit => {
+              let transforms = plugins.document.transforms[submit.id]
+              submit.checkList = transforms ? transforms.map(item => item.name) : []
+            })
+          }
           this.plugins = plugins
         }
       })
@@ -374,11 +381,11 @@ export default {
           this.page.total = result.result.total
           this.tableHeight = window.innerHeight * 0.8
         })
-		},
-		handleDownload(file) {
-			const access_token = sessionStorage.getItem('access_token')
+    },
+    handleDownload(file) {
+      const access_token = sessionStorage.getItem('access_token')
       window.open(`${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`)
-		},
+    },
     createDocument() {
       let editor = new Vue(DocEditor)
       editor.open(this.bucketName, this.dbName, this.collection).then(() => {
@@ -590,11 +597,11 @@ export default {
         })
     },
     exportDocument(command) {
-			let { param } = this.fnSetReqParam(command)
+      let { param } = this.fnSetReqParam(command)
       apiDoc.export(this.bucketName, this.dbName, this.clName, param).then(result => {
         const access_token = sessionStorage.getItem('access_token')
         window.open(
-          `${process.env.VUE_APP_BACK_API_BASE}/download/down?access_token=${access_token}&file=${result}`
+          `${process.env.VUE_APP_BACK_API_FS}${result}?access_token=${access_token}`
         )
       })
     },
@@ -653,8 +660,8 @@ export default {
           this.pluginOfMoveByRule(transforms, param)
           break;
         case 'syncMobilePool':
-				case 'syncToPool':
-				case 'syncToWork':
+        case 'syncToPool':
+        case 'syncToWork':
           this.pluginOfSync(submit.id, transforms, param, 0, 0, 0)
       }
     },

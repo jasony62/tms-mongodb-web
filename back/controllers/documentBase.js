@@ -27,6 +27,9 @@ class DocBase extends Base {
     // 加工数据
     this._beforeProcessByInAndUp(doc, 'insert')
 
+    if (doc.hasOwnProperty('create_time') && !doc.create_time) doc.create_time = doc[TMWCONFIG['TMS_APP_DEFAULT_CREATETIME']]
+    if (doc.hasOwnProperty('update_time')) doc.update_time = doc[TMWCONFIG['TMS_APP_DEFAULT_CREATETIME']]
+
     return this.mongoClient
       .db(existDb.sysname)
       .collection(clName)
@@ -243,6 +246,7 @@ class DocBase extends Base {
       )
     }
 
+    if (doc.hasOwnProperty('update_time')) doc.update_time = doc[TMWCONFIG['TMS_APP_DEFAULT_UPDATETIME']]
     return cl.updateOne(find, { $set: doc }).then(() => new ResultData(doc))
   }
   /**
