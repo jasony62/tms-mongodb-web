@@ -10,28 +10,29 @@ import { tmsImportLib } from 'tms-vue'
 Vue.use(Frame).use(Flex)
 
 export default {
-	name: 'home',
-	props: {
-		bucketName: String,
-		dbName: String,
-		clName: String
-	},
-	mounted() {
-		this.load()
-	},
+  name: 'home',
+  props: {
+    bucketName: String,
+    dbName: String,
+    clName: String,
+    tmsAxiosName: String,
+  },
+  mounted() {
+    this.load()
+  },
   methods: {
     async load() {
-			const libUrl = process.env.VUE_APP_LIB_URL
-			const name = 'List'
-			const compOptions = await tmsImportLib(libUrl, { name })
-			const CompClass = Vue.extend(compOptions)
-		
+      const libUrl = process.env.VUE_APP_LIB_URL
+      const name = 'List'
+      const compOptions = await tmsImportLib(libUrl, { name })
+      const CompClass = Vue.extend(compOptions)
+    
       new CompClass({
         propsData: {
-					tmsAxiosName: 'mongodb-api',
-					bucketName: this.bucketName,
-					dbName: 'test2',
-					clName: 'testSyncPool'
+          bucketName: this.bucketName,
+          dbName: this.dbName,
+          clName: this.clName,
+          tmsAxiosName: this.tmsAxiosName
         }
       }).$mount('#home')
     }

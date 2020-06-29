@@ -665,11 +665,16 @@ const componentOptions = {
 }
 export default componentOptions
 
-export function createAndMount(Vue, propsData, id) {
+export function createAndMount(Vue, props, id) {
 	const ele = document.getElementById(id)
 	const CompClass = Vue.extend(componentOptions)
 	
 	Vue.use(Flex).use(Frame)
+
+  const propsData = {
+    tmsAxiosName: 'mongodb-api'
+  }
+  if (props && typeof props === 'object') Object.assign(propsData, props)
 
   new CompClass({
     propsData
