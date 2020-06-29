@@ -13,7 +13,7 @@ export default {
     clName: String
   },
   mounted() {
-    import('../components/List.vue').then(Module => {
+    import('../../../ue_comp/src/List.vue').then(Module => {
       Module.createAndMount(Vue, {
         bucketName: this.bucketName,
         dbName: this.dbName,

@@ -113,7 +113,7 @@
 
 <script>
 import Vue from 'vue'
-import store from '@/store'
+import store from '../../ue_mongo/src/store'
 import { Frame, Flex } from 'tms-vue-ui'
 import { Breadcrumb, BreadcrumbItem, Table, TableColumn, Button, Checkbox, CheckboxGroup, Upload, Pagination, Message, MessageBox, Dropdown, DropdownMenu, DropdownItem } from 'element-ui'
 
@@ -121,10 +121,10 @@ import DocEditor from './DocEditor.vue'
 import ColumnValueEditor from './ColumnValueEditor.vue'
 import DomainEditor from './DomainEditor.vue'
 import SelectCondition from './SelectCondition.vue'
-import MoveByRulePlugin from '../plugins/move/Main.vue'
-import createCollectionApi from '../apis/collection'
-import createDocApi from '../apis/document'
-import apiPlugins from '../plugins'
+import MoveByRulePlugin from '../../ue_mongo/src/plugins/move/Main.vue'
+import createCollectionApi from '../../ue_mongo/src/apis/collection'
+import createDocApi from '../../ue_mongo/src/apis/document'
+import apiPlugins from '../../ue_mongo/src/plugins'
 
 const componentOptions = {
 	components: {
@@ -665,17 +665,12 @@ const componentOptions = {
 }
 export default componentOptions
 
-export function createAndMount(Vue, props, id) {
+export function createAndMount(Vue, propsData, id) {
 	const ele = document.getElementById(id)
 	const CompClass = Vue.extend(componentOptions)
 	
-	Vue.use(Flex).use(Frame)
-
-  const propsData = {
-    tmsAxiosName: 'mongodb-api'
-  }
-  if (props && typeof props === 'object') Object.assign(propsData, props)
-
+  Vue.use(Flex).use(Frame)
+  
   new CompClass({
     propsData
 	}).$mount(ele)

@@ -1,6 +1,6 @@
-const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/mongo/db'
+const base = (process.env.VUE_APP_API_SERVER || '') + '/mongo/db'
 
-export default function create(tmsAxios){
+export default function create(tmsAxios) {
 	return {
 		list(bucket) {
 			const params = { bucket }

@@ -1,24 +1,11 @@
 <template>
-  <tms-frame
-    ref="plugin"
-    :display="{ header: true, footer: true, right: true }"
-    :leftWidth="'20%'"
-  >
+  <tms-frame ref="plugin" :display="{ header: true, footer: true, right: true }" :leftWidth="'20%'">
     <template v-slot:header>
       <el-button type="text" @click="closeDialog">返回</el-button>
     </template>
     <template v-slot:center>
-      <el-table 
-        :data="rules" 
-        stripe 
-        ref="multipleTable" 
-        style="width: 100%">
-        <el-table-column
-          v-for="(s, k) in schemas"
-          :key="k"
-          :prop="k"
-          :label="s.title"
-        ></el-table-column>
+      <el-table :data="rules" stripe ref="multipleTable" style="width: 100%">
+        <el-table-column v-for="(s, k) in schemas" :key="k" :prop="k" :label="s.title"></el-table-column>
         <el-table-column fixed="right" label="操作" width="180">
           <template slot-scope="scope">
             <el-button size="mini" @click="details(scope.row)" v-if="scope.row.data">详情</el-button>
@@ -28,8 +15,10 @@
     </template>
     <template v-slot:right>
       <tms-flex direction="column">
-        <div v-if="!failed.length"><el-button @click="moveDocument">开始迁移</el-button></div>
-      </tms-flex>      
+        <div v-if="!failed.length">
+          <el-button @click="moveDocument">开始迁移</el-button>
+        </div>
+      </tms-flex>
     </template>
   </tms-frame>
 </template>
@@ -47,9 +36,9 @@ Vue.use(Table)
   .use(Col)
   .use(Button)
   
-import DomainEditor from '@/components/DomainEditor.vue'
-import CollectionDialog from '@/components/CollectionDialog.vue'
-import createCollectionApi from '@/apis/collection'
+import DomainEditor from '../../../../ue_comp/src/DomainEditor'
+import CollectionDialog from '../../components/CollectionDialog.vue'
+import createCollectionApi from '../../apis/collection'
 import api from './index'
 
 export default {

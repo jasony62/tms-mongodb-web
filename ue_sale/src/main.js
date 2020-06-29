@@ -31,9 +31,9 @@ Vue.use(Login, { schema: LoginSchema, fnGetCaptcha, fnGetToken: fnGetJwt })
 /**
  * 请求中需要包含认证信息
  */
-const LoginPromise = (function() {
+const LoginPromise = (function () {
   let login = new Login(LoginSchema, fnGetCaptcha, fnGetJwt)
-  let ins = new TmsLockPromise(function() {
+  let ins = new TmsLockPromise(function () {
     return login.showAsDialog().then(token => {
       sessionStorage.setItem('access_token', token)
       return `Bearer ${token}`
