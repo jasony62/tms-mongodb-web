@@ -45,7 +45,7 @@ class SyncToPool extends Base {
     if (!dbObj || !dbObj.schema || !dbObj.schema.body || !dbObj.schema.body.properties) return new ResultFault("文件没有指定集合列定义")
     // 校验必须列
     let dbSchema = dbObj.schema.body.properties
-    let requireFields = ["pool_sync_time", "pool_sync_status", "auditing_status", "cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "cdrpush_url", "discost_month_gzh", "discost_call_gzh", "call_url", "flag_playtips", "costtype_yly"]
+    let requireFields = ["pool_sync_time", "pool_sync_status", "auditing_status", "cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "cdrpush_url", "discost_month_gzh", "discost_call_gzh", "call_url", "flag_playtips"]
     let missFields = requireFields.filter(field => !dbSchema[field])
     if (missFields.length) return new ResultFault("缺少同步必须列(" + missFields.join(',') + ")")
 
@@ -221,6 +221,15 @@ class SyncToPool extends Base {
 
       // 云录音
       if (order.pro_type === '1') {
+        // 先检查列
+        if (!schema.costtype_yly) {
+          insStatus += "costtype_yly列不存在"
+          abnormalTotal++
+          let syncTime = (operation === "1") ? "" : current
+          await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
+          return Promise.resolve({ status: false, msg: insStatus })
+        }
+
         // 检查同步时必要字段的值
         let ylyFields = ["cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "cdrpush_url", "flag_playtips", "costtype_yly"]
         let errorFields = ylyFields.filter(field => !order[field])
@@ -248,7 +257,6 @@ class SyncToPool extends Base {
           await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
           return Promise.resolve({ status: false, msg: insStatus })
         }
-
 
         // 开始同步
         postData = {
