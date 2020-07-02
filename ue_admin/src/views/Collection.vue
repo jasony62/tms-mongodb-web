@@ -11,19 +11,29 @@
       <el-table :data="documents" stripe id="tables" class="table-fixed" style="width: 100%">
         <el-table-column v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k">
           <template slot="header">
-						<i v-if="s.description" class="el-icon-info" :title="s.description"></i>
-						<i v-if="s.required" style="color:red">*</i>
-						<span> {{ s.title }} </span>
-						<img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
+            <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
+            <i v-if="s.required" style="color:red">*</i>
+            <span> {{ s.title }} </span>
+            <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
           </template>
-					<template slot-scope="scope">
+          <template slot-scope="scope">
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
-						<span v-else-if="s.type==='array'&&s.format==='file'">
-							<span v-for="(i, v) in scope.row[k]" :key="v">
-								<a href @click="handleDownload(i)">{{i.name}}</a><br/>
-							</span>
-						</span>
-						<span v-else>{{ scope.row[k] }}</span>
+            <span v-else-if="s.type==='string'&&s.radioType===2">
+              <span v-for="(m,n) in s.oneOf" :key="n">
+                <span v-if="scope.row[k]===m.value">{{m.label}}</span>
+              </span>
+            </span>
+            <span v-else-if="s.type==='array'&&s.format==='checkbox'">
+              <span v-for="(i,v) in s.anyOf" :key="v">
+                <span v-if="scope.row[k].includes(i.value)">{{i.label}}&nbsp;</span>
+              </span>
+            </span>
+            <span v-else-if="s.type==='array'&&s.format==='file'">
+              <span v-for="(i, v) in scope.row[k]" :key="v">
+                <a href @click="handleDownload(i)">{{i.name}}</a><br />
+              </span>
+            </span>
+            <span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作" width="180">
@@ -243,11 +253,11 @@ export default {
         .then(result => {
           this.page.total = result.total
         })
-		},
-		handleDownload(file) {
-			const access_token = sessionStorage.getItem('access_token')
-			window.open(`${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`)
-		},
+    },
+    handleDownload(file) {
+      const access_token = sessionStorage.getItem('access_token')
+      window.open(`${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`)
+    },
     handleSize(val) {
       this.page.size = val
       this.dialogPage.size = val

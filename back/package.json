@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "back",
   "version": "0.0.1",
   "description": "",
@@ -20,4 +21,27 @@
     "request": "^2.88.2",
     "tms-koa": "^0.0.49"
   }
+=======
+	"name": "back",
+	"version": "0.0.1",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"pm2": "pm2 start ecosystem.config.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "MIT",
+	"dependencies": {
+		"lodash": "^4.17.15",
+		"log4js": "^6.1.0",
+		"moment": "^2.24.0",
+		"mongodb": "^3.3.4",
+		"nanoid": "^3.1.4",
+		"redis": "^2.8.0",
+		"request": "^2.88.2",
+		"tms-koa": "^0.0.49"
+	}
+>>>>>>> cus
 }

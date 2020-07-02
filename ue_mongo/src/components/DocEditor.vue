@@ -50,15 +50,15 @@ export default {
 					.then(path => {
             return Promise.resolve({'url': path, 'name': file.name})
           })
-					.catch(err => Promise.reject(err))
-			})
-			return Promise.all(objPromises)
-				.then(rsl => { 
-					result[ref] = rsl
+          .catch(err => Promise.reject(err))
+      })
+      return Promise.all(objPromises)
+        .then(rsl => { 
+          result[ref] = rsl
           return Promise.resolve(result)
-				})
-				.catch(err => Promise.reject(err))
-		},
+        })
+        .catch(err => Promise.reject(err))
+    },
     async onJsonDocSubmit(slimDoc, newDoc) {
 			let validate = true
 			if (process.env.VUE_APP_SUBMIT_VALITOR_FIELD) {
@@ -95,7 +95,7 @@ export default {
       this.bucketName = bucketName
       this.dbName = dbName
       this.collection = collection
-      if (doc && doc._id) this.document = doc
+      if (doc && doc._id) Object.assign(this.document, doc)
       this.$mount()
       document.body.appendChild(this.$el)
       return new Promise(resolve => {
