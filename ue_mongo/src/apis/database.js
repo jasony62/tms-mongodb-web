@@ -1,4 +1,4 @@
-const base = (process.env.VUE_APP_API_SERVER || '') + '/mongo/db'
+const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/mongo/db'
 
 export default function create(tmsAxios) {
 	return {

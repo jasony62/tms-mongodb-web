@@ -9,22 +9,26 @@ COPY . .
 
 # 生成.env文件
 ARG vue_app_base_url
-ARG vue_app_auth_server
 ARG vue_app_login_key_username=username
 ARG vue_app_login_key_password=password
 ARG vue_app_login_key_pin=pin
-ARG vue_app_api_server
-ARG vue_app_lib_url
+ARG vue_app_back_auth_base
+ARG vue_app_back_auth_server
+ARG vue_app_back_api_base
+ARG vue_app_back_api_server
+ARG vue_app_user_role
 
 RUN echo VUE_APP_BASE_URL=$vue_app_base_url > .env && \
-  echo VUE_APP_AUTH_SERVER=$vue_app_auth_server >> .env && \
   echo VUE_APP_LOGIN_KEY_USERNAME=$vue_app_login_key_username >> .env && \
   echo VUE_APP_LOGIN_KEY_PASSWORD=$vue_app_login_key_password  >> .env && \
   echo VUE_APP_LOGIN_KEY_PIN=$vue_app_login_key_pin  >> .env && \
-  echo VUE_APP_API_SERVER=$vue_app_api_server >> .env >> .env && \
-  echo VUE_APP_LIB_URL=$vue_app_lib_url >> .env
+  echo VUE_APP_BACK_AUTH_BASE=$vue_app_back_auth_base >> .env && \
+  echo VUE_APP_BACK_AUTH_SERVER=$vue_app_back_auth_server >> .env && \
+  echo VUE_APP_BACK_API_BASE=$vue_app_back_api_base >> .env && \
+  echo VUE_APP_BACK_API_SERVER=$vue_app_back_api_server >> .env && \
+  echo VUE_APP_USER_ROLE=$vue_app_user_role >> .env
 
-RUN cnpm i && yarn build
+RUN cnpm i && yarn build.lib
 
 # 标准基础镜像（部署阶段）
 FROM nginx:alpine
