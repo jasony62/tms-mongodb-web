@@ -48,20 +48,16 @@ services:
     image: tms-mongodb-order/ue-mongo:latest
     container_name: order-ue_mongo
     environment:
-			- NGINX_WEB_BASE_URL=/order/mongo
+      - NGINX_WEB_BASE_URL=/order/mongo
 
-	ue_sale:
-		build:
-			context: ./ue_sale
-			args:
-				vue_app_base_url: /order/sale
-				vue_app_login_key_username: username
-				vue_app_login_key_password: password
-        vue_app_login_key_pin: pin
+  ue_sale:
+    build:
+      context: ./ue_sale
+      args:
         vue_app_back_auth_base: /order/auth
         vue_app_back_api_base: /order/api
         vue_app_user_role: sale
-		image: tms-mongodb-order/ue_sale:latest
-		container_name: order-ue_sale
-		environment:
-			- NGINX_WEB_BASE_URL=/order/sale
+    image: tms-mongodb-order/ue_sale:latest
+    container_name: order-ue_sale
+    environment:
+      - NGINX_WEB_BASE_URL=/order/sale
