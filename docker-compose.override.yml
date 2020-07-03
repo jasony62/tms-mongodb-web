@@ -60,7 +60,7 @@ services:
           vue_app_back_auth_server: http://192.168.20.71:3330
           vue_app_back_api_server: http://back:3650
       ports:
-        - ''
+        - '3660:80'
       dns:
         - 223.6.6.6
         - 223.5.5.5
