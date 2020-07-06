@@ -45,6 +45,8 @@ services:
         args:
           vue_app_back_auth_server: http://192.168.20.71:3330
           vue_app_back_api_server: http://back:3650
+      environment: 
+        NODE_ENV: production
       ports:
         - '3630:80'
       dns:
