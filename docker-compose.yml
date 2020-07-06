@@ -37,7 +37,8 @@ services:
       
   ue_mongo:
     build:
-      context: ./ue_mongo
+      context: .
+      dockerfile: Dockerfile-uemongo
       args:
         vue_app_base_url: /order/mongo
         vue_app_back_auth_base: /order/auth
