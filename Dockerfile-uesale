@@ -26,7 +26,7 @@ RUN echo VUE_APP_BASE_URL=$vue_app_base_url > .env && \
   echo VUE_APP_BACK_API_SERVER=$vue_app_back_api_server >> .env && \
   echo VUE_APP_USER_ROLE=$vue_app_user_role >> .env
 
-RUN cd ue_mongo && cnpm i && yarn build.lib
+RUN cd ue_sale && cnpm i && yarn build.lib
 
 # 标准基础镜像（部署阶段）
 FROM nginx:alpine
