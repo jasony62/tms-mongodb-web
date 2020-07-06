@@ -360,7 +360,8 @@ class SyncToPool extends Base {
 
           return Promise.resolve(returnData)
         })
-      })
+      }
+    })
 
     return Promise.all(rst).then(async () => {
       return [true, { abnormalTotal, passTotal }]

@@ -169,8 +169,7 @@ class SyncToWork extends Base {
           return Promise.resolve({ status: false, msg: insStatus })
         }
       }
-
-      let vals = ['1', '1,2', '2', '2,3', '3']
+      let vals = ['1', '1,2', '1,3', '1,2,3', '2', '2,3', '3']
       if (tel.pro_type === '1' && !vals.includes(tel.num_type)) {
         abnormalTotal++
         insStatus += "num_type的值只能是1或1,2或2或2,3或3"
