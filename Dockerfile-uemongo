@@ -1,11 +1,11 @@
-# 标准基础镜像（构建阶段）
-FROM node:alpine
-
+#基于alpine的nodejs基础镜像
+FROM node:12.10.0-alpine AS builder
+MAINTAINER made nodejs by p21 from lit29@chinatelecom.cn
+WORKDIR /usr/src/app
+#Install dependencied of nodejs on alpine
 RUN npm install -g cnpm --registry=https://registry.npm.taobao.org
+COPY . .
 
-WORKDIR /home/node/app
-
-COPY ./ue_mongo .
 
 # 生成.env文件
 ARG vue_app_title=订单用户端
@@ -30,7 +30,7 @@ RUN echo VUE_APP_TITLE=$vue_app_title > .env && \
 
 
 # 安装依赖包，构建代码
-RUN cnpm i && yarn build
+RUN cd ue_mongo && cnpm i && yarn build
 
 # 标准基础镜像（部署阶段）
 FROM nginx:alpine
@@ -49,7 +49,7 @@ ADD ./ue_mongo/start_nginx.sh /usr/local/bin/start_nginx.sh
 RUN chmod +x /usr/local/bin/start_nginx.sh
 
 # 将构建阶段代码放在指定位置
-COPY --from=0 /home/node/app/dist /usr/share/nginx/html
+COPY --from=builder /usr/src/app/ue_mongo/dist /usr/share/nginx/html
 
 CMD ["start_nginx.sh"]
 
