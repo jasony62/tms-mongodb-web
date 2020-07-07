@@ -20,7 +20,7 @@ RUN echo VUE_APP_BASE_URL=$vue_app_base_url > ./ue_sale/.env && \
   echo VUE_APP_BACK_API_SERVER=$vue_app_back_api_server >> ./ue_sale/.env && \
   echo VUE_APP_USER_ROLE=$vue_app_user_role >> ./ue_sale/.env
 
-RUN cd ue_sale && cnpm i && cnpm install -save vuex && yarn build.lib
+RUN cd ue_sale && cnpm install -save vuex && cnpm i &&  yarn build.lib
 
 # 标准基础镜像（部署阶段）
 FROM nginx:alpine
