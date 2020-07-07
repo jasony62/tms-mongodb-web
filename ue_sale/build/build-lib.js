@@ -10,6 +10,8 @@ const { Signale } = signale
 const libDir = path.join(__dirname, '../dist/lib')
 const srcDir = path.join(__dirname, '../src/online-libs')
 
+const VUE_APP_BASE_URL = process.env.VUE_APP_BASE_URL ? process.env.VUE_APP_BASE_URL : '/order/sale'
+
 const isDir = dir => fs.lstatSync(dir).isDirectory()
 const isCode = path => /\.vue$/.test(path)
 
@@ -30,7 +32,7 @@ function compile(dir) {
     }
     let relativePath = filePath.replace(process.cwd(), '.')
     let compName = relativePath.match(/([^/]+?).vue$/)[1]
-    const task = `vue-cli-service build --target lib --formats umd,umd-min --dest ./dist/lib/${compName} --name index ${relativePath}`
+    const task = `vue-cli-service build --target lib --formats umd,umd-min --dest ./dist${VUE_APP_BASE_URL}/lib/${compName} --name index ${relativePath}`
 
     signale.start(`build: ${compName}`)
 
