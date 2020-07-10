@@ -36,7 +36,7 @@ Vue.use(Table)
   .use(Col)
   .use(Button)
   
-import DomainEditor from '../../../../ue_comp/src/DomainEditor'
+import DomainEditor from '../../components/DomainEditor'
 import CollectionDialog from '../../components/CollectionDialog.vue'
 import createCollectionApi from '../../apis/collection'
 import api from './index'

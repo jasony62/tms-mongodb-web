@@ -1,12 +1,5 @@
 <template>
-  <tms-frame class="tmw-document" :display="{ header: true, footer: false, right: true }" :leftWidth="'20%'">
-    <template v-slot:header v-if="role==='admin'">
-      <el-breadcrumb separator-class="el-icon-arrow-right">
-        <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ name: 'database', params: { dbName: dbName } }">{{dbName}}</el-breadcrumb-item>
-        <el-breadcrumb-item>{{clName}}</el-breadcrumb-item>
-      </el-breadcrumb>
-    </template>
+  <tms-frame class="tmw-document" :display="{ header: false, footer: false, right: true }" :leftWidth="'20%'">
     <template v-slot:center>
       <el-table id="tables" :data="documents" stripe ref="multipleTable" :height="tableHeight" @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55"></el-table-column>
@@ -115,12 +108,12 @@
 import Vue from 'vue'
 import store from '../../ue_mongo/src/store'
 import { Frame, Flex } from 'tms-vue-ui'
-import { Breadcrumb, BreadcrumbItem, Table, TableColumn, Button, Checkbox, CheckboxGroup, Upload, Pagination, Message, MessageBox, Dropdown, DropdownMenu, DropdownItem } from 'element-ui'
+import { Table, TableColumn, Button, Checkbox, CheckboxGroup, Upload, Pagination, Message, MessageBox, Dropdown, DropdownMenu, DropdownItem } from 'element-ui'
 
 import DocEditor from './DocEditor.vue'
-import ColumnValueEditor from './ColumnValueEditor.vue'
-import DomainEditor from './DomainEditor.vue'
 import SelectCondition from './SelectCondition.vue'
+import ColumnValueEditor from '../../ue_mongo/src/components/ColumnValueEditor.vue'
+import DomainEditor from '../../ue_mongo/src/components/DomainEditor.vue'
 import MoveByRulePlugin from '../../ue_mongo/src/plugins/move/Main.vue'
 import createCollectionApi from '../../ue_mongo/src/apis/collection'
 import createDocApi from '../../ue_mongo/src/apis/document'
@@ -128,8 +121,6 @@ import apiPlugins from '../../ue_mongo/src/plugins'
 
 const componentOptions = {
 	components: {
-		'el-breadcrumb': Breadcrumb,
-		'el-breadcrumb-item': BreadcrumbItem,
 		'el-table': Table,
 		'el-table-column': TableColumn,
 		'el-button': Button,
@@ -678,6 +669,7 @@ export function createAndMount(Vue, propsData, id) {
 </script>
 <style lang="less" scoped>
 .tmw-document {
+  position: relative;
   .icon-style {
     margin-left: 10px;
     cursor: pointer;
