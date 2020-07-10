@@ -34,6 +34,9 @@ function compile(dir) {
     let compName = relativePath.match(/([^/]+?).vue$/)[1]
     const task = `vue-cli-service build --target lib --formats umd,umd-min --dest ./dist${VUE_APP_BASE_URL}/lib/${compName} --name index ${relativePath}`
 
+    console.log('compName', compName)
+    console.log('task', task)
+
     signale.start(`build: ${compName}`)
 
     const interactive = new Signale({ interactive: true })
