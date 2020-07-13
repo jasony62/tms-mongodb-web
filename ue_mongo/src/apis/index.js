@@ -6,13 +6,13 @@ import createDoc from './document'
 
 function init(options) {
   return {
-		api: {
-			bucket: createBucket(options.tmsAxios.api),
-			db: createDb(options.tmsAxios.api),
-			schema: createSchema(options.tmsAxios.api),
-			collection: createCollection(options.tmsAxios.api),
-			doc: createDoc(options.tmsAxios.api)
-		}	
+    api: {
+      bucket: createBucket(options.tmsAxios.api),
+      db: createDb(options.tmsAxios.api),
+      schema: createSchema(options.tmsAxios.api),
+      collection: createCollection(options.tmsAxios.api),
+      doc: createDoc(options.tmsAxios.api)
+    }
   }
 }
 
