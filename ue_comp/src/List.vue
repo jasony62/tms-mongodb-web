@@ -536,7 +536,7 @@ const componentOptions = {
       createDocApi(this.TmsAxios(this.tmsAxiosName)).export(this.bucketName, this.dbName, this.clName, param).then(result => {
         const access_token = sessionStorage.getItem('access_token')
         window.open(
-          `${process.env.VUE_APP_BACK_API_BASE}/download/down?access_token=${access_token}&file=${result}`
+          `${process.env.VUE_APP_BACK_API_FS}${result}?access_token=${access_token}`
         )
       })
 		},
