@@ -12,7 +12,7 @@
           </template>
           <template slot-scope="scope">
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
-            <span v-else-if="s.type==='array'&&s.format==='file'">
+            <span v-else-if="s.type==='array'&& s.items && s.items.format==='file'">
               <span v-for="(i, v) in scope.row[k]" :key="v">
                 <a href @click="handleDownload(i)">{{i.name}}</a><br />
               </span>
@@ -610,6 +610,8 @@ const componentOptions = {
           this.pluginOfMoveByRule(transforms, param)
           break
         case 'syncMobilePool':
+        case 'syncToPool':
+				case 'syncToWork':
           this.pluginOfSync(submit.id, transforms, param, 0, 0, 0)
       }
     },
@@ -656,7 +658,7 @@ const componentOptions = {
       .then(collection => {
         this.collection = collection
 				this.listDocument()
-				if (process.env.VUE_APP_USER_ROLE==='admin') {
+				if (this.role==='admin') {
 					this.listPlugin()
 				}
       })

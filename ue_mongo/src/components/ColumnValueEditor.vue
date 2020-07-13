@@ -5,9 +5,9 @@
         <el-option v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k" :label="s.title" :value="k"></el-option>
       </el-select>
     </el-input>
-    <div style="margin:10px 0" v-if="select&&collection.schema.body.properties[select].type==='string'&&collection.schema.body.properties[select].radioType==2">
+    <div style="margin:10px 0" v-if="select&&collection.schema.body.properties[select].type==='string'&&collection.schema.body.properties[select].hasOwnProperty('enum')">
       <span>请选择以下文字中的内容，填入输入框内： </span>
-      <span style="margin-right:20px" v-for="(s,k) in collection.schema.body.properties[select].oneOf" :key="k">{{s.label}}</span>
+      <span style="margin-right:20px" v-for="(s,k) in collection.schema.body.properties[select].enum" :key="k">{{s.label}}</span>
     </div>
     <div class="tmw-tags">
       <el-tag v-for="tag in tags" :key="tag.id" closable :disable-transitions="false" @close="removeTag(tag)">{{tag.label}}:{{tag.value}}</el-tag>
@@ -124,7 +124,7 @@ export default {
       Object.entries(this.collection.schema.body.properties).forEach(([key, value]) => {
         switch(value.type) {
           case 'array':
-            if (value.format==='file') delete this.collection.schema.body.properties[key]
+            if (value.items && value.items.format==='file') delete this.collection.schema.body.properties[key]
           break;
           case 'string':
             if (value.disabled===true) delete this.collection.schema.body.properties[key]
