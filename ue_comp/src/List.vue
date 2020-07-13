@@ -1,32 +1,22 @@
 <template>
-  <tms-frame class="tmw-document" :display="{ header: true, footer: false, right: true }" :leftWidth="'20%'">
-    <template v-slot:header v-if="role==='admin'">
-      <el-breadcrumb separator-class="el-icon-arrow-right">
-        <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ name: 'database', params: { dbName: dbName } }">{{dbName}}</el-breadcrumb-item>
-        <el-breadcrumb-item>{{clName}}</el-breadcrumb-item>
-      </el-breadcrumb>
-    </template>
+  <tms-frame class="tmw-document" :display="{ header: false, footer: false, right: true }" :leftWidth="'20%'">
     <template v-slot:center>
       <el-table id="tables" :data="documents" stripe ref="multipleTable" :height="tableHeight" @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55"></el-table-column>
-        <el-table-column
-          v-for="(s, k) in collection.schema.body.properties"
-          :key="k"
-          :prop="k">
-					<template slot="header">
-						<i v-if="s.description" class="el-icon-info" :title="s.description"></i>
-						<i v-if="s.required" style="color:red">*</i>
-						<span> {{s.title}} </span>
-						<img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
+        <el-table-column v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k">
+          <template slot="header">
+            <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
+            <i v-if="s.required" style="color:red">*</i>
+            <span> {{s.title}} </span>
+            <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
           </template>
           <template slot-scope="scope">
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
-						<span v-else-if="s.type==='array'&&s.format==='file'">
-							<span v-for="(i, v) in scope.row[k]" :key="v">
-								<a href @click="downloadFile(i)">{{i.name}}</a><br/>
-							</span>
-						</span>
+            <span v-else-if="s.type==='array'&&s.format==='file'">
+              <span v-for="(i, v) in scope.row[k]" :key="v">
+                <a href @click="downloadFile(i)">{{i.name}}</a><br />
+              </span>
+            </span>
             <span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
@@ -59,7 +49,7 @@
         <el-upload action="#" :show-file-list="false" :http-request="importDocument">
           <el-button>导入数据</el-button>
         </el-upload>
-				<el-dropdown @command="exportDocument">
+        <el-dropdown @command="exportDocument">
           <el-button>导出数据<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -116,23 +106,21 @@
 
 <script>
 import Vue from 'vue'
-import store from '@/store'
+import store from '../../ue_mongo/src/store'
 import { Frame, Flex } from 'tms-vue-ui'
-import { Breadcrumb, BreadcrumbItem, Table, TableColumn, Button, Checkbox, CheckboxGroup, Upload, Pagination, Message, MessageBox, Dropdown, DropdownMenu, DropdownItem } from 'element-ui'
+import { Table, TableColumn, Button, Checkbox, CheckboxGroup, Upload, Pagination, Message, MessageBox, Dropdown, DropdownMenu, DropdownItem } from 'element-ui'
 
 import DocEditor from './DocEditor.vue'
-import ColumnValueEditor from './ColumnValueEditor.vue'
-import DomainEditor from './DomainEditor.vue'
 import SelectCondition from './SelectCondition.vue'
-import MoveByRulePlugin from '../plugins/move/Main.vue'
-import createCollectionApi from '../apis/collection'
-import createDocApi from '../apis/document'
-import apiPlugins from '../plugins'
+import ColumnValueEditor from '../../ue_mongo/src/components/ColumnValueEditor.vue'
+import DomainEditor from '../../ue_mongo/src/components/DomainEditor.vue'
+import MoveByRulePlugin from '../../ue_mongo/src/plugins/move/Main.vue'
+import createCollectionApi from '../../ue_mongo/src/apis/collection'
+import createDocApi from '../../ue_mongo/src/apis/document'
+import apiPlugins from '../../ue_mongo/src/plugins'
 
 const componentOptions = {
 	components: {
-		'el-breadcrumb': Breadcrumb,
-		'el-breadcrumb-item': BreadcrumbItem,
 		'el-table': Table,
 		'el-table-column': TableColumn,
 		'el-button': Button,
@@ -548,7 +536,7 @@ const componentOptions = {
       createDocApi(this.TmsAxios(this.tmsAxiosName)).export(this.bucketName, this.dbName, this.clName, param).then(result => {
         const access_token = sessionStorage.getItem('access_token')
         window.open(
-          `${process.env.VUE_APP_BACK_API_BASE}/download/down?access_token=${access_token}&file=${result}`
+          `${process.env.VUE_APP_BACK_API_FS}${result}?access_token=${access_token}`
         )
       })
 		},
@@ -656,8 +644,10 @@ const componentOptions = {
       .byName(this.bucketName, this.dbName, this.clName)
       .then(collection => {
         this.collection = collection
-        this.listDocument()
-        this.listPlugin()
+				this.listDocument()
+				if (process.env.VUE_APP_USER_ROLE==='admin') {
+					this.listPlugin()
+				}
       })
   },
   beforeDestroy() {
@@ -666,17 +656,12 @@ const componentOptions = {
 }
 export default componentOptions
 
-export function createAndMount(Vue, props, id) {
+export function createAndMount(Vue, propsData, id) {
 	const ele = document.getElementById(id)
 	const CompClass = Vue.extend(componentOptions)
 	
-	Vue.use(Flex).use(Frame)
-
-  const propsData = {
-    tmsAxiosName: 'mongodb-api'
-  }
-  if (props && typeof props === 'object') Object.assign(propsData, props)
-
+  Vue.use(Flex).use(Frame)
+  
   new CompClass({
     propsData
 	}).$mount(ele)
@@ -684,6 +669,7 @@ export function createAndMount(Vue, props, id) {
 </script>
 <style lang="less" scoped>
 .tmw-document {
+  position: relative;
   .icon-style {
     margin-left: 10px;
     cursor: pointer;
