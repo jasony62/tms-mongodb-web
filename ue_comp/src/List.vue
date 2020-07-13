@@ -14,7 +14,17 @@
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
             <span v-else-if="s.type==='array'&&s.format==='file'">
               <span v-for="(i, v) in scope.row[k]" :key="v">
-                <a href @click="downloadFile(i)">{{i.name}}</a><br />
+                <a href @click="handleDownload(i)">{{i.name}}</a><br />
+              </span>
+            </span>
+            <span v-else-if="s.type === 'array' && s.enum">
+              <span v-for="(i, v) in s.enum" :key="v">
+                <span v-if="scope.row[k] && scope.row[k].includes(i.value)">{{i.label}}&nbsp;</span>
+              </span>
+            </span>
+            <span v-else-if="s.type === 'string' && s.enum">
+              <span v-for="(i, v) in s.enum" :key="v">
+                <span v-if="scope.row[k] === i.value">{{i.label}}</span>
               </span>
             </span>
             <span v-else>{{ scope.row[k] }}</span>
@@ -34,7 +44,7 @@
       </tms-flex>
     </template>
     <template v-slot:right v-if="role==='admin'">
-      <tms-flex direction="column">
+      <tms-flex direction="column" align-items="flex-start">
         <div>
           <el-button @click="createDocument">添加数据</el-button>
         </div>
@@ -269,7 +279,8 @@ const componentOptions = {
           columnName, 
           this.dialogPage, 
           this.handleCondition(),
-          this.listByColumn
+          this.listByColumn,
+          this.collection.schema.body.properties[columnName]
         )
         .then(rsl => {
           const { condition, isClear, isCheckBtn } = rsl
@@ -540,7 +551,7 @@ const componentOptions = {
         )
       })
 		},
-		downloadFile(file) {
+		handleDownload(file) {
 			const access_token = sessionStorage.getItem('access_token')
       window.open(`${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`)
 		},

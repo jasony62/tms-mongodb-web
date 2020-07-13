@@ -8,10 +8,10 @@ export default function create(tmsAxios) {
         .get(`${base}/byName`, { params })
         .then(rst => rst.data.result)
     },
-    /**
-     *
-     * @param {*} dbName
-     */
+		/**
+		 *
+		 * @param {*} dbName
+		 */
     list(bucket, dbName) {
       const params = { bucket, db: dbName }
       return tmsAxios

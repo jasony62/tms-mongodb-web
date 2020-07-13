@@ -18,19 +18,19 @@
           </template>
           <template slot-scope="scope">
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
-            <span v-else-if="s.type==='string'&&s.radioType===2">
-              <span v-for="(m,n) in s.oneOf" :key="n">
-                <span v-if="scope.row[k]===m.value">{{m.label}}</span>
-              </span>
-            </span>
-            <span v-else-if="s.type==='array'&&s.format==='checkbox'">
-              <span v-for="(i,v) in s.anyOf" :key="v">
-                <span v-if="scope.row[k].includes(i.value)">{{i.label}}&nbsp;</span>
-              </span>
-            </span>
             <span v-else-if="s.type==='array'&&s.format==='file'">
               <span v-for="(i, v) in scope.row[k]" :key="v">
                 <a href @click="handleDownload(i)">{{i.name}}</a><br />
+              </span>
+            </span>
+            <span v-else-if="s.type === 'array' && s.enum">
+              <span v-for="(i, v) in s.enum" :key="v">
+                <span v-if="scope.row[k] && scope.row[k].includes(i.value)">{{i.label}}&nbsp;</span>
+              </span>
+            </span>
+            <span v-else-if="s.type === 'string' && s.enum">
+              <span v-for="(i, v) in s.enum" :key="v">
+                <span v-if="scope.row[k] === i.value">{{i.label}}</span>
               </span>
             </span>
             <span v-else>{{ scope.row[k] }}</span>
@@ -165,7 +165,8 @@ export default {
           columnName, 
           this.dialogPage, 
           this.handleCondition(),
-          this.listByColumn
+          this.listByColumn,
+          this.collection.schema.body.properties[columnName]
         )
         .then(rsl => {
           const { condition, isClear, isCheckBtn } = rsl

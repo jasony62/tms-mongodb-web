@@ -105,13 +105,13 @@ export default {
       if (validate) {
         const properties = this.collection.schema.body.properties
         for(let [key, val] of Object.entries(this.column)) {
-          if (properties[key].type==='string'&&properties[key].radioType==2) {
-            let values = properties[key].oneOf.map(item => item.label)
+          if (properties[key].type==='string'&&properties[key].hasOwnProperty('enum')) {
+            let values = properties[key].enum.map(item => item.label)
             if (val!=='' && !values.includes(val)) {
               Message.info({message: '请输入“'+ properties[key].title + '”列正确的选值'})
               return false
             }
-            properties[key].oneOf.forEach(item => {
+            properties[key].enum.forEach(item => {
               if(item.label==val) this.column[key] = item.value
             })
           }
