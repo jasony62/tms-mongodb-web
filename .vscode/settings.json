@@ -1,5 +1,10 @@
 {
   "editor.tabSize": 2,
+  "editor.formatOnSave": true,
+  "prettier.tabWidth": 2,
+  "prettier.useTabs": false,
+  "prettier.semi": false,
+  "prettier.singleQuote": true,
   "vetur.format.defaultFormatterOptions": {
     "prettier": {
       "semi": false,

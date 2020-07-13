@@ -1,6 +1,6 @@
 const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/mongo/document'
 
-export default function create(tmsAxios){
+export default function create(tmsAxios) {
 	return {
 		byColumnVal(
 			bucket,
@@ -102,9 +102,9 @@ export default function create(tmsAxios){
 				.then(rst => rst.data.result)
 		},
 		export(bucket, dbName, clName, param) {
-			const params = { bucket, db: dbName, cl: clName, param }
+			const params = { bucket, db: dbName, cl: clName }
 			return tmsAxios
-				.get(`${base}/export`, { params })
+				.post(`${base}/export`, param, { params })
 				.then(rst => rst.data.result)
 		},
 		upload(query, fileData, config) {

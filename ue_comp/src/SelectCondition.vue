@@ -19,7 +19,23 @@
           <el-table-column type="selection" width="55">
           </el-table-column>
           <el-table-column :label="'全选('+selectedLen+')'">
-            <template slot-scope="scope">{{ scope.row.title + '(' + scope.row.sum + ')' }}</template>
+            <template slot-scope="scope">
+              <div v-if="currentPro.type === 'array' && currentPro.enum">
+                <span v-for="(i, v) in currentPro.enum" :key="v">
+                  <span v-if="scope.row.title && scope.row.title.includes(i.value)">{{i.label}}&nbsp;</span>
+                </span>
+                <span>{{'(' + scope.row.sum + ')' }}</span>
+              </div>
+              <div v-else-if="currentPro.type === 'string' && currentPro.enum">
+                <span v-for="(i, v) in currentPro.enum" :key="v">
+                  <span v-if="scope.row.title === i.value">{{i.label}}</span>
+                </span>
+                <span>{{'(' + scope.row.sum + ')' }}</span>
+              </div>
+              <div v-else>
+                {{ scope.row.title + '(' + scope.row.sum + ')' }}
+              </div>
+            </template>
           </el-table-column>
         </el-table>
       </el-form-item>
@@ -80,7 +96,8 @@ export default {
       timer: null,
       listByColumn: null,
       page: {},
-      conditions: []
+      conditions: [],
+      currentPro: ''
     }
   },
   computed: {
@@ -186,11 +203,12 @@ export default {
       }
       this.$emit('submit', { rule: this.condition.rule })
     },
-    open(columnName, page, conditions, listByColumn) {
+    open(columnName, page, conditions, listByColumn, currentPro) {
       this.columnName = columnName
       this.page = page
       this.conditions = conditions
       this.listByColumn = listByColumn
+      this.currentPro = currentPro
       if (!this.condition.rule.filter[this.columnName]){
         this.condition.rule.filter[this.columnName] = {}
       }

@@ -23,6 +23,16 @@
 								<a href @click="handleDownload(i)">{{i.name}}</a><br/>
 							</span>
 						</span>
+            <span v-else-if="s.type === 'array' && s.enum">
+							<span v-for="(i, v) in s.enum" :key="v">
+                <span v-if="scope.row[k] && scope.row[k].includes(i.value)">{{i.label}}&nbsp;</span>
+							</span>
+						</span>
+            <span v-else-if="s.type === 'string' && s.enum">
+							<span v-for="(i, v) in s.enum" :key="v">
+                <span v-if="scope.row[k] === i.value">{{i.label}}</span>
+							</span>
+						</span>
 						<span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
@@ -155,7 +165,8 @@ export default {
           columnName, 
           this.dialogPage, 
           this.handleCondition(),
-          this.listByColumn
+          this.listByColumn,
+          this.collection.schema.body.properties[columnName]
         )
         .then(rsl => {
           const { condition, isClear, isCheckBtn } = rsl
