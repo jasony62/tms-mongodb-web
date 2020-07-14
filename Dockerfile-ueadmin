@@ -46,6 +46,6 @@ ADD ./ue_admin/start_nginx.sh /usr/local/bin/start_nginx.sh
 RUN chmod +x /usr/local/bin/start_nginx.sh
 
 # 将构建阶段代码放在指定位置
-COPY --from=0 /home/node/app/ue_admin/dist /usr/share/nginx/html
+COPY --from=0 /usr/src/app/ue_admin/dist /usr/share/nginx/html
 
 CMD ["start_nginx.sh"]
