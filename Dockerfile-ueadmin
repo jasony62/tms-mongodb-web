@@ -1,9 +1,7 @@
-#基于alpine的nodejs基础镜像
-FROM node:12.10.0-alpine AS builder
-MAINTAINER made nodejs by p21 from lit29@chinatelecom.cn
-WORKDIR /usr/src/app
-#Install dependencied of nodejs on alpine
+# 标准基础镜像（构建阶段）
+FROM node:alpine
 RUN npm install -g cnpm --registry=https://registry.npm.taobao.org
+WORKDIR /home/node/app
 COPY . .
 # 生成.env文件
 ARG vue_app_title=订单管理端
@@ -46,6 +44,6 @@ ADD ./ue_admin/start_nginx.sh /usr/local/bin/start_nginx.sh
 RUN chmod +x /usr/local/bin/start_nginx.sh
 
 # 将构建阶段代码放在指定位置
-COPY --from=0 /usr/src/app/ue_admin/dist /usr/share/nginx/html
+COPY --from=0 /home/node/app/ue_admin/dist /usr/share/nginx/html
 
 CMD ["start_nginx.sh"]
