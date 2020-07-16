@@ -22,7 +22,8 @@ services:
   
   ue_admin:
     build:
-      context: ./ue_admin
+      context: .
+      dockerfile: Dockerfile-ueadmin
       args:
         vue_app_base_url: /order/admin
         vue_app_back_auth_base: /order/auth
