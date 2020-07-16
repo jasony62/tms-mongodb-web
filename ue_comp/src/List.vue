@@ -450,7 +450,7 @@ const componentOptions = {
         aMTotal,
         aMPTotal
       ) {
-        let result = await createDocApi(this.TmsAxios(this.tmsAxiosName))
+        let result = await createDocApi(_this.TmsAxios(_this.tmsAxiosName))
           .move(
             _this.bucketName,
             _this.dbName,
