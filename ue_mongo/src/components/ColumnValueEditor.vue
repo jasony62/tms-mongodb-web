@@ -124,7 +124,7 @@ export default {
       Object.entries(this.collection.schema.body.properties).forEach(([key, value]) => {
         switch(value.type) {
           case 'array':
-            if (value.items && value.items.format==='file') delete this.collection.schema.body.properties[key]
+            if ((value.items && value.items.format==='file')||value.enum) delete this.collection.schema.body.properties[key]
           break;
           case 'string':
             if (value.disabled===true) delete this.collection.schema.body.properties[key]
