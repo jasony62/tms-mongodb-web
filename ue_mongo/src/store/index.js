@@ -24,6 +24,9 @@ export default new Vuex.Store({
       state.dbs.push(payload.db)
     },
     updateDatabase() { },
+    removeDatabase(state, payload) {
+      state.dbs.splice(state.dbs.indexOf(payload.db), 1)
+    },
     schemas(state, payload) {
       state.schemas = payload.schemas
     },
@@ -34,6 +37,9 @@ export default new Vuex.Store({
       state.collections.push(payload.collection)
     },
     updateCollection() { },
+    removeCollection(state, payload) {
+      state.collections.splice(state.collections.indexOf(payload.collection), 1)
+    },
     documents(state, payload) {
       state.documents = payload.documents
     },
@@ -101,6 +107,24 @@ export default new Vuex.Store({
         Vue.$apis.api.collection.list(bucket, db).then(collections => {
           commit({ type: 'collections', collections })
           resolve({ collections })
+        })
+      })
+    },
+    removeDatabase({ commit }, payload) {
+      const { bucket, db } = payload
+      return new Promise(resolve => {
+        Vue.$apis.api.db.remove(bucket, db).then(() => {
+          commit({ type: 'removeDatabase', db })
+          resolve({ db })
+        })
+      })
+    },
+    removeCollection({ commit }, payload) {
+      const { bucket, db, collection } = payload
+      return new Promise(resolve => {
+        Vue.$apis.api.collection.remove(bucket, db, collection.name).then(() => {
+          commit({ type: 'removeCollection', collection })
+          resolve({ collection })
         })
       })
     }

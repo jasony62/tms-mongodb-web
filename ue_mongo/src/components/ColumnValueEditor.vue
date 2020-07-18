@@ -1,14 +1,14 @@
 <template>
-  <el-dialog
-    :visible.sync="dialogVisible"
-    :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal"
-  >
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <el-input placeholder="自定义选中列的值，不填则值为空" v-model="input" class="input-with-select">
-      <el-select v-model="select" slot="prepend" placeholder="选择列" @change="handleSelect" clearable filterable> 
+      <el-select v-model="select" slot="prepend" placeholder="选择列" @change="handleSelect" clearable filterable>
         <el-option v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k" :label="s.title" :value="k"></el-option>
       </el-select>
     </el-input>
+    <div style="margin:10px 0" v-if="select&&collection.schema.body.properties[select].type==='string'&&collection.schema.body.properties[select].hasOwnProperty('enum')">
+      <span>请选择以下文字中的内容，填入输入框内： </span>
+      <span style="margin-right:20px" v-for="(s,k) in collection.schema.body.properties[select].enum" :key="k">{{s.label}}</span>
+    </div>
     <div class="tmw-tags">
       <el-tag v-for="tag in tags" :key="tag.id" closable :disable-transitions="false" @close="removeTag(tag)">{{tag.label}}:{{tag.value}}</el-tag>
     </div>
@@ -20,8 +20,13 @@
 </template>
 <script>
 import Vue from 'vue'
-import { Dialog, Message } from 'element-ui'
+import { Dialog, Input, Select, Option, Button, Tag, Message } from 'element-ui'
 Vue.use(Dialog)
+	.use(Input)
+	.use(Select)
+	.use(Option)
+	.use(Button)
+	.use(Tag)
 
 export default {
   name: 'ColumnValueEditor',
@@ -84,34 +89,48 @@ export default {
         }
       })
     },
-    onSubmit() {
-      const properties = this.collection.schema.body.properties
-      for(let [key, val] of Object.entries(this.column)) {
-        if (properties[key].type==='string'&&properties[key].hasOwnProperty('enum')) {
-          let values = properties[key].enum.map(item => item.label)
-          if (val!=='' && !values.includes(val)) {
-            Message.info({message: '请输入“'+ properties[key].title + '”列正确的选值'})
-            return false
-          }
-          properties[key].enum.forEach(item => {
-            if(item.label==val) this.column[key] = item.value
-          })
-        }
+    async onSubmit() {
+      let validate = true
+      if (process.env.VUE_APP_SUBMIT_VALITOR_FIELD) {
+        const config = process.env.VUE_APP_SUBMIT_VALITOR_FIELD	
+        let { priceValidate: onValidate, priceFormat: onFormat } = await import('../tms/utils.js')	
+        validate =  Object.entries(this.column).map(([key, value]) => {
+          if (config.indexOf(key)===-1) return true
+      
+          const flag = onValidate(this.collection.schema.body.properties, key, value)
+          if (flag) this.column[key] = onFormat(value)
+          return flag
+        }).every(ele => ele === true)
       }
-      this.$emit('submit', this.column)
+      if (validate) {
+        const properties = this.collection.schema.body.properties
+        for(let [key, val] of Object.entries(this.column)) {
+          if (properties[key].type==='string'&&properties[key].hasOwnProperty('enum')) {
+            let values = properties[key].enum.map(item => item.label)
+            if (val!=='' && !values.includes(val)) {
+              Message.info({message: '请输入“'+ properties[key].title + '”列正确的选值'})
+              return false
+            }
+            properties[key].enum.forEach(item => {
+              if(item.label==val) this.column[key] = item.value
+            })
+          }
+        }
+        this.$emit('submit', this.column)
+      }
     },
     open(collection) {
-			this.collection = JSON.parse(JSON.stringify(Object.assign(this.collection, collection)))
-			Object.entries(this.collection.schema.body.properties).forEach(([key, value]) => {
-				switch(value.type) {
-					case 'array':
-						if (value.format==='file') delete this.collection.schema.body.properties[key]
-					break;
-					case 'string':
-						if (value.disabled===true) delete this.collection.schema.body.properties[key]
-					break;
-				}
-			})
+      this.collection = JSON.parse(JSON.stringify(Object.assign(this.collection, collection)))
+      Object.entries(this.collection.schema.body.properties).forEach(([key, value]) => {
+        switch(value.type) {
+          case 'array':
+            if ((value.items && value.items.format==='file')||value.enum) delete this.collection.schema.body.properties[key]
+          break;
+          case 'string':
+            if (value.disabled===true) delete this.collection.schema.body.properties[key]
+          break;
+        }
+      })
       this.$mount()
       document.body.appendChild(this.$el)
       return new Promise(resolve => {

@@ -26,6 +26,7 @@ class Schema extends SchemaBase {
   async update() {
     const { id } = this.request.query
     let info = this.request.body
+    const { scope } = info
     info = _.omit(info, ['_id', 'name', 'scope', 'bucket'])
 
     const query = { _id: new ObjectId(id), type: 'schema' }
@@ -33,7 +34,10 @@ class Schema extends SchemaBase {
 
     return this.clMongoObj
       .updateOne(query, { $set: info }, { upsert: true })
-      .then(() => new ResultData(info))
+      .then(() => {
+        info.scope = scope
+        return new ResultData(info)
+      })
   }
   /**
    *

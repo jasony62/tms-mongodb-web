@@ -7,7 +7,7 @@ import '@/assets/css/common.less'
 import { Message } from 'element-ui'
 import { Login } from 'tms-vue-ui'
 import ApiPlugin from './apis'
-import apiLogin from './apis/login.js'
+import apiLogin from './apis/login'
 import {
   TmsAxiosPlugin,
   TmsErrorPlugin,

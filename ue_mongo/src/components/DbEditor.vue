@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :closeOnClickModal="false" :visible="true" @close="onClose">
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <el-form ref="form" :model="database" label-position="top">
       <el-form-item label="数据库名称（英文）">
         <el-input v-model="database.name" :disabled="mode==='update'"></el-input>
@@ -21,31 +21,31 @@
     </el-form>
     <div slot="footer" class="dialog-footer">
       <el-button type="primary" @click="onSubmit">提交</el-button>
-      <el-button @click="onClose">取消</el-button>
+      <el-button @click="dialogVisible = false">取消</el-button>
     </div>
   </el-dialog>
 </template>
-
 <script>
+import Vue from 'vue'
 import { Dialog, Form, FormItem, Input, Select, Option, Button, Message } from 'element-ui'
+Vue.use(Dialog)
+  .use(Form)
+  .use(FormItem)
+	.use(Input)
+	.use(Select)
+  .use(Option)
+  .use(Button)
+
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
 import createDbApi from '../apis/database'
 import createSchemaApi from '../apis/schema'
 
-const componentOptions = {
-  components: {
-    'el-dialog': Dialog,
-    'el-form': Form,
-    'el-form-item': FormItem,
-    'el-input': Input,
-    'el-select': Select,
-    'el-option': Option,
-    'el-button': Button,
-    'tms-el-json-doc': TmsElJsonDoc
-  },
+export default {
+  name: 'DbEditor',
   props: {
+		dialogVisible: { default: true },
+		tmsAxiosName: { type: String },
     bucketName: { type: String },
-    mode: { type: String },
     database: {
       type: Object,
       default: function() {
@@ -56,31 +56,27 @@ const componentOptions = {
           extensionInfo: { schemaId: '', info: {} }
         }
       }
-    },
-    tmsAxiosName: { type: String }
+    }
   },
+  components: { TmsElJsonDoc },
   data() {
     return {
+      mode: '',
+      destroyOnClose: true,
+      closeOnClickModal: false,
 			extensions: [],
 			extendSchema: {}
     }
   },
   mounted() {
-    document.body.appendChild(this.$el)
-    this.listExtensions()
-  },
-  beforeDestroy() {
-    document.body.removeChild(this.$el)
+		createSchemaApi(this.TmsAxios(this.tmsAxiosName))
+			.list(this.bucketName, 'db').then(extensions => {
+				this.extensions = extensions
+				this.handleExtendId(this.database.extensionInfo.schemaId, true)
+			})
   },
   methods: {
-    listExtensions() {
-      createSchemaApi(this.TmsAxios(this.tmsAxiosName))
-        .list(this.bucketName, 'db').then(extensions => {
-          this.extensions = extensions
-          this.handleExtendId(this.database.extensionInfo.schemaId, true)
-        })
-    },
-    handleExtendId(id, init) {
+		handleExtendId(id, init) {
 			this.extendSchema = {}
 			this.extensions.find(item => {
 				if (item._id==id) {
@@ -97,17 +93,11 @@ const componentOptions = {
 			if (this.mode === 'update') {
         createDbApi(this.TmsAxios(this.tmsAxiosName))
           .update(this.bucketName, this.database.name, this.database)
-          .then(newDb => {
-            this.$tmsEmit('onDbUpdateSubmit', newDb)
-            this.onClose()
-          })
+          .then(newDb => this.$emit('submit', newDb))
       } else if (this.mode === 'create') {
         createDbApi(this.TmsAxios(this.tmsAxiosName))
           .create(this.bucketName, this.database)
-          .then(newDb => {
-            this.$tmsEmit('onDbCreateSubmit', newDb)
-            this.onClose()
-          })
+          .then(newDb => this.$emit('submit', newDb))
       }
 		},
     onSubmit() {
@@ -120,24 +110,20 @@ const componentOptions = {
 			}
 			this.fnSubmit()
     },
-    onClose() {
-      this.$destroy()
+    open(mode, tmsAxiosName, bucketName, db) {
+			this.mode = mode
+			this.tmsAxiosName = tmsAxiosName
+			this.bucketName = bucketName
+      if (mode === 'update') this.database = JSON.parse(JSON.stringify(Object.assign(this.database, db)))
+      this.$mount()
+      document.body.appendChild(this.$el)
+      return new Promise(resolve => {
+        this.$on('submit', newDb => {
+          this.dialogVisible = false
+          resolve(newDb)
+        })
+      })
     }
   }
-}
-
-export default componentOptions
-
-export function createAndMount(Vue, props) {
-  const CompClass = Vue.extend(componentOptions)
-
-  const propsData = {
-    tmsAxiosName: 'mongodb-api'
-  }
-  if (props && typeof props === 'object') Object.assign(propsData, props)
-
-  new CompClass({
-    propsData
-  }).$mount()
 }
 </script>

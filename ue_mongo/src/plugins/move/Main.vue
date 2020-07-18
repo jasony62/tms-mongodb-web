@@ -36,8 +36,8 @@ Vue.use(Table)
   .use(Col)
   .use(Button)
   
-import DomainEditor from '@/components/DomainEditor.vue'
-import CollectionDialog from '@/components/CollectionDialog.vue'
+import DomainEditor from '../../components/DomainEditor'
+import CollectionDialog from '../../components/CollectionDialog.vue'
 import createCollectionApi from '../../apis/collection'
 import api from './index'
 
@@ -115,7 +115,7 @@ export default {
       this.failed = data.failed
       this.rules = this.failed.concat(data.passed) 
     }).then(() => {
-      createCollectionApi(this.TmsAxios('mongodb-api'))
+			createCollectionApi(this.TmsAxios('mongodb-api'))
 				.byName(this.dbName, this.clName).then(collection => {
 					this.collection = collection
 				})

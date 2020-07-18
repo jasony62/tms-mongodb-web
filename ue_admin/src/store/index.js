@@ -52,8 +52,8 @@ export default new Vuex.Store({
       state[`${schema.scope}Schemas`].push(schema)
     },
     updateSchema(state, payload) {
-      const { index, schema, scope } = payload
-      state[`${scope}Schemas`].splice(index, 1, schema)
+      const { index, schema } = payload
+      state[`${schema.scope}Schemas`].splice(index, 1, schema)
     },
     removeSchema(state, payload) {
       const { schema } = payload

@@ -10,27 +10,28 @@
         </el-table-column>
         <el-table-column prop="title" label="名称" width="180"></el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
-        <el-table-column fixed="right" label="操作" width="250">
+        <el-table-column fixed="right" label="操作" width="250" v-if="false">
           <template slot-scope="scope">
             <el-button v-if="!scope.row.top||scope.row.top==0" @click="topDb(scope.row, 'up')" size="mini" type="text">置顶</el-button>
             <el-button v-if="scope.row.top==10000" disabled size="mini" type="text">已置顶</el-button>
             <el-button v-if="scope.row.top==10000" @click="topDb(scope.row, 'down')" size="mini" type="text">取消置顶</el-button>
             <el-button size="mini" @click="editDb(scope.row)" type="text">修改</el-button>
+            <el-button size="mini" @click="removeDb(scope.row)" type="text" v-if="false">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
     </template>
     <template v-slot:right>
-      <el-button @click="createDb">添加数据库</el-button>
+      <el-button @click="createDb" v-if="false">添加数据库</el-button>
     </template>
   </tms-frame>
 </template>
 
 <script>
 import Vue from 'vue'
-import { mapState } from 'vuex'
-import { Frame } from 'tms-vue-ui'
-Vue.use(Frame)
+import store from '@/store'
+import { Frame, Flex } from 'tms-vue-ui'
+Vue.use(Frame).use(Flex)
 import {
   Form,
   RadioGroup,
@@ -46,6 +47,7 @@ Vue.use(Form)
   .use(TableColumn)
   .use(Button)
 
+import DbEditor from '../components/DbEditor.vue'
 import createDbApi from '../apis/database'
 
 export default {
@@ -56,46 +58,41 @@ export default {
 			type: String,
 			default: 'mongodb-api'
 		}
-  },
-  computed: {
-    ...mapState(['dbs'])
-  },
+	},
+	computed: {
+		dbs() {
+			return this.$store.state.dbs
+		}
+	},
   methods: {
     listDatabase() {
-      this.$store.dispatch({ type: 'listDatabase', bucket: this.bucketName })
+      store.dispatch('listDatabase', { bucket: this.bucketName })
     },
     createDb() {
-      import('../components/DbEditor.vue').then(Module => {
-        Module.createAndMount(Vue, {
-          mode: 'create',
-          bucketName: this.bucketName,
-          tmsAxiosName: this.tmsAxiosName
-        })
-        this.$tmsOn('onDbCreateSubmit', newDb =>{
-          this.$store.commit({
-            type: 'appendDatabase',
-            bucket: this.bucketName,
-            db: newDb            
-          })
+      const editor = new Vue(DbEditor)
+      editor.open('create', this.tmsAxiosName, this.bucketName).then(newDb => {
+        this.$store.commit({
+          type: 'appendDatabase',
+          db: newDb,
+          bucket: this.bucketName
         })
       })
     },
     editDb(db) {
-      import('../components/DbEditor.vue').then(Module => {
-        Module.createAndMount(Vue, {
-          mode: 'update',
-          bucketName: this.bucketName,
-          tmsAxiosName: this.tmsAxiosName,
-          database: db
+      const editor = new Vue(DbEditor)
+      editor.open('update', this.tmsAxiosName, this.bucketName, db).then(newDb => {
+        Object.keys(newDb).forEach(k => {
+          Vue.set(db, k, newDb[k])
         })
-        this.$tmsOn('onDbUpdateSubmit', newDb =>{
-          this.$store.commit({
-            type: 'updateDatabase',
-            bucket: this.bucketName,
-            db: newDb            
-          })
+        this.$store.commit({
+          type: 'updateDatabase',
+          db: newDb,
+          bucket: this.bucketName
         })
       })
+    },
+    removeDb(db) {
+      store.dispatch('removeDatabase', { db, bucket: this.bucketName })
     },
     topDb(db, type) {
 			createDbApi(this.TmsAxios(this.tmsAxiosName))

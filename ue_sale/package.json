@@ -1,0 +1,37 @@
+{
+  "name": "other",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "build.lib": "node ./build/build-lib.js",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "core-js": "^3.4.4",
+    "element-ui": "^2.13.0",
+    "tms-vue": "^0.0.9",
+    "tms-vue-ui": "^0.0.32",
+    "vue": "^2.6.10",
+    "vuex": "^3.0.1"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "^4.1.0",
+    "@vue/cli-plugin-eslint": "^4.1.0",
+    "@vue/cli-service": "^4.1.0",
+    "babel-eslint": "^10.0.3",
+    "eslint": "^5.16.0",
+    "eslint-plugin-vue": "^5.0.0",
+    "less": "^3.0.4",
+    "less-loader": "^5.0.0",
+    "shelljs": "^0.8.3",
+    "signale": "^1.4.0",
+    "vue-template-compiler": "^2.6.10",
+    "fs-extra": "^7.0.1"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions"
+  ]
+}

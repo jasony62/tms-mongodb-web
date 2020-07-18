@@ -35,8 +35,8 @@
 <script>
 import Vue from 'vue'
 import { mapState, mapMutations, mapActions } from 'vuex'
-import { Frame, Flex } from 'tms-vue-ui'
-Vue.use(Frame).use(Flex)
+import { Frame } from 'tms-vue-ui'
+Vue.use(Frame)
 import CollectionEditor from '../components/CollectionEditor.vue'
 
 export default {

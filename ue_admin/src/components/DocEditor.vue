@@ -24,52 +24,67 @@ export default {
     }
   },
   methods: {
-		handleFileSubmit(ref, files) {
-			let result = {}
-			let objPromises = files.map(file => {
-				if (file.hasOwnProperty('url')) {
-					return {'name': file.name, 'url': file.url}
-				}
-				const fileData = new FormData()
-				fileData.append('file', file)
-				const config = { 'Content-Type': 'multipart/form-data' }
-				return apiDoc.upload(
-					{ bucket: this.bucketName }, fileData, config
-					)
-					.then(path => {
+    handleFileSubmit(ref, files) {
+      let result = {}
+      let objPromises = files.map(file => {
+        if (file.hasOwnProperty('url')) {
+          return {'name': file.name, 'url': file.url}
+        }
+        const fileData = new FormData()
+        fileData.append('file', file)
+        const config = { 'Content-Type': 'multipart/form-data' }
+        const dirPath = this.dbName + '/' + this.collection.name + '/' + this.document.order_id + '/' + ref
+        return apiDoc.upload(
+          { bucket: this.bucketName, dir: dirPath }, fileData, config
+          )
+          .then(path => {
             return Promise.resolve({'url': path, 'name': file.name})
           })
-					.catch(err => Promise.reject(err))
-			})
-			return Promise.all(objPromises)
-				.then(rsl => { 
-					result[ref] = rsl
+          .catch(err => Promise.reject(err))
+      })
+      return Promise.all(objPromises)
+        .then(rsl => { 
+          result[ref] = rsl
           return Promise.resolve(result)
-				})
-				.catch(err => Promise.reject(err))
-		},
-    onJsonDocSubmit(slimDoc, newDoc) {
-      if (this.document && this.document._id) {
-        apiDoc
-          .update(
-            this.bucketName,
-            this.dbName,
-            this.collection.name,
-            this.document._id,
-            newDoc
-          )
-          .then(newDoc => this.$emit('submit', newDoc))
-      } else {
-        apiDoc
-          .create(this.bucketName, this.dbName, this.collection.name, newDoc)
-          .then(newDoc => this.$emit('submit', newDoc))
+        })
+        .catch(err => Promise.reject(err))
+    },
+    async onJsonDocSubmit(slimDoc, newDoc) {
+      let validate = true
+      if (process.env.VUE_APP_SUBMIT_VALITOR_FIELD) {
+        const config = process.env.VUE_APP_SUBMIT_VALITOR_FIELD	
+        let { priceValidate: onValidate, priceFormat: onFormat } = await import('../tms/utils.js')	
+        validate =  Object.entries(newDoc).map(([key, value]) => {
+          if (config.indexOf(key)===-1) return true
+      
+          const flag = onValidate(this.collection.schema.body.properties, key, value)
+          if (flag) newDoc[key] = onFormat(value)
+          return flag
+        }).every(ele => ele === true)
+      }
+      if (validate) {
+        if (this.document && this.document._id) {
+          apiDoc
+            .update(
+              this.bucketName,
+              this.dbName,
+              this.collection.name,
+              this.document._id,
+              newDoc
+            )
+            .then(newDoc => this.$emit('submit', newDoc))
+        } else {
+          apiDoc
+            .create(this.bucketName, this.dbName, this.collection.name, newDoc)
+            .then(newDoc => this.$emit('submit', newDoc))
+        }
       }
     },
     open(bucketName, dbName, collection, doc) {
       this.bucketName = bucketName
       this.dbName = dbName
       this.collection = collection
-      if (doc && doc._id) this.document = doc
+      if (doc && doc._id) Object.assign(this.document, doc)
       this.$mount()
       document.body.appendChild(this.$el)
       return new Promise(resolve => {
