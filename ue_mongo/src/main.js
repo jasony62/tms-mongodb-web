@@ -6,17 +6,19 @@ import store from './store'
 import '@/assets/css/common.less'
 import { Message } from 'element-ui'
 import { Login } from 'tms-vue-ui'
+import ApiPlugin from './apis'
 import apiLogin from './apis/login.js'
 import {
   TmsAxiosPlugin,
   TmsErrorPlugin,
+  TmsEventPlugin,
   TmsIgnorableError,
   TmsLockPromise
 } from 'tms-vue'
 
 Vue.config.productionTip = false
 
-Vue.use(TmsAxiosPlugin).use(TmsErrorPlugin)
+Vue.use(TmsAxiosPlugin).use(TmsErrorPlugin).use(TmsEventPlugin)
 
 const { fnGetCaptcha, fnGetJwt } = apiLogin
 const LoginSchema = [
@@ -38,11 +40,11 @@ const LoginSchema = [
 ]
 Vue.use(Login, { schema: LoginSchema, fnGetCaptcha, fnGetToken: fnGetJwt })
 
-const LoginPromise = (function() {
+const LoginPromise = (function () {
   let login = new Login(LoginSchema, fnGetCaptcha, fnGetJwt)
-  let ins = new TmsLockPromise(function() {
+  let ins = new TmsLockPromise(function () {
     return login
-      .showAsDialog(function(res) {
+      .showAsDialog(function (res) {
         Message({ message: res.msg, type: 'error', customClass: 'mzindex' })
       })
       .then(token => {
@@ -79,7 +81,7 @@ function onResultFault(res) {
   Message({
     showClose: true,
     message: res.data.msg,
-		duration: 3000,
+    duration: 3000,
     type: 'error'
   })
   return Promise.reject(new TmsIgnorableError(res.data))
@@ -103,14 +105,15 @@ let responseRule = Vue.TmsAxios.newInterceptorRule({
 })
 rules.push(responseRule)
 
-Vue.TmsAxios({ name: 'mongodb-api', rules })
-
-Vue.TmsAxios({ name: 'auth-api' })
+const tmsAxios = {}
+tmsAxios.api = Vue.TmsAxios({ name: 'mongodb-api', rules })
+tmsAxios.auth = Vue.TmsAxios({ name: 'auth-api' })
+Vue.use(ApiPlugin, { tmsAxios })
 
 Vue.directive('loadmore', {
   bind(el, binding) {
     const selectWrap = el.querySelector('.el-table__body-wrapper')
-    selectWrap.addEventListener('scroll', function() {
+    selectWrap.addEventListener('scroll', function () {
       const scrollDistance =
         this.scrollHeight - this.scrollTop - this.clientHeight
       if (scrollDistance <= 0) {

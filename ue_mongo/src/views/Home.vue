@@ -16,7 +16,6 @@
             <el-button v-if="scope.row.top==10000" disabled size="mini" type="text">已置顶</el-button>
             <el-button v-if="scope.row.top==10000" @click="topDb(scope.row, 'down')" size="mini" type="text">取消置顶</el-button>
             <el-button size="mini" @click="editDb(scope.row)" type="text">修改</el-button>
-            <el-button size="mini" @click="removeDb(scope.row)" type="text" v-if="false">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -30,8 +29,8 @@
 <script>
 import Vue from 'vue'
 import { mapState } from 'vuex'
-import { Frame, Flex } from 'tms-vue-ui'
-Vue.use(Frame).use(Flex)
+import { Frame } from 'tms-vue-ui'
+Vue.use(Frame)
 import {
   Form,
   RadioGroup,
@@ -47,54 +46,62 @@ Vue.use(Form)
   .use(TableColumn)
   .use(Button)
 
-import DbEditor from '../components/DbEditor.vue'
-import { db as apiDb } from '../apis'
+import createDbApi from '../apis/database'
 
 export default {
   name: 'Home',
-  props: ['bucketName'],
+  props: {
+		bucketName: String,
+		tmsAxiosName: {
+			type: String,
+			default: 'mongodb-api'
+		}
+  },
   computed: {
     ...mapState(['dbs'])
   },
   methods: {
-    // 获取数据库列表
     listDatabase() {
       this.$store.dispatch({ type: 'listDatabase', bucket: this.bucketName })
     },
     createDb() {
-      const editor = new Vue(DbEditor)
-      editor.open('create', this.bucketName).then(newDb => {
-        this.$store.commit({
-          type: 'appendDatabase',
-          db: newDb,
-          bucket: this.bucketName
+      import('../components/DbEditor.vue').then(Module => {
+        Module.createAndMount(Vue, {
+          mode: 'create',
+          bucketName: this.bucketName,
+          tmsAxiosName: this.tmsAxiosName
+        })
+        this.$tmsOn('onDbCreateSubmit', newDb =>{
+          this.$store.commit({
+            type: 'appendDatabase',
+            bucket: this.bucketName,
+            db: newDb            
+          })
         })
       })
     },
     editDb(db) {
-      const editor = new Vue(DbEditor)
-      editor.open('update', this.bucketName, db).then(newDb => {
-        Object.keys(newDb).forEach(k => {
-          Vue.set(db, k, newDb[k])
+      import('../components/DbEditor.vue').then(Module => {
+        Module.createAndMount(Vue, {
+          mode: 'update',
+          bucketName: this.bucketName,
+          tmsAxiosName: this.tmsAxiosName,
+          database: db
         })
-        this.$store.commit({
-          type: 'updateDatabase',
-          db: newDb,
-          bucket: this.bucketName
+        this.$tmsOn('onDbUpdateSubmit', newDb =>{
+          this.$store.commit({
+            type: 'updateDatabase',
+            bucket: this.bucketName,
+            db: newDb            
+          })
         })
-      })
-    },
-    removeDb(db) {
-      this.$store.dispatch({
-        type: 'removeDatabase',
-        db,
-        bucket: this.bucketName
       })
     },
     topDb(db, type) {
-      apiDb.top(this.bucketName, db._id, type).then(() => {
-        this.listDatabase()
-      })
+			createDbApi(this.TmsAxios(this.tmsAxiosName))
+				.top(this.bucketName, db._id, type).then(() => {
+					this.listDatabase()
+				})
     }
   },
   mounted() {

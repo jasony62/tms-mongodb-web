@@ -9,7 +9,7 @@ import { Dialog } from 'element-ui'
 Vue.use(Dialog)
 
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
-import createDocApi from '@/apis/document'
+import createDocApi from '../../ue_mongo/src/apis/document'
 
 export default {
   name: 'DocEditor',
@@ -63,7 +63,7 @@ export default {
 			let validate = true
 			if (process.env.VUE_APP_SUBMIT_VALITOR_FIELD) {
 				const config = process.env.VUE_APP_SUBMIT_VALITOR_FIELD
-				let { priceValidate: onValidate, priceFormat: onFormat } = await import('@/tms/utils.js')	
+				let { priceValidate: onValidate, priceFormat: onFormat } = await import('../../ue_mongo/src/tms/utils.js')	
 				validate =  Object.entries(newDoc).map(([key, value]) => {
 					if (config.indexOf(key)===-1) return true
 			

@@ -21,7 +21,6 @@
         <el-table-column fixed="right" label="操作" width="120">
           <template slot-scope="scope">
             <el-button @click="editCollection(scope.row)" size="mini" type="text">修改</el-button>
-            <el-button @click="removeCollection(scope.row)" size="mini" type="text" v-if="false">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -35,8 +34,8 @@
 <script>
 import Vue from 'vue'
 import { mapState } from 'vuex'
-import { Frame, Flex } from 'tms-vue-ui'
-Vue.use(Frame).use(Flex)
+import { Frame } from 'tms-vue-ui'
+Vue.use(Frame)
 import {
   Table,
   TableColumn,
@@ -49,16 +48,19 @@ Vue.use(Table)
   .use(Button)
   .use(Breadcrumb)
   .use(BreadcrumbItem)
-import CollectionEditor from '../components/CollectionEditor.vue'
 
 export default {
   name: 'Database',
-  props: ['bucketName', 'dbName'],
+  props: {
+		bucketName: String, 
+		dbName: String,
+		tmsAxiosName: {
+			type: String,
+			default: 'mongodb-api'
+		}
+	},
   computed: {
     ...mapState(['collections'])
-  },
-  data() {
-    return {}
   },
   methods: {
     listCollection() {
@@ -69,36 +71,40 @@ export default {
       })
     },
     createCollection() {
-      let editor = new Vue(CollectionEditor)
-      editor
-        .open('create', this.bucketName, this.dbName)
-        .then(newCollection => {
+      import('../components/CollectionEditor.vue').then(Module => {
+        Module.createAndMount(Vue, {
+          mode: 'create',
+          bucketName: this.bucketName,
+          tmsAxiosName: this.tmsAxiosName,
+          dbName: this.dbName
+        })
+        this.$tmsOn('onColCreateSubmit', newCollection =>{
           this.$store.commit({
             type: 'appendCollection',
             collection: newCollection
           })
         })
+      })
     },
     editCollection(collection) {
-      let editor = new Vue(CollectionEditor)
-      editor
-        .open('update', this.bucketName, this.dbName, collection)
-        .then(newCollection => {
+      import('../components/CollectionEditor.vue').then(Module => {
+        Module.createAndMount(Vue, {
+          mode: 'update',
+          bucketName: this.bucketName,
+          tmsAxiosName: this.tmsAxiosName,
+          dbName: this.dbName,
+          collection: collection
+        })
+        this.$tmsOn('onColUpdateSubmit', newCollection =>{
           Object.keys(newCollection).forEach(k => {
             Vue.set(collection, k, newCollection[k])
           })
           this.$store.commit({
             type: 'updateCollection',
-            collection
+            bucket: this.bucketName,
+            collection: newCollection
           })
         })
-    },
-    removeCollection(collection) {
-      this.$store.dispatch({
-        type: 'removeCollection',
-        bucket: this.bucketName,
-        db: this.dbName,
-        collection
       })
     }
   },
