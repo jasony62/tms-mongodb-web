@@ -12,7 +12,13 @@
         <el-input type="textarea" v-model="schema.description"></el-input>
       </el-form-item>
     </el-form>
-    <tms-json-schema v-show="activeTab === 'second'" :schema="schema.body"></tms-json-schema>
+    <tms-json-schema v-show="activeTab === 'second'" :schema="schema.body">
+      <template v-slot:extKeywords="props">
+        <el-form-item label="不可修改">
+          <el-switch v-model="props.schema.readonly"></el-switch>
+        </el-form-item>
+      </template>
+    </tms-json-schema>
     <div slot="footer" class="dialog-footer">
       <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button @click="dialogVisible = false">取消</el-button>
@@ -40,7 +46,10 @@ export default {
     return {
       activeTab: 'first',
       destroyOnClose: true,
-      closeOnClickModal: false
+      closeOnClickModal: false,
+      extendSchema: (vm, schema) => {
+        vm.$set(schema, 'readonly', false)
+      }
     }
   },
   methods: {

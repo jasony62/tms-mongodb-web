@@ -1,6 +1,6 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <tms-el-json-doc :schema="schema" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit"></tms-el-json-doc>
+    <tms-el-json-doc :is-submit="isSubmit" :schema="schema" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
@@ -21,6 +21,7 @@ export default {
   },
   data() {
     return {
+			isSubmit: false,
       dbName: '',
       collection: null,
       destroyOnClose: true,
@@ -60,6 +61,7 @@ export default {
 				.catch(err => Promise.reject(err))
 		},
     async onJsonDocSubmit(slimDoc, newDoc) {
+			this.isSubmit = true
 			let validate = true
 			if (process.env.VUE_APP_SUBMIT_VALITOR_FIELD) {
 				const config = process.env.VUE_APP_SUBMIT_VALITOR_FIELD
@@ -83,10 +85,14 @@ export default {
 							newDoc
 						)
 						.then(newDoc => this.$emit('submit', newDoc))
+						.catch(error => console.log(error))
+            .finally(() => this.isSubmit = false)
 				} else {
 					createDocApi(this.TmsAxios(this.tmsAxiosName))
 						.create(this.bucketName, this.dbName, this.collection.name, newDoc)
 						.then(newDoc => this.$emit('submit', newDoc))
+						.catch(error => console.log(error))
+            .finally(() => this.isSubmit = false)
 				}
 			}
     },
