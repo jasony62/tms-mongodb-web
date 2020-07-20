@@ -33,7 +33,6 @@
         <el-table-column fixed="right" label="操作" width="150">
           <template slot-scope="scope">
             <el-button size="mini" @click="editDocument(scope.row)">修改</el-button>
-            <el-button size="mini" @click="removeDocument(scope.row)" v-if="role==='admin'">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -61,14 +60,6 @@
         </el-upload>
         <el-dropdown @command="exportDocument">
           <el-button>导出数据<i class="el-icon-arrow-down el-icon--right"></i></el-button>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
-            <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
-            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
-        <el-dropdown @command="batchRemoveDocument">
-          <el-button>批量删除<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
             <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
@@ -394,41 +385,6 @@ const componentOptions = {
             this.listDocument()
           })
       })
-    },
-    removeDocument(document) {
-      MessageBox({
-        title: '提示',
-        message: '确定删除该条数据？',
-        confirmButtonText: '确定',
-        type: 'warning'
-      })
-        .then(() => {
-          createDocApi(this.TmsAxios(this.tmsAxiosName))
-            .remove(this.bucketName, this.dbName, this.clName, document._id)
-            .then(() => {
-              Message.success({ message: '删除成功' })
-              this.fnHandleResResult({ n: 1 }, false)
-            })
-        })
-        .catch(() => {})
-    },
-    batchRemoveDocument(command) {
-      let { param } = this.fnSetReqParam(command)
-      MessageBox({
-        title: '提示',
-        message: '确定删除这些数据？',
-        confirmButtonText: '确定',
-        type: 'warning'
-      })
-        .then(() => {
-          createDocApi(this.TmsAxios(this.tmsAxiosName))
-            .batchRemove(this.bucketName, this.dbName, this.clName, param)
-            .then(result => {
-              Message.success({ message: '已成功删除' + result.n + '条' })
-              this.fnHandleResResult(result, true)
-            })
-        })
-        .catch(() => {})
     },
     fnMoveDocument(
       dbName,

@@ -54,18 +54,6 @@ export default function create(tmsAxios) {
         .post(`${base}/updateMany`, updatedRange, { params })
         .then(rst => rst.data.result)
     },
-    remove(bucket, dbName, clName, id) {
-      const params = { bucket, db: dbName, cl: clName, id }
-      return tmsAxios
-        .get(`${base}/remove`, { params })
-        .then(rst => rst.data.result)
-    },
-    batchRemove(bucket, dbName, clName, removedRange) {
-      const params = { bucket, db: dbName, cl: clName }
-      return tmsAxios
-        .post(`${base}/removeMany`, removedRange, { params })
-        .then(rst => rst.data.result)
-    },
     move(
       bucket,
       oldDbName,
