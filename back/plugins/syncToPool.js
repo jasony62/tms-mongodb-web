@@ -115,6 +115,17 @@ class SyncToPool extends Base {
     let abnormalTotal = 0 // 异常数
     let passTotal = 0 // 成功数
     let rst = orders.map(async order => {
+      // 按照定义补足数据并根据类型更改数据
+      Object.entries(schema).forEach(([key, value]) => {
+        if (!order[key] || !order[key].length) {
+          order[key] = ""
+          return false
+        }
+        if (value.type === 'array' && value.enum) {
+          order[key] = order[key].join(',')
+        }
+      });
+      //console.log(order)
       let current, insStatus, postData
       current = moment().format('YYYY-MM-DD HH:mm:ss')
       insStatus = "失败："

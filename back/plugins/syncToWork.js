@@ -112,6 +112,16 @@ class SyncToWork extends Base {
     let passTotal = 0 // 成功数
 
     let rst = tels.map(async tel => {
+      // 按照定义补足数据并根据类型更改数据
+      Object.entries(schema).forEach(([key, value]) => {
+        if (!tel[key] || !tel[key].length) {
+          tel[key] = ""
+          return false
+        }
+        if (value.type === 'array' && value.enum) {
+          tel[key] = tel[key].join(',')
+        }
+      });
       let current = moment().format('YYYY-MM-DD HH:mm:ss')
       let insStatus = "失败："
 
