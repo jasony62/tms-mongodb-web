@@ -10,33 +10,30 @@
     <template v-slot:center>
       <el-table id="tables" :data="documents" stripe ref="multipleTable" :height="tableHeight" @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55"></el-table-column>
-        <el-table-column
-          v-for="(s, k) in collection.schema.body.properties"
-          :key="k"
-          :prop="k">
-					<template slot="header">
-						<i v-if="s.description" class="el-icon-info" :title="s.description"></i>
-						<i v-if="s.required" style="color:red">*</i>
-						<span> {{s.title}} </span>
-						<img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
+        <el-table-column v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k">
+          <template slot="header">
+            <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
+            <i v-if="s.required" style="color:red">*</i>
+            <span> {{s.title}} </span>
+            <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
           </template>
           <template slot-scope="scope">
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
-						<span v-else-if="s.type==='array'&&s.format==='file'">
-							<span v-for="(i, v) in scope.row[k]" :key="v">
-								<a href @click="handleDownload(i)">{{i.name}}</a><br/>
-							</span>
-						</span>
-            <span v-else-if="s.type === 'array' && s.format === 'checkbox'">
-							<span v-for="(i, v) in s.anyOf" :key="v">
-                <span v-if="scope.row[k].includes(i.value)">{{i.label}}&nbsp;</span>
-							</span>
-						</span>
-            <span v-else-if="s.type === 'string' && s.radioType === 2">
-							<span v-for="(i, v) in s.oneOf" :key="v">
+            <span v-else-if="s.type==='array'&&s.format==='file'">
+              <span v-for="(i, v) in scope.row[k]" :key="v">
+                <a href @click="handleDownload(i)">{{i.name}}</a><br />
+              </span>
+            </span>
+            <span v-else-if="s.type === 'array' && s.enum">
+              <span v-for="(i, v) in s.enum" :key="v">
+                <span v-if="scope.row[k] && scope.row[k].includes(i.value)">{{i.label}}&nbsp;</span>
+              </span>
+            </span>
+            <span v-else-if="s.type === 'string' && s.enum">
+              <span v-for="(i, v) in s.enum" :key="v">
                 <span v-if="scope.row[k] === i.value">{{i.label}}</span>
-							</span>
-						</span>
+              </span>
+            </span>
             <span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
@@ -54,7 +51,7 @@
       </tms-flex>
     </template>
     <template v-slot:right>
-      <tms-flex direction="column">
+      <tms-flex direction="column" align-items="flex-start">
         <div>
           <el-button @click="createDocument">添加数据</el-button>
         </div>
@@ -69,7 +66,7 @@
         <el-upload action="#" :show-file-list="false" :http-request="importDocument">
           <el-button>导入数据</el-button>
         </el-upload>
-				<el-dropdown @command="exportDocument">
+        <el-dropdown @command="exportDocument">
           <el-button>导出数据<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -77,47 +74,25 @@
             <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <el-dropdown @command="batchRemoveDocument">
-          <el-button>批量删除<i class="el-icon-arrow-down el-icon--right"></i></el-button>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
-            <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
-            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
-        <hr />
-        <el-checkbox-group v-model="moveCheckList" v-if="plugins.document.transforms&&plugins.document.transforms.move">
-          <el-checkbox v-for="(t, k) in plugins.document.transforms.move" :label="t.name" :key="k">{{t.label}}</el-checkbox>
-        </el-checkbox-group>
-        <el-dropdown @command="batchMoveDocument">
-          <el-button>数据迁移<i class="el-icon-arrow-down el-icon--right"></i></el-button>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
-            <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
-            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
-        <hr />
-        <div v-for="s in plugins.document.submits" :key="s.id">
-          <el-checkbox-group v-model="s.checkList" v-if="plugins.document.transforms&&plugins.document.transforms[s.id]">
-            <el-checkbox v-for="(t, k) in plugins.document.transforms[s.id]" :label="t.name" :key="k">{{t.label}}</el-checkbox>
+        <div v-for="button in plugin.buttons" :key="button.id">
+          <el-checkbox-group v-model="plugin.checklist[button.id]">
+            <el-checkbox v-for="(t, k) in plugin.options[button.id]" :label="t.name" :key="k">{{t.label}}</el-checkbox>
           </el-checkbox-group>
-          <el-button @click="handlePlugin(s, null)" v-if="!s.batch">{{s.name}}</el-button>
-          <el-dropdown v-if="s.batch">
-            <el-button>{{s.name}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+          <el-dropdown v-if="button.batch&&button.batch.length">
+            <el-button>{{button.name}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugin(s, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
+                <el-button type="text" @click="handlePlugin(button, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugin(s, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
+                <el-button type="text" @click="handlePlugin(button, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugin(s, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
+                <el-button type="text" @click="handlePlugin(button, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
-          <hr v-if="plugins.document.transforms&&plugins.document.transforms[s.id]" />
+          <el-button v-else @click="handlePlugin(button, null)">{{button.name}}</el-button>
         </div>
       </tms-flex>
     </template>
@@ -182,7 +157,6 @@ export default {
   data() {
     return {
       tableHeight: 0,
-      moveCheckList: [],
       filter: {},
       page: {
         at: 1,
@@ -191,7 +165,7 @@ export default {
       },
       multipleDocuments: [],
       collection: { schema: { body: { properties: {} } } },
-      plugins: { document: { submits: [], transforms: {} } },
+      plugin: { options: {}, buttons: [], checklist: {} },
       dialogPage: {
         at: 1,
         size: 100
@@ -297,7 +271,8 @@ export default {
           columnName, 
           this.dialogPage, 
           this.handleCondition(),
-          this.listByColumn
+          this.listByColumn,
+          this.collection.schema.body.properties[columnName]
         )
         .then(rsl => {
           const { condition, isClear, isCheckBtn } = rsl
@@ -354,15 +329,27 @@ export default {
     },
     listPlugin() {
       apiPlugins.plugin.list().then(plugins => {
-        if (JSON.stringify(plugins) !== '{}') {
-					if (plugins.document.transforms) {
-						this.moveCheckList = plugins.document.transforms.move.map(option => option.name)
-						plugins.document.submits.forEach(submit => {
-							let transforms = plugins.document.transforms[submit.id]
-							submit.checkList = transforms ? transforms.map(item => item.name) : []
-						})
-					}
-          this.plugins = plugins
+        try {
+          const defaultBtns = [{id: 'removeMany', name: '批量删除', batch: ["all", "filter", "ids"]}, {id: 'move', name: '数据迁移', batch: ["all", "filter", "ids"]}]
+          if (JSON.stringify(plugins)==='{}') {
+            this.plugin.buttons = defaultBtns
+            return false
+          }
+          const { document: { submits, transforms } } = plugins
+          const options = transforms && JSON.stringify(transforms)!=='{}' ? transforms : {}
+          this.plugin.options = options
+
+          if (submits && submits.length) {
+            this.plugin.buttons = submits
+          }
+          
+          let checklist = {}
+          Object.entries(options).forEach(([key, value]) => {
+            checklist[key] = value.filter(option => option.default==='Y').map(option => option.name)
+          })
+          this.plugin.checklist = checklist
+        } catch(e) {
+          throw Error(e)
         }
       })
     },
@@ -410,7 +397,7 @@ export default {
     fnSetReqParam(command, checkList) {
       let param, transforms
       param = {}
-      transforms = checkList && checkList.join(',')
+      transforms = checkList&&checkList.length ? checkList.join(',') : ""
       switch (command) {
         case 'all':
           param.filter = 'ALL'
@@ -469,8 +456,7 @@ export default {
         })
         .catch(() => {})
     },
-    batchRemoveDocument(command) {
-      let { param } = this.fnSetReqParam(command)
+    batchRemoveDocument(transforms, param) {
       MessageBox({
         title: '提示',
         message: '确定删除这些数据？',
@@ -479,7 +465,7 @@ export default {
       })
         .then(() => {
           apiDoc
-            .batchRemove(this.bucketName, this.dbName, this.clName, param)
+            .batchRemove(this.bucketName, this.dbName, this.clName, param, transforms)
             .then(result => {
               Message.success({ message: '已成功删除' + result.n + '条' })
               this.fnHandleResResult(result, true)
@@ -561,31 +547,20 @@ export default {
         aMPTotal
       )
     },
-    batchMoveDocument(command) {
-      let { param, transforms } = this.fnSetReqParam(
-          command,
-          this.moveCheckList
-        ),
-        confirm,
-        config
+    batchMoveDocument(transforms, param, command) {
+      let confirm, config
       confirm = new Vue(DomainEditor)
       config = { title: '迁移到' }
       confirm.open(this.bucketName, config).then(fields => {
         const { dbName, clName } = fields
-        if (command === 'checked') {
-          this.fnMoveDocument(dbName, clName, transforms, param, 0, 0, 0).then(
-            result => {
-              this.fnHandleResResult({ n: result.alreadyMovePassTotal }, true)
-            }
-          )
-        } else {
-          this.fnMoveDocument(dbName, clName, transforms, param, 0, 0, 0).then(
-            () => {
-              this.page.at = 1
-              this.listDocument()
-            }
-          )
-        }
+        this.fnMoveDocument(dbName, clName, transforms, param, 0, 0, 0).then(result => {
+          if (command==='checked') {
+            this.fnHandleResResult({ n: result.alreadyMovePassTotal }, true)
+          } else {
+            this.page.at = 1
+            this.listDocument()
+          }
+        })
       })
     },
     importDocument(data) {
@@ -604,7 +579,7 @@ export default {
       apiDoc.export(this.bucketName, this.dbName, this.clName, param).then(result => {
         const access_token = sessionStorage.getItem('access_token')
         window.open(
-          `${process.env.VUE_APP_BACK_API_BASE}/download/down?access_token=${access_token}&file=${result}`
+          `${process.env.VUE_APP_BACK_API_FS}${result}?access_token=${access_token}`
         )
       })
     },
@@ -655,15 +630,21 @@ export default {
       }
       fnsync(type, transforms, param, pTotal, aSTotal, aSPTotal)
     },
-    handlePlugin(submit, type) {
-      let transforms = submit.checkList ? submit.checkList.join(',') : ""
-      let { param } = type ? this.fnSetReqParam(type) : { param: null }
+    handlePlugin(submit, command) {
+      const checkList = this.plugin.checklist[submit.id]
+      let { param, transforms } = command ? this.fnSetReqParam(command, checkList) : { param: null, transforms : "" }
       switch (submit.id) {
         case 'moveByRule':
           this.pluginOfMoveByRule(transforms, param)
           break
         case 'syncMobilePool':
           this.pluginOfSync(submit.id, transforms, param, 0, 0, 0)
+          break
+        case 'removeMany':
+          this.batchRemoveDocument(transforms, param)
+          break
+        case 'move':
+          this.batchMoveDocument(transforms, param, command)
       }
     },
     handleSize(val) {

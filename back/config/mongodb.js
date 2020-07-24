@@ -6,5 +6,7 @@ if (process.env.TMS_MONGODB_WEB_ENV === 'docker') {
 }
 module.exports = {
   host,
-  port: parseInt(process.env.TMS_MONGODB_PORT) || 27017
+  port: parseInt(process.env.TMS_MONGODB_PORT) || 27017,
+  user: process.env.TMS_MONGODB_USER || false,
+  password: process.env.TMS_MONGODB_PASSWORD || false
 }
