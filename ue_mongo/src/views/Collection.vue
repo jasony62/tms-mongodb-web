@@ -144,7 +144,7 @@ Vue.use(Table)
   .use(BreadcrumbItem)
 
 import DocEditor from '../components/DocEditor.vue'
-import ColumnValueEditor from '../components/ColumnValueEditor.vue'
+import BatchDocEditor from '../components/BatchDocEditor.vue'
 import DomainEditor from '../components/DomainEditor.vue'
 import SelectCondition from '../components/SelectCondition.vue'
 import MoveByRulePlugin from '../plugins/move/Main.vue'
@@ -421,9 +421,8 @@ export default {
       }
     },
     batchEditDocument(command) {
-      let { param } = this.fnSetReqParam(command),
-        editor
-      editor = new Vue(ColumnValueEditor)
+      let { param } = this.fnSetReqParam(command), editor
+      editor = new Vue(BatchDocEditor)
       editor.open(this.collection).then(columns => {
         Object.assign(param, { columns })
         apiDoc
