@@ -17,17 +17,16 @@
         </el-select>
       </el-form-item>
       <el-form-item label="列值" v-else-if="type=='single'">
-        <el-select v-model="columnVal" placeholder="请选择">
-          <el-option v-for="options in options" :key="options.value" :label="options.label" :value="options.value">
-          </el-option>
-        </el-select>
+        <el-radio-group v-model="columnVal">
+          <el-radio v-for="option in options" :key="option.value" :label="option.value">{{option.label}}</el-radio>
+        </el-radio-group>
       </el-form-item>
       <el-form-item label="列值" v-else>
         <div>暂不支持修改此类型的值</div>
       </el-form-item>
     </el-form>
     <div class="tmw-tags">
-      <el-tag v-for="tag in tags" :key="tag.id" :disable-transitions="false" @close="removeTag(tag)" closable>{{tag.label}}:{{tag.value}}</el-tag>
+      <el-tag v-for="(tag, key) in tags" :key="tag.id" :disable-transitions="false" @close="removeTag(key)" closable>{{tag.label}}:{{tag.value}}</el-tag>
     </div>
     <div slot="footer" class="dialog-footer">
       <el-button type="success" @click="addColumn">添加</el-button>
@@ -37,7 +36,7 @@
 </template>
 <script>
 import Vue from 'vue'
-import { Dialog, Form, FormItem, Input, Select, Option, Tag, Button, Message } from 'element-ui'
+import { Dialog, Form, FormItem, Input, Select, Option, Tag, Button, Message, Radio, RadioGroup } from 'element-ui'
 Vue.use(Dialog)
   .use(Form)
   .use(FormItem)
@@ -46,6 +45,8 @@ Vue.use(Dialog)
   .use(Option)
   .use(Tag)
   .use(Button)
+  .use(Radio)
+  .use(RadioGroup)
 
 export default {
   props: {
@@ -60,7 +61,7 @@ export default {
       columnVal: "",
       type: "",
       column: {},
-      tags: []
+      tags: {}
     }
   },
   watch: {
@@ -109,51 +110,21 @@ export default {
       return labels.join(',')
     },
     addTag() {
-      if (this.column)
       const config = this.properties[this.columnKey]
       let currentTag = {
-        id: this.columnKey,
         label: config.title
       }
       currentTag.value = config.hasOwnProperty('enum') ? this.getValues(this.columnVal, config.enum) : this.columnVal
-      this.tags.push(currentTag)
+      this.$set(this.tags, this.columnKey, currentTag)
     },
     removeTag(tag) {
-      this.tags.forEach((item, index) => {
-        if (item.id===tag.id) {
-          this.tags.splice(index, 1)
-          if (this.columnKey===tag.id) {
-            this.columnKey = ""
-            this.columnVal = ""
-          }
-          this.removeColumn(tag.id)
-        }
-      })
+      this.$delete(this.tags, tag)
+      this.removeColumn(tag)
+      this.columnKey = ""
+      this.columnVal = ""
     },
-    /* 
-    handleButton() {
-      if (!this.select) {
-        Message.info({ message: '请选择条件'})
-        return false
-      }
-      this.$set(this.column, this.select, this.input.replace(/^\s+|\s+$/g,""))
-      if (this.tags.length) {
-        this.tags.forEach(tag => {
-          if (tag && tag.id===this.select) {
-            tag.value = this.input
-          } 
-        })
-        if (this.tags.every(ele => ele.id !== this.select)) {
-          this.addColumn();
-        }
-      } else {
-        this.addColumn();
-      }
-    },
-     */
     onSubmit() {
-      console.log(this.column)
-      //this.$emit('submit', this.column)
+      this.$emit('submit', this.column)
     },
     open(collection) {
       this.properties = collection.schema.body.properties
