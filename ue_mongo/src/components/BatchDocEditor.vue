@@ -37,7 +37,7 @@
 </template>
 <script>
 import Vue from 'vue'
-import { Dialog, Form, FormItem, Input, Select, Option, Tag, Button } from 'element-ui'
+import { Dialog, Form, FormItem, Input, Select, Option, Tag, Button, Message } from 'element-ui'
 Vue.use(Dialog)
   .use(Form)
   .use(FormItem)
@@ -86,23 +86,36 @@ export default {
       this.columnVal = value ? value : ""
     },
     addColumn() {
+      if (this.columnKey==='') {
+        Message.info({ message: '请选择修改的列'})
+        return false
+      }
       if (this.type==='text') {
         this.columnVal = this.columnVal.replace(/^\s+|\s+$/g,"")
       }
       this.$set(this.column, this.columnKey, this.columnVal)
-      /* this.columnKey = ""
-      this.columnVal = "" */
       this.addTag()
     },
     removeColumn(id) {
       delete this.column[id]
     },
+    getValues(columnVal, enums) {
+      let labels = []
+      enums.forEach(item => {
+        if (columnVal.includes(item.value)) {
+          labels.push(item.label)
+        }
+      }) 
+      return labels.join(',')
+    },
     addTag() {
+      if (this.column)
+      const config = this.properties[this.columnKey]
       let currentTag = {
         id: this.columnKey,
-        label: this.properties[this.columnKey].title
+        label: config.title
       }
-      if ()
+      currentTag.value = config.hasOwnProperty('enum') ? this.getValues(this.columnVal, config.enum) : this.columnVal
       this.tags.push(currentTag)
     },
     removeTag(tag) {
@@ -139,7 +152,8 @@ export default {
     },
      */
     onSubmit() {
-      this.$emit('submit', this.column)
+      console.log(this.column)
+      //this.$emit('submit', this.column)
     },
     open(collection) {
       this.properties = collection.schema.body.properties
