@@ -75,8 +75,8 @@
           </el-dropdown-menu>
         </el-dropdown>
         <div v-for="button in plugin.buttons" :key="button.id">
-          <el-checkbox-group v-model="plugin.checklist[button.id]">
-            <el-checkbox v-for="(t, k) in plugin.options[button.id]" :label="t.name" :key="k">{{t.label}}</el-checkbox>
+          <el-checkbox-group v-model="plugin.checklist[button.id]" v-if="button.transforms&&button.transforms.length">
+            <el-checkbox v-for="(t, k) in button.transforms" :label="t.name" :key="k">{{t.label}}</el-checkbox>
           </el-checkbox-group>
           <el-dropdown v-if="button.batch&&button.batch.length">
             <el-button>{{button.name}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
@@ -165,7 +165,7 @@ export default {
       },
       multipleDocuments: [],
       collection: { schema: { body: { properties: {} } } },
-      plugin: { options: {}, buttons: [], checklist: {} },
+      plugin: { buttons: [], checklist: {} },
       dialogPage: {
         at: 1,
         size: 100
@@ -329,23 +329,22 @@ export default {
     },
     listPlugin() {
       apiPlugins.plugin.list().then(plugins => {
+        plugins = {document: {}}
         try {
           const defaultBtns = [{id: 'removeMany', name: '批量删除', batch: ["all", "filter", "ids"]}, {id: 'move', name: '数据迁移', batch: ["all", "filter", "ids"]}]
           if (JSON.stringify(plugins)==='{}') {
             this.plugin.buttons = defaultBtns
             return false
           }
-          const { document: { submits, transforms } } = plugins
-          const options = transforms && JSON.stringify(transforms)!=='{}' ? transforms : {}
-          this.plugin.options = options
 
-          if (submits && submits.length) {
-            this.plugin.buttons = submits
-          }
+          const { document: { submits } } = plugins
+          this.plugin.buttons = submits ? submits : defaultBtns
           
           let checklist = {}
-          Object.entries(options).forEach(([key, value]) => {
-            checklist[key] = value.filter(option => option.default==='Y').map(option => option.name)
+          this.plugin.buttons.forEach(submit => {
+            if (submit.transforms && submit.transforms.length) {
+              checklist[submit.id] = submit.transforms.filter(transform => transform.default==='Y').map(transform => transform.name)
+            }
           })
           this.plugin.checklist = checklist
         } catch(e) {
