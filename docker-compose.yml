@@ -52,7 +52,7 @@ services:
     environment:
       - NGINX_WEB_BASE_URL=/order/mongo
 
-  ue_sale:
+  sale:
     build:
       context: .
       dockerfile: Dockerfile-uesale
