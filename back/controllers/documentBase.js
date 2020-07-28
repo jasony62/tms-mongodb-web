@@ -416,11 +416,20 @@ class DocBase extends Base {
       let newRow = {}
       for (const k in columns) {
         let column = columns[k]
+        // 默认值
+        let _default = column.default
+        
         let rDByTitle = row[column.title]
         if (typeof rDByTitle === 'number') {
           newRow[k] = String(rDByTitle)
         } else if (typeof rDByTitle === 'undefined') {
-          newRow[k] = null
+          //存在默认值
+          if(_default) {
+            newRow[k] = _default
+          } else {
+            newRow[k] = null
+          }
+          
         } else {
           newRow[k] = rDByTitle
         }

@@ -53,7 +53,7 @@ class CollectionBase extends Base {
     const existDb = await this.colHelper.findRequestDb()
     const client = this.mongoClient
     const p1 = client
-      .db(existDb.name)
+      .db(existDb.sysname)
       .listCollections({}, { nameOnly: true })
       .toArray()
       .then((collections) => collections.map((c) => c.name))

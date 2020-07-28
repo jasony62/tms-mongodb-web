@@ -5,6 +5,7 @@ const DbHelper = require('./dbHelper')
 const ObjectId = require('mongodb').ObjectId
 const modelDb = require('../models/mgdb/db')
 const { nanoid } = require('nanoid')
+const moment = require('moment')
 /**
  * 数据库控制器基类
  */
@@ -13,6 +14,29 @@ class DbBase extends Base {
     super(...args)
     this.dbHelper = new DbHelper(this)
   }
+
+  /**
+   * 对插入到表中的数据进行加工
+   */
+  _beforeDbByInAndUp(data, type) {
+    let today = moment()
+    let current = today.format('YYYY-MM-DD HH:mm:ss')
+
+    if (type === 'insert') {
+      if (typeof data['updateTime'] !== 'undefined')
+        delete data['updateTime']
+      data['createTime'] = current
+    } else if (type === 'update') {
+      if (typeof data['createTime'] !== 'undefined')
+        delete data['createTime']
+      data['updateTime'] = current
+    }
+
+    return data
+
+    return data
+  }
+
   async tmsBeforeEach() {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
@@ -62,7 +86,7 @@ class DbBase extends Base {
     if (existDb) return new ResultFault('无法生成有效数据库名称')
 
     info.sysname = sysname
-
+    this._beforeDbByInAndUp(info, 'insert')
     return this.clMongoObj
       .insertOne(info)
       .then((result) => new ResultData(result.ops[0]))
@@ -74,13 +98,30 @@ class DbBase extends Base {
     const beforeDb = await this.dbHelper.findRequestDb()
 
     let info = this.request.body
-    let { _id, name, bucket, ...updatedInfo } = info
+    let params = this.request.query
+
+    // 检查数据库名
+    let model = new modelDb()
+    let newName = model._checkDbName(info.name)
+    if (newName[0] === false) return new ResultFault(newName[1])
+    info.name = newName[1]
+
+    //修改集合查询
+    const queryList = { database: params.db, type: 'collection' }
+
+    // 修改集合值
+    const updateList = { database: info.name}
+
+    const rst = await this.clMongoObj.updateMany(queryList, { $set: updateList })
+
+    let { _id, bucket, ...updatedInfo } = info
 
     const query = { _id: ObjectId(beforeDb._id) }
 
     return this.clMongoObj
       .updateOne(query, { $set: updatedInfo })
       .then(() => new ResultData(info))
+
   }
   /**
    * 置顶
