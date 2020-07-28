@@ -608,7 +608,7 @@ export default {
           alreadySyncPassTotal,
           alreadySyncFailTotal,
           spareTotal
-        } = await apiPlugins.getPlugin(
+        } = await apiPlugins.usePlugin(
             submit,
             _this.dbName,
             _this.clName,
