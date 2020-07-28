@@ -2,12 +2,12 @@ version: '3.7'
 services:
   omongodb:
     build: ./mongodb
-    image: tms-mongodb-order/mongo:latest
-    container_name: order-mongo
+    image: 192.168.253.28/stateful/mongodb:latest
+    container_name: order-mongodb
   
   back:
     build: ./back
-    image: tms-mongodb-order/back:latest
+    image: 192.168.253.28/mg_order/back:latest
     container_name: order-back
     environment:
        - TMS_APP_PORT=3000
@@ -20,7 +20,7 @@ services:
        - TMS_MONGODB_PORT=27017
     command: ['sh', './wait-for.sh', 'omongodb:27017', '-t', '300', '--', 'node', 'server']
   
-  ue_admin:
+  admin:
     build:
       context: .
       dockerfile: Dockerfile-ueadmin
@@ -31,12 +31,12 @@ services:
         vue_app_back_api_plugin: /order/plugin
         vue_app_back_api_fs: /order/fs
         vue_app_submit_valitor_field: dismoney_a_yly, dismoney_b_yly, dismoney_c_yly, dismoney_d_yly, dismoney_e_yly, dismoney_f_yly, disovermoney_yly, dismoney_time_yly, discost_month_gzh, dismoney_a_gzh, dismoney_b_gzh, dismoney_c_gzh, dismoney_d_gzh, dismoney_e_gzh, dismoney_f_gzh, dismoney_time_gzh, disovermoney_gzh, discost_call_gzh, discost_msg_gzh
-    image: tms-mongodb-order/ue-admin:latest
-    container_name: order-ue_admin
+    image: 192.168.253.28/mg_order/admin:latest
+    container_name: order-admin
     environment:
       - NGINX_WEB_BASE_URL=/order/admin
       
-  ue_mongo:
+  mongo:
     build:
       context: .
       dockerfile: Dockerfile-uemongo
@@ -47,12 +47,12 @@ services:
         vue_app_back_api_plugin: /order/plugin
         vue_app_back_api_fs: /order/fs
         vue_app_submit_valitor_field: dismoney_a_yly, dismoney_b_yly, dismoney_c_yly, dismoney_d_yly, dismoney_e_yly, dismoney_f_yly, disovermoney_yly, dismoney_time_yly, discost_month_gzh, dismoney_a_gzh, dismoney_b_gzh, dismoney_c_gzh, dismoney_d_gzh, dismoney_e_gzh, dismoney_f_gzh, dismoney_time_gzh, disovermoney_gzh, discost_call_gzh, discost_msg_gzh
-    image: tms-mongodb-order/ue-mongo:latest
-    container_name: order-ue_mongo
+    image: 192.168.253.28/mg_order/mongo:latest
+    container_name: order-mongo
     environment:
       - NGINX_WEB_BASE_URL=/order/mongo
 
-  ue_sale:
+  sale:
     build:
       context: .
       dockerfile: Dockerfile-uesale
@@ -61,7 +61,7 @@ services:
         vue_app_back_auth_base: /order/auth
         vue_app_back_api_base: /order/api
         vue_app_user_role: sale
-    image: tms-mongodb-order/ue_sale:latest
-    container_name: order-ue_sale
+    image: 192.168.253.28/mg_order/sale:latest
+    container_name: order-sale
     environment:
       - NGINX_WEB_BASE_URL=/order/sale
