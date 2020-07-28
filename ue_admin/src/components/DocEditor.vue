@@ -75,13 +75,11 @@ export default {
               newDoc
             )
             .then(newDoc => this.$emit('submit', newDoc))
-            .catch(error => console.log(error))
             .finally(() => this.isSubmit = false)
         } else {
           apiDoc
             .create(this.bucketName, this.dbName, this.collection.name, newDoc)
             .then(newDoc => this.$emit('submit', newDoc))
-            .catch(error => console.log(error))
             .finally(() => this.isSubmit = false)
         }
       }

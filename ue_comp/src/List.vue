@@ -109,7 +109,7 @@
 import Vue from 'vue'
 import store from '../../ue_mongo/src/store'
 import { Frame, Flex } from 'tms-vue-ui'
-import { Table, TableColumn, Button, Checkbox, CheckboxGroup, Upload, Pagination, Message, MessageBox, Dropdown, DropdownMenu, DropdownItem } from 'element-ui'
+import { Table, TableColumn, Button, Checkbox, CheckboxGroup, Upload, Pagination, Message, Dropdown, DropdownMenu, DropdownItem } from 'element-ui'
 
 import DocEditor from './DocEditor.vue'
 import SelectCondition from './SelectCondition.vue'
