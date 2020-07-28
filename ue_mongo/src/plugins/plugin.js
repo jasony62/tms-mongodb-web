@@ -8,5 +8,13 @@ export default {
       .get(`${base}/pluginInfo/getPlugins`)
       .then(rst => rst.data.result)
       .catch(err => Promise.reject(err))
+  },
+  getPlugin(submit, dbName, clName, transforms, param, pTotal, aSTotal, aSPTotal, num = 100) {
+    let baseUrl = `${base}${submit.path}`
+    submit.path.search('?') != -1 ? baseUrl += '&' : baseUrl += '?'
+    return TmsAxios.ins('mongodb-api')
+      .post(`${baseUrl}db=${dbName}&cl=${clName}&transforms=${transforms}&planTotal=${pTotal}&alreadySyncTotal=${aSTotal}&alreadySyncPassTotal=${aSPTotal}&execNum=${num}`, param)
+      .then(rst => rst.data.result)
+      .catch(err => Promise.reject(err))
   }
 }

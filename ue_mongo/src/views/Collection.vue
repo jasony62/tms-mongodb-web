@@ -598,17 +598,18 @@ export default {
         )
       })
     },
-    pluginOfSync(type, transforms, param, pTotal, aSTotal, aSPTotal) {
+    pluginOfOther(submit, transforms, param, pTotal, aSTotal, aSPTotal) {
       let msg = Message.info({ message: '开始同步数据...', duration: 0 }),
         _this = this
-      async function fnsync(type, transforms, param, pTotal, aSTotal, aSPTotal) {
+      async function fnsync(submit, transforms, param, pTotal, aSTotal, aSPTotal) {
         let {
           planTotal,
           alreadySyncTotal,
           alreadySyncPassTotal,
           alreadySyncFailTotal,
           spareTotal
-        } = await apiPlugins.sync[type](
+        } = await apiPlugins.getPlugin(
+            submit,
             _this.dbName,
             _this.clName,
             transforms,
@@ -618,32 +619,33 @@ export default {
             aSPTotal
           )
           .catch(() => msg.close())
-        msg.message = '正在同步数据...'
+        msg.message = '正在处理数据...'
         if (spareTotal <= 0) {
-          msg.message = '成功同步' + alreadySyncPassTotal + '条，失败' + alreadySyncFailTotal + '条'
+          msg.message = '成功处理' + alreadySyncPassTotal + '条，失败' + alreadySyncFailTotal + '条'
           _this.listDocument()
           setTimeout(() => msg.close(), 1500)
           return false
         }
-        fnsync(type, transforms, param, planTotal, alreadySyncTotal, alreadySyncPassTotal)
+        fnsync(submit, transforms, param, planTotal, alreadySyncTotal, alreadySyncPassTotal)
       }
-      fnsync(type, transforms, param, pTotal, aSTotal, aSPTotal)
+      fnsync(submit, transforms, param, pTotal, aSTotal, aSPTotal)
     },
     handlePlugin(submit, command) {
       const checkList = this.plugin.checklist[submit.id]
       let { param, transforms } = command ? this.fnSetReqParam(command, checkList) : { param: null, transforms : "" }
       switch (submit.id) {
-        case 'moveByRule':
-          this.pluginOfMoveByRule(transforms, param)
-          break
-        case 'syncMobilePool':
-          this.pluginOfSync(submit.id, transforms, param, 0, 0, 0)
-          break
         case 'removeMany':
           this.batchRemoveDocument(transforms, param)
           break
         case 'move':
           this.batchMoveDocument(transforms, param, command)
+          break
+        case 'moveByRule':
+          this.pluginOfMoveByRule(transforms, param)
+          break
+        default:
+          this.pluginOfOther(submit, transforms, param, 0, 0, 0)
+          break
       }
     },
     handleSize(val) {
