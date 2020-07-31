@@ -13,7 +13,7 @@ services:
          - NODE_ENV=production
          - TMS_MONGODB_HOST=mongodb
          - TMS_MONGODB_PORT=27017
-    command: ['./wait-for.sh', 'mongodb:27017', '-t', '300', '--', 'node', 'server']
+    command: ['sh', './wait-for.sh', 'mongodb:27017', '-t', '300', '--', 'node', 'server']
   
   ue_admin:
     build:
