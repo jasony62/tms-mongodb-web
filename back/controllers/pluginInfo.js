@@ -11,9 +11,9 @@ class PluginInfo extends Ctrl {
   getPlugins() {
     let config = {}
 
-    if (fs.existsSync(process.cwd() + "/config/plugins.js")) {
-        let cf = require('../config/plugins')
-        if (typeof cf === "object") config = cf
+    if (fs.existsSync(process.cwd() + '/config/plugins.js')) {
+      let cf = require('../config/plugins')
+      if (typeof cf === 'object') config = cf
     }
 
     return new ResultData(config)

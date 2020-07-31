@@ -11,7 +11,7 @@
             <el-option v-for="db in dbs" :key="db._id" :label="db.title" :value="db.name"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="选择文件">
+      <el-form-item label="选择文档">
         <el-select v-model="form.clName" placeholder="请选择" clearable filterable>
             <el-option v-for="cl in cls" :key="cl._id" :label="cl.title" :value="cl.name"></el-option>
         </el-select>
@@ -38,7 +38,8 @@ import apiCollection from '../apis/collection'
 export default {
   name: 'DomainEditor',
   props: {
-    dialogVisible: { default: true }
+		dialogVisible: { default: true },
+		bucketName: { type: String }
   },
   data() {
     return {
@@ -53,20 +54,21 @@ export default {
     }
   },
   mounted() {
-    apiDb.list().then(dbs => {
+    apiDb.list(this.bucketName).then(dbs => {
       this.dbs = dbs
     })
   },
   methods: {
     changeDdName() {
-      apiCollection.list(this.form.dbName).then(cls => {
+      apiCollection.list(this.bucketName, this.form.dbName).then(cls => {
         this.cls = cls
       })
     },
     confirm() {
       this.$emit('submit', this.form)
     },
-    open(config) {
+    open(bucketName, config) {
+			this.bucketName = bucketName
       this.title = config.title ? config.title : ""
       this.$mount()
       document.body.appendChild(this.$el)

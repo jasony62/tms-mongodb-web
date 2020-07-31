@@ -32,11 +32,22 @@ export default {
     return {
       destroyOnClose: true,
       closeOnClickModal: false,
-      collection: null,
+      collection: {},
       select: "",
       input: "",
       column: {},
       tags: []
+    }
+  },
+  watch: {
+    // 多选暂不支持批量删除，故除之
+    collection() {
+      for(const key in this.collection.schema.body.properties){
+        if (this.collection.schema.body.properties[key].type === 'array' && this.collection.schema.body.properties[key].enum) {
+          delete this.collection.schema.body.properties[key]
+        }
+      }
+      this.$forceUpdate()
     }
   },
   methods: {
@@ -85,10 +96,34 @@ export default {
       })
     },
     onSubmit() {
+      const properties = this.collection.schema.body.properties
+      for(let [key, val] of Object.entries(this.column)) {
+        if (properties[key].type==='string'&&properties[key].hasOwnProperty('enum')) {
+          let values = properties[key].enum.map(item => item.label)
+          if (val!=='' && !values.includes(val)) {
+            Message.info({message: '请输入“'+ properties[key].title + '”列正确的选值'})
+            return false
+          }
+          properties[key].enum.forEach(item => {
+            if(item.label==val) this.column[key] = item.value
+          })
+        }
+      }
       this.$emit('submit', this.column)
     },
     open(collection) {
-      this.collection = collection
+      this.collection = JSON.parse(JSON.stringify(Object.assign(this.collection, collection)))
+      console.log('this.collection', this.collection)
+			Object.entries(this.collection.schema.body.properties).forEach(([key, value]) => {
+				switch(value.type) {
+					case 'array':
+						if (value.format==='file') delete this.collection.schema.body.properties[key]
+					break;
+					case 'string':
+						if (value.disabled===true) delete this.collection.schema.body.properties[key]
+					break;
+				}
+			})
       this.$mount()
       document.body.appendChild(this.$el)
       return new Promise(resolve => {
@@ -101,6 +136,3 @@ export default {
   }
 }
 </script>
-<style lang="css">
-@import "../assets/css/common.css"
-</style>

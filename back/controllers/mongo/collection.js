@@ -1,4 +1,4 @@
-const { ResultData, ResultFault } = require('tms-koa')
+const { ResultData } = require('tms-koa')
 const CollectionBase = require('../collectionBase')
 
 class Collection extends CollectionBase {

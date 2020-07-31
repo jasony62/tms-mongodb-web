@@ -3,34 +3,77 @@ import { TmsAxios } from 'tms-vue'
 const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/admin/document'
 
 export default {
-  byColumnVal(dbName, clName, columnName, filter= {}, orderBy= {}, page, size) {
+  byColumnVal(
+    bucket,
+    dbName,
+    clName,
+    columnName,
+    filter = {},
+    orderBy = {},
+    page,
+    size
+  ) {
+    const params = {
+      bucket,
+      db: dbName,
+      cl: clName,
+      column: columnName,
+      page: page,
+      size: size
+    }
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/getGroupByColumnVal?db=${dbName}&cl=${clName}&column=${columnName}&page=${page}&size=${size}`, {filter, orderBy})
+      .post(`${base}/getGroupByColumnVal`, { filter, orderBy }, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
-  list(dbName, clName, orderBy = {}, filter= {}, page) {
+  list(bucket, dbName, clName, orderBy = {}, filter = {}, page) {
+    const params = {
+      bucket,
+      db: dbName,
+      cl: clName,
+      page: page.at,
+      size: page.size
+    }
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/list?db=${dbName}&cl=${clName}&page=${page.at}&size=${page.size}`, {orderBy, filter})
+      .post(`${base}/list`, { orderBy, filter }, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
-  create(dbName, clName, proto) {
+  create(bucket, dbName, clName, proto) {
+    const params = {
+      bucket,
+      db: dbName,
+      cl: clName
+    }
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/create?db=${dbName}&cl=${clName}`, proto)
+      .post(`${base}/create`, proto, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
-  update(dbName, clName, id, updated) {
+  update(bucket, dbName, clName, id, updated) {
+    const params = {
+      bucket,
+      db: dbName,
+      cl: clName,
+      id
+    }
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/update?db=${dbName}&cl=${clName}&id=${id}`, updated)
+      .post(`${base}/update`, updated, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
   },
-  remove(dbName, clName, id) {
+  remove(bucket, dbName, clName, id) {
+    const params = {
+      bucket,
+      db: dbName,
+      cl: clName,
+      id
+    }
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/remove?db=${dbName}&cl=${clName}&id=${id}`)
+      .get(`${base}/remove`, { params })
       .then(rst => rst.data.result)
-      .catch(err => Promise.reject(err))
-  }
+	},
+	upload(query, fileData, config) {
+		let url = `${process.env.VUE_APP_BACK_API_BASE}/upload/plain`
+		if (query && query.dir) url += `?dir=${query.dir}`
+		return TmsAxios.ins('mongodb-api')
+			.post(url, fileData, config)
+			.then(rst => rst.data.result)
+	}
 }

@@ -1,6 +1,6 @@
 import { TmsAxios } from 'tms-vue'
 
-const baseAuth = (process.env.VUE_APP_BACK_AUTH_BASE_REWRITE || '') + '/auth'
+const baseAuth = (process.env.VUE_APP_BACK_AUTH_BASE || '') + '/auth'
 
 export default {
   /**
@@ -8,21 +8,19 @@ export default {
    *
    * @returns
    */
-  getCaptcha() {
-    return TmsAxios.ins()
+  fnGetCaptcha() {
+    return TmsAxios.ins('auth-api')
       .get(`${baseAuth}/captcha?width=150&height=44`)
       .then(rst => rst.data)
-      .catch(err => Promise.reject(err))
   },
   /**
    * 获取token
    *
    * @returns
    */
-  getToken(userArg) {
-    return TmsAxios.ins()
+  fnGetToken(userArg) {
+    return TmsAxios.ins('auth-api')
       .post(`${baseAuth}/authorize`, userArg)
       .then(rst => rst.data)
-      .catch(err => Promise.reject(err))
   }
 }
