@@ -98,7 +98,7 @@ class Document extends DocBase {
       .collection(clName)
       .find(find)
       .toArray()
-
+    console.log('data', data)
     const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
     let rst = ExcelCtrl.export(columns, data, clName + '.xlsx')
 
