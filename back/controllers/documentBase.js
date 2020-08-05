@@ -12,14 +12,14 @@ const APPCONTEXT = require('tms-koa').Context.AppContext
 const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
 
 class DocBase extends Base {
-  constructor (...args) {
+  constructor(...args) {
     super(...args)
     this.docHelper = new DocumentHelper(this)
   }
   /**
    * 指定数据库指定集合下新建文档
    */
-  async create () {
+  async create() {
     const existDb = await this.docHelper.findRequestDb()
 
     const { cl: clName } = this.request.query
@@ -40,7 +40,7 @@ class DocBase extends Base {
   /**
    * 对插入到表中的数据进行加工
    */
-  _beforeProcessByInAndUp (data, type) {
+  _beforeProcessByInAndUp(data, type) {
     let model = new modelBase()
     model._beforeProcessByInAndUp(data, type)
 
@@ -49,7 +49,7 @@ class DocBase extends Base {
   /**
    *
    */
-  async remove () {
+  async remove() {
     const existDb = await this.docHelper.findRequestDb()
 
     const { cl: clName, id } = this.request.query
@@ -69,7 +69,7 @@ class DocBase extends Base {
   /**
    *  根据某一列的值分组
    */
-  async getGroupByColumnVal () {
+  async getGroupByColumnVal() {
     const existDb = await this.docHelper.findRequestDb()
 
     let { cl: clName, column, page = null, size = null } = this.request.query
@@ -112,7 +112,7 @@ class DocBase extends Base {
   /**
    * 指定数据库指定集合下的文档
    */
-  async list () {
+  async list() {
     const existDb = await this.docHelper.findRequestDb()
 
     const { cl: clName, page = null, size = null } = this.request.query
@@ -131,14 +131,14 @@ class DocBase extends Base {
   /**
    * 组装 查询条件
    */
-  _assembleFind (filter, like = true) {
+  _assembleFind(filter, like = true) {
     let model = new modelBase()
     return model._assembleFind(filter, like)
   }
   /**
    * 批量删除
    */
-  async removeMany () {
+  async removeMany() {
     const existDb = await this.docHelper.findRequestDb()
 
     let { cl: clName, transforms } = this.request.query
@@ -215,7 +215,7 @@ class DocBase extends Base {
   /**
    * 更新指定数据库指定集合下的文档
    */
-  async update () {
+  async update() {
     const existDb = await this.docHelper.findRequestDb()
 
     const { cl: clName, id } = this.request.query
@@ -248,7 +248,7 @@ class DocBase extends Base {
   /**
    *  剪切数据到指定集合中
    */
-  async cutDocs (
+  async cutDocs(
     oldExistDb,
     oldCl,
     newExistDb,
@@ -354,9 +354,9 @@ class DocBase extends Base {
       return [
         false,
         '插入数据数量错误需插入：' +
-          newDocs.length +
-          '；实际插入：' +
-          rst.insertedCount
+        newDocs.length +
+        '；实际插入：' +
+        rst.insertedCount
       ]
     }
 
@@ -407,7 +407,7 @@ class DocBase extends Base {
    *  提取excel数据到集合中
    *  unrepeat 是否对数据去重
    */
-  async _importToColl (existDb, clName, filename, options = {}) {
+  async _importToColl(existDb, clName, filename, options = {}) {
     if (!fs.existsSync(filename)) return [false, '指定的文件不存在']
     let unrepeat = options.unrepeat ? options.unrepeat : false
 
@@ -479,7 +479,7 @@ class DocBase extends Base {
    *  根据规则取出数据
    *  规则格式 [{city: 北京, city: 开头是:北京, city: 开头是:北京&结尾不是:市 }]
    */
-  async getDocsByRule2 (existDb, clName, rules, planTotalColumn = 'need_sum') {
+  async getDocsByRule2(existDb, clName, rules, planTotalColumn = 'need_sum') {
     // 根据规则取出数据
     const client = this.mongoClient
     let cl = client.db(existDb.sysname).collection(clName)
@@ -600,7 +600,7 @@ class DocBase extends Base {
   /**
    * 批量修改数据
    */
-  async updateMany () {
+  async updateMany() {
     const existDb = await this.docHelper.findRequestDb()
 
     let { cl: clName } = this.request.query
