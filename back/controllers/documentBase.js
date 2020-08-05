@@ -392,6 +392,38 @@ class DocBase extends Base {
     }
     return [true, returnData]
   }
+
+  /**
+   * 多选单选转换
+   * @param {*} model 'toValue' 'toLabel'
+   * @param {*} data 
+   * @param {*} columns 
+   */
+  transformsCol(model, data, columns) {
+    const gets = model === 'toLabel' ? 'value' : 'label'
+    const sets = model === 'toLabel' ? 'label' : 'value'
+    Object.keys(columns).forEach(ele => {
+      // 多选
+      if (columns[ele].type === 'array' && columns[ele].enum) {
+        data = data.map(item => {
+          let arr = []
+          columns[ele].enum.forEach(childItem => {
+            if(item[ele].includes(childItem[gets])) arr.push(childItem[sets])
+          })
+          item[ele] = model === 'toLabel' ? arr.join(',') :arr
+          return item
+        })
+      }else if(columns[ele].type === 'string' && columns[ele].enum) {
+        data = data.map(item => {
+          columns[ele].enum.forEach(childItem => {
+            if(item[ele] === childItem[gets]) item[ele] = childItem[sets]
+          })
+          return item
+        })
+      }
+    })
+  }
+
   /**
    *  提取excel数据到集合中
    *  unrepeat 是否对数据去重
@@ -440,6 +472,8 @@ class DocBase extends Base {
       )
     }
 
+    this.transformsCol('toValue', jsonFinishRows, columns)
+    
     try {
       return client
         .db(existDb.sysname)

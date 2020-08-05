@@ -98,7 +98,10 @@ class Document extends DocBase {
       .collection(clName)
       .find(find)
       .toArray()
-    console.log('data', data)
+
+    // 数据处理-针对单选多选转化
+    this.transformsCol('toLabel', data, columns)
+    
     const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
     let rst = ExcelCtrl.export(columns, data, clName + '.xlsx')
 
