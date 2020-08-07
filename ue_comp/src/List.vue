@@ -281,7 +281,7 @@ const componentOptions = {
           if (isCheckBtn) store.commit('conditionDelBtn', { columnName })
           Object.keys(objPro).map((ele, index) => {
             const attrs = document.querySelectorAll(
-              '#tables thead.has-gutter img'
+              '#tables thead img'
             )[index]
             if (ele === columnName) {
               if (isClear) {

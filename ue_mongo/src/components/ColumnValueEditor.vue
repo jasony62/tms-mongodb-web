@@ -44,6 +44,17 @@ export default {
       tags: []
     }
   },
+  watch: {
+    // 多选暂不支持批量删除，故除之
+    collection() {
+      for(const key in this.collection.schema.body.properties){
+        if (this.collection.schema.body.properties[key].type === 'array' && this.collection.schema.body.properties[key].enum) {
+          delete this.collection.schema.body.properties[key]
+        }
+      }
+      this.$forceUpdate()
+    }
+  },
   methods: {
     handleSelect() {
       let value = this.column[this.select]
