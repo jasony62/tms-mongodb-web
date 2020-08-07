@@ -53,19 +53,23 @@ class TransRevice extends DocBase {
     //所有的字段
     const allFields = {}
     let doc = this.request.body
+    if (!doc.order_id) return new ResultFault('订单编号不存在')
     let _create = (database, clName, schema) => {
-      switch (doc.state) {
-        case '1':
-          return this.purchase(database, clName, schema, doc)
-        case '2':
+      let cl = this.mongoClient.db(database.sysname).collection(clName)
+      let oldDoc = await cl.findOne({ 'order_id': doc.order_id })
+
+      if (oldDoc === null) {
+        return this.purchase(database, clName, schema, doc)
+      } else {
+        // 更新和退订无法区分
+        if (oldDoc && oldDoc.status) {
           return this.update(database, clName, schema, doc)
-        case '3':
+        } else {
           return this.unpurchase(database, clName, schema, doc)
-        default:
-          return new ResultFault('暂不处理此种业务类型')
+        }
       }
     }
-    //this.revice('official_order_info', 'official_order_info', _create)
+    //return this.revice('official_order_info', 'official_order_info', _create)
     return this.revice('testSync', 'testPool1', _create)
   }
   /**
@@ -108,7 +112,6 @@ class TransRevice extends DocBase {
   async update(database, clName, schema, doc) {
     let cl = this.mongoClient.db(database.sysname).collection(clName)
     let oldDoc = await cl.findOne({ 'order_id': doc.order_id })
-    if (oldDoc === null) return new ResultData('订单不存在')
 
     console.log('update前', oldDoc)
 
@@ -124,9 +127,6 @@ class TransRevice extends DocBase {
       }
 
       console.log('update后', newDoc)
-
-      // 如果有状态没有时间应该删掉状态再同步;
-      this.sync(newDoc, schema, cl, database, clName)
 
       return new ResultData({})
     })
@@ -147,8 +147,8 @@ class TransRevice extends DocBase {
     if (oldDoc.status === '99') {
       return new ResultFault('该订单已是退订状态')
     }
-    if (oldDoc.hasNumber === '2') {
-      return new ResultFault('该订单下还存在号码，不可退订')
+    if (oldDoc.号码是否退订 === 'N') {
+      return new ResultFault('该订单下仍有在用号码，退订失败')
     }
 
     return cl.updateOne({ 'order_id': doc.order_id }, { $set: { 'status': '99' } }).then(async () => {
@@ -160,10 +160,8 @@ class TransRevice extends DocBase {
         let modelD = new DocModel()
         await modelD.dataActionLog(newDoc, '退订', database.name, clName, '', '', JSON.stringify(oldDoc))
       }
-      // 如果有状态没有时间应该删掉状态再同步;
-      this.sync(newDoc, schema, cl, database, clName)
 
-      return new ResultData({})
+      return new ResultData({}, '退订成功')
     })
   }
   sync(newDoc, schema, cl, database, clName) {
