@@ -125,7 +125,6 @@ class SyncToPool extends Base {
           order[key] = order[key].join(',')
         }
       });
-      //console.log(order)
       let current, insStatus, postData
       current = moment().format('YYYY-MM-DD HH:mm:ss')
       insStatus = "失败："
@@ -210,14 +209,17 @@ class SyncToPool extends Base {
           if (order.biz_function === '1' || order.biz_function === '1,2') {
             postData.costType = order.costtype_gzh
             postData.voiceUrl = order.flag_playtips === 'Y' ? '1' : '2'
-            postData.money_a = order.dismoney_a_gzh ? order.dismoney_a_gzh : order.money_a_gzh
-            postData.money_b = order.dismoney_b_gzh ? order.dismoney_b_gzh : order.money_b_gzh
-            postData.money_c = order.dismoney_c_gzh ? order.dismoney_c_gzh : order.money_c_gzh
-            postData.money_d = order.dismoney_d_gzh ? order.dismoney_d_gzh : order.money_d_gzh
-            postData.money_e = order.dismoney_e_gzh ? order.dismoney_e_gzh : order.money_e_gzh
-            postData.money_f = order.dismoney_f_gzh ? order.dismoney_f_gzh : order.money_f_gzh
-            postData.duration_price = order.dismoney_time_gzh ? order.dismoney_time_gzh : order.money_time_gzh
-            postData.money_ex = order.disovermoney_gzh ? order.disovermoney_gzh : order.overmoney_gzh
+            if (order.costtype_gzh === '1') {
+              postData.money_a = order.dismoney_a_gzh ? order.dismoney_a_gzh : order.money_a_gzh
+              postData.money_b = order.dismoney_b_gzh ? order.dismoney_b_gzh : order.money_b_gzh
+              postData.money_c = order.dismoney_c_gzh ? order.dismoney_c_gzh : order.money_c_gzh
+              postData.money_d = order.dismoney_d_gzh ? order.dismoney_d_gzh : order.money_d_gzh
+              postData.money_e = order.dismoney_e_gzh ? order.dismoney_e_gzh : order.money_e_gzh
+              postData.money_f = order.dismoney_f_gzh ? order.dismoney_f_gzh : order.money_f_gzh
+              postData.money_ex = order.disovermoney_gzh ? order.disovermoney_gzh : order.overmoney_gzh
+            } else {
+              postData.duration_price = order.dismoney_time_gzh ? order.dismoney_time_gzh : order.money_time_gzh
+            }
             postData.recordMode = order.recordMode_gzh ? order.recordMode_gzh : ""
           }
           if (order.biz_function === '2' || order.biz_function === '1,2') {
@@ -268,15 +270,18 @@ class SyncToPool extends Base {
           "voiceUrl": order.flag_playtips === 'Y' ? '1' : '2',
           "costType": order.costtype_yly,
           "bizFunction": order.biz_function,
-          "money_a": order.dismoney_a_yly ? order.dismoney_a_yly : order.money_a_yly,
-          "money_b": order.dismoney_b_yly ? order.dismoney_b_yly : order.money_b_yly,
-          "money_c": order.dismoney_c_yly ? order.dismoney_c_yly : order.money_c_yly,
-          "money_d": order.dismoney_d_yly ? order.dismoney_d_yly : order.money_d_yly,
-          "money_e": order.dismoney_e_yly ? order.dismoney_e_yly : order.money_e_yly,
-          "money_f": order.dismoney_f_yly ? order.dismoney_f_yly : order.money_f_yly,
-          "duration_price": order.dismoney_time_yly ? order.dismoney_time_yly : order.money_time_yly,
-          "money_ex": order.disovermoney_yly ? order.disovermoney_yly : order.overmoney_yly,
           "recordMode": order.recordMode_yly ? order.recordMode_yly : 0
+        }
+        if (order.costtype_yly === '1') {
+          postData.money_a = order.dismoney_a_yly ? order.dismoney_a_yly : order.money_a_yly
+          postData.money_b = order.dismoney_b_yly ? order.dismoney_b_yly : order.money_b_yly
+          postData.money_c = order.dismoney_c_yly ? order.dismoney_c_yly : order.money_c_yly
+          postData.money_d = order.dismoney_d_yly ? order.dismoney_d_yly : order.money_d_yly
+          postData.money_e = order.dismoney_e_yly ? order.dismoney_e_yly : order.money_e_yly
+          postData.money_f = order.dismoney_f_yly ? order.dismoney_f_yly : order.money_f_yly
+          postData.money_ex = order.disovermoney_yly ? order.disovermoney_yly : order.overmoney_yly
+        } else {
+          postData.duration_price = order.dismoney_time_yly ? order.dismoney_time_yly : order.money_time_yly
         }
       }
 
