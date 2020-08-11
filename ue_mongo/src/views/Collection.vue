@@ -598,6 +598,8 @@ export default {
         .then(() => {
           this.listDocument()
           setTimeout(() => msg.close(), 1000)
+        }).catch(() => {
+          setTimeout(() => msg.close(), 1000)
         })
     },
     exportDocument(command) {
