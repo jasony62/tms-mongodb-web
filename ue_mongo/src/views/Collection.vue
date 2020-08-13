@@ -282,7 +282,7 @@ export default {
           if (isCheckBtn) this.$store.commit('conditionDelBtn', { columnName })
           Object.keys(objPro).map((ele, index) => {
             const attrs = document.querySelectorAll(
-              '#tables thead.has-gutter img'
+              '#tables thead img'
             )[index]
             if (ele === columnName) {
               if (isClear) {
@@ -569,6 +569,8 @@ export default {
         .import(this.bucketName, this.dbName, this.clName, formData)
         .then(() => {
           this.listDocument()
+          setTimeout(() => msg.close(), 1000)
+        }).catch(() => {
           setTimeout(() => msg.close(), 1000)
         })
     },
