@@ -11,14 +11,14 @@ const logger = log4js.getLogger('tms-mongoorder-transrevice')
 const APPCONTEXT = require('tms-koa').Context.AppContext
 const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
 
-class TransRevice extends DocBase {
+class Revice extends DocBase {
   constructor(...args) {
     super(...args)
   }
   static tmsAuthTrustedHosts() {
     return true
   }
-  async revice(dbName, clName, callback) {
+  async revice(dbName, clName) {
     const dbQuery = { name: dbName, type: 'database' }
     const database = await this.docHelper.clMongoObj.findOne(dbQuery)
     if (!database) {
@@ -31,14 +31,14 @@ class TransRevice extends DocBase {
     const collection = await this.docHelper.clMongoObj.findOne(clQuery)
     if (!collection) {
       let logMsg = '指定的集合不可访问'
-      logger.info(logMsg)
+      logger.debug(logMsg)
       return [false, logMsg]
     }
 
     const currentSchema = await ColModel.getSchemaByCollection(database, clName)
     if (!currentSchema) {
       let logMsg = '指定的集合未指定集合列'
-      logger.info(logMsg)
+      logger.debug(logMsg)
       return [false, logMsg]
     }
     return [true, { database, clName, currentSchema }]
@@ -59,13 +59,9 @@ class TransRevice extends DocBase {
       return new ResultFault('缺少必传字段')
     }
 
-    let docRes = this.revice('testSync', 'testToPoolAndWork')
+    let docRes = await this.revice('testSync', 'testToPoolAndWork')
     if (docRes[0] === false) return (new ResultFault(docRes[1]))
     let { database, clName, currentSchema: schema } = docRes[1]
-
-    let areaCodeRes = this.revice('area', 'area')
-    if (areaCodeRes[0] === false) return (new ResultFault(areaCodeRes[1]))
-    let { database, clName } = areaCodeRes[1]
 
     let doc = {
       source: '1',
@@ -101,10 +97,6 @@ class TransRevice extends DocBase {
         }
         break;
     }
-    // area 
-    const { entprise_province, managerNetWork } = await this.mongoClient.db(database.sysname).collection(clName).findOne({ 'areaCode': param.areaCode })
-    doc.entprise_province = entprise_province
-    doc.managerNetWork = managerNetWork
 
     return ((database, clName, schema) => {
       if (param.OPFlag === '0101') {
@@ -226,4 +218,4 @@ class TransRevice extends DocBase {
   }
 }
 
-module.exports = TransRevice
+module.exports = Revice
