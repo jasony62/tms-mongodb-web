@@ -499,7 +499,7 @@ class DocBase extends Base {
         data = data.map(item => {
           if (model === 'toValue' && Array.isArray(item[ele])) return item
           let arr = []
-          const enums = model === 'toValue' && item[ele] && typeof (item[ele]) === 'string' ? item[ele].split(',') : item[ele]
+          const enums = model === 'toValue' && item[ele] && typeof (item[ele]) === 'string' ? item[ele].split(',').filter(ele => ele) : item[ele]
           columns[ele].enum.forEach(childItem => {
             if (enums.includes(childItem[gets])) arr.push(childItem[sets])
           })
@@ -559,12 +559,13 @@ class DocBase extends Base {
         if (typeof rDByTitle === 'number') {
           newRow[k] = String(rDByTitle)
         } else if (typeof rDByTitle === 'undefined') {
+          logger.info(column.title, column.default)
           // 单选
           if (column.type === 'string' && column.enum && column.default) {
             newRow[k] = column.enum.find(ele => ele.value === column.default).label
           } else if (column.type === 'array' && column.enum && column.default.length) {
             const target = column.enum.map(ele => {
-              if(column.default.includes(ele.value)) {
+              if (column.default.includes(ele.value)) {
                 return ele.label
               }
             })
