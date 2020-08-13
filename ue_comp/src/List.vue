@@ -497,6 +497,9 @@ const componentOptions = {
           this.listDocument()
           setTimeout(() => msg.close(), 1000)
         })
+        .catch(() => {
+          setTimeout(() => msg.close(), 1000)
+        })
     },
     exportDocument(command) {
 			let { param } = this.fnSetReqParam(command)
