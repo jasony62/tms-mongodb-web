@@ -24,7 +24,7 @@ class TransRevice extends DocBase {
     if (!database) {
       let logMsg = '指定的数据库不可访问'
       logger.debug(logMsg)
-      return (new ResultFault(logMsg))
+      return [false, logMsg]
     }
 
     const clQuery = { name: clName, type: 'collection', database: database.name }
@@ -32,16 +32,16 @@ class TransRevice extends DocBase {
     if (!collection) {
       let logMsg = '指定的集合不可访问'
       logger.info(logMsg)
-      return (new ResultFault(logMsg))
+      return [false, logMsg]
     }
 
     const currentSchema = await ColModel.getSchemaByCollection(database, clName)
     if (!currentSchema) {
       let logMsg = '指定的集合未指定集合列'
       logger.info(logMsg)
-      return (new ResultFault(logMsg))
+      return [false, logMsg]
     }
-    return callback(database, clName, currentSchema)
+    return [true, { database, clName, currentSchema }]
   }
   /**
    *
@@ -53,11 +53,19 @@ class TransRevice extends DocBase {
     //所有的字段
     let param = this.request.body
 
-    let requireFields = ["streamingNo", "OPFlag", "SIID", "productID", "bizID", "areaCode", "custID", "custAccount", "custName"]
+    const requireFields = ["streamingNo", "OPFlag", "SIID", "productID", "bizID", "areaCode", "custID", "custAccount", "custName"]
     let missFields = requireFields.filter(field => !param[field])
     if (missFields.length) {
       return new ResultFault('缺少必传字段')
     }
+
+    let docRes = this.revice('testSync', 'testToPoolAndWork')
+    if (docRes[0] === false) return (new ResultFault(docRes[1]))
+    let { database, clName, currentSchema: schema } = docRes[1]
+
+    let areaCodeRes = this.revice('area', 'area')
+    if (areaCodeRes[0] === false) return (new ResultFault(areaCodeRes[1]))
+    let { database, clName } = areaCodeRes[1]
 
     let doc = {
       source: '1',
@@ -93,8 +101,12 @@ class TransRevice extends DocBase {
         }
         break;
     }
-    // area 还未处理
-    let oPerate = (database, clName, schema) => {
+    // area 
+    const { entprise_province, managerNetWork } = await this.mongoClient.db(database.sysname).collection(clName).findOne({ 'areaCode': param.areaCode })
+    doc.entprise_province = entprise_province
+    doc.managerNetWork = managerNetWork
+
+    return ((database, clName, schema) => {
       if (param.OPFlag === '0101') {
         return this.purchase(database, clName, schema, doc)
       } else if (param.OPFlag === '0102') {
@@ -104,9 +116,8 @@ class TransRevice extends DocBase {
       } else {
         return new ResultFault('暂不处理此类操作类型')
       }
-    }
+    })(database, clName, schema)
     //return this.revice('official_order_info', 'official_order_info', oPerate)
-    return this.revice('testSync', 'testToPoolAndWork', oPerate)
   }
   /**
    *
