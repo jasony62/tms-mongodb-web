@@ -47,15 +47,20 @@ class TransRevice extends DocBase {
    *
    *
    * @returns 
-   * @memberof TransRevice
+   * @memberof Revice
    */
-  async crm() {
+  async crmInfo() {
     //所有的字段
     let param = this.request.body
-    if (!param.bizID) return new ResultFault('订单编号不存在')
+
+    let requireFields = ["streamingNo", "OPFlag", "SIID", "productID", "bizID", "areaCode", "custID", "custAccount", "custName"]
+    let missFields = requireFields.filter(field => !param[field])
+    if (missFields.length) {
+      return new ResultFault('缺少必传字段')
+    }
+
     let doc = {
       source: '1',
-      unsubscribe_number: "",
       streamingNo: param.streamingNo,
       SIID: param.SIID,
       order_id: param.bizID,
@@ -69,8 +74,10 @@ class TransRevice extends DocBase {
       num_sum: param.numSum,
       product_version: param.productVersion,
       biz_function: param.bizFunction && param.bizFunction.split(','),
-      num_type: param.numType && param.numType.split(',')
+      num_type: param.numType && param.numType.split(','),
+      order_name: '领航订单custid=' + param.custID // 订单名称
     }
+    // 产品类型
     switch (param.productID) {
       case '35831086':
         doc.pro_type = '1'
@@ -114,10 +121,13 @@ class TransRevice extends DocBase {
     Object.assign(doc, { 'status': '1', 'unsubscribe_number': '' })
     // 补默认值
     Object.entries(schema).forEach(([key, value]) => {
-      if (value.default) doc[key] = value.default
+      if (value.default) doc[key] = doc[key] ? doc[key] : value.default
     })
     // 加工数据
     this._beforeProcessByInAndUp(doc, 'insert')
+    doc.create_time = doc.TMS_DEFAULT_CREATE_TIME
+
+    logger.debug('新增订单', doc)
 
     return this.mongoClient
       .db(database.sysname)
@@ -172,17 +182,15 @@ class TransRevice extends DocBase {
   async unpurchase(database, clName, doc) {
     let cl, oldDoc, newDoc
     cl = this.mongoClient.db(database.sysname).collection(clName)
-    oldDoc = cl.findOne({ 'order_id': doc.order_id })
+    oldDoc = await cl.findOne({ 'order_id': doc.order_id })
+    newDoc = {}
 
     if (oldDoc.status === '99') {
       return new ResultFault('该订单已是退订状态')
     }
-    if (oldDoc.unsubscribe_number === 'N' || !oldDoc.unsubscribe_number) {
-      return new ResultFault('订单下仍有号码，订单退订失败')
-    }
     logger.debug('退订前原数据', oldDoc)
 
-    newDoc = { status: '99' }
+    doc.status = '99'
     Object.assign(newDoc, oldDoc, doc)
     newDoc = _.omit(newDoc, ['order_id'])
 
