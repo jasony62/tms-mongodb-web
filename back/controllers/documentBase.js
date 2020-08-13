@@ -15,6 +15,8 @@ const {
 } = require('../tms/utilities')
 const APPCONTEXT = require('tms-koa').Context.AppContext
 const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
+const log4js = require('log4js')
+const logger = log4js.getLogger('tms-xlsx-etd')
 
 class DocBase extends Base {
   constructor(...args) {
@@ -490,24 +492,36 @@ class DocBase extends Base {
   transformsCol(model, data, columns) {
     const gets = model === 'toLabel' ? 'value' : 'label'
     const sets = model === 'toLabel' ? 'label' : 'value'
+    logger.info('data数据源', data)
     Object.keys(columns).forEach(ele => {
       // 多选
       if (columns[ele].type === 'array' && columns[ele].enum) {
         data = data.map(item => {
+          if (model === 'toValue' && Array.isArray(item[ele])) return item
           let arr = []
-          const enums = item[ele].split(',')
+          const enums = model === 'toValue' && item[ele] && typeof (item[ele]) === 'string' ? item[ele].split(',') : item[ele]
           columns[ele].enum.forEach(childItem => {
             if (enums.includes(childItem[gets])) arr.push(childItem[sets])
           })
           // 当且仅当导入多选选项，enums与集合列定义存在差集，则失败
-          if (model === 'toValue' && columns[ele].enum.map(childItem => childItem[gets]).filter(ele => !enums.includes(ele)).length) throw '导入失败'
+          if (model === 'toValue' && enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)).length) {
+            logger.info('存在差集', enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)))
+            throw '多选不匹配，导入失败'
+          }
           // 当且仅当导入多选选项，字符之间间隔不是','间隔，则失败
-          if (model === 'toValue' && item[ele] && !arr.length) throw '导入失败'
+          if (model === 'toValue' && item[ele] && !arr.length) {
+            logger.info('非逗号间隔', item[ele], arr)
+            throw '多选不匹配，导入失败'
+          }
           item[ele] = model === 'toLabel' ? arr.join(',') : arr
           return item
         })
       } else if (columns[ele].type === 'string' && columns[ele].enum) {
         data = data.map(item => {
+          if (model === 'toValue' && item[ele] && !columns[ele].enum.map(ele => ele.label).includes(item[ele])) {
+            logger.info('单选不匹配', item[ele], columns[ele].enum.map(ele => ele.label))
+            throw '单选不匹配，导入失败'
+          }
           columns[ele].enum.forEach(childItem => {
             if (item[ele] === childItem[gets]) item[ele] = childItem[sets]
           })
@@ -545,7 +559,20 @@ class DocBase extends Base {
         if (typeof rDByTitle === 'number') {
           newRow[k] = String(rDByTitle)
         } else if (typeof rDByTitle === 'undefined') {
-          newRow[k] = null
+          // 单选
+          if (column.type === 'string' && column.enum && column.default) {
+            newRow[k] = column.enum.find(ele => ele.value === column.default).label
+          } else if (column.type === 'array' && column.enum && column.default.length) {
+            const target = column.enum.map(ele => {
+              if(column.default.includes(ele.value)) {
+                return ele.label
+              }
+            })
+            newRow[k] = target.join(',')
+          } else {
+            //存在默认值
+            newRow[k] = column.default || null
+          }
         } else {
           newRow[k] = rDByTitle
         }
@@ -564,14 +591,8 @@ class DocBase extends Base {
         unrepeat.keepFirstRepeatData
       )
     }
-    this.transformsCol('toValue', jsonFinishRows, columns)
-    console.log('jsonFinishRows', jsonFinishRows)
-    Object.keys(columns).forEach(ele => {
-      // 多选
-      if (columns[ele].type === 'array' && columns[ele].enum) {
 
-      }
-    })
+    this.transformsCol('toValue', jsonFinishRows, columns)
 
     try {
       return client
