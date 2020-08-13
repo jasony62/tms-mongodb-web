@@ -36,7 +36,7 @@ async function fnSyncWork(tels, schema, colle, options) {
 				tel[key] = ""
 				return false
 			}
-			if (value.type === 'array' && value.enum && Array.isArray(tel[key])) {
+			if (value.type === 'array' && value.enum) {
 				tel[key] = tel[key].join(',')
 			}
 		});

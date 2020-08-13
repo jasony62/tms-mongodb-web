@@ -38,7 +38,7 @@ async function fnSync(orders, schema, colle, options) {
 				order[key] = ""
 				return false
 			}
-			if (value.type === 'array' && value.enum && Array.isArray(order[key])) {
+			if (value.type === 'array' && value.enum) {
 				order[key] = order[key].join(',')
 			}
 		});
