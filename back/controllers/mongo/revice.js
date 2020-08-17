@@ -59,8 +59,8 @@ class Revice extends DocBase {
       return new ResultFault('缺少必传字段')
     }
 
-    let docRes = await this.revice('testSync', 'testToPoolAndWork')
-    if (docRes[0] === false) return (new ResultFault(docRes[1]))
+    let docRes = await this.revice('official_order_info', 'official_order_info')
+    if (docRes[0] === false) return (new ResultFault('发生不可预知的错误'))
     let { database, clName, currentSchema: schema } = docRes[1]
 
     let doc = {

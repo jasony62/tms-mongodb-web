@@ -21,7 +21,7 @@ services:
       - TMS_HTTP_SYNCTOWORK_URL=http://192.168.253.25:8008/checkapi/api/ordermanage
       - TMS_MONGODB_USER=root
       - TMS_MONGODB_PASSWORD=password
-      - TMS_HTTP_ACCEPTCRM_URL=[]
+      - TMS_HTTP_ACCEPTCRM_URL=["."]
 
       networks:
       - portal
