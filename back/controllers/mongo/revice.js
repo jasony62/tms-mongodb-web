@@ -3,10 +3,7 @@ const _ = require('lodash')
 const DocBase = require('../documentBase')
 const DocModel = require('../../models/mgdb/document')
 const ColModel = require('../../models/mgdb/collection')
-const syncToPool = require('../../plugins/fnSyncPool')
-const syncToWork = require('../../plugins/fnSyncWork')
 const log4js = require('log4js')
-const { ObjectId } = require('mongodb')
 const logger = log4js.getLogger('tms-mongoorder-transrevice')
 const APPCONTEXT = require('tms-koa').Context.AppContext
 const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
@@ -207,14 +204,6 @@ class Revice extends DocBase {
 
     logger.debug('退订传递的数据', newDoc)
     return cl.updateOne({ 'order_id': oldDoc.order_id }, { $set: newDoc }).then(() => new ResultData({}, '订单退订成功'))
-  }
-  async sync(newDoc, schema, cl, database, clName) {
-    if (!newDoc.pool_sync_time) newDoc.pool_sync_status = ""
-    if (!newDoc.work_sync_time) newDoc.work_sync_status = ""
-
-    let orders = await cl.find({ '_id': new ObjectId(newDoc._id) }).toArray()
-    syncToPool(JSON.parse(JSON.stringify(orders)), schema, cl, { dl: database.name, cl: clName, operate_type: '按选中' })
-    syncToWork(JSON.parse(JSON.stringify(orders)), schema, cl, { db: database.name, cl: clName, operate_type: '按选中' })
   }
 }
 
