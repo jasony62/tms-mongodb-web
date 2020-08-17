@@ -1,20 +1,20 @@
 const { Ctrl, ResultFault, ResultObjectNotFound } = require('tms-koa')
 
-function allowAccessBucket(bucket, clientId) {
+function allowAccessBucket (bucket, clientId) {
   if (bucket.creator === clientId) return true
 
   const { coworkers } = bucket
 
   if (!Array.isArray(coworkers)) return false
 
-  return coworkers.some((c) => c.id === clientId)
+  return coworkers.some(c => c.id === clientId)
 }
 
 class Base extends Ctrl {
-  constructor(...args) {
+  constructor (...args) {
     super(...args)
   }
-  async tmsBeforeEach() {
+  async tmsBeforeEach () {
     /* 多租户模式下，检查bucket访问权限 */
     if (/yes|true/i.test(process.env.TMW_REQUIRE_BUCKET)) {
       const bucketName = this.request.query.bucket
