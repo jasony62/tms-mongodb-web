@@ -167,6 +167,9 @@ class DocBase extends Base {
       filter,
       orderBy
     }
+    if (this.client.data.rid === 1) {
+      options.account = this.client.data.account
+    }
     let model = new modelDocu()
     let data = await model.listDocs(existDb, clName, options, page, size)
     if (data[0] === false) {
