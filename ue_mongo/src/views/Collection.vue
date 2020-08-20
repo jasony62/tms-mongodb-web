@@ -688,9 +688,10 @@ export default {
           this.pluginOfSync(submit.id, transforms, param, 0, 0, 0)
       }
     },
-    handlePlugins(s, filter) {
+    handlePlugins(s, type) {
+      const { param } = type ? this.fnSetReqParam(type) : { param: null }
       apiPlugin
-        .handlePlugin(this.bucketName, s[0], filter).then(res => {
+        .handlePlugin(param, this.bucketName, s[0], this.dbName, this.clName).then(res => {
           console.log(res)
         })
     },
