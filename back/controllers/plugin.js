@@ -68,13 +68,14 @@ class Plugin extends Base {
    * @param type db collection document
    */
   async commonExecute() {
-    const { pluginUrl, db, clName } = this.request.query
+    let { pluginCfg, db, clName } = this.request.query
     const { filter, docIds } = this.request.body
+    pluginCfg = JSON.parse(pluginCfg)
 
     const existDb = await this.pluginHelper.findRequestDb(true, db)
     const cl = this.mongoClient.db(existDb.sysname).collection(clName)
-
-    if (typeof pluginUrl !== 'string' || !pluginUrl.length) return Promise.resolve(new ResultFault('pluginUrl参数错误'))
+    
+    if (Object.prototype.toString.call(pluginCfg) !== '[object Object]' || !pluginCfg.url) return Promise.resolve(new ResultFault('pluginCfg参数错误'))
 
     const pluginConfig = PluginConfig.ins()
     let type
@@ -83,28 +84,26 @@ class Plugin extends Base {
     for (let i = 0; i < arr.length; i++) {
       const key = arr[i]
       if (!pluginConfig[key].length) continue
-      const currentRes = pluginConfig[key].map(ele => ele[0])
-      type = currentRes.includes(pluginUrl) ? key : null
+      const currentRes = pluginConfig[key].map(ele => ele[0] && ele[0].url)
+      type = currentRes.includes(pluginCfg.url) ? key : null
     }
 
-    logger.info('type：', type)
-    if (!type) return Promise.resolve(new ResultFault('pluginUrl参数错误'))
+    if (!type) return Promise.resolve(new ResultFault('pluginCfg参数错误'))
     
     const find = Plugin.getFindCondition(docIds, filter)
     let data = await cl.find(find).toArray()
-    logger.info('data', data)
 
 
     return new Promise(async resolve => {
 
-      let filename, pluginFn, args, res
+      let cfg = {}, args, res
 
       const pluginConfigs = pluginConfig[type]
-      const currentConfig = pluginConfigs.find(ele => ele[0] === pluginUrl)
+      const currentConfig = pluginConfigs.find(ele => ele[0].url === pluginCfg.url)
       if (Array.isArray(currentConfig) && currentConfig.length > 0) {
-        [filename, ...args] = currentConfig
+        [cfg, ...args] = currentConfig
       } else if (typeof currentConfig === 'string') {
-        filename = currentConfig
+        cfg.url = currentConfig
       } else {
         resolve(new ResultFault('plugin配置文件有误'))
       }
@@ -112,16 +111,29 @@ class Plugin extends Base {
       let columns = await modelColl.getSchemaByCollection(existDb, clName)
       if (!columns) resolve(new ResultFault('指定的集合没有指定集合列'))
       console.log('columns', columns)
+      const colsKeyArr = Object.keys(columns)
 
-      if (!fs.existsSync(path.resolve(`${filename}.js`))) resolve(new ResultFault(`找不到${filename}文件`))
-      pluginFn = require(path.resolve(filename))
-      if (typeof pluginFn === 'function') {
-        res = await pluginFn(data, columns)
+      const axios = require("axios")
+      let axiosInstance = axios.create()
+      const params = {
+        data,
+        colsKeyArr
       }
 
+      if (cfg.method === 'post') {
+        await axiosInstance.post(cfg.url, params).then(result => {
+          res = result
+        })
+      } else {
+        await axiosInstance.get(cfg.url, { params }).then(result => {
+          res = result
+        })
+      }
+      
+      if(!res[0]) resolve(new ResultFault(res[1]))
+
       // Plugin.checkCol()
-      const oprateRes = await Plugin.operateData(res, cl)
-      console.log('oprateRes', oprateRes)
+      const oprateRes = await Plugin.operateData(Plugin.operateType.updateMany, res[1], cl)
 
       return oprateRes[0] ? resolve(new ResultData(oprateRes[1])) : resolve(new ResultFault(oprateRes[1]))
       
@@ -132,18 +144,28 @@ class Plugin extends Base {
 
   }
 
-  static async operateData(data, cl) {
-    // switch (data[0]) {
-    //   case Plugin.operateType.insert:
-    //   case Plugin.operateType.remove:
-    //   case Plugin.operateType.update:
-    //   case Plugin.operateType.find:
-    // }
-    return await cl[data[0]](data[1]).then(res => {
-      return [true, res]
-    }).catch(err => {
-      return [false, err]
-    })
+  static async operateData(operateType, data, cl) {
+    switch (operateType) {
+      case Plugin.operateType.updateMany:
+        let obj = {}
+        data.forEach((ele, index) => {
+          let newData = {}
+          Object.keys(ele).forEach(item => {
+            if (item !== '_id') {
+              newData[item] = ele[item]
+            }
+          })
+          obj[index] = cl.updateOne({ _id: ObjectId(ele._id)}, {
+            $set: newData
+          })
+        })
+        return Promise.all(Object.keys(obj)).then(() => {
+          return [true, data]
+        }).catch(err => {
+          return [false, err]
+        })
+    }
+    
   }
 
   /**

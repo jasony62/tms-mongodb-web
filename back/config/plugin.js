@@ -3,7 +3,7 @@ let pluginConfig = {
   collection: [],
   document:  [
     [
-      'plugins/examples', { batch: ["all", "filter", "ids"] }, { name: '插件示例一', description: '插件示例一' }
+      {url: 'http://localhost:3000/api/mongo/document/updateMany', method: 'post'}, {  }, { name: '插件示例一', description: '插件示例一', batch: ["all", "filter", "ids"] }
     ]
   ]
 }

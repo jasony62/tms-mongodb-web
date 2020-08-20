@@ -120,8 +120,8 @@
           <hr v-if="plugins.document.transforms&&plugins.document.transforms[s.id]" />
         </div>
         <div v-for="(s, i) in pluginData" :key="i">
-          <el-button @click="handlePlugins(s, null)" v-if="!s[1].batch">{{s[2].name}}</el-button>
-          <el-dropdown v-if="s[1].batch">
+          <el-button @click="handlePlugins(s, null)" v-if="!s[2].batch">{{s[2].name}}</el-button>
+          <el-dropdown v-if="s[2].batch">
             <el-button>{{s[2].name}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>

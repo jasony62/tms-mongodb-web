@@ -772,7 +772,6 @@ class DocBase extends Base {
    */
   async updateMany() {
     const existDb = await this.docHelper.findRequestDb()
-
     let {
       cl: clName
     } = this.request.query
