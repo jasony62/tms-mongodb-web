@@ -237,7 +237,7 @@ class DocBase extends Base {
           plugins,
           'document.transforms.removeMany'
         )
-        if (removeTransformDoc && Array.isArray(removeTransformDoc)) {
+        if (removeTransformDoc && Array.isArray(removeTransformDoc)) {         
           let datas = await cl.find(find).toArray() // 获取原数据
           let notRemoveDatas // 经插件处理后不能删除 的数据
           for (const tf of removeTransformDoc) {
@@ -772,7 +772,6 @@ class DocBase extends Base {
    */
   async updateMany() {
     const existDb = await this.docHelper.findRequestDb()
-
     let {
       cl: clName
     } = this.request.query
