@@ -74,25 +74,27 @@ export default {
 					return flag
 				}).every(ele => ele === true)
 			}
-			if (validate) {
-				if (this.document && this.document._id) {
-					createDocApi(this.TmsAxios(this.tmsAxiosName))
-						.update(
-							this.bucketName,
-							this.dbName,
-							this.collection.name,
-							this.document._id,
-							newDoc
-						)
-						.then(newDoc => this.$emit('submit', newDoc))
-            .finally(() => this.isSubmit = false)
-				} else {
-					createDocApi(this.TmsAxios(this.tmsAxiosName))
-						.create(this.bucketName, this.dbName, this.collection.name, newDoc)
-						.then(newDoc => this.$emit('submit', newDoc))
-            .finally(() => this.isSubmit = false)
-				}
-			}
+			if (!validate) {
+        this.isSubmit = false
+        return false
+      }
+			if (this.document && this.document._id) {
+        createDocApi(this.TmsAxios(this.tmsAxiosName))
+          .update(
+            this.bucketName,
+            this.dbName,
+            this.collection.name,
+            this.document._id,
+            newDoc
+          )
+          .then(newDoc => this.$emit('submit', newDoc))
+          .finally(() => this.isSubmit = false)
+      } else {
+        createDocApi(this.TmsAxios(this.tmsAxiosName))
+          .create(this.bucketName, this.dbName, this.collection.name, newDoc)
+          .then(newDoc => this.$emit('submit', newDoc))
+          .finally(() => this.isSubmit = false)
+      }
     },
     open(tmsAxiosName, bucketName, dbName, collection, doc) {
 			this.tmsAxiosName = tmsAxiosName

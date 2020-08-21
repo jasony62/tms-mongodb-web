@@ -494,8 +494,8 @@ class DocBase extends Base {
   /**
    * 多选单选转换
    * @param {*} model 'toValue' 'toLabel'
-   * @param {*} data 
-   * @param {*} columns 
+   * @param {*} data 数据源
+   * @param {*} columns 集合列
    */
   transformsCol(model, data, columns) {
     const gets = model === 'toLabel' ? 'value' : 'label'
@@ -505,6 +505,7 @@ class DocBase extends Base {
       // 多选
       if (columns[ele].type === 'array' && columns[ele].enum) {
         data = data.map(item => {
+          if (!item[ele]) return new Array()
           if (model === 'toValue' && Array.isArray(item[ele])) return item
           let arr = []
           const enums = model === 'toValue' && item[ele] && typeof (item[ele]) === 'string' ? item[ele].split(',').filter(ele => ele) : item[ele]
@@ -570,9 +571,9 @@ class DocBase extends Base {
         } else if (typeof rDByTitle === 'undefined') {
           logger.info(column.title, column.default)
           // 单选
-          if (column.type === 'string' && column.enum && column.default) {
+          if (column.type === 'string' && column.enum && column.enum.length && column.default) {
             newRow[k] = column.enum.find(ele => ele.value === column.default).label
-          } else if (column.type === 'array' && column.enum && column.default.length) {
+          } else if (column.type === 'array' && column.enum && column.enum.length && column.default && column.default.length) {
             const target = column.enum.map(ele => {
               if (column.default.includes(ele.value)) {
                 return ele.label

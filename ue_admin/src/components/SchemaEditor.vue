@@ -12,7 +12,7 @@
         <el-input type="textarea" v-model="schema.description"></el-input>
       </el-form-item>
     </el-form>
-    <tms-json-schema v-show="activeTab === 'second'" :schema="schema.body">
+    <tms-json-schema v-show="activeTab === 'second'" :schema="schema.body" class="schema-editor">
       <template v-slot:extKeywords="props">
         <el-form-item label="不可修改">
           <el-switch v-model="props.schema.readonly"></el-switch>

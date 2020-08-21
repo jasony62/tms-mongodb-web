@@ -58,30 +58,31 @@ export default {
         let { priceValidate: onValidate, priceFormat: onFormat } = await import('../tms/utils.js')	
         validate =  Object.entries(newDoc).map(([key, value]) => {
           if (config.indexOf(key)===-1) return true
-      
           const flag = onValidate(this.collection.schema.body.properties, key, value)
           if (flag) newDoc[key] = onFormat(value)
           return flag
         }).every(ele => ele === true)
       }
-      if (validate) {
-        if (this.document && this.document._id) {
-          apiDoc
-            .update(
-              this.bucketName,
-              this.dbName,
-              this.collection.name,
-              this.document._id,
-              newDoc
-            )
-            .then(newDoc => this.$emit('submit', newDoc))
-            .finally(() => this.isSubmit = false)
-        } else {
-          apiDoc
-            .create(this.bucketName, this.dbName, this.collection.name, newDoc)
-            .then(newDoc => this.$emit('submit', newDoc))
-            .finally(() => this.isSubmit = false)
-        }
+      if (!validate) {
+        this.isSubmit = false
+        return false
+      }
+      if (this.document && this.document._id) {
+        apiDoc
+          .update(
+            this.bucketName,
+            this.dbName,
+            this.collection.name,
+            this.document._id,
+            newDoc
+          )
+          .then(newDoc => this.$emit('submit', newDoc))
+          .finally(() => this.isSubmit = false)
+      } else {
+        apiDoc
+          .create(this.bucketName, this.dbName, this.collection.name, newDoc)
+          .then(newDoc => this.$emit('submit', newDoc))
+          .finally(() => this.isSubmit = false)
       }
     },
     open(bucketName, dbName, collection, doc) {
