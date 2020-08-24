@@ -691,8 +691,8 @@ export default {
     handlePlugins(s, type) {
       const { param } = type ? this.fnSetReqParam(type) : { param: null }
       apiPlugin
-        .handlePlugin(param, this.bucketName, s[0], this.dbName, this.clName).then(res => {
-          console.log(res)
+        .handlePlugin(param, this.bucketName, s[0], this.dbName, this.clName).then(() => {
+          this.listDocument()
         })
     },
     handleSize(val) {
