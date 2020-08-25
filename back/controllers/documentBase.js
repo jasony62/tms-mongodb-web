@@ -237,7 +237,7 @@ class DocBase extends Base {
           plugins,
           'document.transforms.removeMany'
         )
-        if (removeTransformDoc && Array.isArray(removeTransformDoc)) {         
+        if (removeTransformDoc && Array.isArray(removeTransformDoc)) {
           let datas = await cl.find(find).toArray() // 获取原数据
           let notRemoveDatas // 经插件处理后不能删除 的数据
           for (const tf of removeTransformDoc) {
@@ -499,14 +499,18 @@ class DocBase extends Base {
         data = data.map(item => {
           if (model === 'toValue' && Array.isArray(item[ele])) return item
           let arr = []
-          const enums = model === 'toValue' && item[ele] && typeof (item[ele]) === 'string' ? item[ele].split(',').filter(ele => ele) : item[ele]
-          columns[ele].enum.forEach(childItem => {
-            if (enums.includes(childItem[gets])) arr.push(childItem[sets])
-          })
-          // 当且仅当导入多选选项，enums与集合列定义存在差集，则失败
-          if (model === 'toValue' && enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)).length) {
-            logger.info('存在差集', enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)))
-            throw '多选不匹配，导入失败'
+          let enums = model === 'toValue' && item[ele] && typeof (item[ele]) === 'string' ? item[ele].split(',').filter(ele => ele) : item[ele]
+          if (enums && Array.isArray(enums)) {
+            if (model === 'toValue') enums = enums.map(ele => ele.trim().replace(/\n/g, ''))
+            columns[ele].enum.forEach(childItem => {
+              if (enums.includes(childItem[gets])) arr.push(childItem[sets])
+            })
+
+            // 当且仅当导入多选选项，enums与集合列定义存在差集，则失败
+            if (model === 'toValue' && enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)).length) {
+              logger.info('存在差集', enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)))
+              throw '多选不匹配，导入失败'
+            }
           }
           // 当且仅当导入多选选项，字符之间间隔不是','间隔，则失败
           if (model === 'toValue' && item[ele] && !arr.length) {
@@ -561,9 +565,9 @@ class DocBase extends Base {
         } else if (typeof rDByTitle === 'undefined') {
           logger.info(column.title, column.default)
           // 单选
-          if (column.type === 'string' && column.enum && column.default) {
+          if (column.type === 'string' && column.enum && column.enum.length && column.default && column.default.length) {
             newRow[k] = column.enum.find(ele => ele.value === column.default).label
-          } else if (column.type === 'array' && column.enum && column.default.length) {
+          } else if (column.type === 'array' && column.enum && column.enum.length && column.default && column.default.length) {
             const target = column.enum.map(ele => {
               if (column.default.includes(ele.value)) {
                 return ele.label

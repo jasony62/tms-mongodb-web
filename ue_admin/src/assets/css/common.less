@@ -1,7 +1,9 @@
 @import 'element-ui.less';
+
 .tms-frame__header {
   min-height: 40px;
   line-height: 40px;
+
   .el-breadcrumb {
     line-height: 40px;
   }
@@ -18,12 +20,30 @@
   /deep/ .el-table__fixed-right {
     height: 100% !important;
   }
+
   /deep/ .el-table__fixed {
     height: 100% !important;
   }
 }
 
 // message提示自定义类名
-.mzindex{ 
-  z-index: 9999 !important; 
+.mzindex {
+  z-index: 9999 !important;
+}
+
+.schema-editor {
+  #pane-properties {
+    overflow-x: auto;
+
+    >.tms-flex_gap_2 {
+      width: 1000px;
+      height: 270px;
+
+      >div,
+      form {
+        height: 100%;
+        overflow-y: auto;
+      }
+    }
+  }
 }

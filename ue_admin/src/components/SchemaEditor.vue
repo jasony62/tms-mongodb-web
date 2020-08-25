@@ -12,7 +12,7 @@
         <el-input type="textarea" v-model="schema.description"></el-input>
       </el-form-item>
     </el-form>
-    <tms-json-schema v-show="activeTab === 'second'" :schema="schema.body"></tms-json-schema>
+    <tms-json-schema v-show="activeTab === 'second'" :schema="schema.body" class="schema-editor"></tms-json-schema>
     <div slot="footer" class="dialog-footer">
       <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button @click="dialogVisible = false">取消</el-button>
