@@ -499,14 +499,17 @@ class DocBase extends Base {
         data = data.map(item => {
           if (model === 'toValue' && Array.isArray(item[ele])) return item
           let arr = []
-          const enums = model === 'toValue' && item[ele] && typeof (item[ele]) === 'string' ? item[ele].split(',').filter(ele => ele) : item[ele]
-          columns[ele].enum.forEach(childItem => {
-            if (enums.includes(childItem[gets])) arr.push(childItem[sets])
-          })
-          // 当且仅当导入多选选项，enums与集合列定义存在差集，则失败
-          if (model === 'toValue' && enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)).length) {
-            logger.info('存在差集', enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)))
-            throw '多选不匹配，导入失败'
+          let enums = model === 'toValue' && item[ele] && typeof (item[ele]) === 'string' ? item[ele].split(',').filter(ele => ele) : item[ele]
+          if (enums && Array.isArray(enums)) {
+            if (model === 'toValue') enums = enums.map(ele => ele.trim().replace(/\n/g, ''))
+            columns[ele].enum.forEach(childItem => {
+              if (enums.includes(childItem[gets])) arr.push(childItem[sets])
+            })
+            // 当且仅当导入多选选项，enums与集合列定义存在差集，则失败
+            if (model === 'toValue' && enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)).length) {
+              logger.info('存在差集', enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)))
+              throw '多选不匹配，导入失败'
+            }
           }
           // 当且仅当导入多选选项，字符之间间隔不是','间隔，则失败
           if (model === 'toValue' && item[ele] && !arr.length) {
