@@ -6,8 +6,6 @@ const jwt = require('tms-koa/node_modules/jsonwebtoken')
 const fs = require('fs')
 const path = require('path')
 
-
-
 const appConfig = loadConfig('app')
 const trustedHosts = loadConfig('trusted-hosts') || {}
 // const { RequestTransaction } = require('tms-koa/lib/model/transaction')

@@ -94,6 +94,23 @@
           </el-dropdown>
           <el-button v-else @click="handlePlugin(button, null)">{{button.name}}</el-button>
         </div>
+        <div v-for="(s, i) in pluginData" :key="i">
+          <el-button @click="handlePlugins(s, null)" v-if="!s[2].batch">{{s[2].name}}</el-button>
+          <el-dropdown v-if="s[2].batch">
+            <el-button>{{s[2].name}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item>
+                <el-button type="text" @click="handlePlugins(s, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <el-button type="text" @click="handlePlugins(s, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <el-button type="text" @click="handlePlugins(s, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </div>
       </tms-flex>
     </template>
   </tms-frame>
@@ -148,7 +165,7 @@ import BatchDocEditor from '../components/BatchDocEditor.vue'
 import DomainEditor from '../components/DomainEditor.vue'
 import SelectCondition from '../components/SelectCondition.vue'
 import MoveByRulePlugin from '../plugins/move/Main.vue'
-import { collection as apiCol, doc as apiDoc } from '../apis'
+import { collection as apiCol, doc as apiDoc, plugin as apiPlugin } from '../apis'
 import apiPlugins from '../plugins'
 
 export default {
@@ -169,7 +186,8 @@ export default {
       dialogPage: {
         at: 1,
         size: 100
-      }
+      },
+      pluginData: []
     }
   },
   computed: {
@@ -649,6 +667,13 @@ export default {
           break
       }
     },
+    handlePlugins(s, type) {
+      const { param } = type ? this.fnSetReqParam(type) : { param: null }
+      apiPlugin
+        .handlePlugin(param, this.bucketName, s[0], this.dbName, this.clName).then(() => {
+          this.listDocument()
+        })
+    },
     handleSize(val) {
       this.page.size = val
       this.dialogPage.size = val
@@ -666,6 +691,11 @@ export default {
         this.collection = collection
         this.listDocument()
         this.listPlugin()
+      })
+    apiPlugin
+      .getPlugins().then(res => {
+        console.log(res)
+        this.pluginData = res
       })
   },
   beforeDestroy() {
