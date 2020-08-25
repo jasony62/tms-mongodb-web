@@ -102,18 +102,18 @@
           <el-checkbox-group v-model="s.checkList" v-if="plugins.document.transforms&&plugins.document.transforms[s.id]">
             <el-checkbox v-for="(t, k) in plugins.document.transforms[s.id]" :label="t.name" :key="k">{{t.label}}</el-checkbox>
           </el-checkbox-group>
-          <el-button @click="handlePlugins(s, null)" v-if="!s.batch">{{s.name}}</el-button>
+          <el-button @click="handlePlugin(s, null)" v-if="!s.batch">{{s.name}}</el-button>
           <el-dropdown v-if="s.batch">
             <el-button>{{s.name}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(s, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
+                <el-button type="text" @click="handlePlugin(s, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(s, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
+                <el-button type="text" @click="handlePlugin(s, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(s, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
+                <el-button type="text" @click="handlePlugin(s, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -135,7 +135,6 @@
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
-          <hr v-if="plugins.document.transforms&&plugins.document.transforms[s.id]" />
         </div>
       </tms-flex>
     </template>
@@ -691,8 +690,8 @@ export default {
     handlePlugins(s, type) {
       const { param } = type ? this.fnSetReqParam(type) : { param: null }
       apiPlugin
-        .handlePlugin(param, this.bucketName, s[0], this.dbName, this.clName).then(res => {
-          console.log(res)
+        .handlePlugin(param, this.bucketName, s[0], this.dbName, this.clName).then(() => {
+          this.listDocument()
         })
     },
     handleSize(val) {

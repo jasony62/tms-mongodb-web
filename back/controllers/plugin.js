@@ -108,18 +108,12 @@ class Plugin extends Base {
         resolve(new ResultFault('plugin配置文件有误'))
       }
 
-      let columns = await modelColl.getSchemaByCollection(existDb, clName)
-      if (!columns) resolve(new ResultFault('指定的集合没有指定集合列'))
-      console.log('columns', columns)
-      const colsKeyArr = Object.keys(columns)
-
       const axios = require("axios")
       let axiosInstance = axios.create()
       const params = {
-        data,
-        colsKeyArr
+        data
       }
-
+      logger.info('发送data', params)
       if (cfg.method === 'post') {
         await axiosInstance.post(cfg.url, params).then(result => {
           res = result
@@ -130,10 +124,12 @@ class Plugin extends Base {
         })
       }
       
-      if(!res[0]) resolve(new ResultFault(res[1]))
+      logger.info('res结果', res.data)
+      const { code, data: dataRes, msg } = res.data
+      if(code !== 0) return resolve(new ResultFault(msg))
 
       // Plugin.checkCol()
-      const oprateRes = await Plugin.operateData(Plugin.operateType.updateMany, res[1], cl)
+      const oprateRes = await Plugin.operateData(Plugin.operateType.updateMany, dataRes, cl)
 
       return oprateRes[0] ? resolve(new ResultData(oprateRes[1])) : resolve(new ResultFault(oprateRes[1]))
       
