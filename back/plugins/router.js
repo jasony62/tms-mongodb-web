@@ -6,6 +6,8 @@ const jwt = require('tms-koa/node_modules/jsonwebtoken')
 const fs = require('fs')
 const path = require('path')
 
+
+
 const appConfig = loadConfig('app')
 const trustedHosts = loadConfig('trusted-hosts') || {}
 // const { RequestTransaction } = require('tms-koa/lib/model/transaction')
@@ -44,9 +46,9 @@ function findCtrlClassInControllers(ctrlName, path) {
     ctrlPath = process.cwd() + `/plugins/${ctrlName}/main.js`
     if (!fs.existsSync(ctrlPath)) {
       let logMsg = `参数错误，请求的控制器不存在(2)`
-      logger.isDebugEnabled()
-        ? logger.debug(logMsg, path, ctrlPath)
-        : logger.error(logMsg)
+      logger.isDebugEnabled() ?
+        logger.debug(logMsg, path, ctrlPath) :
+        logger.error(logMsg)
       throw new Error(logMsg)
     }
   }
@@ -59,16 +61,18 @@ function findCtrlClassInControllers(ctrlName, path) {
  *
  */
 function findCtrlClassAndMethodName(ctx) {
-  let { path } = ctx.request
+  let {
+    path
+  } = ctx.request
 
   if (prefix) path = path.replace(prefix, '')
 
   let pieces = path.split('/').filter((p) => p)
   if (pieces.length === 0) {
     let logMsg = '参数错误，请求的控制器不存在(1)'
-    logger.isDebugEnabled()
-      ? logger.debug(logMsg, path, pieces)
-      : logger.error(logMsg)
+    logger.isDebugEnabled() ?
+      logger.debug(logMsg, path, pieces) :
+      logger.error(logMsg)
     throw new Error(logMsg)
   }
   let CtrlClass
@@ -105,8 +109,12 @@ function findCtrlClassAndMethodName(ctx) {
  */
 function getAccessTokenByRequest(ctx) {
   let access_token
-  let { request } = ctx
-  let { authorization } = ctx.header
+  let {
+    request
+  } = ctx
+  let {
+    authorization
+  } = ctx.header
   if (authorization && authorization.indexOf('Bearer') === 0) {
     access_token = authorization.match(/\S+$/)[0]
   } else if (request.query.access_token) {
@@ -121,7 +129,10 @@ function getAccessTokenByRequest(ctx) {
  * 根据请求找到对应的控制器并执行
  */
 async function fnCtrlWrapper(ctx, next) {
-  let { request, response } = ctx
+  let {
+    request,
+    response
+  } = ctx
   // 只处理api请求，其它返回找不到
   if (/\./.test(request.path)) {
     response.status = 404
@@ -129,8 +140,16 @@ async function fnCtrlWrapper(ctx, next) {
     return
   }
   //
-  const { ResultFault, AccessTokenFault } = require('tms-koa/lib/response')
-  const { DbContext, MongoContext, MongooseContext, PushContext } = require('tms-koa').Context
+  const {
+    ResultFault,
+    AccessTokenFault
+  } = require('tms-koa/lib/response')
+  const {
+    DbContext,
+    MongoContext,
+    MongooseContext,
+    PushContext
+  } = require('tms-koa').Context
   //
   const [ctrlName, CtrlClass, method] = findCtrlClassAndMethodName(ctx)
 
@@ -191,7 +210,7 @@ async function fnCtrlWrapper(ctx, next) {
       tmsClient = aResult[1]
     }
   }
-  
+
   // 数据库连接
   let dbContext, mongoClient, mongoose, pushContext
   try {
@@ -221,9 +240,9 @@ async function fnCtrlWrapper(ctx, next) {
      */
     if (oCtrl[method] === undefined && typeof oCtrl[method] !== 'function') {
       let logMsg = '参数错误，请求的控制器不存在(3)'
-      logger.isDebugEnabled()
-        ? logger.debug(logMsg, oCtrl)
-        : logger.error(logMsg)
+      logger.isDebugEnabled() ?
+        logger.debug(logMsg, oCtrl) :
+        logger.error(logMsg)
       throw new Error(logMsg)
     }
     /**
@@ -287,7 +306,9 @@ if (prefix && !/^\//.test(prefix)) prefix = `/${prefix}`
 
 logger.info(`指定PLUGINS控制器前缀：${prefix}`)
 
-const router = new Router({ prefix })
+const router = new Router({
+  prefix
+})
 router.all('/*', fnCtrlWrapper)
 
 module.exports = router
