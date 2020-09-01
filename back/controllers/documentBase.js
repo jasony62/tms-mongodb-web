@@ -106,21 +106,21 @@ class DocBase extends Base {
       find = this._assembleFind(filter)
     }
     let group = [{
-      $match: find
-    },
-    {
-      $group: {
-        _id: '$' + column,
-        num_tutorial: {
-          $sum: 1
+        $match: find
+      },
+      {
+        $group: {
+          _id: '$' + column,
+          num_tutorial: {
+            $sum: 1
+          }
         }
-      }
-    },
-    {
-      $sort: {
-        _id: 1
-      }
-    },
+      },
+      {
+        $sort: {
+          _id: 1
+        }
+      },
     ]
     if (page && page > 0 && size && size > 0) {
       let skip = {
@@ -505,17 +505,20 @@ class DocBase extends Base {
       // 多选
       if (columns[ele].type === 'array' && columns[ele].enum) {
         data = data.map(item => {
-          if (!item[ele]) return new Array()
           if (model === 'toValue' && Array.isArray(item[ele])) return item
           let arr = []
-          const enums = model === 'toValue' && item[ele] && typeof (item[ele]) === 'string' ? item[ele].split(',').filter(ele => ele) : item[ele]
-          columns[ele].enum.forEach(childItem => {
-            if (enums.includes(childItem[gets])) arr.push(childItem[sets])
-          })
-          // 当且仅当导入多选选项，enums与集合列定义存在差集，则失败
-          if (model === 'toValue' && enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)).length) {
-            logger.info('存在差集', enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)))
-            throw '多选不匹配，导入失败'
+          let enums = model === 'toValue' && item[ele] && typeof (item[ele]) === 'string' ? item[ele].split(',').filter(ele => ele) : item[ele]
+          if (enums && Array.isArray(enums)) {
+            if (model === 'toValue') enums = enums.map(ele => ele.trim().replace(/\n/g, ''))
+            columns[ele].enum.forEach(childItem => {
+              if (enums.includes(childItem[gets])) arr.push(childItem[sets])
+            })
+
+            // 当且仅当导入多选选项，enums与集合列定义存在差集，则失败
+            if (model === 'toValue' && enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)).length) {
+              logger.info('存在差集', enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)))
+              throw '多选不匹配，导入失败'
+            }
           }
           // 当且仅当导入多选选项，字符之间间隔不是','间隔，则失败
           if (model === 'toValue' && item[ele] && !arr.length) {
@@ -571,7 +574,7 @@ class DocBase extends Base {
         } else if (typeof rDByTitle === 'undefined') {
           logger.info(column.title, column.default)
           // 单选
-          if (column.type === 'string' && column.enum && column.enum.length && column.default) {
+          if (column.type === 'string' && column.enum && column.enum.length && column.default && column.default.length) {
             newRow[k] = column.enum.find(ele => ele.value === column.default).label
           } else if (column.type === 'array' && column.enum && column.enum.length && column.default && column.default.length) {
             const target = column.enum.map(ele => {
