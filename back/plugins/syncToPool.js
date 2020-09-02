@@ -45,7 +45,7 @@ class SyncToPool extends Base {
     if (!dbObj || !dbObj.schema || !dbObj.schema.body || !dbObj.schema.body.properties) return new ResultFault("文件没有指定集合列定义")
     // 校验必须列
     let dbSchema = dbObj.schema.body.properties
-    let requireFields = ["pool_sync_time", "pool_sync_status", "auditing_status", "cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "cdrpush_url", "discost_month_gzh", "discost_call_gzh", "call_url", "flag_playtips"]
+    let requireFields = ["pool_sync_time", "pool_sync_status", "auditing_status", "cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "cdrpush_url", "discost_month_gzh", "discost_call_gzh", "call_url", "flag_playtips_yly", "flag_playtips_gzh"]
     let missFields = requireFields.filter(field => !dbSchema[field])
     if (missFields.length) return new ResultFault("缺少同步必须列(" + missFields.join(',') + ")")
 
@@ -141,6 +141,62 @@ class SyncToPool extends Base {
         return Promise.resolve({ status: false, msg: insStatus })
       }
 
+      // 云录音
+      if (order.pro_type === '1') {
+        // 检查同步时必要字段的值
+        let ylyFields = ["cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "cdrpush_url", "flag_playtips_yly", "costtype_yly"]
+        let errorFields = ylyFields.filter(field => !order[field])
+        if (errorFields.length) {
+          abnormalTotal++
+          insStatus += errorFields.join(',') + "的值为空"
+          let syncTime = (operation === "1") ? "" : current
+          await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
+          return Promise.resolve({ status: false, msg: insStatus })
+        }
+        // 检查字段
+        if (!schema.biz_function || !order.biz_function) {
+          insStatus += "biz_function列不存在或值为空"
+          abnormalTotal++
+          let syncTime = (operation === "1") ? "" : current
+          await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
+          return Promise.resolve({ status: false, msg: insStatus })
+        }
+        if (!schema.recordMode_yly || !order.recordMode_yly) {
+          insStatus += "recordMode_yly列不存在或值为空"
+          abnormalTotal++
+          let syncTime = (operation === "1") ? "" : current
+          await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
+          return Promise.resolve({ status: false, msg: insStatus })
+        }
+        // 准备数据
+        postData = {
+          "cust_id": order.cust_id,
+          "cust_name": order.cust_name,
+          "operation": operation,
+          "orderId": order.order_id,
+          "orderSource": order.source,
+          "order_name": order.order_name,
+          "customer_id": order.customer_id,
+          "pro_type": order.pro_type,
+          "pushUrl": order.cdrpush_url,
+          "voiceUrl": order.flag_playtips_yly === 'Y' ? '1' : '2',
+          "costType": order.costtype_yly,
+          "bizFunction": order.biz_function,
+          "recordMode": order.recordMode_yly ? order.recordMode_yly : 0
+        }
+        if (order.costtype_yly === '1') {
+          postData.money_a = order.dismoney_a_yly ? order.dismoney_a_yly : order.money_a_yly
+          postData.money_b = order.dismoney_b_yly ? order.dismoney_b_yly : order.money_b_yly
+          postData.money_c = order.dismoney_c_yly ? order.dismoney_c_yly : order.money_c_yly
+          postData.money_d = order.dismoney_d_yly ? order.dismoney_d_yly : order.money_d_yly
+          postData.money_e = order.dismoney_e_yly ? order.dismoney_e_yly : order.money_e_yly
+          postData.money_f = order.dismoney_f_yly ? order.dismoney_f_yly : order.money_f_yly
+          postData.money_ex = order.disovermoney_yly ? order.disovermoney_yly : order.overmoney_yly
+        } else {
+          postData.duration_price = order.dismoney_time_yly ? order.dismoney_time_yly : order.money_time_yly
+        }
+      }
+
       // 工作号
       if (order.pro_type === '3') {
         // 检查同步时必要字段的值
@@ -154,14 +210,21 @@ class SyncToPool extends Base {
           return Promise.resolve({ status: false, msg: insStatus })
         }
         // 检查字段
+        if (!schema.biz_function) {
+          insStatus += "biz_function列不存在"
+          abnormalTotal++
+          let syncTime = (operation === "1") ? "" : current
+          await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
+          return Promise.resolve({ status: false, msg: insStatus })
+        }
         if (order.biz_function && (order.biz_function === '1' || order.biz_function === '1,2')) {
           let flag = false
           if (!schema.costtype_gzh || !order.costtype_gzh) {
             insStatus += "costtype_gzh,"
             flag = true
           }
-          if (!order.flag_playtips) {
-            insStatus += "flag_playtips,"
+          if (!order.flag_playtips_gzh) {
+            insStatus += "flag_playtips_gzh,"
             flag = true
           }
           if (!schema.recordMode_gzh || !order.recordMode_gzh) {
@@ -208,7 +271,7 @@ class SyncToPool extends Base {
           postData.bizFunction = order.biz_function
           if (order.biz_function === '1' || order.biz_function === '1,2') {
             postData.costType = order.costtype_gzh
-            postData.voiceUrl = order.flag_playtips === 'Y' ? '1' : '2'
+            postData.voiceUrl = order.flag_playtips_gzh === 'Y' ? '1' : '2'
             if (order.costtype_gzh === '1') {
               postData.money_a = order.dismoney_a_gzh ? order.dismoney_a_gzh : order.money_a_gzh
               postData.money_b = order.dismoney_b_gzh ? order.dismoney_b_gzh : order.money_b_gzh
@@ -226,62 +289,6 @@ class SyncToPool extends Base {
             postData.msgUrl = order.msg_url
             postData.cost_msg = order.discost_msg_gzh ? order.discost_msg_gzh : order.cost_msg_gzh
           }
-        }
-      }
-
-      // 云录音
-      if (order.pro_type === '1') {
-        // 检查同步时必要字段的值
-        let ylyFields = ["cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "cdrpush_url", "flag_playtips", "costtype_yly"]
-        let errorFields = ylyFields.filter(field => !order[field])
-        if (errorFields.length) {
-          abnormalTotal++
-          insStatus += errorFields.join(',') + "的值为空"
-          let syncTime = (operation === "1") ? "" : current
-          await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
-          return Promise.resolve({ status: false, msg: insStatus })
-        }
-        // 检查字段
-        if (!schema.biz_function || !order.biz_function) {
-          insStatus += "biz_function列不存在或值为空"
-          abnormalTotal++
-          let syncTime = (operation === "1") ? "" : current
-          await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
-          return Promise.resolve({ status: false, msg: insStatus })
-        }
-        if (!schema.recordMode_yly || !order.recordMode_yly) {
-          insStatus += "recordMode_yly列不存在或值为空"
-          abnormalTotal++
-          let syncTime = (operation === "1") ? "" : current
-          await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
-          return Promise.resolve({ status: false, msg: insStatus })
-        }
-        // 准备数据
-        postData = {
-          "cust_id": order.cust_id,
-          "cust_name": order.cust_name,
-          "operation": operation,
-          "orderId": order.order_id,
-          "orderSource": order.source,
-          "order_name": order.order_name,
-          "customer_id": order.customer_id,
-          "pro_type": order.pro_type,
-          "pushUrl": order.cdrpush_url,
-          "voiceUrl": order.flag_playtips === 'Y' ? '1' : '2',
-          "costType": order.costtype_yly,
-          "bizFunction": order.biz_function,
-          "recordMode": order.recordMode_yly ? order.recordMode_yly : 0
-        }
-        if (order.costtype_yly === '1') {
-          postData.money_a = order.dismoney_a_yly ? order.dismoney_a_yly : order.money_a_yly
-          postData.money_b = order.dismoney_b_yly ? order.dismoney_b_yly : order.money_b_yly
-          postData.money_c = order.dismoney_c_yly ? order.dismoney_c_yly : order.money_c_yly
-          postData.money_d = order.dismoney_d_yly ? order.dismoney_d_yly : order.money_d_yly
-          postData.money_e = order.dismoney_e_yly ? order.dismoney_e_yly : order.money_e_yly
-          postData.money_f = order.dismoney_f_yly ? order.dismoney_f_yly : order.money_f_yly
-          postData.money_ex = order.disovermoney_yly ? order.disovermoney_yly : order.overmoney_yly
-        } else {
-          postData.duration_price = order.dismoney_time_yly ? order.dismoney_time_yly : order.money_time_yly
         }
       }
 

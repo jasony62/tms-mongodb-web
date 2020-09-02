@@ -148,7 +148,8 @@ class SyncToWork extends Base {
         return Promise.resolve({ status: false, msg: insStatus })
       }
 
-      // 检查不同产品类型的特有必需字段是否有值-云录音
+      // 检查不同产品类型的特有必需字段是否有值
+      //云录音
       if (tel.pro_type === '1') {
         let flag = false
         if (!schema.product_version || !tel.product_version) {
@@ -159,8 +160,8 @@ class SyncToWork extends Base {
           insStatus += "num_type,"
           flag = true
         }
-        if (!schema.flag_playtips || !tel.flag_playtips) {
-          insStatus += "flag_playtips,"
+        if (!schema.flag_playtips_yly || !tel.flag_playtips_yly) {
+          insStatus += "flag_playtips_yly,"
           flag = true
         }
         if (!schema.biz_function || !tel.biz_function) {
@@ -179,18 +180,14 @@ class SyncToWork extends Base {
           return Promise.resolve({ status: false, msg: insStatus })
         }
       }
-      let vals = ['1', '1,2', '1,3', '1,2,3', '2', '2,3', '3']
-      if (tel.pro_type === '1' && !vals.includes(tel.num_type)) {
-        abnormalTotal++
-        insStatus += "num_type的值只能是1或1,2或2或2,3或3"
-        let syncTime = (operation === "1") ? "" : current
-        await colle.updateOne({ _id: ObjectId(tel._id) }, { $set: { work_sync_time: syncTime, work_sync_status: insStatus } })
-        return Promise.resolve({ status: false, msg: insStatus })
-      }
 
       // 工作号
       if (tel.pro_type === '3') {
         let flag = false
+        if (!schema.biz_function) {
+          insStatus += "biz_function,"
+          flag = true
+        }
         if (!schema.call_url || !tel.call_url) {
           insStatus += "call_url,"
           flag = true
@@ -202,8 +199,8 @@ class SyncToWork extends Base {
           }
         }
         if (tel.biz_function && tel.biz_function.indexOf('1') !== -1) {
-          if (!schema.flag_playtips || !tel.flag_playtips) {
-            insStatus += "flag_playtips,"
+          if (!schema.flag_playtips_gzh || !tel.flag_playtips_gzh) {
+            insStatus += "flag_playtips_gzh,"
             flag = true
           }
         }
@@ -236,7 +233,7 @@ class SyncToWork extends Base {
       }
 
       // voiceUrl
-      let voiceUrl = tel.flag_playtips === 'Y' ? "/fileserver/alertvoice/yly_zs.mp3" : ""
+      let voiceUrl = tel.flag_playtips_gzh === 'Y' ? "/fileserver/alertvoice/yly_zs.mp3" : ""
 
       // 准备数据
       let postData = {
