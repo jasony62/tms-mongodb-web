@@ -350,8 +350,9 @@ class DocBase extends Base {
         _id: doc._id
       }
       for (const k in newClSchema) {
-        if (typeof doc[k] === 'undefined') {
-          newd[k] = ''
+        if (!doc[k]) {
+          //存在默认值
+          newd[k] = newClSchema[k].default || ''
         } else {
           newd[k] = doc[k]
         }
