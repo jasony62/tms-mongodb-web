@@ -96,7 +96,10 @@ class Plugin extends Base {
 
     return new Promise(async resolve => {
 
-      let cfg = {}, args, res
+      let cfg = {},
+          args,
+          res,
+          params = {}
 
       const pluginConfigs = pluginConfig[type]
       const currentConfig = pluginConfigs.find(ele => ele[0].url === pluginCfg.url)
@@ -108,11 +111,19 @@ class Plugin extends Base {
         resolve(new ResultFault('plugin配置文件有误'))
       }
 
+      // 获取集合属性
+      if(currentConfig[1].docSchemas) {
+        let colObj = await modelColl.getCollection(existDb, clName)
+        let docSchemas = _.get(colObj, ['schema', 'body', 'properties'], {})
+        let colExtendProps = _.get(colObj, ['extensionInfo', 'info'], {})
+        params.docSchemas = docSchemas
+        params.colExtendProps = colExtendProps
+      }
+
       const axios = require("axios")
       let axiosInstance = axios.create()
-      const params = {
-        data
-      }
+      params.data = data
+      
       logger.info('发送data', params)
       if (cfg.method === 'post') {
         await axiosInstance.post(cfg.url, params).then(result => {
