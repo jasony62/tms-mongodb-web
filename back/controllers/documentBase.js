@@ -106,21 +106,21 @@ class DocBase extends Base {
       find = this._assembleFind(filter)
     }
     let group = [{
-        $match: find
-      },
-      {
-        $group: {
-          _id: '$' + column,
-          num_tutorial: {
-            $sum: 1
-          }
+      $match: find
+    },
+    {
+      $group: {
+        _id: '$' + column,
+        num_tutorial: {
+          $sum: 1
         }
-      },
-      {
-        $sort: {
-          _id: 1
-        }
-      },
+      }
+    },
+    {
+      $sort: {
+        _id: 1
+      }
+    },
     ]
     if (page && page > 0 && size && size > 0) {
       let skip = {
@@ -167,7 +167,7 @@ class DocBase extends Base {
       filter,
       orderBy
     }
-    if (this.client.data.rid === 1) {
+    if (this.client && this.client.data && this.client.data.rid === 1) {
       options.account = this.client.data.account
     }
     let model = new modelDocu()
@@ -358,8 +358,8 @@ class DocBase extends Base {
         _id: doc._id
       }
       for (const k in newClSchema) {
-        if (typeof doc[k] === 'undefined') {
-          newd[k] = ''
+        if (!doc[k]) {
+          newd[k] = newClSchema[k].default || ''
         } else {
           newd[k] = doc[k]
         }
@@ -370,9 +370,7 @@ class DocBase extends Base {
     // 需要插入的总数量
     let planMoveTotal = newDocs.length
     // 插件
-    let {
-      transforms
-    } = options
+    let { transforms } = options
     if (typeof transforms === 'string' && transforms.length !== 0) {
       let transforms2 = transforms.split(',')
       if (fs.existsSync(process.cwd() + '/config/plugins.js')) {
@@ -502,6 +500,13 @@ class DocBase extends Base {
     const sets = model === 'toLabel' ? 'label' : 'value'
     logger.info('data数据源', data)
     Object.keys(columns).forEach(ele => {
+      // 输入框
+      if (columns[ele].type === 'string' && data.length) {
+        data = data.map(item => {
+          item[ele] = item[ele] && item[ele].trim().replace(/\n/g, '')
+          return item
+        })
+      }
       // 多选
       if (columns[ele].type === 'array' && columns[ele].enum) {
         data = data.map(item => {
