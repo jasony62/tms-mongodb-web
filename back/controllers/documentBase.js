@@ -350,8 +350,9 @@ class DocBase extends Base {
         _id: doc._id
       }
       for (const k in newClSchema) {
-        if (typeof doc[k] === 'undefined') {
-          newd[k] = ''
+        if (!doc[k]) {
+          //存在默认值
+          newd[k] = newClSchema[k].default || ''
         } else {
           newd[k] = doc[k]
         }
@@ -493,7 +494,15 @@ class DocBase extends Base {
     const gets = model === 'toLabel' ? 'value' : 'label'
     const sets = model === 'toLabel' ? 'label' : 'value'
     logger.info('data数据源', data)
+    
     Object.keys(columns).forEach(ele => {
+      // 输入框
+      if (columns[ele].type === 'string' && data.length) {
+        data = data.map(item => {
+          item[ele] = item[ele] && item[ele].trim().replace(/\n/g, '')
+          return item
+        })
+      }
       // 多选
       if (columns[ele].type === 'array' && columns[ele].enum) {
         data = data.map(item => {
