@@ -18,7 +18,7 @@ services:
       - TMS_REDIS_HOST=192.168.20.247
       - TMS_REDIS_PORT=6300
       - TMS_HTTP_SYNCTOPOOL_URL=http://192.168.20.248/pool/plugin/order/updateInfo
-      - TMS_HTTP_SYNCTOWORK_URL=http://192.168.253.25:8008/checkapi/api/ordermanage
+      - TMS_HTTP_SYNCTOWORK_URL=http://192.168.56.107:8008/checkapi/api/ordermanage
       - TMS_MONGODB_USER=root
       - TMS_MONGODB_PASSWORD=password
       - TMS_HTTP_ACCEPTCRM_URL=["."]
@@ -46,8 +46,8 @@ services:
       build: 
         context: .
         args:
-          vue_app_back_auth_server: http://192.168.20.71:3330
-          vue_app_back_api_server: http://back:3650
+          vue_app_back_auth_server: http://oauth
+#          vue_app_back_api_server: http://back:3650
       environment: 
         NODE_ENV: production
       ports:
