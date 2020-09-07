@@ -188,7 +188,7 @@ class Revice extends DocBase {
     if (oldDoc.status === '99') {
       return new ResultFault('该订单已是退订状态')
     }
-    if (oldDoc.pro_type === '3' && oldDoc.unsubscribe_number === 'N') {
+    if (oldDoc.unsubscribe_number === 'N') {
       return new ResultFault('该订单下还有号码不可退订')
     }
     logger.debug('退订前原数据', oldDoc)

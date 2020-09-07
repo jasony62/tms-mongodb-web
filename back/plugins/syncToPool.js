@@ -217,7 +217,7 @@ class SyncToPool extends Base {
           await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
           return Promise.resolve({ status: false, msg: insStatus })
         }
-        if (order.biz_function && (order.biz_function === '1' || order.biz_function === '1,2')) {
+        if (order.biz_function && order.biz_function.indexOf('1') !== -1) {
           let flag = false
           if (!schema.costtype_gzh || !order.costtype_gzh) {
             insStatus += "costtype_gzh,"
@@ -239,7 +239,7 @@ class SyncToPool extends Base {
             return Promise.resolve({ status: false, msg: insStatus })
           }
         }
-        if (order.biz_function && (order.biz_function === '2' || order.biz_function === '1,2')) {
+        if (order.biz_function && order.biz_function.indexOf('2') !== -1) {
           let flag = false
           if (!schema.msg_url || !order.msg_url) {
             insStatus += "msg_url列不存在或值为空"
@@ -269,7 +269,7 @@ class SyncToPool extends Base {
         }
         if (order.biz_function) {
           postData.bizFunction = order.biz_function
-          if (order.biz_function === '1' || order.biz_function === '1,2') {
+          if (order.biz_function.indexOf('1') !== -1) {
             postData.costType = order.costtype_gzh
             postData.voiceUrl = order.flag_playtips_gzh === 'Y' ? '1' : '2'
             if (order.costtype_gzh === '1') {
@@ -285,7 +285,7 @@ class SyncToPool extends Base {
             }
             postData.recordMode = order.recordMode_gzh ? order.recordMode_gzh : ""
           }
-          if (order.biz_function === '2' || order.biz_function === '1,2') {
+          if (order.biz_function.indexOf('2') !== -1) {
             postData.msgUrl = order.msg_url
             postData.cost_msg = order.discost_msg_gzh ? order.discost_msg_gzh : order.cost_msg_gzh
           }

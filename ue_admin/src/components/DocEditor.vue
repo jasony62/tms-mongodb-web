@@ -1,10 +1,11 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <tms-el-json-doc :is-submit="isSubmit" :schema="collection.schema.body" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit"></tms-el-json-doc>
+    <tms-el-json-doc :is-submit="isSubmit" :schema="collection.schema.body" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit" :on-axios="handleAxios"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
+import { TmsAxios } from 'tms-vue'
 import apiDoc from '../apis/document'
 
 export default {
@@ -25,6 +26,9 @@ export default {
     }
   },
   methods: {
+    handleAxios() {    
+      return TmsAxios.ins('mongodb-api')
+    },
     handleFileSubmit(ref, files) {
       let result = {}
       let objPromises = files.map(file => {

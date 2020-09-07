@@ -1,6 +1,6 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <tms-el-json-doc :is-submit="isSubmit" :schema="schema" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit"></tms-el-json-doc>
+    <tms-el-json-doc :is-submit="isSubmit" :schema="schema" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit" :on-axios="handleAxios"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
@@ -36,6 +36,9 @@ export default {
     }
   },
   methods: {
+    handleAxios() {    
+      return this.TmsAxios(this.tmsAxiosName)
+    },
 		handleFileSubmit(ref, files) {
 			let result = {}
 			let objPromises = files.map(file => {
