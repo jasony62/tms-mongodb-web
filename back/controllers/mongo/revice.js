@@ -60,24 +60,25 @@ class Revice extends DocBase {
     if (docRes[0] === false) return (new ResultFault('发生不可预知的错误'))
     let { database, clName, currentSchema: schema } = docRes[1]
 
-    let doc = {
-      source: '1',
-      streamingNo: param.streamingNo,
-      SIID: param.SIID,
-      order_id: param.bizID,
-      cust_id: param.custID,
-      customer_id: param.custID,
-      cust_name: param.custName,
-      manager_name: param.managerName,
-      account: param.managerAccount,
-      cust_account: param.custAccount,
-      manager_tel: param.managerTel,
-      num_sum: param.numSum,
-      product_version: param.productVersion,
-      biz_function: param.bizFunction && param.bizFunction.split(','),
-      num_type: param.numType && param.numType.split(','),
-      order_name: '领航订单custid=' + param.custID // 订单名称
-    }
+    //处理数据
+    let doc = {}
+    Object.assign(doc, param)
+    doc.source = '1'
+    doc.order_id = param.bizID
+    doc.cust_id = param.custID
+    doc.customer_id = param.custID
+    doc.cust_name = param.custName
+    doc.manager_name = param.managerName
+    doc.account = param.managerAccount
+    doc.cust_account = param.custAccount
+    doc.manager_tel = param.managerTel
+    doc.num_sum = param.numSum
+    doc.areacode = param.areaCode
+    doc.product_version = param.productVersion
+    doc.biz_function = param.bizFunction && param.bizFunction.split(',')
+    doc.num_type = param.numType && param.numType.split(',')
+    doc.order_name = '领航订单custid=' + param.custID // 订单名
+
     // 产品类型
     switch (param.productID) {
       case '35831086':
