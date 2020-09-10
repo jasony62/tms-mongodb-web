@@ -45,7 +45,7 @@ class SyncToWork extends Base {
     if (!dbObj || !dbObj.schema || !dbObj.schema.body || !dbObj.schema.body.properties) return new ResultFault("指定文件没有集合列定义")
     // 校验必须列
     let dbSchema = dbObj.schema.body.properties
-    let requireFields = ["work_sync_time", "work_sync_status", "auditing_status", "order_id", "order_name", "source", "status", "cust_id", "cust_name", "pro_type", "customer_id"]
+    let requireFields = ["work_sync_time", "work_sync_status", "auditing_status", "order_id", "order_name", "source", "status", "cust_id", "cust_name", "pro_type", "customer_id", "cust_account", "biz_function", "create_time", "TMS_DEFAULT_UPDATE_TIME"]
     let missFields = requireFields.filter(field => !dbSchema[field])
     if (missFields.length) return new ResultFault("缺少同步必须列(" + missFields.join(',') + ")")
 
@@ -138,7 +138,7 @@ class SyncToWork extends Base {
       }
 
       // 检查同步时必要字段的值
-      let ghzFields = ["order_id", "order_name", "source", "status", "cust_id", "cust_name", "pro_type", "customer_id", "cdrpush_url"]
+      let ghzFields = ["order_id", "order_name", "source", "status", "cust_id", "cust_name", "pro_type", "customer_id"]
       let errorFields = ghzFields.filter(field => !tel[field])
       if (errorFields.length) {
         abnormalTotal++
@@ -148,6 +148,15 @@ class SyncToWork extends Base {
         return Promise.resolve({ status: false, msg: insStatus })
       }
 
+      if (tel.source === '1') {
+        if (!tel.cust_account) {
+          abnormalTotal++
+          insStatus += "的值为空"
+          let syncTime = (operation === "1") ? "" : current
+          await colle.updateOne({ _id: ObjectId(tel._id) }, { $set: { work_sync_time: syncTime, work_sync_status: insStatus } })
+          return Promise.resolve({ status: false, msg: insStatus })
+        }
+      }
       // 检查不同产品类型的特有必需字段是否有值
       //云录音
       if (tel.pro_type === '1') {
@@ -164,7 +173,7 @@ class SyncToWork extends Base {
           insStatus += "flag_playtips_yly,"
           flag = true
         }
-        if (!schema.biz_function || !tel.biz_function) {
+        if (!tel.biz_function) {
           insStatus += "biz_function,"
           flag = true
         }
@@ -181,13 +190,35 @@ class SyncToWork extends Base {
         }
       }
 
+      // 云中继
+      if (tel.pro_type === '2') {
+        let flag = false
+        if (!schema.recyzj_flag || !tel.recyzj_flag) {
+          insStatus += "recyzj_flag,"
+          flag = true
+        }
+        if (tel.recyzj_flag === 'Y') {
+          if (!schema.call_url || !tel.call_url) {
+            insStatus += "call_url,"
+            flag = true
+          }
+          if (!schema.extern_flag || !tel.extern_flag) {
+            insStatus += "extern_flag,"
+            flag = true
+          }
+        }
+        if (flag) {
+          abnormalTotal++
+          insStatus += "的列不存在或值为空"
+          let syncTime = (operation === "1") ? "" : current
+          await colle.updateOne({ _id: ObjectId(tel._id) }, { $set: { work_sync_time: syncTime, work_sync_status: insStatus } })
+          return Promise.resolve({ status: false, msg: insStatus })
+        }
+      }
+
       // 工作号
       if (tel.pro_type === '3') {
         let flag = false
-        if (!schema.biz_function) {
-          insStatus += "biz_function,"
-          flag = true
-        }
         if (!schema.call_url || !tel.call_url) {
           insStatus += "call_url,"
           flag = true
@@ -195,6 +226,10 @@ class SyncToWork extends Base {
         if (tel.biz_function && tel.biz_function.indexOf('2') !== -1) {
           if (!schema.msg_url || !tel.msg_url) {
             insStatus += "msg_url,"
+            flag = true
+          }
+          if (!schema.msgpush_url || !tel.msgpush_url) {
+            insStatus += "msgpush_url,"
             flag = true
           }
         }
@@ -217,7 +252,7 @@ class SyncToWork extends Base {
         }
       }
 
-      if (tel.pro_type === '3' || tel.pro_type === '1') {
+      if (tel.pro_type === '3' || tel.pro_type === '1' || (tel.pro_type === '2' && tel.recyzj_flag === 'Y')) {
         let flag = false
         if (!schema.cdrpush_url || !tel.cdrpush_url) {
           insStatus += "cdrpush_url"
@@ -232,9 +267,6 @@ class SyncToWork extends Base {
         }
       }
 
-      // voiceUrl
-      let voiceUrl = tel.flag_playtips_gzh === 'Y' ? "/fileserver/alertvoice/yly_zs.mp3" : ""
-
       // 准备数据
       let postData = {
         "orderId": tel.order_id,
@@ -246,33 +278,55 @@ class SyncToWork extends Base {
         "custName": tel.cust_name,
         "managerName": tel.manager_name ? tel.manager_name : "",
         "managerAccount": tel.account ? tel.account : "",
-        "custAccount": tel.cust_account ? tel.cust_account : "",
         "managerTel": tel.manager_tel ? tel.manager_tel : "",
         "entpriseProvince": tel.entprise_province ? tel.entprise_province : "",
         "bizFunction": tel.biz_function,
         "proType": tel.pro_type,
         "customerId": tel.customer_id,
         "managerNetWork": tel.managerNetWork ? tel.managerNetWork : "",
+        "orderTime": tel.create_time
       }
+      if (tel.source === '1') {
+        postData.custAccount = tel.cust_account
+      }
+      if (operation === '2') {
+        postData.changeTime = tel.TMS_DEFAULT_UPDATE_TIME
+      }
+      if (tel.status === '99') {
+        postData.delTime = tel.TMS_DEFAULT_UPDATE_TIME
+      }
+
       if (tel.pro_type === '1') {
-        postData.voiceUrl = voiceUrl
+        postData.voiceUrl = tel.flag_playtips_yly === 'Y' ? "/fileserver/alertvoice/yly_zs.mp3" : ""
         postData.productVersion = tel.product_version
         postData.numType = tel.num_type
         postData.recordpushUrl = tel.recordpush_url ? tel.recordpush_url : ""
-        postData.cdrpushUrl = tel.cdrpush_url
+        postData.cdrPushUrl = tel.cdrpush_url
         postData.numSum = tel.num_sum
-
       }
+
+      if (tel.pro_type === '2') {
+        postData.recyzjFlag = tel.recyzj_flag
+        postData.costMonth = tel.discostmonth_yzj ? tel.discostmonth_yzj : tel.costmonth_yzj
+        postData.costCall = tel.discostcall_yzj ? tel.discostcall_yzj : tel.costcall_yzj
+        if (tel.recyzj_flag === 'Y') {
+          postData.requestUrl = tel.call_url
+          postData.cdrPushUrl = tel.cdrpush_url
+          postData.externFlag = tel.extern_flag
+        }
+      }
+
       if (tel.pro_type === '3') {
         if (tel.biz_function && tel.biz_function.indexOf('1') !== -1) {
-          postData.voiceUrl = voiceUrl
+          postData.voiceUrl = tel.flag_playtips_gzh === 'Y' ? "/fileserver/alertvoice/yly_zs.mp3" : ""
         }
-        postData.recordpushUrl = tel.recordpush_url ? tel.recordpush_url : ""
-        postData.cdrpushUrl = tel.cdrpush_url
-        postData.requestUrl = tel.call_url
         if (tel.biz_function && tel.biz_function.indexOf('2') !== -1) {
           postData.msgUrl = tel.msg_url
+          postData.msgPushUrl = tel.msgpush_url
         }
+        postData.recordpushUrl = tel.recordpush_url ? tel.recordpush_url : ""
+        postData.cdrPushUrl = tel.cdrpush_url
+        postData.requestUrl = tel.call_url
         postData.externFlag = tel.extern_flag
       }
 
