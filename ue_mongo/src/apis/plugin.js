@@ -8,10 +8,9 @@ export default {
       .get(`${base}/pluginDocument`)
       .then(rst => rst.data.result)
   },
-  handlePlugin(param, bucket, pluginCfg, db, clName, ) {
-    const params = { bucket, pluginCfg, db, clName }
+  handlePlugin() {
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/commonExecute`, param, { params })
+      .post(`${base}/commonExecute`, arguments[0], { params: arguments[1] })
       .then(rst => rst.data.result)
   }
 }

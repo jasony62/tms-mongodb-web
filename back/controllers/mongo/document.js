@@ -125,22 +125,23 @@ class Document extends DocBase {
    * @alreadyMoveTotal 已经迁移的个数
    * @alreadyMovePassTotal 已经迁移成功的个数
    */
-  async move() {
-    let {
-      oldDb,
-      oldCl,
-      newDb,
-      newCl,
-      transforms,
-      execNum = 100,
-      planTotal = 0,
-      alreadyMoveTotal = 0,
-      alreadyMovePassTotal = 0,
-    } = this.request.query
-    if (!oldDb || !oldCl || !newDb || !newCl) {
-      return new ResultFault('参数不完整')
-    }
-    let { docIds, filter } = this.request.body
+  async move(ctx, oldDb, oldCl, newDb, newCl, docIds) {
+    oldDb = oldDb || this.request.query.oldDb
+		oldCl = oldCl || this.request.query.oldCl
+		newDb = newDb || this.request.query.newDb
+		newCl = newCl || this.request.query.newCl
+		docIds = docIds || this.request.body.docIds
+
+		let {
+			execNum = 100,
+			planTotal = 0,
+			alreadyMoveTotal = 0,
+			alreadyMovePassTotal = 0,
+		} = this.request.query
+		if (!oldDb || !oldCl || !newDb || !newCl) {
+			return new ResultFault('参数不完整')
+		}
+		let { filter } = this.request.body
     if (!filter && (!docIds || !Array.isArray(docIds) || docIds.length == 0)) {
       return new ResultFault('没有要移动的数据')
     }
@@ -163,16 +164,14 @@ class Document extends DocBase {
       oldDocus = await cl.find(find).limit(parseInt(execNum)).toArray()
       total = await cl.find(find).count()
     }
-
-    let options = {}
-    options.transforms = transforms
+    
     let rst = await this.cutDocs(
       oldExistDb,
       oldCl,
       newExistDb,
       newCl,
       docIds2,
-      options,
+      {},
       oldDocus
     )
     if (rst[0] === false) return new ResultFault(rst[1])
