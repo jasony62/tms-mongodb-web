@@ -215,7 +215,7 @@ class Plugin extends Base {
   /**
    * @description 执行发送/接受的回调函数
    * @param {*} content 当前上下文
-   * @param {object} callback 
+   * @param {function} callback 
    * @param {array} oprateRes 入库后的数据
    * @param {object} params 
    * @param {*} cl 

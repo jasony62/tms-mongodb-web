@@ -133,6 +133,7 @@ class Document extends DocBase {
 		docIds = docIds || this.request.body.docIds
 
 		let {
+      transforms,
 			execNum = 100,
 			planTotal = 0,
 			alreadyMoveTotal = 0,
@@ -165,13 +166,16 @@ class Document extends DocBase {
       total = await cl.find(find).count()
     }
     
+    let options = {}
+    options.transforms = transforms
+    
     let rst = await this.cutDocs(
       oldExistDb,
       oldCl,
       newExistDb,
       newCl,
       docIds2,
-      {},
+      options,
       oldDocus
     )
     if (rst[0] === false) return new ResultFault(rst[1])
