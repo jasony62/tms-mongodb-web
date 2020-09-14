@@ -284,9 +284,10 @@ class SyncToWork extends Base {
         "proType": tel.pro_type,
         "customerId": tel.customer_id,
         "managerNetWork": tel.managerNetWork ? tel.managerNetWork : "",
-        "orderTime": tel.create_time
+        "orderTime": tel.create_time,
+        "numSum": tel.num_sum
       }
-      if (tel.source === '1') {
+      if (tel.source !== '3') {
         postData.custAccount = tel.cust_account
       }
       if (operation === '2') {
@@ -300,9 +301,7 @@ class SyncToWork extends Base {
         postData.voiceUrl = tel.flag_playtips_yly === 'Y' ? "/fileserver/alertvoice/yly_zs.mp3" : ""
         postData.productVersion = tel.product_version
         postData.numType = tel.num_type
-        postData.recordpushUrl = tel.recordpush_url ? tel.recordpush_url : ""
         postData.cdrPushUrl = tel.cdrpush_url
-        postData.numSum = tel.num_sum
       }
 
       if (tel.pro_type === '2') {
@@ -324,7 +323,6 @@ class SyncToWork extends Base {
           postData.msgUrl = tel.msg_url
           postData.msgPushUrl = tel.msgpush_url
         }
-        postData.recordpushUrl = tel.recordpush_url ? tel.recordpush_url : ""
         postData.cdrPushUrl = tel.cdrpush_url
         postData.requestUrl = tel.call_url
         postData.externFlag = tel.extern_flag
