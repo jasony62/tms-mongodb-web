@@ -36,9 +36,9 @@ PluginConfig.ins = (function() {
     if (instance) return instance
 
     instance = new PluginConfig()
-    const { db, collection, document } = loadConfig('plugin')
+    const { sendConfig, receiveConfig } = loadConfig('plugin')
     
-    Object.assign(instance, { db, collection, document })
+    _.merge(instance, { sendConfig, receiveConfig })
 
     return instance
   }

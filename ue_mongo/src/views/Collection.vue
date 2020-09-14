@@ -99,12 +99,9 @@
         </el-dropdown>
         <hr />
         <div v-for="s in plugins.document.submits" :key="s.id">
-          <el-checkbox-group v-model="s.checkList" v-if="plugins.document.transforms&&plugins.document.transforms[s.id]">
-            <el-checkbox v-for="(t, k) in plugins.document.transforms[s.id]" :label="t.name" :key="k">{{t.label}}</el-checkbox>
-          </el-checkbox-group>
           <el-button @click="handlePlugin(s, null)" v-if="!s.batch">{{s.name}}</el-button>
           <el-dropdown v-if="s.batch">
-            <el-button>{{s.name}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+            <el-button type="success" plain>{{s.name}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
                 <el-button type="text" @click="handlePlugin(s, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
@@ -117,7 +114,6 @@
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
-          <hr v-if="plugins.document.transforms&&plugins.document.transforms[s.id]" />
         </div>
         <div v-for="(s, i) in pluginData" :key="i">
           <el-button @click="handlePlugins(s, null)" v-if="!s[2].batch">{{s[2].name}}</el-button>
@@ -645,37 +641,6 @@ export default {
         )
       })
     },
-    pluginOfSync(type, transforms, param, pTotal, aSTotal, aSPTotal) {
-      let msg = Message.info({ message: '开始同步数据...', duration: 0 }),
-        _this = this
-      async function fnsync(type, transforms, param, pTotal, aSTotal, aSPTotal) {
-        let {
-          planTotal,
-          alreadySyncTotal,
-          alreadySyncPassTotal,
-          alreadySyncFailTotal,
-          spareTotal
-        } = await apiPlugins.sync[type](
-            _this.dbName,
-            _this.clName,
-            transforms,
-            param,
-            pTotal,
-            aSTotal,
-            aSPTotal
-          )
-          .catch(() => msg.close())
-        msg.message = '正在同步数据...'
-        if (spareTotal <= 0) {
-          msg.message = '成功同步' + alreadySyncPassTotal + '条，失败' + alreadySyncFailTotal + '条'
-          _this.listDocument()
-          setTimeout(() => msg.close(), 1500)
-          return false
-        }
-        fnsync(type, transforms, param, planTotal, alreadySyncTotal, alreadySyncPassTotal)
-      }
-      fnsync(type, transforms, param, pTotal, aSTotal, aSPTotal)
-    },
     handlePlugin(submit, type) {
       let transforms = submit.checkList ? submit.checkList.join(',') : ""
       let { param } = type ? this.fnSetReqParam(type) : { param: null }
@@ -683,14 +648,35 @@ export default {
         case 'moveByRule':
           this.pluginOfMoveByRule(transforms, param)
           break
-        case 'syncMobilePool':
-          this.pluginOfSync(submit.id, transforms, param, 0, 0, 0)
+        case 'calibrateInfo':
+          this.pluginOfCheckData(transforms, param, 0, 0, 0)
       }
     },
-    handlePlugins(s, type) {
-      const { param } = type ? this.fnSetReqParam(type) : { param: null }
+    async handlePlugins(s, type) {
+      const { param: postParams } = type ? this.fnSetReqParam(type) : { param: null }
+      const isType = Object.prototype.toString
+      const obj = '[object Object]'
+      let getParams = {
+        bucket: this.bucketName || 'pool',
+        pluginCfg: s[0],
+        db: this.dbName,
+        clName: this.clName
+      }
+      if (s[2].isConfirm) {
+        await MessageBox.confirm(s[2].confirmMsg, '提示', {
+          confirmButtonText: s[2].confirmText || '确定',
+          cancelButtonText: s[2].cancelText || '取消',
+        })
+          .then(() => {
+            Object.assign(getParams, s[2].successParams && isType.call(s[2].successParams) === obj ? s[2].successParams : {})
+          })
+          .catch(() => {
+            Object.assign(getParams, s[2].failParams && isType.call(s[2].failParams) === obj ? s[2].failParams : {})
+          })
+      }
+      let params = [postParams, getParams]
       apiPlugin
-        .handlePlugin(param, this.bucketName, s[0], this.dbName, this.clName).then(() => {
+        .handlePlugin(...params).then(() => {
           this.listDocument()
         })
     },
