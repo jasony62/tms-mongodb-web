@@ -2,7 +2,7 @@
   <tms-frame class="tmw-document" :display="{ header: false, footer: false, right: true }" :leftWidth="'20%'">
     <template v-slot:center>
       <el-table id="tables" :data="documents" stripe ref="multipleTable" :height="tableHeight" @selection-change="handleSelectDocument">
-        <el-table-column fixed="left" type="selection" width="55"></el-table-column>
+        <el-table-column fixed="left" type="selection" width="55" v-if="documents.length"></el-table-column>
         <el-table-column v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k">
           <template slot="header">
             <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
@@ -52,7 +52,7 @@
             <span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="操作" width="150">
+        <el-table-column fixed="right" label="操作" width="150" v-if="documents.length">
           <template slot-scope="scope">
             <el-button size="mini" @click="editDocument(scope.row)">修改</el-button>
           </template>
@@ -200,6 +200,9 @@ const componentOptions = {
     totalByChecked() {
       return this.multipleDocuments.length
     }
+  },
+  created() {
+    this.tableHeight = window.innerHeight * 0.8
   },
 	methods: {
 		conditionReset() {
@@ -629,7 +632,6 @@ const componentOptions = {
 						const documents =  result.docs
 						store.commit('documents', { documents })
 						this.page.total = result.total
-						this.tableHeight = window.innerHeight * 0.8
 				})
 		}
 	},
