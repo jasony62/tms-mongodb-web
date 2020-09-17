@@ -298,7 +298,8 @@ class SyncToWork extends Base {
       }
 
       if (tel.pro_type === '1') {
-        postData.voiceUrl = tel.flag_playtips_yly === 'Y' ? "/fileserver/alertvoice/yly_zs.mp3" : ""
+        postData.bqjVoiceUrl = tel.flag_playtips_yly === 'Y' ? "/fileserver/alertvoice/yly_zs.mp3" : ""
+        postData.yzVoiceUrl = tel.flag_playtips_yly === 'Y' ? "/fileserver/ngcc/vox/yly/tone/yly_zs.mp3" : ""
         postData.productVersion = tel.product_version
         postData.numType = tel.num_type
         postData.cdrPushUrl = tel.cdrpush_url
@@ -317,7 +318,7 @@ class SyncToWork extends Base {
 
       if (tel.pro_type === '3') {
         if (tel.biz_function && tel.biz_function.indexOf('1') !== -1) {
-          postData.voiceUrl = tel.flag_playtips_gzh === 'Y' ? "/fileserver/alertvoice/yly_zs.mp3" : ""
+          postData.bqjVoiceUrl = tel.flag_playtips_gzh === 'Y' ? "/fileserver/alertvoice/yly_zs.mp3" : ""
         }
         if (tel.biz_function && tel.biz_function.indexOf('2') !== -1) {
           postData.msgUrl = tel.msg_url
