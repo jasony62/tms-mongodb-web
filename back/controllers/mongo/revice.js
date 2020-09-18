@@ -213,4 +213,5 @@ class Revice extends DocBase {
   }
 }
 
+Revice.tmsAuthTrustedHosts = true
 module.exports = Revice
