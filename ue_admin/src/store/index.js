@@ -13,6 +13,7 @@ export default new Vuex.Store({
     dbSchemas: [],
     collectionSchemas: [],
     collections: [],
+    tags: [],
     documents: [],
     conditions: []
   },
@@ -76,7 +77,7 @@ export default new Vuex.Store({
     documents(state, payload) {
       state.documents = payload.documents
     },
-    updateDocument() {},
+    updateDocument() { },
     conditionAddColumn(state, payload) {
       const { condition } = payload
       const index = state.conditions.findIndex(
@@ -85,7 +86,7 @@ export default new Vuex.Store({
       if (index !== -1) {
         state.conditions.splice(index, 1)
       }
-      condition.rule.filter = {[condition.columnName]: condition.rule.filter[condition.columnName]}
+      condition.rule.filter = { [condition.columnName]: condition.rule.filter[condition.columnName] }
       state.conditions.push(condition)
     },
     conditionDelBtn(state, payload) {
@@ -108,7 +109,20 @@ export default new Vuex.Store({
     },
     conditionReset(state) {
       state.conditions = []
-    }
+    },
+    tags(state, payload) {
+      state.tags = payload.tags
+    },
+    appendTag(state, payload) {
+      state.tags.push(payload.tag)
+    },
+    updateTag(state, payload) {
+      const { index, tag } = payload
+      state.tags.splice(index, 1, tag)
+    },
+    removeTag(state, payload) {
+      state.tags.splice(state.tags.indexOf(payload.tag), 1)
+    },
   },
   actions: {
     listBucket({ commit }) {
@@ -174,7 +188,21 @@ export default new Vuex.Store({
         commit({ type: 'removeCollection', collection })
         return { collection }
       })
-    }
+    },
+    listTag({ commit }, payload) {
+      const { bucket } = payload
+      return apis.tag.list(bucket).then(tags => {
+        commit({ type: 'tags', tags })
+        return { tags }
+      })
+    },
+    removeTag({ commit }, payload) {
+      const { bucket, tag } = payload
+      return apis.tag.remove(bucket, tag).then(() => {
+        commit({ type: 'removeTag', tag })
+        return { tag }
+      })
+    },
   },
   modules: {}
 })
