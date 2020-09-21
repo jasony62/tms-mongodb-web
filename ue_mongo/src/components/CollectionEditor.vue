@@ -7,9 +7,21 @@
       <el-form-item label="集合显示名（中文）">
         <el-input v-model="collection.title"></el-input>
       </el-form-item>
-      <el-form-item label="集合文档内容定义">
-        <el-select placeholder="请选择" v-model="collection.schema_id" clearable filterable>
+      <el-form-item label="集合文档内容定义（默认）">
+        <el-select placeholder="请选择定义的名称" v-model="collection.schema_id" clearable filterable>
           <el-option v-for="item in schemas" :key="item._id" :label="item.title" :value="item._id"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="集合文档内容定义（定制）">
+        <el-select v-model="collection.tags" clearable multiple placeholder="请选择定义的标签">
+          <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="默认展示（定制）">
+        <el-select v-model="collection.default_tag" clearable multiple placeholder="请选择定义的标签">
+          <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name">
+          </el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="集合扩展属性（选填）">
@@ -18,7 +30,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="扩展属性详情（选填）" v-if="JSON.stringify(extendSchema)!=='{}'">
-				<tms-el-json-doc class="tmw-attr-form" ref="attrForm" :schema="extendSchema" :doc="collection.extensionInfo.info" ></tms-el-json-doc>
+        <tms-el-json-doc class="tmw-attr-form" ref="attrForm" :schema="extendSchema" :doc="collection.extensionInfo.info"></tms-el-json-doc>
       </el-form-item>
       <el-form-item label="说明">
         <el-input type="textarea" v-model="collection.description"></el-input>
@@ -42,6 +54,7 @@ Vue.use(Dialog)
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
 import apiCollection from '../apis/collection'
 import apiSchema from '../apis/schema'
+import apiTag from '../apis/tag'
 
 export default {
   name: 'CollectionEditor',
@@ -57,6 +70,8 @@ export default {
           title: '',
           description: '',
           schema_id: '',
+          tags: [], 
+          default_tag: [],
           extensionInfo: { schemaId: '', info: {} }
         }
       }
@@ -71,7 +86,8 @@ export default {
       closeOnClickModal: false,
       schemas: [],
 			extensions: [],
-			extendSchema: {}
+      extendSchema: {},
+      tags: []
     }
   },
   mounted() {
@@ -81,6 +97,9 @@ export default {
     apiSchema.list(this.bucketName, 'collection').then(extensions => {
 			this.extensions = extensions
 			this.handleExtendId(this.collection.extensionInfo.schemaId, true)
+    })
+    apiTag.list(this.bucketName).then(tags => {
+      this.tags = tags
     })
 	},
   methods: {

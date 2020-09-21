@@ -10,33 +10,30 @@
     <template v-slot:center>
       <el-table id="tables" :data="documents" stripe ref="multipleTable" :height="tableHeight" @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55"></el-table-column>
-        <el-table-column
-          v-for="(s, k) in collection.schema.body.properties"
-          :key="k"
-          :prop="k">
-					<template slot="header">
-						<i v-if="s.description" class="el-icon-info" :title="s.description"></i>
-						<i v-if="s.required" style="color:red">*</i>
-						<span> {{s.title}} </span>
-						<img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
+        <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
+          <template slot="header">
+            <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
+            <i v-if="s.required" style="color:red">*</i>
+            <span> {{s.title}} </span>
+            <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
           </template>
           <template slot-scope="scope">
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
-						<span v-else-if="s.type==='array'&&s.format==='file'">
-							<span v-for="(i, v) in scope.row[k]" :key="v">
-								<a href @click="handleDownload(i)">{{i.name}}</a><br/>
-							</span>
-						</span>
+            <span v-else-if="s.type==='array'&&s.format==='file'">
+              <span v-for="(i, v) in scope.row[k]" :key="v">
+                <a href @click="handleDownload(i)">{{i.name}}</a><br />
+              </span>
+            </span>
             <span v-else-if="s.type === 'array' && s.enum">
-							<span v-for="(i, v) in s.enum" :key="v">
+              <span v-for="(i, v) in s.enum" :key="v">
                 <span v-if="scope.row[k] && scope.row[k].includes(i.value)">{{i.label}}&nbsp;</span>
-							</span>
-						</span>
+              </span>
+            </span>
             <span v-else-if="s.type === 'string' && s.enum">
-							<span v-for="(i, v) in s.enum" :key="v">
+              <span v-for="(i, v) in s.enum" :key="v">
                 <span v-if="scope.row[k] === i.value">{{i.label}}</span>
-							</span>
-						</span>
+              </span>
+            </span>
             <span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
@@ -69,7 +66,7 @@
         <el-upload action="#" :show-file-list="false" :http-request="importDocument">
           <el-button>导入数据</el-button>
         </el-upload>
-				<el-dropdown @command="exportDocument" placement="bottom-start">
+        <el-dropdown @command="exportDocument" placement="bottom-start">
           <el-button>导出数据<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -186,7 +183,7 @@ import ColumnValueEditor from '../components/ColumnValueEditor.vue'
 import DomainEditor from '../components/DomainEditor.vue'
 import SelectCondition from '../components/SelectCondition.vue'
 import MoveByRulePlugin from '../plugins/move/Main.vue'
-import { collection as apiCol, doc as apiDoc, plugin as apiPlugin } from '../apis'
+import { collection as apiCol, doc as apiDoc, plugin as apiPlugin, schema as apiSchema } from '../apis'
 import apiPlugins from '../plugins'
 
 export default {
@@ -203,7 +200,7 @@ export default {
         total: 0
       },
       multipleDocuments: [],
-      collection: { schema: { body: { properties: {} } } },
+      properties: {},
       plugins: { document: { submits: [], transforms: {} } },
       dialogPage: {
         at: 1,
@@ -312,13 +309,13 @@ export default {
           this.dialogPage, 
           this.handleCondition(),
           this.listByColumn,
-          this.collection.schema.body.properties[columnName]
+          this.properties[columnName]
         )
         .then(rsl => {
           const { condition, isClear, isCheckBtn } = rsl
           this.$store.commit('conditionAddColumn', { condition })
           if (isClear) this.$store.commit('conditionDelColumn', { condition })
-          let objPro = this.collection.schema.body.properties
+          let objPro = this.properties
           if (isCheckBtn) this.$store.commit('conditionDelBtn', { columnName })
           Object.keys(objPro).map((ele, index) => {
             const attrs = document.querySelectorAll(
@@ -688,19 +685,41 @@ export default {
     handleCurrentPage(val) {
       this.page.at = val
       this.listDocument()
+    },
+    async handleProperty() {
+      let tags = (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) || this.collection.tags
+      let default_tag = (process.env.VUE_APP_DEFAULT_TAG && process.env.VUE_APP_DEFAULT_TAG.split(',')) || this.collection.default_tag
+
+      if (default_tag && default_tag.length) {
+        for(let i=0; i<default_tag.length; i++) {
+          let schemas = await apiSchema.listByTag(this.bucketName, default_tag[i])
+          schemas.forEach(schema => {
+            Object.assign(this.properties, schema.body.properties)
+          })
+        }
+      } else if (tags && tags.length) {
+        for(let i=0; i<tags.length; i++) {
+          let schemas = await apiSchema.listByTag(this.bucketName, tags[i])
+          schemas.forEach(schema => {
+            Object.assign(this.properties, schema.body.properties)
+          })
+        }
+      } else {
+        Object.assign(this.properties, this.collection.schema.body.properties)
+      }
     }
   },
   mounted() {
     apiCol
       .byName(this.bucketName, this.dbName, this.clName)
-      .then(collection => {
+      .then(async collection => {
         this.collection = collection
+        await this.handleProperty()
         this.listDocument()
         this.listPlugin()
       })
     apiPlugin
       .getPlugins().then(res => {
-        console.log(res)
         this.pluginData = res
       })
   },

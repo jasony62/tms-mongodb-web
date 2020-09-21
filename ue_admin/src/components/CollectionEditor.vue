@@ -7,9 +7,21 @@
       <el-form-item label="集合显示名（中文）">
         <el-input v-model="collection.title"></el-input>
       </el-form-item>
-      <el-form-item label="集合文档内容定义">
-        <el-select v-model="collection.schema_id" clearable placeholder="请选择">
+      <el-form-item label="集合文档内容定义（默认）">
+        <el-select v-model="collection.schema_id" clearable placeholder="请选择定义的名称">
           <el-option v-for="item in schemas" :key="item._id" :label="item.title" :value="item._id">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="集合文档内容定义（定制）">
+        <el-select v-model="collection.tags" clearable multiple placeholder="请选择定义的标签">
+          <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="默认展示（定制）">
+        <el-select v-model="collection.default_tag" clearable multiple placeholder="请选择定义的标签">
+          <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name">
           </el-option>
         </el-select>
       </el-form-item>
@@ -26,6 +38,7 @@
 <script>
 import apiCollection from '../apis/collection'
 import apiSchema from '../apis/schema'
+import apiTag from '../apis/tag'
 
 export default {
   name: 'CollectionEditor',
@@ -36,7 +49,7 @@ export default {
     collection: {
       type: Object,
       default: function() {
-        return { name: '', title: '', description: '', schema_id: '' }
+        return { name: '', title: '', description: '', schema_id: '', tags: [], default_tag: [] }
       }
     }
   },
@@ -45,12 +58,16 @@ export default {
       mode: '',
       destroyOnClose: true,
       closeOnClickModal: false,
-      schemas: []
+      schemas: [],
+      tags: []
     }
   },
   mounted() {
     apiSchema.listSimple(this.bucketName).then(schemas => {
       this.schemas = schemas
+    })
+    apiTag.list(this.bucketName).then(tags => {
+      this.tags = tags
     })
   },
   methods: {

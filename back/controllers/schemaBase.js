@@ -55,6 +55,20 @@ class SchemaBase extends Base {
       .toArray()
       .then((schemas) => new ResultData(schemas))
   }
+  /**
+   * 根据标签查找信息列表
+   */
+  async listByTag() {
+    let { tag } = this.request.query
+
+    let find = { type: 'schema', tags: { $elemMatch: { $eq: tag } } }
+    if (this.bucket) find.bucket = this.bucket.name
+
+    return this.clMongoObj
+      .find(find)
+      .toArray()
+      .then((schemas) => new ResultData(schemas))
+  }
 }
 
 module.exports = SchemaBase

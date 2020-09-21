@@ -1,11 +1,7 @@
 <template>
-  <el-dialog
-    :visible.sync="dialogVisible"
-    :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal"
-  >
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <el-input placeholder="自定义选中列的值，不填则值为空" v-model="input" class="input-with-select">
-      <el-select v-model="select" slot="prepend" placeholder="选择列" @change="handleSelect" clearable filterable> 
+      <el-select v-model="select" slot="prepend" placeholder="选择列" @change="handleSelect" clearable filterable>
         <el-option v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k" :label="s.title" :value="k"></el-option>
       </el-select>
     </el-input>
@@ -113,7 +109,6 @@ export default {
     },
     open(collection) {
       this.collection = JSON.parse(JSON.stringify(Object.assign(this.collection, collection)))
-      console.log('this.collection', this.collection)
 			Object.entries(this.collection.schema.body.properties).forEach(([key, value]) => {
 				switch(value.type) {
 					case 'array':
