@@ -3,7 +3,7 @@
     <template v-slot:center>
       <el-table id="tables" :data="documents" stripe ref="multipleTable" :height="tableHeight" @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55" v-if="documents.length&&role==='admin'"></el-table-column>
-        <el-table-column v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k">
+        <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
           <template slot="header">
             <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
             <i v-if="s.required" style="color:red">*</i>
@@ -140,6 +140,7 @@ import DomainEditor from '../../ue_mongo/src/components/DomainEditor.vue'
 import MoveByRulePlugin from '../../ue_mongo/src/plugins/move/Main.vue'
 import createCollectionApi from '../../ue_mongo/src/apis/collection'
 import createDocApi from '../../ue_mongo/src/apis/document'
+import createSchemaApi from '../../ue_mongo/src/apis/schema'
 import apiPlugins from '../../ue_mongo/src/plugins'
 
 const componentOptions = {
@@ -176,7 +177,7 @@ const componentOptions = {
         total: 0
       },
       multipleDocuments: [],
-      collection: { schema: { body: { properties: {} } } },
+      properties: {},
       plugins: { document: { submits: [], transforms: {} } },
       dialogPage: {
         at: 1,
@@ -296,13 +297,13 @@ const componentOptions = {
           this.dialogPage, 
           this.handleCondition(),
           this.listByColumn,
-          this.collection.schema.body.properties[columnName]
+          this.properties[columnName]
         )
         .then(rsl => {
           const { condition, isClear, isCheckBtn } = rsl
           store.commit('conditionAddColumn', { condition })
           if (isClear) store.commit('conditionDelColumn', { condition })
-          let objPro = this.collection.schema.body.properties
+          let objPro = this.properties
           if (isCheckBtn) store.commit('conditionDelBtn', { columnName })
           Object.keys(objPro).map((ele, index) => {
             const attrs = document.querySelectorAll(
@@ -633,13 +634,36 @@ const componentOptions = {
 						store.commit('documents', { documents })
 						this.page.total = result.total
 				})
-		}
+    },
+    async handleProperty() {
+      let tags = (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) || this.collection.tags
+      let default_tag = (process.env.VUE_APP_DEFAULT_TAG && process.env.VUE_APP_DEFAULT_TAG.split(',')) || this.collection.default_tag
+
+      if (default_tag && default_tag.length) {
+        for(let i=0; i<default_tag.length; i++) {
+          let schemas = await createSchemaApi(this.TmsAxios(this.tmsAxiosName)).listByTag(this.bucketName, default_tag[i])
+          schemas.forEach(schema => {
+            Object.assign(this.properties, schema.body.properties)
+          })
+        }
+      } else if (tags && tags.length) {
+        for(let i=0; i<tags.length; i++) {
+          let schemas = await createSchemaApi(this.TmsAxios(this.tmsAxiosName)).listByTag(this.bucketName, tags[i])
+          schemas.forEach(schema => {
+            Object.assign(this.properties, schema.body.properties)
+          })
+        }
+      } else {
+        Object.assign(this.properties, this.collection.schema.body.properties)
+      }
+    }
 	},
 	mounted() {
     createCollectionApi(this.TmsAxios(this.tmsAxiosName))
       .byName(this.bucketName, this.dbName, this.clName)
-      .then(collection => {
+      .then(async collection => {
         this.collection = collection
+        await this.handleProperty()
 				this.listDocument()
 				if (this.role==='admin') {
 					this.listPlugin()

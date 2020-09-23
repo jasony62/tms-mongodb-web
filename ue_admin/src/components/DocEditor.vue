@@ -7,6 +7,7 @@
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
 import { TmsAxios } from 'tms-vue'
 import apiDoc from '../apis/document'
+import apiSchema from '../apis/schema'
 
 export default {
   name: 'DocEditor',
@@ -19,6 +20,7 @@ export default {
     return {
       isSubmit: false,
       dbName: '',
+      body: {},
       collection: null,
       destroyOnClose: true,
       closeOnClickModal: false,
@@ -89,10 +91,34 @@ export default {
           .finally(() => this.isSubmit = false)
       }
     },
-    open(bucketName, dbName, collection, doc) {
+    async handleProperty() {
+      let tags = (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) || this.collection.tags
+      let body = {}
+      if (tags && tags.length) {
+        for(let i=0; i<tags.length; i++) {
+          let schemas = await apiSchema.listByTag(this.bucketName, tags[i])
+          schemas.forEach(schema => {
+            Object.entries(schema.body).forEach(([key, val]) => {
+              if (val && typeof val === 'object') {
+                // 如果属性值为空就不合并
+                if (!body[key]) body[key] = {}
+                if (JSON.stringify(val)!=='{}') Object.assign(body[key], val)
+              } else {
+                body[key] = val
+              }
+            })
+          })
+        }
+        this.body = body
+      } else {
+        Object.assign(this.body, this.collection.schema.body)
+      }
+    },
+    async open(bucketName, dbName, collection, doc) {
       this.bucketName = bucketName
       this.dbName = dbName
       this.collection = collection
+      await this.handleProperty()
       if (doc && doc._id) Object.assign(this.document, doc)
       this.$mount()
       document.body.appendChild(this.$el)

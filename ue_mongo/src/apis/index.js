@@ -3,6 +3,7 @@ import createDb from './database'
 import createSchema from './schema'
 import createCollection from './collection'
 import createDoc from './document'
+import createTag from './tag'
 
 function init(options) {
   return {
@@ -11,7 +12,8 @@ function init(options) {
       db: createDb(options.tmsAxios.api),
       schema: createSchema(options.tmsAxios.api),
       collection: createCollection(options.tmsAxios.api),
-      doc: createDoc(options.tmsAxios.api)
+      doc: createDoc(options.tmsAxios.api),
+      tag: createTag(options.tmsAxios.api)
     }
   }
 }

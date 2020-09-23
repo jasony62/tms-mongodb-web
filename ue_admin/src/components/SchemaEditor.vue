@@ -11,6 +11,11 @@
       <el-form-item label="说明">
         <el-input type="textarea" v-model="schema.description"></el-input>
       </el-form-item>
+      <el-form-item label="标签">
+        <el-select v-model="schema.tags" multiple clearable placeholder="请选择">
+          <el-option v-for="tag in tags " :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
+        </el-select>
+      </el-form-item>
     </el-form>
     <tms-json-schema v-show="activeTab === 'second'" :schema="schema.body" class="schema-editor">
       <template v-slot:extKeywords="props">
@@ -28,6 +33,7 @@
 <script>
 import { JsonSchema as TmsJsonSchema } from 'tms-vue-ui'
 import apiSchema from '../apis/schema'
+import apiTag from '../apis/tag'
 
 export default {
   name: 'SchemaEditor',
@@ -38,19 +44,25 @@ export default {
     schema: {
       type: Object,
       default: function() {
-        return { title: '', description: '', scope: '', body: {} }
+        return { title: '', description: '', scope: '', tags: [], body: {} }
       }
     }
   },
   data() {
     return {
       activeTab: 'first',
+      tags: [],
       destroyOnClose: true,
       closeOnClickModal: false,
       extendSchema: (vm, schema) => {
         vm.$set(schema, 'readonly', false)
       }
     }
+  },
+  mounted() {
+    apiTag.list(this.bucketName).then(tags => {
+      this.tags = tags
+    })
   },
   methods: {
     onTabClick() {},

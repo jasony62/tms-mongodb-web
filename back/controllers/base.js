@@ -1,9 +1,15 @@
-const { Ctrl, ResultFault, ResultObjectNotFound } = require('tms-koa')
+const {
+  Ctrl,
+  ResultFault,
+  ResultObjectNotFound
+} = require('tms-koa')
 
 function allowAccessBucket (bucket, clientId) {
   if (bucket.creator === clientId) return true
 
-  const { coworkers } = bucket
+  const {
+    coworkers
+  } = bucket
 
   if (!Array.isArray(coworkers)) return false
 
@@ -24,7 +30,9 @@ class Base extends Ctrl {
       // 检查bucket是否存在
       const client = this.mongoClient
       const clBucket = client.db('tms_admin').collection('bucket')
-      const bucket = await clBucket.findOne({ name: bucketName })
+      const bucket = await clBucket.findOne({
+        name: bucketName
+      })
       if (!bucket) {
         return new ResultObjectNotFound('指定的bucket不存在')
       }

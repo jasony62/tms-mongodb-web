@@ -189,18 +189,16 @@ class DocBase extends Base {
   /**
    * 批量删除
    */
-  async removeMany() {
-    const existDb = await this.docHelper.findRequestDb()
+  async removeMany(ctx, cl = null, existDb = null, docIds = null) {
+    let filter, clName
+    if (!cl && !docIds) {
+      filter = this.request.body.filter
+      clName = this.request.query.cl
+      existDb = await this.docHelper.findRequestDb()
+    }
 
-    let {
-      cl: clName,
-      transforms
-    } = this.request.query
-    const {
-      docIds,
-      filter
-    } = this.request.body
-    let cl = this.mongoClient.db(existDb.sysname).collection(clName)
+    docIds = docIds || this.request.body.docIds
+    cl = cl || this.mongoClient.db(existDb.sysname).collection(clName)
 
     let find, operate_type
     if (docIds && docIds.length > 0) {
@@ -229,46 +227,6 @@ class DocBase extends Base {
         n: 0,
         ok: 0
       })
-    }
-
-    // 删除前需要执行的插件
-    if (typeof transforms === 'string' && transforms.length !== 0) {
-      let transforms2 = transforms.split(',')
-      if (fs.existsSync(process.cwd() + '/config/plugins.js')) {
-        let plugins = require(process.cwd() + '/config/plugins')
-        let removeTransformDoc = _.get(
-          plugins,
-          'document.transforms.removeMany'
-        )
-        if (removeTransformDoc && Array.isArray(removeTransformDoc)) {
-          let datas = await cl.find(find).toArray() // 获取原数据
-          let notRemoveDatas // 经插件处理后不能删除 的数据
-          for (const tf of removeTransformDoc) {
-            if (!transforms2.includes(tf.name)) continue
-            if (fs.existsSync(process.cwd() + '/' + tf.name + '.js')) {
-              let func = require(process.cwd() + '/' + tf.name)
-              tf.existDb = existDb
-              tf.cl = clName
-              notRemoveDatas = await func(datas, notRemoveDatas, tf)
-            }
-          }
-          if (typeof notRemoveDatas === 'string' && notRemoveDatas === 'ALL')
-            return new ResultFault('删除失败！不满足所选插件的要求')
-          if (Array.isArray(notRemoveDatas) && notRemoveDatas.length > 0) {
-            let notRemoveDataIds = []
-            notRemoveDatas.forEach(nrd => {
-              notRemoveDataIds.push(new ObjectId(nrd._id))
-            })
-            find['$and'] = [{
-              _id: {
-                $not: {
-                  $in: notRemoveDataIds
-                }
-              }
-            }]
-          }
-        }
-      }
     }
 
     let total = await cl.find(find).count()
@@ -359,6 +317,7 @@ class DocBase extends Base {
       }
       for (const k in newClSchema) {
         if (!doc[k]) {
+          //存在默认值
           newd[k] = newClSchema[k].default || ''
         } else {
           newd[k] = doc[k]
@@ -499,6 +458,7 @@ class DocBase extends Base {
     const gets = model === 'toLabel' ? 'value' : 'label'
     const sets = model === 'toLabel' ? 'label' : 'value'
     logger.info('data数据源', data)
+
     Object.keys(columns).forEach(ele => {
       // 输入框
       if (columns[ele].type === 'string' && data.length) {
@@ -518,7 +478,6 @@ class DocBase extends Base {
             columns[ele].enum.forEach(childItem => {
               if (enums.includes(childItem[gets])) arr.push(childItem[sets])
             })
-
             // 当且仅当导入多选选项，enums与集合列定义存在差集，则失败
             if (model === 'toValue' && enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)).length) {
               logger.info('存在差集', enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)))
@@ -798,7 +757,6 @@ class DocBase extends Base {
    */
   async updateMany() {
     const existDb = await this.docHelper.findRequestDb()
-
     let {
       cl: clName
     } = this.request.query

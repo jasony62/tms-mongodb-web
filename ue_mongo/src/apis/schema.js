@@ -7,6 +7,12 @@ export default function create(tmsAxios) {
       return tmsAxios
         .get(`${base}/list`, { params })
         .then(rst => rst.data.result)
+    },
+    listByTag(bucket, tagName) {
+      const params = { bucket, tag: tagName }
+      return tmsAxios
+        .get(`${base}/listByTag`, { params })
+        .then(rst => rst.data.result)
     }
   }
 }
