@@ -10,33 +10,30 @@
     <template v-slot:center>
       <el-table id="tables" :data="documents" stripe ref="multipleTable" :height="tableHeight" @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55"></el-table-column>
-        <el-table-column
-          v-for="(s, k) in collection.schema.body.properties"
-          :key="k"
-          :prop="k">
-					<template slot="header">
-						<i v-if="s.description" class="el-icon-info" :title="s.description"></i>
-						<i v-if="s.required" style="color:red">*</i>
-						<span> {{s.title}} </span>
-						<img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
+        <el-table-column v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k">
+          <template slot="header">
+            <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
+            <i v-if="s.required" style="color:red">*</i>
+            <span> {{s.title}} </span>
+            <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
           </template>
           <template slot-scope="scope">
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
-						<span v-else-if="s.type==='array'&&s.format==='file'">
-							<span v-for="(i, v) in scope.row[k]" :key="v">
-								<a href @click="handleDownload(i)">{{i.name}}</a><br/>
-							</span>
-						</span>
+            <span v-else-if="s.type==='array'&&s.format==='file'">
+              <span v-for="(i, v) in scope.row[k]" :key="v">
+                <a href @click="handleDownload(i)">{{i.name}}</a><br />
+              </span>
+            </span>
             <span v-else-if="s.type === 'array' && s.enum">
-							<span v-for="(i, v) in s.enum" :key="v">
+              <span v-for="(i, v) in s.enum" :key="v">
                 <span v-if="scope.row[k] && scope.row[k].includes(i.value)">{{i.label}}&nbsp;</span>
-							</span>
-						</span>
+              </span>
+            </span>
             <span v-else-if="s.type === 'string' && s.enum">
-							<span v-for="(i, v) in s.enum" :key="v">
+              <span v-for="(i, v) in s.enum" :key="v">
                 <span v-if="scope.row[k] === i.value">{{i.label}}</span>
-							</span>
-						</span>
+              </span>
+            </span>
             <span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
@@ -69,7 +66,7 @@
         <el-upload action="#" :show-file-list="false" :http-request="importDocument">
           <el-button>导入数据</el-button>
         </el-upload>
-				<el-dropdown @command="exportDocument" placement="bottom-start">
+        <el-dropdown @command="exportDocument" placement="bottom-start">
           <el-button>导出数据<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -115,7 +112,7 @@
             </el-dropdown-menu>
           </el-dropdown>
         </div>
-        <div v-for="(s, i) in pluginData" :key="i">
+        <div v-for="(s, i) in computedPluginData" :key="i">
           <el-button @click="handlePlugins(s, null)" v-if="!s[2].batch">{{s[2].name}}</el-button>
           <el-dropdown v-if="s[2].batch">
             <el-button>{{s[2].name}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
@@ -186,7 +183,11 @@ import ColumnValueEditor from '../components/ColumnValueEditor.vue'
 import DomainEditor from '../components/DomainEditor.vue'
 import SelectCondition from '../components/SelectCondition.vue'
 import MoveByRulePlugin from '../plugins/move/Main.vue'
-import { collection as apiCol, doc as apiDoc, plugin as apiPlugin } from '../apis'
+import {
+  collection as apiCol,
+  doc as apiDoc,
+  plugin as apiPlugin
+} from '../apis'
 import apiPlugins from '../plugins'
 
 export default {
@@ -222,6 +223,13 @@ export default {
     },
     totalByChecked() {
       return this.multipleDocuments.length
+    },
+    computedPluginData() {
+      const currentAuth = this.getCurrentAuth()
+      if (!currentAuth) return []
+      return this.pluginData.filter(
+        item => item[2].auth && item[2].auth.includes(currentAuth)
+      )
     }
   },
   methods: {
@@ -230,6 +238,13 @@ export default {
       'conditionDelBtn',
       'conditionDelColumn'
     ]),
+    /**
+     * @description 获取当前页面权限
+     * @return {String}
+     */
+    getCurrentAuth() {
+      return '*'
+    },
     handleCondition() {
       let _obj = JSON.parse(JSON.stringify(this.conditions))
       if (!_obj.length) {
@@ -241,36 +256,33 @@ export default {
           orderBy: _obj[0].rule.orderBy
         }
       }
-      return _obj
-        .map(ele => ele.rule)
-        .reduce((prev, curr) => {
-          return {
-            filter: Object.assign(prev.filter, curr.filter),
-            orderBy: Object.assign(prev.orderBy, curr.orderBy)
-          }
-        })
+      return _obj.map(ele => ele.rule).reduce((prev, curr) => {
+        return {
+          filter: Object.assign(prev.filter, curr.filter),
+          orderBy: Object.assign(prev.orderBy, curr.orderBy)
+        }
+      })
     },
     listByColumn(
-      columnName, 
-      filter, 
-      orderBy, 
-      at, 
-      size, 
-      bucketName = this.bucketName, 
-      dbName = this.dbName, 
+      columnName,
+      filter,
+      orderBy,
+      at,
+      size,
+      bucketName = this.bucketName,
+      dbName = this.dbName,
       clName = this.clName
     ) {
-      return apiDoc
-          .byColumnVal(
-            bucketName, 
-            dbName, 
-            clName, 
-            columnName, 
-            filter, 
-            orderBy, 
-            at, 
-            size
-          )
+      return apiDoc.byColumnVal(
+        bucketName,
+        dbName,
+        clName,
+        columnName,
+        filter,
+        orderBy,
+        at,
+        size
+      )
     },
     handleSelect(obj, columnName) {
       this.dialogPage.at = 1
@@ -290,26 +302,24 @@ export default {
         filter = rule.filter
         orderBy = rule.orderBy
       }
-      this
-        .listByColumn(
-          columnName,
-          this.conditions.length ? filter: undefined,
-          this.conditions.length ? orderBy: undefined,
-          this.dialogPage.at,
-          this.dialogPage.size
-        )
-        .then(columnResult => {
-          select.condition.selectResult = columnResult
-          select.condition.multipleSelection = columnResult
-          // 暂时先用延迟解决，该方法还需改进
-          setTimeout(() => {
-            select.toggleSelection(columnResult)
-          }, 0)
-        })
+      this.listByColumn(
+        columnName,
+        this.conditions.length ? filter : undefined,
+        this.conditions.length ? orderBy : undefined,
+        this.dialogPage.at,
+        this.dialogPage.size
+      ).then(columnResult => {
+        select.condition.selectResult = columnResult
+        select.condition.multipleSelection = columnResult
+        // 暂时先用延迟解决，该方法还需改进
+        setTimeout(() => {
+          select.toggleSelection(columnResult)
+        }, 0)
+      })
       select
         .open(
-          columnName, 
-          this.dialogPage, 
+          columnName,
+          this.dialogPage,
           this.handleCondition(),
           this.listByColumn,
           this.collection.schema.body.properties[columnName]
@@ -321,9 +331,7 @@ export default {
           let objPro = this.collection.schema.body.properties
           if (isCheckBtn) this.$store.commit('conditionDelBtn', { columnName })
           Object.keys(objPro).map((ele, index) => {
-            const attrs = document.querySelectorAll(
-              '#tables thead img'
-            )[index]
+            const attrs = document.querySelectorAll('#tables thead img')[index]
             if (ele === columnName) {
               if (isClear) {
                 attrs.src = require('../assets/icon_filter.png')
@@ -370,13 +378,17 @@ export default {
     listPlugin() {
       apiPlugins.plugin.list().then(plugins => {
         if (JSON.stringify(plugins) !== '{}') {
-					if (plugins.document.transforms) {
-						this.moveCheckList = plugins.document.transforms.move.map(option => option.name)
-						plugins.document.submits.forEach(submit => {
-							let transforms = plugins.document.transforms[submit.id]
-							submit.checkList = transforms ? transforms.map(item => item.name) : []
-						})
-					}
+          if (plugins.document.transforms) {
+            this.moveCheckList = plugins.document.transforms.move.map(
+              option => option.name
+            )
+            plugins.document.submits.forEach(submit => {
+              let transforms = plugins.document.transforms[submit.id]
+              submit.checkList = transforms
+                ? transforms.map(item => item.name)
+                : []
+            })
+          }
           this.plugins = plugins
         }
       })
@@ -399,11 +411,15 @@ export default {
           this.page.total = result.result.total
           this.tableHeight = window.innerHeight * 0.8
         })
-		},
-		handleDownload(file) {
-			const access_token = sessionStorage.getItem('access_token')
-      window.open(`${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`)
-		},
+    },
+    handleDownload(file) {
+      const access_token = sessionStorage.getItem('access_token')
+      window.open(
+        `${process.env.VUE_APP_BACK_API_FS}${
+          file.url
+        }?access_token=${access_token}`
+      )
+    },
     createDocument() {
       let editor = new Vue(DocEditor)
       editor.open(this.bucketName, this.dbName, this.collection).then(() => {
@@ -612,18 +628,23 @@ export default {
         .then(() => {
           this.listDocument()
           setTimeout(() => msg.close(), 1000)
-        }).catch(() => {
+        })
+        .catch(() => {
           setTimeout(() => msg.close(), 1000)
         })
     },
     exportDocument(command) {
-			let { param } = this.fnSetReqParam(command)
-      apiDoc.export(this.bucketName, this.dbName, this.clName, param).then(result => {
-        const access_token = sessionStorage.getItem('access_token')
-        window.open(
-          `${process.env.VUE_APP_BACK_API_FS}${result}?access_token=${access_token}`
-        )
-      })
+      let { param } = this.fnSetReqParam(command)
+      apiDoc
+        .export(this.bucketName, this.dbName, this.clName, param)
+        .then(result => {
+          const access_token = sessionStorage.getItem('access_token')
+          window.open(
+            `${
+              process.env.VUE_APP_BACK_API_FS
+            }${result}?access_token=${access_token}`
+          )
+        })
     },
     pluginOfMoveByRule(transforms) {
       let confirm, config
@@ -642,7 +663,7 @@ export default {
       })
     },
     handlePlugin(submit, type) {
-      let transforms = submit.checkList ? submit.checkList.join(',') : ""
+      let transforms = submit.checkList ? submit.checkList.join(',') : ''
       let { param } = type ? this.fnSetReqParam(type) : { param: null }
       switch (submit.id) {
         case 'moveByRule':
@@ -653,7 +674,9 @@ export default {
       }
     },
     async handlePlugins(s, type) {
-      const { param: postParams } = type ? this.fnSetReqParam(type) : { param: null }
+      const { param: postParams } = type
+        ? this.fnSetReqParam(type)
+        : { param: null }
       const isType = Object.prototype.toString
       const obj = '[object Object]'
       let getParams = {
@@ -665,20 +688,29 @@ export default {
       if (s[2].isConfirm) {
         await MessageBox.confirm(s[2].confirmMsg, '提示', {
           confirmButtonText: s[2].confirmText || '确定',
-          cancelButtonText: s[2].cancelText || '取消',
+          cancelButtonText: s[2].cancelText || '取消'
         })
           .then(() => {
-            Object.assign(getParams, s[2].successParams && isType.call(s[2].successParams) === obj ? s[2].successParams : {})
+            Object.assign(
+              getParams,
+              s[2].successParams && isType.call(s[2].successParams) === obj
+                ? s[2].successParams
+                : {}
+            )
           })
           .catch(() => {
-            Object.assign(getParams, s[2].failParams && isType.call(s[2].failParams) === obj ? s[2].failParams : {})
+            Object.assign(
+              getParams,
+              s[2].failParams && isType.call(s[2].failParams) === obj
+                ? s[2].failParams
+                : {}
+            )
           })
       }
       let params = [postParams, getParams]
-      apiPlugin
-        .handlePlugin(...params).then(() => {
-          this.listDocument()
-        })
+      apiPlugin.handlePlugin(...params).then(() => {
+        this.listDocument()
+      })
     },
     handleSize(val) {
       this.page.size = val
@@ -698,11 +730,10 @@ export default {
         this.listDocument()
         this.listPlugin()
       })
-    apiPlugin
-      .getPlugins().then(res => {
-        console.log(res)
-        this.pluginData = res
-      })
+    apiPlugin.getPlugins().then(res => {
+      console.log(res)
+      this.pluginData = res
+    })
   },
   beforeDestroy() {
     this.conditionReset()

@@ -10,6 +10,7 @@ const modelBase = require('../models/mgdb/base')
 const modelColl = require('../models/mgdb/collection')
 const _ = require('lodash')
 const ObjectId = require('mongodb').ObjectId
+const modelDocu = require('../models/mgdb/document')
 const fs = require('fs')
 const path = require('path')
 const log4js = require('log4js')
@@ -136,6 +137,7 @@ class Plugin extends Base {
       const { code, data: dataRes, msg } = res.data
       if(code !== 0) return resolve(new ResultFault(msg))
       
+      if(!dataRes.length) return resolve(new ResultData(dataRes))
       // Plugin.checkCol()
       const oprateRes = await Plugin.operateData(Plugin.operateType.updateMany, dataRes, cl)
       
@@ -156,32 +158,39 @@ class Plugin extends Base {
    */
   async receive() {
     const { dbName, clName, module } = this.request.query
-    const { event, eventType } = this.request.body
+    const { event, eventType, list, msg } = this.request.body
     if(!dbName || !clName) return new ResultFault('缺少dbName或clName')
     if (!module) return new ResultFault('不存在该模块')
+    if(!list.length) return new ResultData(msg || '暂无数据')
 
-    let params
     const existDb = await this.pluginHelper.findRequestDb(true, dbName)
     const cl = this.mongoClient.db(existDb.sysname).collection(clName)
-    console.log('cl', await cl.find().toArray())
+    
+    let params
+    
+
     logger.info('获取query参数',  this.request.query)
     logger.info('获取body参数',  this.request.body)
 
     // 读取receiveConfig配置
     const { receiveConfig: pluginConfig } = PluginConfig.ins()
-    logger.info('获取receiveConfig配置信息', pluginConfig)
+    // logger.info('获取receiveConfig配置信息', pluginConfig)
 
-    let dataRes = {}
-    Object.keys(this.request.body).filter(key => !['code', 'msg'].includes(key)).forEach(key => dataRes[key] = this.request.body[key])
-    logger.info('获取当前数据', dataRes)
-
-    const currentCfg = pluginConfig[module].find(ele => ele.event === event && ele.eventType === eventType)
+    const currentCfg = pluginConfig[module].find(ele => ele.event === event && ele.eventType.includes(eventType))
     logger.info('获取当前接口配置信息', currentCfg)
+    
+    // 获取集合属性
+    if(currentCfg.docSchemas) params = await Plugin.getSchemas(existDb, clName)
 
     const { callback, quota } = currentCfg
+    
     // Plugin.checkCol()
-    const oprateRes = await Plugin.operateData(Plugin.operateType.updateOne, dataRes, cl, quota)
+    const oprateRes = await Plugin.operateData(Plugin.operateType.updateMany, list, cl, quota)
     if (!oprateRes[0]) return new ResultFault(oprateRes[1])
+
+    // 日志记录
+    let resLog = true
+    if(!currentCfg.noActionLog) resLog = await Plugin.recordActionLog(list, currentCfg.name, existDb.name, clName, clName, existDb.name, clName, clName)
 
     const resCB = Plugin.isExistCallback(callback)
     if(!resCB[0]) return new ResultData(resCB[1])
@@ -189,6 +198,24 @@ class Plugin extends Base {
     return Plugin.executeCallback(this, callback, oprateRes, params, cl, existDb, clName)
   }
 
+  /**
+   * @description 日志记录
+   * @param  {any} oDatas
+   * @param  {String} operate_type
+   * @param  {String}  dbname
+   * @param  {String}  sysname
+   * @param  {String}  clname
+   * @param  {String}  operate_after_dbname
+   * @param  {String}  operate_after_sysname
+   * @param  {String}  operate_after_clname
+   * @param  {Object}  operate_before_data
+   */
+  static async recordActionLog(...params){
+    logger.info(`日志记录-${params[1]}`)
+    // 记录日志
+    let modelD = new modelDocu()
+    return await modelD.dataActionLog(...params)
+  }
 
   static splitGetParams(params, url) {
     let getParams = JSON.parse(JSON.stringify(params))
@@ -214,7 +241,7 @@ class Plugin extends Base {
 
   /**
    * @description 执行发送/接受的回调函数
-   * @param {*} content 当前上下文
+   * @param {object} content 当前上下文
    * @param {function} callback 
    * @param {array} oprateRes 入库后的数据
    * @param {object} params 
@@ -223,13 +250,13 @@ class Plugin extends Base {
    * @param {*} clName 
    * @param {*} resolve 
    */
-  static executeCallback(content, callback, oprateRes, params = {}, cl, existDb, clName, resolve = Promise.resolve) {
+  static async executeCallback(content, callback, oprateRes, params = {}, cl, existDb, clName, resolve) {
     const { ctx, client, dbContext, mongoClient, mongoose } = content
     const { path, callbackName } = callback
     let currentCtro = require(path)
     let currentClass = new currentCtro(ctx, client, dbContext, mongoClient, mongoose)
-    const res = currentClass[callbackName](oprateRes[1], oprateRes[2], params.colExtendProps, cl, existDb, clName)
-    return resolve(res)
+    const res = await currentClass[callbackName](oprateRes[1], oprateRes[2], params.colExtendProps, cl, existDb, clName)
+    return resolve ? resolve(res) : res
   }
 
   static isExistCallback(callback) {
@@ -248,7 +275,7 @@ class Plugin extends Base {
 
   /**
    * @description 操作mongodb数据
-   * @param {object} operateType - 操作类型，以静态属性operateType定义为准
+   * @param {string} operateType - 操作类型，以静态属性operateType定义为准
    * @param {object} data - 新数据
    * @param {*} cl 
    * @param {string} quota - 更新mongodb指标 
@@ -256,7 +283,7 @@ class Plugin extends Base {
   static async operateData(operateType, data, cl, quota = '_id') {
     switch (operateType) {
       case Plugin.operateType.updateMany:
-        logger.info('批量更新')
+        logger.info('开始批量更新')
         let arr = []
         let docIds = []
         if (quota === '_id') {
@@ -285,8 +312,10 @@ class Plugin extends Base {
           })
         }
         return Promise.all(arr).then(() => {
+          logger.info('批量更新成功')
           return [true, data, docIds]
         }).catch(err => {
+          logger.info('批量更新失败', err)
           return [false, err]
         })
       case Plugin.operateType.updateOne:
@@ -301,6 +330,7 @@ class Plugin extends Base {
                   return [false, err]
                 })
     }
+    
   }
 
   /**
@@ -334,4 +364,5 @@ class Plugin extends Base {
   }
 }
 
+Plugin.tmsAuthTrustedHosts = true
 module.exports = Plugin
