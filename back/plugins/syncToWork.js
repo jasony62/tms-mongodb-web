@@ -206,6 +206,14 @@ class SyncToWork extends Base {
             insStatus += "extern_flag,"
             flag = true
           }
+          if (!schema.call_url_yzj || !tel.call_url_yzj) {
+            insStatus += "call_url_yzj,"
+            flag = true
+          }
+          if (!schema.extern_flag_yzj || !tel.extern_flag_yzj) {
+            insStatus += "extern_flag_yzj,"
+            flag = true
+          }
         }
         if (flag) {
           abnormalTotal++
@@ -309,10 +317,10 @@ class SyncToWork extends Base {
         postData.recyzjFlag = tel.recyzj_flag
         postData.costMonth = tel.discostmonth_yzj ? tel.discostmonth_yzj : tel.costmonth_yzj
         postData.costCall = tel.discostcall_yzj ? tel.discostcall_yzj : tel.costcall_yzj
+        postData.requestUrl = tel.recyzj_flag === 'Y' ? tel.call_url : tel.call_url_yzj
+        postData.externFlag = tel.recyzj_flag === 'N' ? tel.extern_flag : tel.extern_flag_yzj
         if (tel.recyzj_flag === 'Y') {
-          postData.requestUrl = tel.call_url
           postData.cdrPushUrl = tel.cdrpush_url
-          postData.externFlag = tel.extern_flag
         }
       }
 
