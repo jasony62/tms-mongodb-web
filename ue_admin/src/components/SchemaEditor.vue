@@ -17,7 +17,7 @@
         </el-select>
       </el-form-item>
     </el-form>
-    <tms-json-schema v-show="activeTab === 'second'" :schema="schema.body" class="schema-editor">
+    <tms-json-schema v-show="activeTab === 'second'" :schema="schema.body" :extendSchema="extendSchema" :on-upload="onUploadFile" class="schema-editor">
       <template v-slot:extKeywords="props">
         <el-form-item label="不可修改">
           <el-switch v-model="props.schema.readonly"></el-switch>
@@ -34,6 +34,7 @@
 import { JsonSchema as TmsJsonSchema } from 'tms-vue-ui'
 import apiSchema from '../apis/schema'
 import apiTag from '../apis/tag'
+import apiDoc from '../apis/document'
 
 export default {
   name: 'SchemaEditor',
@@ -55,7 +56,7 @@ export default {
       destroyOnClose: true,
       closeOnClickModal: false,
       extendSchema: (vm, schema) => {
-        vm.$set(schema, 'readonly', false)
+        vm.$set(schema, 'readonly', schema.readonly || false)
       }
     }
   },
@@ -65,6 +66,17 @@ export default {
     })
   },
   methods: {
+    onUploadFile(file) {
+      let fileData = new FormData()
+      fileData.append('file', file)
+      const config = { 'Content-Type': 'multipart/form-data' }
+      return apiDoc
+        .upload({ bucket: this.bucketName }, fileData, config)
+        .then(uploadUrl => {         
+          return {name: file.name, url: uploadUrl}      
+        })
+        .catch(error => { throw error })
+    },
     onTabClick() {},
     onSubmit() {
       if (this.schema._id) {
