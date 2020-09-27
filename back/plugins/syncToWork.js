@@ -206,7 +206,7 @@ class SyncToWork extends Base {
             insStatus += "extern_flag,"
             flag = true
           }
-          if (tel.extern_flag) {
+          if (tel.extern_flag === '1') {
             if (!tel.call_url) {
               insStatus += "call_url,"
               flag = true
@@ -222,7 +222,7 @@ class SyncToWork extends Base {
             insStatus += "extern_flag_yzj,"
             flag = true
           }
-          if (tel.extern_flag_yzj) {
+          if (tel.extern_flag_yzj === '1') {
             if (!tel.call_url_yzj) {
               insStatus += "call_url_yzj,"
               flag = true
