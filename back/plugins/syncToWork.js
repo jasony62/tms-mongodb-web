@@ -198,7 +198,7 @@ class SyncToWork extends Base {
           flag = true
         }
         if (tel.recyzj_flag === 'Y') {
-          if (!schema.call_url || !tel.call_url) {
+          if (!schema.call_url) {
             insStatus += "call_url,"
             flag = true
           }
@@ -206,13 +206,27 @@ class SyncToWork extends Base {
             insStatus += "extern_flag,"
             flag = true
           }
-          if (!schema.call_url_yzj || !tel.call_url_yzj) {
+          if (tel.extern_flag) {
+            if (!tel.call_url) {
+              insStatus += "call_url,"
+              flag = true
+            }
+          }
+        }
+        if (tel.recyzj_flag === 'N') {
+          if (!schema.call_url_yzj) {
             insStatus += "call_url_yzj,"
             flag = true
           }
           if (!schema.extern_flag_yzj || !tel.extern_flag_yzj) {
             insStatus += "extern_flag_yzj,"
             flag = true
+          }
+          if (tel.extern_flag_yzj) {
+            if (!tel.call_url_yzj) {
+              insStatus += "call_url_yzj,"
+              flag = true
+            }
           }
         }
         if (flag) {
@@ -317,10 +331,20 @@ class SyncToWork extends Base {
         postData.recyzjFlag = tel.recyzj_flag
         postData.costMonth = tel.discostmonth_yzj ? tel.discostmonth_yzj : tel.costmonth_yzj
         postData.costCall = tel.discostcall_yzj ? tel.discostcall_yzj : tel.costcall_yzj
-        postData.requestUrl = tel.recyzj_flag === 'Y' ? tel.call_url : tel.call_url_yzj
-        postData.externFlag = tel.recyzj_flag === 'N' ? tel.extern_flag : tel.extern_flag_yzj
         if (tel.recyzj_flag === 'Y') {
           postData.cdrPushUrl = tel.cdrpush_url
+          postData.externFlag = tel.extern_flag
+          if (tel.extern_flag === '1') {
+            postData.requestUrl = tel.call_url
+          }
+
+        }
+        if (tel.recyzj_flag === 'N') {
+          postData.cdrPushUrl = tel.cdrpush_url
+          postData.externFlag = tel.extern_flag_yzj
+          if (tel.extern_flag === '1') {
+            postData.requestUrl = tel.call_url_yzj
+          }
         }
       }
 
