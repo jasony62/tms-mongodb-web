@@ -29,5 +29,12 @@ module.exports = {
       title: process.env.VUE_APP_TITLE,
       chunks: ['chunk-vendors', 'chunk-common', 'index']
     }
+  },
+  productionSourceMap: process.env.NODE_ENV !== 'production',
+  configureWebpack: config => {
+    // 生产环境
+    if (config.mode === 'production') {
+
+    }
   }
 }

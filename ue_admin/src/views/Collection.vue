@@ -288,7 +288,7 @@ export default {
           return temp
         })
         .catch(err => {
-          return new Error(err)
+          throw new Error(err)
         })
     },
     async handleProperty() {
@@ -301,21 +301,13 @@ export default {
         collection.default_tag
       let temp
       if (default_tag && default_tag.length) {
-        await this.getTaglist(default_tag)
-          .then(res => {
-            temp = res
-          })
-          .catch(err => {
-            return err
-          })
+        await this.getTaglist(default_tag).then(res => {
+          temp = res
+        })
       } else if (tags && tags.length) {
-        await this.getTaglist(tags)
-          .then(res => {
-            temp = res
-          })
-          .catch(err => {
-            return err
-          })
+        await this.getTaglist(tags).then(res => {
+          temp = res
+        })
       } else {
         Object.assign(temp, collection.schema.body.properties)
       }
