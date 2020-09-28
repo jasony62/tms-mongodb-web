@@ -38,11 +38,11 @@ const LoginSchema = [
 ]
 Vue.use(Login, { schema: LoginSchema, fnGetCaptcha, fnGetToken: fnGetJwt })
 
-const LoginPromise = (function() {
+const LoginPromise = (function () {
   let login = new Login(LoginSchema, fnGetCaptcha, fnGetJwt)
-  let ins = new TmsLockPromise(function() {
+  let ins = new TmsLockPromise(function () {
     return login
-      .showAsDialog(function(res) {
+      .showAsDialog(function (res) {
         Message({ message: res.msg, type: 'error', customClass: 'mzindex' })
       })
       .then(token => {
@@ -68,7 +68,6 @@ function getAccessToken() {
 
 function onRetryAttempt(res) {
   if (res.data.code === 20001) {
-    console.log(11)
     return LoginPromise.wait().then(() => {
       return true
     })
@@ -80,7 +79,7 @@ function onResultFault(res) {
   Message({
     showClose: true,
     message: res.data.msg,
-		duration: 3000,
+    duration: 3000,
     type: 'error'
   })
   return Promise.reject(new TmsIgnorableError(res.data))
@@ -111,7 +110,7 @@ Vue.TmsAxios({ name: 'auth-api' })
 Vue.directive('loadmore', {
   bind(el, binding) {
     const selectWrap = el.querySelector('.el-table__body-wrapper')
-    selectWrap.addEventListener('scroll', function() {
+    selectWrap.addEventListener('scroll', function () {
       const scrollDistance =
         this.scrollHeight - this.scrollTop - this.clientHeight
       if (scrollDistance <= 0) {

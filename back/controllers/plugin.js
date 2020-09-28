@@ -190,12 +190,12 @@ class Plugin extends Base {
 
     // 日志记录
     let resLog = true
-    if(!currentCfg.noActionLog) resLog = await Plugin.recordActionLog(list, currentCfg.name, existDb.name, clName, clName, existDb.name, clName, clName)
+    if(!currentCfg.noActionLog) resLog = await Plugin.recordActionLog(list, currentCfg.name, existDb.name, existDb.sysname, clName)
 
     const resCB = Plugin.isExistCallback(callback)
     if(!resCB[0]) return new ResultData(resCB[1])
 
-    return Plugin.executeCallback(this, callback, oprateRes, params, cl, existDb, clName)
+    return Plugin.executeCallback(this, callback, oprateRes, params, cl, existDb, clName, undefined, this.request.query)
   }
 
   /**
@@ -255,7 +255,16 @@ class Plugin extends Base {
     const { path, callbackName } = callback
     let currentCtro = require(path)
     let currentClass = new currentCtro(ctx, client, dbContext, mongoClient, mongoose)
-    const res = await currentClass[callbackName](oprateRes[1], oprateRes[2], params.colExtendProps, cl, existDb, clName)
+    const options = {
+      data: oprateRes[1], 
+      docIds: oprateRes[2], 
+      colExtendProps: params.colExtendProps, 
+      cl, 
+      existDb, 
+      clName,
+      query: content.request.query
+    }
+    const res = await currentClass[callbackName](options)
     return resolve ? resolve(res) : res
   }
 

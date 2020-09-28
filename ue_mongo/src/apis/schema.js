@@ -8,5 +8,11 @@ export default {
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/list`, { params })
       .then(rst => rst.data.result)
+  },
+  listByTag(bucket, tagName) {
+    const params = { bucket, tag: tagName }
+    return TmsAxios.ins('mongodb-api')
+      .get(`${base}/listByTag`, { params })
+      .then(rst => rst.data.result)
   }
 }

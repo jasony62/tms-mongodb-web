@@ -10,7 +10,7 @@
     <template v-slot:center>
       <el-table id="tables" :data="documents" stripe ref="multipleTable" :height="tableHeight" @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55"></el-table-column>
-        <el-table-column v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k">
+        <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
           <template slot="header">
             <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
             <i v-if="s.required" style="color:red">*</i>
@@ -186,9 +186,12 @@ import MoveByRulePlugin from '../plugins/move/Main.vue'
 import {
   collection as apiCol,
   doc as apiDoc,
-  plugin as apiPlugin
+  plugin as apiPlugin,
+  schema as apiSchema
 } from '../apis'
 import apiPlugins from '../plugins'
+
+const collection = {}
 
 export default {
   name: 'Collection',
@@ -204,7 +207,7 @@ export default {
         total: 0
       },
       multipleDocuments: [],
-      collection: { schema: { body: { properties: {} } } },
+      properties: {},
       plugins: { document: { submits: [], transforms: {} } },
       dialogPage: {
         at: 1,
@@ -322,13 +325,13 @@ export default {
           this.dialogPage,
           this.handleCondition(),
           this.listByColumn,
-          this.collection.schema.body.properties[columnName]
+          this.properties[columnName]
         )
         .then(rsl => {
           const { condition, isClear, isCheckBtn } = rsl
           this.$store.commit('conditionAddColumn', { condition })
           if (isClear) this.$store.commit('conditionDelColumn', { condition })
-          let objPro = this.collection.schema.body.properties
+          let objPro = this.properties
           if (isCheckBtn) this.$store.commit('conditionDelBtn', { columnName })
           Object.keys(objPro).map((ele, index) => {
             const attrs = document.querySelectorAll('#tables thead img')[index]
@@ -422,14 +425,14 @@ export default {
     },
     createDocument() {
       let editor = new Vue(DocEditor)
-      editor.open(this.bucketName, this.dbName, this.collection).then(() => {
+      editor.open(this.bucketName, this.dbName, collection).then(() => {
         this.listDocument()
       })
     },
     editDocument(doc) {
       let editor = new Vue(DocEditor)
       editor
-        .open(this.bucketName, this.dbName, this.collection, doc)
+        .open(this.bucketName, this.dbName, collection, doc)
         .then(newDoc => {
           Object.assign(doc, newDoc)
           this.$store.commit({
@@ -468,15 +471,10 @@ export default {
       let { param } = this.fnSetReqParam(command),
         editor
       editor = new Vue(ColumnValueEditor)
-      editor.open(this.collection).then(columns => {
+      editor.open(collection).then(columns => {
         Object.assign(param, { columns })
         apiDoc
-          .batchUpdate(
-            this.bucketName,
-            this.dbName,
-            this.collection.name,
-            param
-          )
+          .batchUpdate(this.bucketName, this.dbName, collection.name, param)
           .then(result => {
             Message.success({ message: '已成功修改' + result.n + '条' })
             this.listDocument()
@@ -720,18 +718,64 @@ export default {
     handleCurrentPage(val) {
       this.page.at = val
       this.listDocument()
+    },
+    getTaglist(data) {
+      let temp = {}
+      const arrPromise = data.map((item, index) =>
+        apiSchema.listByTag(this.bucketName, data[index])
+      )
+      return Promise.all(arrPromise)
+        .then(res => {
+          res.forEach(schemas => {
+            schemas.forEach(schema => {
+              temp = { ...temp, ...schema.body.properties }
+            })
+          })
+          return temp
+        })
+        .catch(err => {
+          return new Error(err)
+        })
+    },
+    async handleProperty() {
+      let tags =
+        (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) ||
+        collection.tags
+      let default_tag =
+        (process.env.VUE_APP_DEFAULT_TAG &&
+          process.env.VUE_APP_DEFAULT_TAG.split(',')) ||
+        collection.default_tag
+      let temp
+      if (default_tag && default_tag.length) {
+        await this.getTaglist(default_tag)
+          .then(res => {
+            temp = res
+          })
+          .catch(err => {
+            return err
+          })
+      } else if (tags && tags.length) {
+        await this.getTaglist(tags)
+          .then(res => {
+            temp = res
+          })
+          .catch(err => {
+            return err
+          })
+      } else {
+        Object.assign(temp, collection.schema.body.properties)
+      }
+      this.properties = Object.freeze(temp)
     }
   },
   mounted() {
-    apiCol
-      .byName(this.bucketName, this.dbName, this.clName)
-      .then(collection => {
-        this.collection = collection
-        this.listDocument()
-        this.listPlugin()
-      })
+    apiCol.byName(this.bucketName, this.dbName, this.clName).then(async res => {
+      Object.assign(collection, res)
+      this.listPlugin()
+      await this.handleProperty()
+      this.listDocument()
+    })
     apiPlugin.getPlugins().then(res => {
-      console.log(res)
       this.pluginData = res
     })
   },
