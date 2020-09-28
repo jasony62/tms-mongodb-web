@@ -1,3 +1,5 @@
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
+
 const devServer = { proxy: {} }
 const VUE_APP_BASE_URL = process.env.VUE_APP_BASE_URL
   ? process.env.VUE_APP_BASE_URL
@@ -34,7 +36,16 @@ module.exports = {
   configureWebpack: config => {
     // 生产环境
     if (config.mode === 'production') {
+      // 设置cdn第三方包
+      config.externals = {
 
+      }
+      const prod = {
+        plugins: [
+          new BundleAnalyzerPlugin()
+        ]
+      }
+      return prod
     }
   }
 }

@@ -745,7 +745,7 @@ export default {
         (process.env.VUE_APP_DEFAULT_TAG &&
           process.env.VUE_APP_DEFAULT_TAG.split(',')) ||
         collection.default_tag
-      let temp
+      let temp = {}
       if (default_tag && default_tag.length) {
         await this.getTaglist(default_tag).then(res => {
           temp = res
