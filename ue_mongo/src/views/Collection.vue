@@ -112,7 +112,7 @@
             </el-dropdown-menu>
           </el-dropdown>
         </div>
-        <div v-for="(s, i) in pluginData" :key="i">
+        <div v-for="(s, i) in computedPluginData" :key="i">
           <el-button @click="handlePlugins(s, null)" v-if="!s[2].batch">{{s[2].name}}</el-button>
           <el-dropdown v-if="s[2].batch">
             <el-button>{{s[2].name}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
@@ -183,8 +183,15 @@ import ColumnValueEditor from '../components/ColumnValueEditor.vue'
 import DomainEditor from '../components/DomainEditor.vue'
 import SelectCondition from '../components/SelectCondition.vue'
 import MoveByRulePlugin from '../plugins/move/Main.vue'
-import { collection as apiCol, doc as apiDoc, plugin as apiPlugin, schema as apiSchema } from '../apis'
+import {
+  collection as apiCol,
+  doc as apiDoc,
+  plugin as apiPlugin,
+  schema as apiSchema
+} from '../apis'
 import apiPlugins from '../plugins'
+
+const collection = {}
 
 export default {
   name: 'Collection',
@@ -219,6 +226,13 @@ export default {
     },
     totalByChecked() {
       return this.multipleDocuments.length
+    },
+    computedPluginData() {
+      const currentAuth = this.getCurrentAuth()
+      if (!currentAuth) return []
+      return this.pluginData.filter(
+        item => item[2].auth && item[2].auth.includes(currentAuth)
+      )
     }
   },
   methods: {
@@ -227,6 +241,13 @@ export default {
       'conditionDelBtn',
       'conditionDelColumn'
     ]),
+    /**
+     * @description 获取当前页面权限
+     * @return {String}
+     */
+    getCurrentAuth() {
+      return '*'
+    },
     handleCondition() {
       let _obj = JSON.parse(JSON.stringify(this.conditions))
       if (!_obj.length) {
@@ -238,36 +259,33 @@ export default {
           orderBy: _obj[0].rule.orderBy
         }
       }
-      return _obj
-        .map(ele => ele.rule)
-        .reduce((prev, curr) => {
-          return {
-            filter: Object.assign(prev.filter, curr.filter),
-            orderBy: Object.assign(prev.orderBy, curr.orderBy)
-          }
-        })
+      return _obj.map(ele => ele.rule).reduce((prev, curr) => {
+        return {
+          filter: Object.assign(prev.filter, curr.filter),
+          orderBy: Object.assign(prev.orderBy, curr.orderBy)
+        }
+      })
     },
     listByColumn(
-      columnName, 
-      filter, 
-      orderBy, 
-      at, 
-      size, 
-      bucketName = this.bucketName, 
-      dbName = this.dbName, 
+      columnName,
+      filter,
+      orderBy,
+      at,
+      size,
+      bucketName = this.bucketName,
+      dbName = this.dbName,
       clName = this.clName
     ) {
-      return apiDoc
-          .byColumnVal(
-            bucketName, 
-            dbName, 
-            clName, 
-            columnName, 
-            filter, 
-            orderBy, 
-            at, 
-            size
-          )
+      return apiDoc.byColumnVal(
+        bucketName,
+        dbName,
+        clName,
+        columnName,
+        filter,
+        orderBy,
+        at,
+        size
+      )
     },
     handleSelect(obj, columnName) {
       this.dialogPage.at = 1
@@ -287,26 +305,24 @@ export default {
         filter = rule.filter
         orderBy = rule.orderBy
       }
-      this
-        .listByColumn(
-          columnName,
-          this.conditions.length ? filter: undefined,
-          this.conditions.length ? orderBy: undefined,
-          this.dialogPage.at,
-          this.dialogPage.size
-        )
-        .then(columnResult => {
-          select.condition.selectResult = columnResult
-          select.condition.multipleSelection = columnResult
-          // 暂时先用延迟解决，该方法还需改进
-          setTimeout(() => {
-            select.toggleSelection(columnResult)
-          }, 0)
-        })
+      this.listByColumn(
+        columnName,
+        this.conditions.length ? filter : undefined,
+        this.conditions.length ? orderBy : undefined,
+        this.dialogPage.at,
+        this.dialogPage.size
+      ).then(columnResult => {
+        select.condition.selectResult = columnResult
+        select.condition.multipleSelection = columnResult
+        // 暂时先用延迟解决，该方法还需改进
+        setTimeout(() => {
+          select.toggleSelection(columnResult)
+        }, 0)
+      })
       select
         .open(
-          columnName, 
-          this.dialogPage, 
+          columnName,
+          this.dialogPage,
           this.handleCondition(),
           this.listByColumn,
           this.properties[columnName]
@@ -318,9 +334,7 @@ export default {
           let objPro = this.properties
           if (isCheckBtn) this.$store.commit('conditionDelBtn', { columnName })
           Object.keys(objPro).map((ele, index) => {
-            const attrs = document.querySelectorAll(
-              '#tables thead img'
-            )[index]
+            const attrs = document.querySelectorAll('#tables thead img')[index]
             if (ele === columnName) {
               if (isClear) {
                 attrs.src = require('../assets/icon_filter.png')
@@ -367,13 +381,17 @@ export default {
     listPlugin() {
       apiPlugins.plugin.list().then(plugins => {
         if (JSON.stringify(plugins) !== '{}') {
-					if (plugins.document.transforms) {
-						this.moveCheckList = plugins.document.transforms.move.map(option => option.name)
-						plugins.document.submits.forEach(submit => {
-							let transforms = plugins.document.transforms[submit.id]
-							submit.checkList = transforms ? transforms.map(item => item.name) : []
-						})
-					}
+          if (plugins.document.transforms) {
+            this.moveCheckList = plugins.document.transforms.move.map(
+              option => option.name
+            )
+            plugins.document.submits.forEach(submit => {
+              let transforms = plugins.document.transforms[submit.id]
+              submit.checkList = transforms
+                ? transforms.map(item => item.name)
+                : []
+            })
+          }
           this.plugins = plugins
         }
       })
@@ -396,21 +414,25 @@ export default {
           this.page.total = result.result.total
           this.tableHeight = window.innerHeight * 0.8
         })
-		},
-		handleDownload(file) {
-			const access_token = sessionStorage.getItem('access_token')
-      window.open(`${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`)
-		},
+    },
+    handleDownload(file) {
+      const access_token = sessionStorage.getItem('access_token')
+      window.open(
+        `${process.env.VUE_APP_BACK_API_FS}${
+          file.url
+        }?access_token=${access_token}`
+      )
+    },
     createDocument() {
       let editor = new Vue(DocEditor)
-      editor.open(this.bucketName, this.dbName, this.collection).then(() => {
+      editor.open(this.bucketName, this.dbName, collection).then(() => {
         this.listDocument()
       })
     },
     editDocument(doc) {
       let editor = new Vue(DocEditor)
       editor
-        .open(this.bucketName, this.dbName, this.collection, doc)
+        .open(this.bucketName, this.dbName, collection, doc)
         .then(newDoc => {
           Object.assign(doc, newDoc)
           this.$store.commit({
@@ -449,15 +471,10 @@ export default {
       let { param } = this.fnSetReqParam(command),
         editor
       editor = new Vue(ColumnValueEditor)
-      editor.open(this.collection).then(columns => {
+      editor.open(collection).then(columns => {
         Object.assign(param, { columns })
         apiDoc
-          .batchUpdate(
-            this.bucketName,
-            this.dbName,
-            this.collection.name,
-            param
-          )
+          .batchUpdate(this.bucketName, this.dbName, collection.name, param)
           .then(result => {
             Message.success({ message: '已成功修改' + result.n + '条' })
             this.listDocument()
@@ -609,18 +626,23 @@ export default {
         .then(() => {
           this.listDocument()
           setTimeout(() => msg.close(), 1000)
-        }).catch(() => {
+        })
+        .catch(() => {
           setTimeout(() => msg.close(), 1000)
         })
     },
     exportDocument(command) {
-			let { param } = this.fnSetReqParam(command)
-      apiDoc.export(this.bucketName, this.dbName, this.clName, param).then(result => {
-        const access_token = sessionStorage.getItem('access_token')
-        window.open(
-          `${process.env.VUE_APP_BACK_API_FS}${result}?access_token=${access_token}`
-        )
-      })
+      let { param } = this.fnSetReqParam(command)
+      apiDoc
+        .export(this.bucketName, this.dbName, this.clName, param)
+        .then(result => {
+          const access_token = sessionStorage.getItem('access_token')
+          window.open(
+            `${
+              process.env.VUE_APP_BACK_API_FS
+            }${result}?access_token=${access_token}`
+          )
+        })
     },
     pluginOfMoveByRule(transforms) {
       let confirm, config
@@ -639,7 +661,7 @@ export default {
       })
     },
     handlePlugin(submit, type) {
-      let transforms = submit.checkList ? submit.checkList.join(',') : ""
+      let transforms = submit.checkList ? submit.checkList.join(',') : ''
       let { param } = type ? this.fnSetReqParam(type) : { param: null }
       switch (submit.id) {
         case 'moveByRule':
@@ -650,7 +672,9 @@ export default {
       }
     },
     async handlePlugins(s, type) {
-      const { param: postParams } = type ? this.fnSetReqParam(type) : { param: null }
+      const { param: postParams } = type
+        ? this.fnSetReqParam(type)
+        : { param: null }
       const isType = Object.prototype.toString
       const obj = '[object Object]'
       let getParams = {
@@ -662,20 +686,29 @@ export default {
       if (s[2].isConfirm) {
         await MessageBox.confirm(s[2].confirmMsg, '提示', {
           confirmButtonText: s[2].confirmText || '确定',
-          cancelButtonText: s[2].cancelText || '取消',
+          cancelButtonText: s[2].cancelText || '取消'
         })
           .then(() => {
-            Object.assign(getParams, s[2].successParams && isType.call(s[2].successParams) === obj ? s[2].successParams : {})
+            Object.assign(
+              getParams,
+              s[2].successParams && isType.call(s[2].successParams) === obj
+                ? s[2].successParams
+                : {}
+            )
           })
           .catch(() => {
-            Object.assign(getParams, s[2].failParams && isType.call(s[2].failParams) === obj ? s[2].failParams : {})
+            Object.assign(
+              getParams,
+              s[2].failParams && isType.call(s[2].failParams) === obj
+                ? s[2].failParams
+                : {}
+            )
           })
       }
       let params = [postParams, getParams]
-      apiPlugin
-        .handlePlugin(...params).then(() => {
-          this.listDocument()
-        })
+      apiPlugin.handlePlugin(...params).then(() => {
+        this.listDocument()
+      })
     },
     handleSize(val) {
       this.page.size = val
@@ -686,42 +719,57 @@ export default {
       this.page.at = val
       this.listDocument()
     },
+    getTaglist(data) {
+      let temp = {}
+      const arrPromise = data.map((item, index) =>
+        apiSchema.listByTag(this.bucketName, data[index])
+      )
+      return Promise.all(arrPromise)
+        .then(res => {
+          res.forEach(schemas => {
+            schemas.forEach(schema => {
+              temp = { ...temp, ...schema.body.properties }
+            })
+          })
+          return temp
+        })
+        .catch(err => {
+          throw new Error(err)
+        })
+    },
     async handleProperty() {
-      let tags = (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) || this.collection.tags
-      let default_tag = (process.env.VUE_APP_DEFAULT_TAG && process.env.VUE_APP_DEFAULT_TAG.split(',')) || this.collection.default_tag
-
+      let tags =
+        (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) ||
+        collection.tags
+      let default_tag =
+        (process.env.VUE_APP_DEFAULT_TAG &&
+          process.env.VUE_APP_DEFAULT_TAG.split(',')) ||
+        collection.default_tag
+      let temp = {}
       if (default_tag && default_tag.length) {
-        for(let i=0; i<default_tag.length; i++) {
-          let schemas = await apiSchema.listByTag(this.bucketName, default_tag[i])
-          schemas.forEach(schema => {
-            Object.assign(this.properties, schema.body.properties)
-          })
-        }
+        await this.getTaglist(default_tag).then(res => {
+          temp = res
+        })
       } else if (tags && tags.length) {
-        for(let i=0; i<tags.length; i++) {
-          let schemas = await apiSchema.listByTag(this.bucketName, tags[i])
-          schemas.forEach(schema => {
-            Object.assign(this.properties, schema.body.properties)
-          })
-        }
+        await this.getTaglist(tags).then(res => {
+          temp = res
+        })
       } else {
-        Object.assign(this.properties, this.collection.schema.body.properties)
+        Object.assign(temp, collection.schema.body.properties)
       }
+      this.properties = Object.freeze(temp)
     }
   },
   mounted() {
-    apiCol
-      .byName(this.bucketName, this.dbName, this.clName)
-      .then(async collection => {
-        this.collection = collection
-        await this.handleProperty()
-        this.listDocument()
-        this.listPlugin()
-      })
-    apiPlugin
-      .getPlugins().then(res => {
-        this.pluginData = res
-      })
+    apiCol.byName(this.bucketName, this.dbName, this.clName).then(async res => {
+      Object.assign(collection, res)
+      this.listPlugin()
+      await this.handleProperty()
+      this.listDocument()
+    })
+    apiPlugin.getPlugins().then(res => {
+      this.pluginData = res
+    })
   },
   beforeDestroy() {
     this.conditionReset()

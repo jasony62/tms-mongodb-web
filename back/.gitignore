@@ -7,3 +7,4 @@ public/
 config/*.local.js
 config/*.local2.js
 config/plugin.js
+config/trusted-hosts.js
