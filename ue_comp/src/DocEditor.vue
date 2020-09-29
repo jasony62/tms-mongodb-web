@@ -1,6 +1,6 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <tms-el-json-doc :is-submit="isSubmit" :schema="schema" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit" :on-axios="handleAxios" :on-file-download="handleDownload"></tms-el-json-doc>
+    <tms-el-json-doc :is-submit="isSubmit" :schema="body" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit" :on-axios="handleAxios" :on-file-download="handleDownload"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
@@ -22,19 +22,13 @@ export default {
   },
   data() {
     return {
-			isSubmit: false,
       dbName: '',
+      isSubmit: false,
+      body: {},
+      document: {},
       collection: null,
       destroyOnClose: true,
-      closeOnClickModal: false,
-      document: {},
-      body: {}
-    }
-  },
-  computed: {
-    schema() {
-      const col = this.collection
-      return col && col.schema && typeof col.schema.body === 'object' ? col.schema.body : {}
+      closeOnClickModal: false
     }
   },
   methods: {
@@ -71,7 +65,10 @@ export default {
 		},
     async onJsonDocSubmit(slimDoc, newDoc) {
 			this.isSubmit = true
-			let validate = true
+      let validate = true
+      if (process.env.VUE_APP_USER_ROLE === 'sale') {
+        newDoc.auditing_status = '2'
+      }
 			if (process.env.VUE_APP_SUBMIT_VALITOR_FIELD) {
 				const config = process.env.VUE_APP_SUBMIT_VALITOR_FIELD
 				let { priceValidate: onValidate, priceFormat: onFormat } = await import('../../ue_mongo/src/tms/utils.js')	

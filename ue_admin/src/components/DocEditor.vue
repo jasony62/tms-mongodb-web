@@ -1,6 +1,6 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <tms-el-json-doc :is-submit="isSubmit" :schema="collection.schema.body" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit" :on-axios="handleAxios" :on-file-download="handleDownload"></tms-el-json-doc>
+    <tms-el-json-doc :is-submit="isSubmit" :schema="body" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit" :on-axios="handleAxios" :on-file-download="handleDownload"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
@@ -18,13 +18,13 @@ export default {
   },
   data() {
     return {
-      isSubmit: false,
       dbName: '',
+      isSubmit: false,
       body: {},
+      document: {},
       collection: null,
       destroyOnClose: true,
       closeOnClickModal: false,
-      document: {}
     }
   },
   methods: {
@@ -61,7 +61,6 @@ export default {
         .catch(err => Promise.reject(err))
     },
     async onJsonDocSubmit(slimDoc, newDoc) {
-     
       this.isSubmit = true
       let validate = true
       if (process.env.VUE_APP_SUBMIT_VALITOR_FIELD) {

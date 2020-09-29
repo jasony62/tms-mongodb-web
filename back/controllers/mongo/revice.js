@@ -121,7 +121,7 @@ class Revice extends DocBase {
    * @memberof TransRevice
    */
   async purchase(database, clName, schema, doc) {
-    Object.assign(doc, { 'status': '1', 'unsubscribe_number': '', 'auditing_status': '2' })
+    Object.assign(doc, { 'status': '1', 'unsubscribe_number': '' })
     // 补默认值
     Object.entries(schema).forEach(([key, value]) => {
       if (value.default) doc[key] = doc[key] ? doc[key] : value.default
