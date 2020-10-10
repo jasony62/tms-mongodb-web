@@ -54,7 +54,7 @@
         </el-table-column>
         <el-table-column fixed="right" label="操作" width="150" v-if="documents.length">
           <template slot-scope="scope">
-            <el-button size="mini" :disabled="role==='sale'&&scope.row.auditing_status==='2'" @click="editDocument(scope.row)">修改</el-button>
+            <el-button size="mini" :disabled="role==='sale'&&scope.row.auditing_status==='3'" @click="editDocument(scope.row)">修改</el-button>
           </template>
         </el-table-column>
       </el-table>

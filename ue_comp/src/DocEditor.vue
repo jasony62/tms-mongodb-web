@@ -67,7 +67,7 @@ export default {
 			this.isSubmit = true
       let validate = true
       if (process.env.VUE_APP_USER_ROLE === 'sale') {
-        newDoc.auditing_status = '2'
+        newDoc.auditing_status = '3'
       }
 			if (process.env.VUE_APP_SUBMIT_VALITOR_FIELD) {
 				const config = process.env.VUE_APP_SUBMIT_VALITOR_FIELD
