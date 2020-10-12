@@ -1,4 +1,5 @@
 import { Message } from 'element-ui'
+import { v5 as uuidv5 } from 'uuid'
 
 function priceValidate(schema, key, val) {
   if (isNaN(Number(val))) {
@@ -41,4 +42,11 @@ function priceFormat(value) {
   return val
 }
 
-export { priceValidate, priceFormat }
+function randomUUID() {
+  const name = new Date().getTime()
+  const namespace = '1b671a64-40d5-491e-99b0-da01ff1f3341'
+  const result = uuidv5(name.toString(), namespace)
+  return result.replace(/-/g, '')
+}
+
+export { priceValidate, priceFormat, randomUUID }

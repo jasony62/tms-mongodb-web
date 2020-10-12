@@ -6,6 +6,7 @@
 <script>
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
 import { TmsAxios } from 'tms-vue'
+import { priceValidate as onValidate, priceFormat as onFormat, randomUUID } from '../tms/utils.js'
 import apiDoc from '../apis/document'
 import apiSchema from '../apis/schema'
 
@@ -60,12 +61,14 @@ export default {
         })
         .catch(err => Promise.reject(err))
     },
-    async onJsonDocSubmit(slimDoc, newDoc) {
+    onJsonDocSubmit(slimDoc, newDoc) {
       this.isSubmit = true
       let validate = true
+      if (newDoc.source && newDoc.source==='3' && !newDoc.order_id) {
+        newDoc.order_id = randomUUID()
+      }
       if (process.env.VUE_APP_SUBMIT_VALITOR_FIELD) {
         const config = process.env.VUE_APP_SUBMIT_VALITOR_FIELD	
-        let { priceValidate: onValidate, priceFormat: onFormat } = await import('../tms/utils.js')	
         validate =  Object.entries(newDoc).map(([key, value]) => {
           if (config.indexOf(key)===-1) return true
           const flag = onValidate(this.collection.schema.body.properties, key, value)
