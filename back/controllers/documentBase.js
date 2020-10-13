@@ -167,7 +167,10 @@ class DocBase extends Base {
       filter,
       orderBy
     }
+    console.log('this.client', this.client);
+    console.log('rid的类型', typeof this.client.data.rid);
     if (this.client && this.client.data && this.client.data.rid === 1) {
+      console.log('账号', this.client.data.account);
       options.account = this.client.data.account
     }
     let model = new modelDocu()
