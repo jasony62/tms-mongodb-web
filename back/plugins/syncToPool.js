@@ -192,11 +192,53 @@ class SyncToPool extends Base {
           postData.money_e = order.dismoney_e_yly ? order.dismoney_e_yly : order.money_e_yly
           postData.money_f = order.dismoney_f_yly ? order.dismoney_f_yly : order.money_f_yly
           postData.money_ex = order.disovermoney_yly ? order.disovermoney_yly : order.overmoney_yly
-        } else {
+        } else if (order.costtype_yly === '2') {
           postData.duration_price = order.dismoney_time_yly ? order.dismoney_time_yly : order.money_time_yly
         }
       }
 
+      // 云中继
+      if (order.pro_type === '2') {
+        // 检查同步时必要字段的值
+        let ylyFields = ["cust_id", "cust_name", "order_id", "source", "order_name", "customer_id", "pro_type", "recyzj_flag"]
+        let errorFields = ylyFields.filter(field => !order[field])
+        if (errorFields.length) {
+          abnormalTotal++
+          insStatus += errorFields.join(',') + "的值为空"
+          let syncTime = (operation === "1") ? "" : current
+          await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
+          return Promise.resolve({ status: false, msg: insStatus })
+        }
+        // 检查字段
+        if (!schema.biz_function) {
+          insStatus += "biz_function列不存在"
+          abnormalTotal++
+          let syncTime = (operation === "1") ? "" : current
+          await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
+          return Promise.resolve({ status: false, msg: insStatus })
+        }
+        if (!schema.recordMode_yly || !order.recordMode_yly) {
+          insStatus += "recordMode_yly列不存在或值为空"
+          abnormalTotal++
+          let syncTime = (operation === "1") ? "" : current
+          await colle.updateOne({ _id: ObjectId(order._id) }, { $set: { pool_sync_time: syncTime, pool_sync_status: insStatus } })
+          return Promise.resolve({ status: false, msg: insStatus })
+        }
+        // 准备数据
+        postData = {
+          "cust_id": order.cust_id,
+          "cust_name": order.cust_name,
+          "operation": operation,
+          "orderId": order.order_id,
+          "orderSource": order.source,
+          "order_name": order.order_name,
+          "customer_id": order.customer_id,
+          "bizFunction": order.biz_function,
+          "recyzj_flag": order.recyzj_flag,
+          ""
+        }
+
+      }
       // 工作号
       if (order.pro_type === '3') {
         // 检查同步时必要字段的值
