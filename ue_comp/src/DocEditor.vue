@@ -132,7 +132,7 @@ export default {
       this.collection = collection
       await this.handleProperty()
       if (doc && doc._id) {
-        this.document = JSON.parse(JSON.stringify(Object.assign(this.document, doc)))
+        this.document = doc
       } 
       this.$mount()
       document.body.appendChild(this.$el)
