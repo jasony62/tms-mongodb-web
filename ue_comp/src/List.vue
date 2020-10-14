@@ -1,7 +1,7 @@
 <template>
-  <tms-frame class="tmw-document" :display="{ header: false, footer: false, right: true }" :leftWidth="'20%'">
+  <tms-frame class="tmw-document" :display="{ header: false, footer: false, right: role==='admin' }" :leftWidth="'20%'">
     <template v-slot:center>
-      <el-table id="tables" :data="documents" stripe ref="multipleTable" :height="tableHeight" @selection-change="handleSelectDocument">
+      <el-table id="tables" :data="documents" stripe ref="multipleTable" :max-height="tableHeight" @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55" v-if="documents.length&&role==='admin'"></el-table-column>
         <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
           <template slot="header">
@@ -64,7 +64,7 @@
         </el-pagination>
       </tms-flex>
     </template>
-    <template v-slot:right v-if="role==='admin'">
+    <template v-slot:right>
       <tms-flex direction="column" align-items="flex-start">
         <div>
           <el-button @click="createDocument">添加数据</el-button>
