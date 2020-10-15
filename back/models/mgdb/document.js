@@ -21,10 +21,6 @@ class Document extends Base {
       find = this._assembleFind(options.filter, like)
     }
 
-    if (options.account) {
-      Object.assign(find, { account: options.account })
-    }
-
     const client = await this.mongoClient()
     let cl = client.db(existDb.sysname).collection(clName)
     let data = {}

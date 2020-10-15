@@ -168,10 +168,29 @@ class DocBase extends Base {
       orderBy
     }
     if (this.client && this.client.data && this.client.data.rid === 1) {
-      options.account = this.client.data.account
+      if (!options.filter) options.filter = {}
+      options.filter.account = { 'keyword': this.client.data.account }
     }
     let model = new modelDocu()
     let data = await model.listDocs(existDb, clName, options, page, size)
+    if (data[0] === false) {
+      return new ResultFault(data[1])
+    }
+    data = data[1]
+
+    return new ResultData(data)
+  }
+  /**
+   * 根据区号查省和本地网
+   */
+  async listByAreaCode() {
+    const existDb = await this.docHelper.findRequestDb()
+    const { cl: clName } = this.request.query
+    const { filter = null } = this.request.body
+    let options = { filter }
+
+    let model = new modelDocu()
+    let data = await model.listDocs(existDb, clName, options)
     if (data[0] === false) {
       return new ResultFault(data[1])
     }
