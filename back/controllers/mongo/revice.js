@@ -51,9 +51,9 @@ class Revice extends DocBase {
     let param = this.request.body
 
     const requireFields = ["streamingNo", "OPFlag", "SIID", "productID", "bizID", "areaCode", "custID", "custAccount", "custName"]
-    let missFields = requireFields.filter(field => !param[field])
+    let missFields = requireFields.filter(field => !param.hasOwnProperty(field) || typeof param[field] !== 'string' || !param[field])
     if (missFields.length) {
-      return new ResultFault('缺少必传字段')
+      return new ResultFault('缺少必传字段或必传字段无值')
     }
 
     logger.debug('crm原始数据', param)
