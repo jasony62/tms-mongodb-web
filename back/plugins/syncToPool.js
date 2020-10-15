@@ -200,7 +200,7 @@ class SyncToPool extends Base {
       // 云中继
       if (order.pro_type === '2') {
         // 检查同步时必要字段与其值
-        let yzjFields = ["recyzj_flag", "discostmonth_yzj", "discostcall_yzj", "use_rule"]
+        let yzjFields = ["recyzj_flag", "use_rule"]
         if (order.recyzj_flag === "Y") {
           yzjFields.push("call_url", "extern_flag", "cdrpush_url")
         } else if (order.recyzj_flag === "N") {
@@ -240,12 +240,12 @@ class SyncToPool extends Base {
       // 工作号
       if (order.pro_type === '3') {
         // 检查同步时必要字段的值
-        let gzhFields = ["discost_month_gzh", "discost_call_gzh", "call_url", "cdrpush_url"]
+        let gzhFields = ["call_url", "cdrpush_url"]
         if (order.biz_function && order.biz_function.indexOf('1') !== -1) {
           gzhFields.push("costtype_gzh", "recordMode_gzh", "flag_playtips_gzh")
         }
         if (order.biz_function && order.biz_function.indexOf('2') !== -1) {
-          gzhFields.push("discost_msg_gzh", "msg_url")
+          gzhFields.push("msg_url")
         }
         const gzhErrorFields = gzhFields.filter(field => !schema[field] || !order[field])
         if (gzhErrorFields.length) {
