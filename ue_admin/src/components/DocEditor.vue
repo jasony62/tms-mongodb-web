@@ -126,7 +126,9 @@ export default {
       this.dbName = dbName
       this.collection = collection
       await this.handleProperty()
-      if (doc && doc._id) Object.assign(this.document, doc)
+      if (doc && doc._id)  {
+        this.document = JSON.parse(JSON.stringify(Object.assign(this.document, doc)))
+      }
       this.$mount()
       document.body.appendChild(this.$el)
       return new Promise(resolve => {
