@@ -636,9 +636,6 @@ const componentOptions = {
 				})
     },
     async handleProperty() {
-      console.log(process.env)
-      console.log(process.env.VUE_APP_TAGS)
-      console.log(process.env.VUE_APP_DEFAULT_TAG)
       let tags = (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) || this.collection.tags
       let default_tag = (process.env.VUE_APP_DEFAULT_TAG && process.env.VUE_APP_DEFAULT_TAG.split(',')) || this.collection.default_tag
 
