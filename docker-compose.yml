@@ -67,3 +67,5 @@ services:
     container_name: order-sale
     environment:
       - NGINX_WEB_BASE_URL=/order/sale
+      - VUE_APP_TAGS=manager_editor
+      - VUE_APP_DEFAULT_TAG=manager_list
