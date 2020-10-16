@@ -17,8 +17,6 @@ ARG vue_app_back_auth_server
 ARG vue_app_back_api_base
 ARG vue_app_back_api_server
 ARG vue_app_user_role
-ARG vue_app_tags
-ARG vue_app_default_tag
 
 RUN echo VUE_APP_BASE_URL=$vue_app_base_url > .env && \
   echo VUE_APP_LOGIN_KEY_USERNAME=$vue_app_login_key_username >> .env && \
@@ -28,9 +26,7 @@ RUN echo VUE_APP_BASE_URL=$vue_app_base_url > .env && \
   echo VUE_APP_BACK_AUTH_SERVER=$vue_app_back_auth_server >> .env && \
   echo VUE_APP_BACK_API_BASE=$vue_app_back_api_base >> .env && \
   echo VUE_APP_BACK_API_SERVER=$vue_app_back_api_server >> .env && \
-  echo VUE_APP_USER_ROLE=$vue_app_user_role >> .env && \
-  echo VUE_APP_TAGS=$vue_app_tags >> .env && \
-  echo VUE_APP_DEFAULT_TAG=$vue_app_default_tag >> .env
+  echo VUE_APP_USER_ROLE=$vue_app_user_role >> .env
 
 RUN cnpm i && yarn build.lib
 

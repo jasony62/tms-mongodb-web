@@ -61,9 +61,9 @@ services:
         vue_app_back_auth_base: /order/auth
         vue_app_back_api_base: /order/api
         vue_app_user_role: sale
-        vue_app_tags: manager_editor
-        vue_app_default_tag: manager_list
     image: 192.168.253.28/mg_order/sale:latest
     container_name: order-sale
     environment:
       - NGINX_WEB_BASE_URL=/order/sale
+      - VUE_APP_TAGS=manager_editor
+      - VUE_APP_DEFAULT_TAG=manager_list
