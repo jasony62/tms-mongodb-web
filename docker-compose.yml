@@ -60,6 +60,8 @@ services:
         vue_app_base_url: /order/sale
         vue_app_back_auth_base: /order/auth
         vue_app_back_api_base: /order/api
+        vue_app_back_api_fs: /order/fs
+        vue_app_back_api_plugin: /order/plugin
         vue_app_user_role: sale
         vue_app_tags: manager_editor
         vue_app_default_tag: manager_list
