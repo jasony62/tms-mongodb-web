@@ -101,6 +101,14 @@ class DocBase extends Base {
     const client = this.mongoClient
     let cl = client.db(existDb.sysname).collection(clName)
 
+    if (this.client && this.client.data && this.client.data.rid === 1) {
+      if (!filter) filter = {}
+      filter.account = {
+        "keyword": [this.client.data.account],
+        "feature": "in"
+      }
+    }
+
     let find = {}
     if (filter) {
       find = this._assembleFind(filter)
@@ -169,7 +177,10 @@ class DocBase extends Base {
     }
     if (this.client && this.client.data && this.client.data.rid === 1) {
       if (!options.filter) options.filter = {}
-      options.filter.account = { 'keyword': this.client.data.account }
+      options.filter.account = {
+        "keyword": [this.client.data.account],
+        "feature": "in"
+      }
     }
     let model = new modelDocu()
     let data = await model.listDocs(existDb, clName, options, page, size)

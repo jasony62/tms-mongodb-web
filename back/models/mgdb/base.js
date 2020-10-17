@@ -82,7 +82,7 @@ class Base {
 
     return data
   }
-  
+
 }
 
 module.exports = Base
