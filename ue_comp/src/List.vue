@@ -143,6 +143,8 @@ import createDocApi from '../../ue_mongo/src/apis/document'
 import createSchemaApi from '../../ue_mongo/src/apis/schema'
 import apiPlugins from '../../ue_mongo/src/plugins'
 
+const collection = {}
+
 const componentOptions = {
 	components: {
 		'el-table': Table,
@@ -354,14 +356,14 @@ const componentOptions = {
     },
     createDocument() {
       let editor = new Vue(DocEditor)
-      editor.open(this.tmsAxiosName, this.bucketName, this.dbName, this.collection).then(() => {
+      editor.open(this.tmsAxiosName, this.bucketName, this.dbName, collection).then(() => {
         this.listDocument()
       })
     },
     editDocument(doc) {
       let editor = new Vue(DocEditor)
       editor
-        .open(this.tmsAxiosName, this.bucketName, this.dbName, this.collection, doc)
+        .open(this.tmsAxiosName, this.bucketName, this.dbName, collection, doc)
         .then(newDoc => {
           Object.assign(doc, newDoc)
           store.commit('updateDocument', { document: newDoc })
@@ -397,13 +399,13 @@ const componentOptions = {
       let { param } = this.fnSetReqParam(command),
         editor
       editor = new Vue(ColumnValueEditor)
-      editor.open(this.collection).then(columns => {
+      editor.open(collection).then(columns => {
         Object.assign(param, { columns })
         createDocApi(this.TmsAxios(this.tmsAxiosName))
           .batchUpdate(
             this.bucketName,
             this.dbName,
-            this.collection.name,
+            collection.name,
             param
           )
           .then(result => {
@@ -635,34 +637,44 @@ const componentOptions = {
 						this.page.total = result.total
 				})
     },
+    getTaglist(data) {
+      let temp = {}
+      const arrPromise = data.map((item, index) =>
+        createSchemaApi(this.TmsAxios(this.tmsAxiosName)).listByTag(this.bucketName, data[index])
+      )
+      return Promise.all(arrPromise)
+        .then(res => {
+          res.forEach(schemas => {
+            schemas.forEach(schema => {
+              temp = { ...temp, ...schema.body.properties }
+            })
+          })
+          return temp
+        })
+        .catch(err => {
+          throw new Error(err)
+        })
+    },
     async handleProperty() {
-      let tags = (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) || this.collection.tags
-      let default_tag = (process.env.VUE_APP_DEFAULT_TAG && process.env.VUE_APP_DEFAULT_TAG.split(',')) || this.collection.default_tag
+      let tags = (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) || collection.tags
+      let default_tag = (process.env.VUE_APP_DEFAULT_TAG && process.env.VUE_APP_DEFAULT_TAG.split(',')) || collection.default_tag
+      let temp = {}
 
       if (default_tag && default_tag.length) {
-        for(let i=0; i<default_tag.length; i++) {
-          let schemas = await createSchemaApi(this.TmsAxios(this.tmsAxiosName)).listByTag(this.bucketName, default_tag[i])
-          schemas.forEach(schema => {
-            Object.assign(this.properties, schema.body.properties)
-          })
-        }
+        await this.getTaglist(default_tag).then(res => temp = res)
       } else if (tags && tags.length) {
-        for(let i=0; i<tags.length; i++) {
-          let schemas = await createSchemaApi(this.TmsAxios(this.tmsAxiosName)).listByTag(this.bucketName, tags[i])
-          schemas.forEach(schema => {
-            Object.assign(this.properties, schema.body.properties)
-          })
-        }
+        await this.getTaglist(tags).then(res => temp = res)
       } else {
-        Object.assign(this.properties, this.collection.schema.body.properties)
+        Object.assign(temp, collection.schema.body.properties)
       }
+      this.properties = Object.freeze(temp)
     }
 	},
 	mounted() {
     createCollectionApi(this.TmsAxios(this.tmsAxiosName))
       .byName(this.bucketName, this.dbName, this.clName)
-      .then(async collection => {
-        this.collection = collection
+      .then(async res => {
+        Object.assign(collection, res)
         await this.handleProperty()
 				this.listDocument()
 				if (this.role==='admin') {

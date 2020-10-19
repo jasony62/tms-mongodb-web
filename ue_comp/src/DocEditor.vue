@@ -55,15 +55,15 @@ export default {
 					.then(path => {
             return Promise.resolve({'url': path, 'name': file.name})
           })
-					.catch(err => Promise.reject(err))
-			})
-			return Promise.all(objPromises)
-				.then(rsl => { 
-					result[ref] = rsl
+          .catch(err => Promise.reject(err))
+      })
+      return Promise.all(objPromises)
+        .then(rsl => {
+          result[ref] = rsl
           return Promise.resolve(result)
-				})
-				.catch(err => Promise.reject(err))
-		},
+        })
+        .catch(err => Promise.reject(err))
+    },
     onJsonDocSubmit(slimDoc, newDoc) {
 			this.isSubmit = true
       let validate = true
@@ -106,7 +106,9 @@ export default {
       }
     },
     async handleProperty() {
-      let tags = (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) || this.collection.tags
+      let tags =
+        (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) ||
+        this.collection.tags
       let body = {}
       if (tags && tags.length) {
         for(let i=0; i<tags.length; i++) {
@@ -116,7 +118,7 @@ export default {
               if (val && typeof val === 'object') {
                 // 如果属性值为空就不合并
                 if (!body[key]) body[key] = {}
-                if (JSON.stringify(val)!=='{}') Object.assign(body[key], val)
+                if (JSON.stringify(val) !== '{}') Object.assign(body[key], val)
               } else {
                 body[key] = val
               }

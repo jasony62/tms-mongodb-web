@@ -82,7 +82,13 @@ Vue.use(Frame)
 
 import DocEditor from '../components/DocEditor.vue'
 import SelectCondition from '../components/SelectCondition.vue'
-import { collection as apiCol, doc as apiDoc, schema as apiSchema } from '../apis'
+import {
+  collection as apiCol,
+  doc as apiDoc,
+  schema as apiSchema
+} from '../apis'
+
+const collection = {}
 
 export default {
   name: 'Collection',
@@ -117,36 +123,33 @@ export default {
           orderBy: _obj[0].rule.orderBy
         }
       }
-      return _obj
-        .map(ele => ele.rule)
-        .reduce((prev, curr) => {
-          return {
-            filter: Object.assign(prev.filter, curr.filter),
-            orderBy: Object.assign(prev.orderBy, curr.orderBy)
-          }
-        })
+      return _obj.map(ele => ele.rule).reduce((prev, curr) => {
+        return {
+          filter: Object.assign(prev.filter, curr.filter),
+          orderBy: Object.assign(prev.orderBy, curr.orderBy)
+        }
+      })
     },
     listByColumn(
-      columnName, 
-      filter, 
-      orderBy, 
-      at, 
-      size, 
-      bucketName = this.bucketName, 
-      dbName = this.dbName, 
+      columnName,
+      filter,
+      orderBy,
+      at,
+      size,
+      bucketName = this.bucketName,
+      dbName = this.dbName,
       clName = this.clName
     ) {
-      return apiDoc
-          .byColumnVal(
-            bucketName, 
-            dbName, 
-            clName, 
-            columnName, 
-            filter, 
-            orderBy, 
-            at, 
-            size
-          )
+      return apiDoc.byColumnVal(
+        bucketName,
+        dbName,
+        clName,
+        columnName,
+        filter,
+        orderBy,
+        at,
+        size
+      )
     },
     handleSelect(obj, columnName) {
       this.dialogPage.at = 1
@@ -166,26 +169,24 @@ export default {
         filter = rule.filter
         orderBy = rule.orderBy
       }
-      this
-        .listByColumn(
-          columnName,
-          this.conditions.length ? filter: undefined,
-          this.conditions.length ? orderBy: undefined,
-          this.dialogPage.at,
-          this.dialogPage.size
-        )
-        .then(columnResult => {
-          select.condition.selectResult = columnResult
-          select.condition.multipleSelection = columnResult
-          // 暂时先用延迟解决，该方法还需改进
-          setTimeout(() => {
-            select.toggleSelection(columnResult)
-          }, 0)
-        })
+      this.listByColumn(
+        columnName,
+        this.conditions.length ? filter : undefined,
+        this.conditions.length ? orderBy : undefined,
+        this.dialogPage.at,
+        this.dialogPage.size
+      ).then(columnResult => {
+        select.condition.selectResult = columnResult
+        select.condition.multipleSelection = columnResult
+        // 暂时先用延迟解决，该方法还需改进
+        setTimeout(() => {
+          select.toggleSelection(columnResult)
+        }, 0)
+      })
       select
         .open(
-          columnName, 
-          this.dialogPage, 
+          columnName,
+          this.dialogPage,
           this.handleCondition(),
           this.listByColumn,
           this.properties[columnName]
@@ -238,14 +239,14 @@ export default {
     },
     createDocument() {
       let editor = new Vue(DocEditor)
-      editor.open(this.bucketName, this.dbName, this.collection).then(() => {
+      editor.open(this.bucketName, this.dbName, collection).then(() => {
         this.listDocument()
       })
     },
     editDocument(doc) {
       let editor = new Vue(DocEditor)
       editor
-        .open(this.bucketName, this.dbName, this.collection, doc)
+        .open(this.bucketName, this.dbName, collection, doc)
         .then(newDoc => {
           Object.assign(doc, newDoc)
           this.updateDocument({ document: newDoc })
@@ -290,37 +291,53 @@ export default {
       this.page.at = val
       this.listDocument()
     },
-    async handleProperty() {
-      let tags = (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) || this.collection.tags
-      let default_tag = (process.env.VUE_APP_DEFAULT_TAG && process.env.VUE_APP_DEFAULT_TAG.split(',')) || this.collection.default_tag
-      
-      if (default_tag && default_tag.length) {
-        for(let i=0; i<default_tag.length; i++) {
-          let schemas = await apiSchema.listByTag(this.bucketName, default_tag[i])
-          schemas.forEach(schema => {
-            Object.assign(this.properties, schema.body.properties)
-          })          
-        }
-      } else if (tags && tags.length) {
-        for(let i=0; i<tags.length; i++) {
-          let schemas = await apiSchema.listByTag(this.bucketName, tags[i])
-          schemas.forEach(schema => {
-            Object.assign(this.properties, schema.body.properties)
+    getTaglist(data) {
+      let temp = {}
+      const arrPromise = data.map((item, index) =>
+        apiSchema.listByTag(this.bucketName, data[index])
+      )
+      return Promise.all(arrPromise)
+        .then(res => {
+          res.forEach(schemas => {
+            schemas.forEach(schema => {
+              temp = { ...temp, ...schema.body.properties }
+            })
           })
-        }
+          return temp
+        })
+        .catch(err => {
+          throw new Error(err)
+        })
+    },
+    async handleProperty() {
+      let tags =
+        (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) ||
+        collection.tags
+      let default_tag =
+        (process.env.VUE_APP_DEFAULT_TAG &&
+          process.env.VUE_APP_DEFAULT_TAG.split(',')) ||
+        collection.default_tag
+      let temp = {}
+      if (default_tag && default_tag.length) {
+        await this.getTaglist(default_tag).then(res => {
+          temp = res
+        })
+      } else if (tags && tags.length) {
+        await this.getTaglist(tags).then(res => {
+          temp = res
+        })
       } else {
-        Object.assign(this.properties, this.collection.schema.body.properties)
+        Object.assign(temp, collection.schema.body.properties)
       }
+      this.properties = Object.freeze(temp)
     }
   },
   mounted() {
-    apiCol
-      .byName(this.bucketName, this.dbName, this.clName)
-      .then(async collection => {
-        this.collection = collection       
-        await this.handleProperty()
-        this.listDocument()
-      })
+    apiCol.byName(this.bucketName, this.dbName, this.clName).then(async res => {
+      Object.assign(collection, res)
+      await this.handleProperty()
+      this.listDocument()
+    })
   },
   beforeDestroy() {
     this.conditionReset()
