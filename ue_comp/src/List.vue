@@ -122,6 +122,23 @@
           </el-dropdown>
           <hr v-if="plugins.document.transforms&&plugins.document.transforms[s.id]" />
         </div>
+        <div v-for="(s, i) in computedPluginData" :key="i">
+          <el-button @click="handlePlugins(s, null)" v-if="!s[2].batch">{{s[2].name}}</el-button>
+          <el-dropdown v-if="s[2].batch">
+            <el-button type="success" plain>{{s[2].name}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item>
+                <el-button type="text" @click="handlePlugins(s, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <el-button type="text" @click="handlePlugins(s, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <el-button type="text" @click="handlePlugins(s, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </div>
       </tms-flex>
     </template>
   </tms-frame>
@@ -141,6 +158,7 @@ import MoveByRulePlugin from '../../ue_mongo/src/plugins/move/Main.vue'
 import createCollectionApi from '../../ue_mongo/src/apis/collection'
 import createDocApi from '../../ue_mongo/src/apis/document'
 import createSchemaApi from '../../ue_mongo/src/apis/schema'
+import createPluginApi from '../../ue_mongo/src/apis/plugin'
 import apiPlugins from '../../ue_mongo/src/plugins'
 
 const collection = {}
@@ -184,7 +202,8 @@ const componentOptions = {
       dialogPage: {
         at: 1,
         size: 100
-      }
+      },
+      pluginData: []
     }
 	},
 	computed: {
@@ -202,12 +221,22 @@ const componentOptions = {
     },
     totalByChecked() {
       return this.multipleDocuments.length
+    },
+    computedPluginData() {
+      const currentAuth = this.getCurrentAuth()
+      return this.pluginData.filter(
+        item => item[2].auth && item[2].auth.includes(currentAuth)
+      )
     }
+
   },
   created() {
     this.tableHeight = window.innerHeight * 0.8
   },
 	methods: {
+    getCurrentAuth() {
+      return '*'
+    },
 		conditionReset() {
 			return store.commit('conditionReset')
 		},
@@ -602,6 +631,63 @@ const componentOptions = {
           this.pluginOfSync(submit.id, transforms, param, 0, 0, 0)
       }
     },
+    handlePlugins(s, type) {
+      const { param: postParams } = type
+        ? this.fnSetReqParam(type)
+        : { param: null }
+      let getParams = {
+        bucket: this.bucketName || 'pool',
+        pluginCfg: s[0],
+        db: this.dbName,
+        clName: this.clName
+      }
+      // 号码转移
+      const tdType = _.get(s[2], ['defaultParams', 'tdType'])
+      if (tdType === 'move') {
+        let confirm = new Vue(DomainEditor)
+        return confirm.open(this.bucketName, { title: '转移到' }).then(res => {
+          const { dbName, clName } = res
+          return this.handlePluginsApi(
+            s,
+            Object.assign(getParams, { dbAfter: dbName, clNameAfter: clName }),
+            postParams,
+            'defaultParams'
+          )
+        })
+      }
+      if (!s[2].isConfirm)
+        return this.handlePluginsApi(s, getParams, postParams, 'defaultParams')
+      MessageBox.confirm(s[2].confirmMsg, '提示', {
+        distinguishCancelAndClose: true,
+        confirmButtonText: s[2].confirmText || '确定',
+        cancelButtonText: s[2].cancelText || '取消'
+      })
+        .then(_ => {
+          this.handlePluginsApi(s, getParams, postParams, 'successParams')
+        })
+        .catch(action => {
+          if (action === 'close') return
+          this.handlePluginsApi(s, getParams, postParams, 'failParams')
+        })
+    },
+    async handlePluginsApi(s, getParams, postParams, mergeParams) {
+      // let msg = Message.info({ message: `开始${s[2].name}`, duration: 0 })
+      const toType = Object.prototype.toString
+      Object.assign(
+        getParams,
+        s[2][mergeParams] &&
+        toType.call(s[2][mergeParams]) === '[object Object]'
+          ? s[2][mergeParams]
+          : {}
+      )
+
+      await createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(postParams, getParams)
+      // await this.listDocument()
+      // setTimeout(_ => {
+      //   msg.close()
+      //   Message.success({ message: `完成${s[2].name}`, duration: 1500 })
+      // }, 1500)
+    },
     handleSize(val) {
       this.page.size = val
       this.dialogPage.size = val
@@ -673,12 +759,17 @@ const componentOptions = {
 	mounted() {
     createCollectionApi(this.TmsAxios(this.tmsAxiosName))
       .byName(this.bucketName, this.dbName, this.clName)
-      .then(async res => {
-        Object.assign(collection, res)
+      .then(async col => {
+        Object.assign(collection, col)
         await this.handleProperty()
 				this.listDocument()
 				if (this.role==='admin') {
-					this.listPlugin()
+          this.listPlugin()
+          createPluginApi(this.TmsAxios(this.tmsAxiosName))
+            .getPlugins()
+            .then(plugins => {
+              this.pluginData = plugins
+            })  
 				}
       })
   },

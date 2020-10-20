@@ -22,7 +22,8 @@ services:
       - TMS_MONGODB_USER=root
       - TMS_MONGODB_PASSWORD=password
       - TMS_HTTP_ACCEPTCRM_URL=["."]
-
+      - TRUSTIPS_PLUGIN_IT_IPS=["192.168.20.248"]
+      - TMS_PLUGINS_IP=http://192.168.20.248:80
       networks:
       - portal
 

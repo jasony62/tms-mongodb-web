@@ -4,6 +4,7 @@ import createSchema from './schema'
 import createCollection from './collection'
 import createDoc from './document'
 import createTag from './tag'
+import createPlugin from './plugin'
 
 function init(options) {
   return {
@@ -13,7 +14,8 @@ function init(options) {
       schema: createSchema(options.tmsAxios.api),
       collection: createCollection(options.tmsAxios.api),
       doc: createDoc(options.tmsAxios.api),
-      tag: createTag(options.tmsAxios.api)
+      tag: createTag(options.tmsAxios.api),
+      plugin: createPlugin(options.tmsAxios.api),
     }
   }
 }
