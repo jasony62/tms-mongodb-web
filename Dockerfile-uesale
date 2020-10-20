@@ -11,14 +11,22 @@ ARG vue_app_back_auth_base
 ARG vue_app_back_auth_server
 ARG vue_app_back_api_base
 ARG vue_app_back_api_server
+ARG vue_app_back_api_plugin
+ARG vue_app_back_api_fs
 ARG vue_app_user_role
+ARG vue_app_tags
+ARG vue_app_default_tag
 
 RUN echo VUE_APP_BASE_URL=$vue_app_base_url > ./ue_sale/.env && \
   echo VUE_APP_BACK_AUTH_BASE=$vue_app_back_auth_base >> ./ue_sale/.env && \
   echo VUE_APP_BACK_AUTH_SERVER=$vue_app_back_auth_server >> ./ue_sale/.env && \
   echo VUE_APP_BACK_API_BASE=$vue_app_back_api_base >> ./ue_sale/.env && \
   echo VUE_APP_BACK_API_SERVER=$vue_app_back_api_server >> ./ue_sale/.env && \
-  echo VUE_APP_USER_ROLE=$vue_app_user_role >> ./ue_sale/.env
+  echo VUE_APP_BACK_API_PLUGIN=$vue_app_back_api_plugin >> ./ue_sale/.env && \
+  echo VUE_APP_BACK_API_FS=$vue_app_back_api_fs >> ./ue_sale/.env && \
+  echo VUE_APP_USER_ROLE=$vue_app_user_role >> ./ue_sale/.env && \
+  echo VUE_APP_TAGS=$vue_app_tags >> ./ue_sale/.env && \
+  echo VUE_APP_DEFAULT_TAG=$vue_app_default_tag >> ./ue_sale/.env
 
 RUN cd ue_sale && cnpm i &&  yarn build.lib
 

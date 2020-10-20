@@ -60,9 +60,11 @@ services:
         vue_app_base_url: /order/sale
         vue_app_back_auth_base: /order/auth
         vue_app_back_api_base: /order/api
+        vue_app_back_api_fs: /order/fs
+        vue_app_back_api_plugin: /order/plugin
         vue_app_user_role: sale
-        vue_app_tags: editor
-        vue_app_default_tag: list
+        vue_app_tags: manager_editor
+        vue_app_default_tag: manager_list
     image: 192.168.253.28/mg_order/sale:latest
     container_name: order-sale
     environment:
