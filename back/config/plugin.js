@@ -14,7 +14,7 @@ function initSendConfig() {
     collection: [],
     document: [
       [
-        { url: '/it/api/checkApi/createAccount?bucket=order&async=Y', method: 'post' },
+        { url: '/it/api/checkApi/createAccount?async=Y', method: 'post' },
         { docSchemas: false, isNeedGetParams: true },
         { name: '申请开通账号', description: '申请开通账号', batch: ['all', 'filter', 'ids'], auth: '*' }
       ],

@@ -636,7 +636,7 @@ const componentOptions = {
         ? this.fnSetReqParam(type)
         : { param: null }
       let getParams = {
-        bucket: this.bucketName || 'pool',
+        bucket: this.bucketName || 'order',
         pluginCfg: s[0],
         db: this.dbName,
         clName: this.clName
