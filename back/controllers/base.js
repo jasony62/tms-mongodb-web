@@ -21,16 +21,6 @@ class Base extends Ctrl {
     super(...args)
   }
 
-  clMongoObj() {
-    const helper = new Helper(this)
-    return helper.clMongoObj()
-  }
-
-  findRequestDb(...args) {
-    const helper = new Helper(this)
-    return helper.findRequestDb(...args)
-  }
-
   async tmsBeforeEach() {
     /* 多租户模式下，检查bucket访问权限 */
     if (/yes|true/i.test(process.env.TMW_REQUIRE_BUCKET)) {
