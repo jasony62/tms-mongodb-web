@@ -229,7 +229,6 @@ export default {
     },
     computedPluginData() {
       const currentAuth = this.getCurrentAuth()
-      if (!currentAuth) return []
       return this.pluginData.filter(
         item => item[2].auth && item[2].auth.includes(currentAuth)
       )
