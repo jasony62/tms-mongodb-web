@@ -60,7 +60,7 @@ class Plugin extends Base {
     const {
       sendConfig
     } = PluginConfig.ins()
-    
+
     return new ResultData(sendConfig.document)
   }
 
@@ -76,7 +76,7 @@ class Plugin extends Base {
 
     const existDb = await this.pluginHelper.findRequestDb(true, db)
     const cl = this.mongoClient.db(existDb.sysname).collection(clName)
-    
+
     if (Object.prototype.toString.call(pluginCfg) !== '[object Object]' || !pluginCfg.url) return Promise.resolve(new ResultFault('pluginCfg参数错误'))
 
     // 读取sendConfig配置
@@ -92,7 +92,7 @@ class Plugin extends Base {
     }
 
     if (!type) return Promise.resolve(new ResultFault('pluginCfg参数错误'))
-    
+
     const find = Plugin.getFindCondition(docIds, filter)
     let data = await cl.find(find).toArray()
 
@@ -100,9 +100,9 @@ class Plugin extends Base {
     return new Promise(async resolve => {
 
       let cfg = {},
-          args,
-          res,
-          params = {}
+        args,
+        res,
+        params = {}
 
       const pluginConfigs = pluginConfig[type]
       const currentConfig = pluginConfigs.find(ele => ele[0].url === pluginCfg.url)
@@ -115,16 +115,16 @@ class Plugin extends Base {
       }
 
       // 获取集合属性
-      if(currentConfig[1].docSchemas) params = await Plugin.getSchemas(existDb, clName)
+      if (currentConfig[1].docSchemas) params = await Plugin.getSchemas(existDb, clName)
 
       const axios = require("axios")
       let axiosInstance = axios.create()
       params.data = data
-      
+
       if (cfg.method === 'post') {
         let path
         if (currentConfig[1].isNeedGetParams) path = Plugin.splitGetParams(this.request.query, cfg.url)
-        await axiosInstance.post(path ? path.slice(0, path.length-1) : cfg.url, params).then(result => {
+        await axiosInstance.post(path ? path.slice(0, -1) : cfg.url, params).then(result => {
           res = result
         })
       } else {
@@ -132,15 +132,15 @@ class Plugin extends Base {
           res = result
         })
       }
-      
+
       logger.info('res结果', res.data)
       const { code, data: dataRes, msg } = res.data
-      if(code !== 0) return resolve(new ResultFault(msg))
-      
-      if(!dataRes.length) return resolve(new ResultData(dataRes))
+      if (code !== 0) return resolve(new ResultFault(msg))
+
+      if (!dataRes.length) return resolve(new ResultData(dataRes))
       // Plugin.checkCol()
       const oprateRes = await Plugin.operateData(Plugin.operateType.updateMany, dataRes, cl)
-      
+
       const { callback } = currentConfig[1]
 
       if (!oprateRes[0]) return resolve(new ResultFault(oprateRes[1]))
@@ -158,19 +158,19 @@ class Plugin extends Base {
    */
   async receive() {
     const { dbName, clName, module } = this.request.query
-    const { event, eventType, list, msg } = this.request.body
-    if(!dbName || !clName) return new ResultFault('缺少dbName或clName')
+    let { event, eventType, list, msg } = this.request.body
+    if (!dbName || !clName) return new ResultFault('缺少dbName或clName')
     if (!module) return new ResultFault('不存在该模块')
-    if(!list.length) return new ResultData(msg || '暂无数据')
+    if (!list.length) return new ResultData(msg || '暂无数据')
 
     const existDb = await this.pluginHelper.findRequestDb(true, dbName)
-    const cl = this.mongoClient.db(existDb.sysname).collection(clName)
-    
-    let params
-    
+    let cl = this.mongoClient.db(existDb.sysname).collection(clName)
 
-    logger.info('获取query参数',  this.request.query)
-    logger.info('获取body参数',  this.request.body)
+    let params
+
+
+    logger.info('获取query参数', this.request.query)
+    logger.info('获取body参数', this.request.body)
 
     // 读取receiveConfig配置
     const { receiveConfig: pluginConfig } = PluginConfig.ins()
@@ -178,24 +178,34 @@ class Plugin extends Base {
 
     const currentCfg = pluginConfig[module].find(ele => ele.event === event && ele.eventType.includes(eventType))
     logger.info('获取当前接口配置信息', currentCfg)
-    
+
     // 获取集合属性
-    if(currentCfg.docSchemas) params = await Plugin.getSchemas(existDb, clName)
+    if (currentCfg.docSchemas) params = await Plugin.getSchemas(existDb, clName)
 
     const { callback, quota } = currentCfg
-    
+
+    // 入库前置操作
+    const path = _.get(currentCfg, ['before', 'path'], null)
+    const beforeName = _.get(currentCfg, ['before', 'beforeName'], null)
+    if (path && beforeName) {
+      let currentCtro = require(path)
+      const res = await currentCtro[beforeName]({ list, cl })
+      list = res.list
+      cl = res.cl
+    }
+
     // Plugin.checkCol()
     const oprateRes = await Plugin.operateData(Plugin.operateType.updateMany, list, cl, quota)
     if (!oprateRes[0]) return new ResultFault(oprateRes[1])
 
     // 日志记录
     let resLog = true
-    if(!currentCfg.noActionLog) resLog = await Plugin.recordActionLog(list, currentCfg.name, existDb.name, existDb.sysname, clName)
+    if (!currentCfg.noActionLog) resLog = await Plugin.recordActionLog(list, currentCfg.name, existDb.name, existDb.sysname, clName)
 
     const resCB = Plugin.isExistCallback(callback)
-    if(!resCB[0]) return new ResultData(resCB[1])
+    if (!resCB[0]) return new ResultData(resCB[1])
 
-    return Plugin.executeCallback(this, callback, oprateRes, params, cl, existDb, clName, undefined, this.request.query)
+    return Plugin.executeCallback(this, callback, oprateRes, params, cl, existDb, clName, undefined)
   }
 
   /**
@@ -210,7 +220,7 @@ class Plugin extends Base {
    * @param  {String}  operate_after_clname
    * @param  {Object}  operate_before_data
    */
-  static async recordActionLog(...params){
+  static async recordActionLog(...params) {
     logger.info(`日志记录-${params[1]}`)
     // 记录日志
     let modelD = new modelDocu()
@@ -256,13 +266,14 @@ class Plugin extends Base {
     let currentCtro = require(path)
     let currentClass = new currentCtro(ctx, client, dbContext, mongoClient, mongoose)
     const options = {
-      data: oprateRes[1], 
-      docIds: oprateRes[2], 
-      colExtendProps: params.colExtendProps, 
-      cl, 
-      existDb, 
+      data: oprateRes[1],
+      docIds: oprateRes[2],
+      colExtendProps: params.colExtendProps,
+      cl,
+      existDb,
       clName,
-      query: content.request.query
+      query: content.request.query,
+      body: content.request.body
     }
     const res = await currentClass[callbackName](options)
     return resolve ? resolve(res) : res
@@ -302,7 +313,7 @@ class Plugin extends Base {
             docIds.push(id)
             delete ele._id
             arr.push(
-              cl.updateOne({_id: ObjectId(id)}, {
+              cl.updateOne({ _id: ObjectId(id) }, {
                 $set: ele
               })
             )
@@ -314,7 +325,7 @@ class Plugin extends Base {
             docIds.push(id)
             delete ele._id
             arr.push(
-              cl.updateOne({[quota]: ele[quota]}, {
+              cl.updateOne({ [quota]: ele[quota] }, {
                 $set: ele
               })
             )
@@ -328,18 +339,18 @@ class Plugin extends Base {
           return [false, err]
         })
       case Plugin.operateType.updateOne:
-          logger.info('单次更新')
-          const id = data._id
-          delete data._id
-          return cl.updateOne({[quota]: quota === '_id' ? ObjectId(id) : data[quota]}, {
-                  $set: data
-                }).then(res => {
-                  return [true, res, id]
-                }).catch(err => {
-                  return [false, err]
-                })
+        logger.info('单次更新')
+        const id = data._id
+        delete data._id
+        return cl.updateOne({ [quota]: quota === '_id' ? ObjectId(id) : data[quota] }, {
+          $set: data
+        }).then(res => {
+          return [true, res, id]
+        }).catch(err => {
+          return [false, err]
+        })
     }
-    
+
   }
 
   /**
@@ -368,7 +379,7 @@ class Plugin extends Base {
       // 按条件
       find = Plugin._assembleFind(filter)
     }
-    
+
     return find
   }
 }

@@ -20,6 +20,7 @@ class Base extends Ctrl {
   constructor(...args) {
     super(...args)
   }
+
   async tmsBeforeEach() {
     /* 多租户模式下，检查bucket访问权限 */
     if (/yes|true/i.test(process.env.TMW_REQUIRE_BUCKET)) {
