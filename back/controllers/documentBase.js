@@ -29,10 +29,15 @@ class DocBase extends Base {
   async create() {
     const existDb = await this.docHelper.findRequestDb()
 
-    const {
-      cl: clName
-    } = this.request.query
+    const { cl: clName } = this.request.query
     let doc = this.request.body
+
+    let cl = this.mongoClient.db(existDb.sysname).collection(clName)
+    let oldDoc = await cl.findOne({ 'order_id': doc.order_id })
+    if (oldDoc) {
+      return new ResultFault('订单编号已存在')
+    }
+
     // 加工数据
     this._beforeProcessByInAndUp(doc, 'insert')
 

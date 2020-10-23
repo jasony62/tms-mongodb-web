@@ -632,61 +632,24 @@ const componentOptions = {
       }
     },
     handlePlugins(s, type) {
-      const { param: postParams } = type
-        ? this.fnSetReqParam(type)
-        : { param: null }
+      const { param: postParams } = type ? this.fnSetReqParam(type) : { param: null }
       let getParams = {
         bucket: this.bucketName || 'order',
         pluginCfg: s[0],
         db: this.dbName,
         clName: this.clName
       }
-      // 号码转移
-      const tdType = _.get(s[2], ['defaultParams', 'tdType'])
-      if (tdType === 'move') {
-        let confirm = new Vue(DomainEditor)
-        return confirm.open(this.bucketName, { title: '转移到' }).then(res => {
-          const { dbName, clName } = res
-          return this.handlePluginsApi(
-            s,
-            Object.assign(getParams, { dbAfter: dbName, clNameAfter: clName }),
-            postParams,
-            'defaultParams'
-          )
-        })
-      }
-      if (!s[2].isConfirm)
+      if (!s[2].isConfirm) {
         return this.handlePluginsApi(s, getParams, postParams, 'defaultParams')
-      MessageBox.confirm(s[2].confirmMsg, '提示', {
-        distinguishCancelAndClose: true,
-        confirmButtonText: s[2].confirmText || '确定',
-        cancelButtonText: s[2].cancelText || '取消'
-      })
-        .then(_ => {
-          this.handlePluginsApi(s, getParams, postParams, 'successParams')
-        })
-        .catch(action => {
-          if (action === 'close') return
-          this.handlePluginsApi(s, getParams, postParams, 'failParams')
-        })
+      }
     },
     async handlePluginsApi(s, getParams, postParams, mergeParams) {
-      // let msg = Message.info({ message: `开始${s[2].name}`, duration: 0 })
       const toType = Object.prototype.toString
-      Object.assign(
-        getParams,
-        s[2][mergeParams] &&
-        toType.call(s[2][mergeParams]) === '[object Object]'
-          ? s[2][mergeParams]
-          : {}
-      )
+      const source = s[2][mergeParams] && toType.call(s[2][mergeParams]) === '[object Object]' ? s[2][mergeParams] : {}
+      
+      Object.assign(getParams,source)
 
       await createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(postParams, getParams)
-      // await this.listDocument()
-      // setTimeout(_ => {
-      //   msg.close()
-      //   Message.success({ message: `完成${s[2].name}`, duration: 1500 })
-      // }, 1500)
     },
     handleSize(val) {
       this.page.size = val

@@ -49,16 +49,19 @@ class Revice extends DocBase {
   async crmInfo() {
     //所有的字段
     let param = this.request.body
+    logger.debug('crm原始数据', param)
 
+    for (let [key, value] of Object.entries(param)) {
+      param[key] = value.trim()
+    }
     const requireFields = ["streamingNo", "OPFlag", "SIID", "productID", "bizID", "areaCode", "custID", "custAccount", "custName"]
     let missFields = requireFields.filter(field => !param.hasOwnProperty(field) || typeof param[field] !== 'string' || !param[field])
     if (missFields.length) {
       return new ResultFault('缺少必传字段或必传字段无值')
     }
 
-    logger.debug('crm原始数据', param)
-
-    let docRes = await this.revice('official_order_info', 'official_order_info')
+    //let docRes = await this.revice('official_order_info', 'official_order_info')
+    let docRes = await this.revice('testSync', 'testSync')
     if (docRes[0] === false) return (new ResultFault('发生不可预知的错误'))
     let { database, clName, currentSchema: schema } = docRes[1]
 
@@ -109,7 +112,6 @@ class Revice extends DocBase {
         return new ResultFault('暂不处理此类操作类型')
       }
     })(database, clName, schema)
-    //return this.revice('official_order_info', 'official_order_info', oPerate)
   }
   /**
    *
@@ -121,11 +123,15 @@ class Revice extends DocBase {
    * @memberof TransRevice
    */
   async purchase(database, clName, schema, doc) {
+    let cl, oldDoc
+    cl = this.mongoClient.db(database.sysname).collection(clName)
+    oldDoc = await cl.findOne({ 'order_id': doc.order_id })
+    if (oldDoc) {
+      return new ResultFault('订单已存在，请做变更操作')
+    }
+
     Object.assign(doc, { 'status': '1', 'unsubscribe_number': '', 'auditing_status': '2' })
-    // 补默认值
-    Object.entries(schema).forEach(([key, value]) => {
-      if (value.default) doc[key] = doc[key] ? doc[key] : value.default
-    })
+
     // 加工数据
     this._beforeProcessByInAndUp(doc, 'insert')
     doc.create_time = doc.TMS_DEFAULT_CREATE_TIME
@@ -153,9 +159,12 @@ class Revice extends DocBase {
    */
   async update(database, clName, doc) {
     let cl, oldDoc, newDoc
-
     cl = this.mongoClient.db(database.sysname).collection(clName)
     oldDoc = await cl.findOne({ 'order_id': doc.order_id })
+    if (!oldDoc) {
+      return new ResultFault('订单不存在，请做新增操作')
+    }
+
     newDoc = {}
     logger.debug('update前原数据', oldDoc)
 
@@ -186,14 +195,17 @@ class Revice extends DocBase {
     let cl, oldDoc, newDoc
     cl = this.mongoClient.db(database.sysname).collection(clName)
     oldDoc = await cl.findOne({ 'order_id': doc.order_id })
-    newDoc = {}
-
+    if (!oldDoc) {
+      return new ResultFault('订单不存在，请做新增操作')
+    }
     if (oldDoc.status === '99') {
       return new ResultFault('该订单已是退订状态')
     }
     if (oldDoc.unsubscribe_number === 'N') {
       return new ResultFault('该订单下还有号码不可退订')
     }
+
+    newDoc = {}
     logger.debug('退订前原数据', oldDoc)
 
     doc.status = '99'
