@@ -1,12 +1,14 @@
 const _ = require('tms-koa/node_modules/lodash')
-const ip = process.env.TMS_PLUGINS_IP || ''
+const Path = require('path')
+const ip = process.env.TMS_PLUGINS_IT_IP || ''
 let sendConfig,
     receiveConfig,
     pluginConfig
 
+const commonPath = Path.resolve(__dirname, '../controllers/plugins/')
 function initSendConfig() {
   // 发送回调相对路径
-  const sendCBPath = './plugins/sendCallback'
+  // const sendCBPath = Path.join(commonPath, 'sendCallback/')
 
   // 发送配置
   sendConfig = {
@@ -14,7 +16,7 @@ function initSendConfig() {
     collection: [],
     document:  [
       [
-        {url: '/it/api/checkApi/tDMobile', method: 'post'}, { docSchemas: true, isNeedGetParams: true, callback: { path: `${sendCBPath}/document`, callbackName: 'unSubScribeCB' } }, { name: '号码退订', description: '号码退订', batch: ["all", "filter", "ids"], isConfirm: true, confirmMsg: '是否进行价格批0',  confirmText: '是，批0', cancelText: '否，不批0', successParams: { bucket: 'pool', isZero: 'Y' }, failParams: { bucket: 'pool', isZero: 'N' }}
+        {url: '/it/api/checkApi/tDMobile', method: 'post'}, { docSchemas: true, isNeedGetParams: true }, { name: '号码退订', description: '号码退订', batch: ["all", "filter", "ids"], isConfirm: true, confirmMsg: '是否进行价格批0',  confirmText: '是，批0', cancelText: '否，不批0', successParams: { bucket: 'pool', isZero: 'Y' }, failParams: { bucket: 'pool', isZero: 'N' }, auth: ['*']}
       ],
     ]
   }
@@ -38,12 +40,14 @@ function initReceiveConfig() {
 // 动态添加域名及模块名(模块名默认以第一个url中/it/之内的字符)
 function initIpConfig(sendConfig) {
   Object.keys(sendConfig).forEach(key => {
-    if(!sendConfig[key].length) return
+    if (!sendConfig[key].length) return
     sendConfig[key].forEach(item => {
-      if(!item.length || !item[0].url) return
-      let module = item[0].url.split('/')[1].trim()
-      let str = item[0].url.includes('?') ? '&' : '?'
-      item[0].url = ip + item[0].url + str + `module=${module}`
+      if (!item.length || !item[0].url) return
+      const module = item[0].url.split('/')[1].trim()
+      const str = item[0].url.includes('?') ? '&' : '?'
+      // 默认均采取异步加载方式
+      const asyncVal = (/async=N|async=Y/i).test(item[0].url.split('?')[1]) ? '' : '&async=Y'
+      item[0].url = ip + item[0].url + str + `module=${module}` + asyncVal
     })
   })
 }
