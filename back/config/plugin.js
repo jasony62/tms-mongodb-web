@@ -16,7 +16,7 @@ function initSendConfig() {
     collection: [],
     document:  [
       [
-        {url: '/it/api/checkApi/tDMobile', method: 'post'}, { docSchemas: true, isNeedGetParams: true }, { name: '号码退订', description: '号码退订', batch: ["all", "filter", "ids"], isConfirm: true, confirmMsg: '是否进行价格批0',  confirmText: '是，批0', cancelText: '否，不批0', successParams: { bucket: 'pool', isZero: 'Y' }, failParams: { bucket: 'pool', isZero: 'N' }, auth: ['*']}
+        {url: '/module/api/**/**', method: 'post'}, { docSchemas: true, isNeedGetParams: true }, { name: '示例按钮', description: '示例描述', batch: ["all", "filter", "ids"], auth: ['*']}
       ],
     ]
   }
@@ -24,7 +24,7 @@ function initSendConfig() {
 
 function initReceiveConfig() {
   // 接收回调相对路径
-  const receiveCBPath = './plugins/receiveCallback'
+  const receiveCBPath = Path.join(commonPath, 'receiveCallback/')
 
   // 接收配置-以模块划分
   receiveConfig = {
