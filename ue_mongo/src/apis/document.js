@@ -54,6 +54,18 @@ export default function create(tmsAxios) {
         .post(`${base}/updateMany`, updatedRange, { params })
         .then(rst => rst.data.result)
     },
+    remove(bucket, dbName, clName, id) {
+      const params = { bucket, db: dbName, cl: clName, id }
+      return tmsAxios
+        .get(`${base}/remove`, { params })
+        .then(rst => rst.data.result)
+    },
+    batchRemove(bucket, dbName, clName, removedRange) {
+      const params = { bucket, db: dbName, cl: clName }
+      return tmsAxios
+        .post(`${base}/removeMany`, removedRange, { params })
+        .then(rst => rst.data.result)
+    },
     move(
       bucket,
       oldDbName,
@@ -98,9 +110,7 @@ export default function create(tmsAxios) {
     upload(query, fileData, config) {
       let url = `${process.env.VUE_APP_BACK_API_BASE}/upload/plain`
       if (query && query.dir) url += `?dir=${query.dir}`
-      return tmsAxios
-        .post(url, fileData, config)
-        .then(rst => rst.data.result)
+      return tmsAxios.post(url, fileData, config).then(rst => rst.data.result)
     }
   }
 }

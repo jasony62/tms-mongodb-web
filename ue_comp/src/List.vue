@@ -1,8 +1,8 @@
 <template>
-  <tms-frame class="tmw-document" :display="{ header: false, footer: false, right: role==='admin' }" :leftWidth="'20%'">
+  <tms-frame class="tmw-document" :display="{ header: false, footer: false, right: true }" :leftWidth="'20%'">
     <template v-slot:center>
       <el-table id="tables" :data="documents" stripe ref="multipleTable" :max-height="tableHeight" @selection-change="handleSelectDocument">
-        <el-table-column fixed="left" type="selection" width="55" v-if="documents.length&&role==='admin'"></el-table-column>
+        <el-table-column fixed="left" type="selection" width="55"></el-table-column>
         <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
           <template slot="header">
             <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
@@ -54,7 +54,8 @@
         </el-table-column>
         <el-table-column fixed="right" label="操作" width="150" v-if="documents.length">
           <template slot-scope="scope">
-            <el-button size="mini" :disabled="role==='sale'&&scope.row.auditing_status==='3'" @click="editDocument(scope.row)">修改</el-button>
+            <el-button size="mini" @click="editDocument(scope.row)">修改</el-button>
+            <el-button size="mini" @click="removeDocument(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -82,6 +83,15 @@
         </el-upload>
         <el-dropdown @command="exportDocument">
           <el-button>导出数据<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
+            <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
+            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
+        <hr />
+        <el-dropdown @command="batchRemoveDocument" placement="bottom-start">
+          <el-button>批量删除<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
             <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
@@ -148,7 +158,20 @@
 import Vue from 'vue'
 import store from '../../ue_mongo/src/store'
 import { Frame, Flex } from 'tms-vue-ui'
-import { Table, TableColumn, Button, Checkbox, CheckboxGroup, Upload, Pagination, Message, Dropdown, DropdownMenu, DropdownItem } from 'element-ui'
+import {
+  Table,
+  TableColumn,
+  Button,
+  Checkbox,
+  CheckboxGroup,
+  Upload,
+  Pagination,
+  Message,
+  Dropdown,
+  DropdownMenu,
+  DropdownItem,
+  MessageBox
+} from 'element-ui'
 
 import DocEditor from './DocEditor.vue'
 import SelectCondition from './SelectCondition.vue'
@@ -164,31 +187,30 @@ import apiPlugins from '../../ue_mongo/src/plugins'
 const collection = {}
 
 const componentOptions = {
-	components: {
-		'el-table': Table,
-		'el-table-column': TableColumn,
-		'el-button': Button,
-		'el-checkbox': Checkbox,
-		'el-checkbox-group': CheckboxGroup,
-		'el-upload': Upload,
-		'el-pagination': Pagination,
-		'el-dropdown': Dropdown,
-		'el-dropdown-menu': DropdownMenu,
-		'el-dropdown-item': DropdownItem
-	},
-	props: {
-		bucketName: String, 
-		dbName: String, 
-		clName: String,
-		tmsAxiosName: {
-			type: String,
-			default: 'mongodb-api'
-		}
-	},
+  components: {
+    'el-table': Table,
+    'el-table-column': TableColumn,
+    'el-button': Button,
+    'el-checkbox': Checkbox,
+    'el-checkbox-group': CheckboxGroup,
+    'el-upload': Upload,
+    'el-pagination': Pagination,
+    'el-dropdown': Dropdown,
+    'el-dropdown-menu': DropdownMenu,
+    'el-dropdown-item': DropdownItem
+  },
+  props: {
+    bucketName: String,
+    dbName: String,
+    clName: String,
+    tmsAxiosName: {
+      type: String,
+      default: 'mongodb-api'
+    }
+  },
   data() {
     return {
-			role: process.env.VUE_APP_USER_ROLE || 'admin',
-			tableHeight: 0,
+      tableHeight: 0,
       moveCheckList: [],
       filter: {},
       page: {
@@ -205,14 +227,14 @@ const componentOptions = {
       },
       pluginData: []
     }
-	},
-	computed: {
-		documents() {
-			return store.state.documents
-		},
-		conditions() {
-			return store.state.conditions
-		},
+  },
+  computed: {
+    documents() {
+      return store.state.documents
+    },
+    conditions() {
+      return store.state.conditions
+    },
     totalByAll() {
       return Object.keys(this.filter).length ? 0 : this.page.total
     },
@@ -228,25 +250,24 @@ const componentOptions = {
         item => item[2].auth && item[2].auth.includes(currentAuth)
       )
     }
-
   },
   created() {
     this.tableHeight = window.innerHeight * 0.8
   },
-	methods: {
+  methods: {
     getCurrentAuth() {
       return '*'
     },
-		conditionReset() {
-			return store.commit('conditionReset')
-		},
-		conditionDelBtn() {
-			return store.commit('conditionDelBtn')
-		},
-		conditionDelColumn() {
-			return store.commit('conditionDelColumn')
-		},
-		handleCondition() {
+    conditionReset() {
+      return store.commit('conditionReset')
+    },
+    conditionDelBtn() {
+      return store.commit('conditionDelBtn')
+    },
+    conditionDelColumn() {
+      return store.commit('conditionDelColumn')
+    },
+    handleCondition() {
       let _obj = JSON.parse(JSON.stringify(this.conditions))
       if (!_obj.length) {
         return { filter: {}, orderBy: {} }
@@ -266,27 +287,26 @@ const componentOptions = {
           }
         })
     },
-		listByColumn(
-      columnName, 
-      filter, 
-      orderBy, 
-      at, 
-      size, 
-      bucketName = this.bucketName, 
-      dbName = this.dbName, 
+    listByColumn(
+      columnName,
+      filter,
+      orderBy,
+      at,
+      size,
+      bucketName = this.bucketName,
+      dbName = this.dbName,
       clName = this.clName
     ) {
-      return createDocApi(this.TmsAxios(this.tmsAxiosName))
-          .byColumnVal(
-            bucketName, 
-            dbName, 
-            clName, 
-            columnName, 
-            filter, 
-            orderBy, 
-            at, 
-            size
-          )
+      return createDocApi(this.TmsAxios(this.tmsAxiosName)).byColumnVal(
+        bucketName,
+        dbName,
+        clName,
+        columnName,
+        filter,
+        orderBy,
+        at,
+        size
+      )
     },
     handleSelect(obj, columnName) {
       this.dialogPage.at = 1
@@ -306,26 +326,24 @@ const componentOptions = {
         filter = rule.filter
         orderBy = rule.orderBy
       }
-      this
-        .listByColumn(
-          columnName,
-          this.conditions.length ? filter: undefined,
-          this.conditions.length ? orderBy: undefined,
-          this.dialogPage.at,
-          this.dialogPage.size
-        )
-        .then(columnResult => {
-          select.condition.selectResult = columnResult
-          select.condition.multipleSelection = columnResult
-          // 暂时先用延迟解决，该方法还需改进
-          setTimeout(() => {
-            select.toggleSelection(columnResult)
-          }, 0)
-        })
+      this.listByColumn(
+        columnName,
+        this.conditions.length ? filter : undefined,
+        this.conditions.length ? orderBy : undefined,
+        this.dialogPage.at,
+        this.dialogPage.size
+      ).then(columnResult => {
+        select.condition.selectResult = columnResult
+        select.condition.multipleSelection = columnResult
+        // 暂时先用延迟解决，该方法还需改进
+        setTimeout(() => {
+          select.toggleSelection(columnResult)
+        }, 0)
+      })
       select
         .open(
-          columnName, 
-          this.dialogPage, 
+          columnName,
+          this.dialogPage,
           this.handleCondition(),
           this.listByColumn,
           this.properties[columnName]
@@ -337,9 +355,7 @@ const componentOptions = {
           let objPro = this.properties
           if (isCheckBtn) store.commit('conditionDelBtn', { columnName })
           Object.keys(objPro).map((ele, index) => {
-            const attrs = document.querySelectorAll(
-              '#tables thead img'
-            )[index]
+            const attrs = document.querySelectorAll('#tables thead img')[index]
             if (ele === columnName) {
               if (isClear) {
                 attrs.src = require('../assets/icon_filter.png')
@@ -385,9 +401,11 @@ const componentOptions = {
     },
     createDocument() {
       let editor = new Vue(DocEditor)
-      editor.open(this.tmsAxiosName, this.bucketName, this.dbName, collection).then(() => {
-        this.listDocument()
-      })
+      editor
+        .open(this.tmsAxiosName, this.bucketName, this.dbName, collection)
+        .then(() => {
+          this.listDocument()
+        })
     },
     editDocument(doc) {
       let editor = new Vue(DocEditor)
@@ -397,6 +415,23 @@ const componentOptions = {
           Object.assign(doc, newDoc)
           store.commit('updateDocument', { document: newDoc })
         })
+    },
+    removeDocument(document) {
+      MessageBox({
+        title: '提示',
+        message: '确定删除该条数据？',
+        confirmButtonText: '确定',
+        type: 'warning'
+      })
+        .then(() => {
+          createDocApi(this.TmsAxios(this.tmsAxiosName))
+            .remove(this.bucketName, this.dbName, this.clName, document._id)
+            .then(() => {
+              Message.success({ message: '删除成功' })
+              this.fnHandleResResult({ n: 1 }, false)
+            })
+        })
+        .catch(() => {})
     },
     fnSetReqParam(command, checkList) {
       let param, transforms
@@ -431,12 +466,7 @@ const componentOptions = {
       editor.open(collection).then(columns => {
         Object.assign(param, { columns })
         createDocApi(this.TmsAxios(this.tmsAxiosName))
-          .batchUpdate(
-            this.bucketName,
-            this.dbName,
-            collection.name,
-            param
-          )
+          .batchUpdate(this.bucketName, this.dbName, collection.name, param)
           .then(result => {
             Message.success({ message: '已成功修改' + result.n + '条' })
             this.listDocument()
@@ -517,6 +547,24 @@ const componentOptions = {
         aMPTotal
       )
     },
+    batchRemoveDocument(command) {
+      let { param } = this.fnSetReqParam(command)
+      MessageBox({
+        title: '提示',
+        message: '确定删除这些数据？',
+        confirmButtonText: '确定',
+        type: 'warning'
+      })
+        .then(() => {
+          createDocApi(this.TmsAxios(this.tmsAxiosName))
+            .batchRemove(this.bucketName, this.dbName, this.clName, param)
+            .then(result => {
+              Message.success({ message: '已成功删除' + result.n + '条' })
+              this.fnHandleResResult(result, true)
+            })
+        })
+        .catch(() => {})
+    },
     batchMoveDocument(command) {
       let { param, transforms } = this.fnSetReqParam(
           command,
@@ -559,18 +607,22 @@ const componentOptions = {
         })
     },
     exportDocument(command) {
-			let { param } = this.fnSetReqParam(command)
-      createDocApi(this.TmsAxios(this.tmsAxiosName)).export(this.bucketName, this.dbName, this.clName, param).then(result => {
-        const access_token = sessionStorage.getItem('access_token')
-        window.open(
-          `${process.env.VUE_APP_BACK_API_FS}${result}?access_token=${access_token}`
-        )
-      })
-		},
-		handleDownload(file) {
-			const access_token = sessionStorage.getItem('access_token')
-      window.open(`${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`)
-		},
+      let { param } = this.fnSetReqParam(command)
+      createDocApi(this.TmsAxios(this.tmsAxiosName))
+        .export(this.bucketName, this.dbName, this.clName, param)
+        .then(result => {
+          const access_token = sessionStorage.getItem('access_token')
+          window.open(
+            `${process.env.VUE_APP_BACK_API_FS}${result}?access_token=${access_token}`
+          )
+        })
+    },
+    handleDownload(file) {
+      const access_token = sessionStorage.getItem('access_token')
+      window.open(
+        `${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`
+      )
+    },
     pluginOfMoveByRule(transforms) {
       let confirm, config
       confirm = new Vue(DomainEditor)
@@ -590,7 +642,14 @@ const componentOptions = {
     pluginOfSync(type, transforms, param, pTotal, aSTotal, aSPTotal) {
       let msg = Message.info({ message: '开始同步数据...', duration: 0 }),
         _this = this
-      async function fnsync(type, transforms, param, pTotal, aSTotal, aSPTotal) {
+      async function fnsync(
+        type,
+        transforms,
+        param,
+        pTotal,
+        aSTotal,
+        aSPTotal
+      ) {
         let {
           planTotal,
           alreadySyncTotal,
@@ -598,28 +657,39 @@ const componentOptions = {
           alreadySyncFailTotal,
           spareTotal
         } = await apiPlugins.sync[type](
-            _this.dbName,
-            _this.clName,
-            transforms,
-            param,
-            pTotal,
-            aSTotal,
-            aSPTotal
-          )
-          .catch(() => msg.close())
+          _this.dbName,
+          _this.clName,
+          transforms,
+          param,
+          pTotal,
+          aSTotal,
+          aSPTotal
+        ).catch(() => msg.close())
         msg.message = '正在同步数据...'
         if (spareTotal <= 0) {
-          msg.message = '成功同步' + alreadySyncPassTotal + '条，失败' + alreadySyncFailTotal + '条'
+          msg.message =
+            '成功同步' +
+            alreadySyncPassTotal +
+            '条，失败' +
+            alreadySyncFailTotal +
+            '条'
           _this.listDocument()
           setTimeout(() => msg.close(), 1500)
           return false
         }
-        fnsync(type, transforms, param, planTotal, alreadySyncTotal, alreadySyncPassTotal)
+        fnsync(
+          type,
+          transforms,
+          param,
+          planTotal,
+          alreadySyncTotal,
+          alreadySyncPassTotal
+        )
       }
       fnsync(type, transforms, param, pTotal, aSTotal, aSPTotal)
     },
     handlePlugin(submit, type) {
-      let transforms = submit.checkList ? submit.checkList.join(',') : ""
+      let transforms = submit.checkList ? submit.checkList.join(',') : ''
       let { param } = type ? this.fnSetReqParam(type) : { param: null }
       switch (submit.id) {
         case 'moveByRule':
@@ -627,12 +697,14 @@ const componentOptions = {
           break
         case 'syncMobilePool':
         case 'syncToPool':
-				case 'syncToWork':
+        case 'syncToWork':
           this.pluginOfSync(submit.id, transforms, param, 0, 0, 0)
       }
     },
     handlePlugins(s, type) {
-      const { param: postParams } = type ? this.fnSetReqParam(type) : { param: null }
+      const { param: postParams } = type
+        ? this.fnSetReqParam(type)
+        : { param: null }
       let getParams = {
         bucket: this.bucketName || 'order',
         pluginCfg: s[0],
@@ -645,11 +717,18 @@ const componentOptions = {
     },
     async handlePluginsApi(s, getParams, postParams, mergeParams) {
       const toType = Object.prototype.toString
-      const source = s[2][mergeParams] && toType.call(s[2][mergeParams]) === '[object Object]' ? s[2][mergeParams] : {}
-      
-      Object.assign(getParams,source)
+      const source =
+        s[2][mergeParams] &&
+        toType.call(s[2][mergeParams]) === '[object Object]'
+          ? s[2][mergeParams]
+          : {}
 
-      await createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(postParams, getParams)
+      Object.assign(getParams, source)
+
+      await createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(
+        postParams,
+        getParams
+      )
     },
     handleSize(val) {
       this.page.size = val
@@ -659,17 +738,21 @@ const componentOptions = {
     handleCurrentPage(val) {
       this.page.at = val
       this.listDocument()
-		},
-		listPlugin() {
+    },
+    listPlugin() {
       apiPlugins.plugin.list().then(plugins => {
         if (JSON.stringify(plugins) !== '{}') {
-					if (plugins.document.transforms) {
-						this.moveCheckList = plugins.document.transforms.move.map(option => option.name)
-						plugins.document.submits.forEach(submit => {
-							let transforms = plugins.document.transforms[submit.id]
-							submit.checkList = transforms ? transforms.map(item => item.name) : []
-						})
-					}
+          if (plugins.document.transforms) {
+            this.moveCheckList = plugins.document.transforms.move.map(
+              option => option.name
+            )
+            plugins.document.submits.forEach(submit => {
+              let transforms = plugins.document.transforms[submit.id]
+              submit.checkList = transforms
+                ? transforms.map(item => item.name)
+                : []
+            })
+          }
           this.plugins = plugins
         }
       })
@@ -677,19 +760,29 @@ const componentOptions = {
     listDocument() {
       const rule = this.handleCondition()
       this.filter = rule.filter
-			const { orderBy, filter } = rule
-			createDocApi(this.TmsAxios(this.tmsAxiosName))
-				.list(this.bucketName, this.dbName, this.clName, this.page, filter, orderBy)
-				.then(result => {
-						const documents =  result.docs
-						store.commit('documents', { documents })
-						this.page.total = result.total
-				})
+      const { orderBy, filter } = rule
+      createDocApi(this.TmsAxios(this.tmsAxiosName))
+        .list(
+          this.bucketName,
+          this.dbName,
+          this.clName,
+          this.page,
+          filter,
+          orderBy
+        )
+        .then(result => {
+          const documents = result.docs
+          store.commit('documents', { documents })
+          this.page.total = result.total
+        })
     },
     getTaglist(data) {
       let temp = {}
       const arrPromise = data.map((item, index) =>
-        createSchemaApi(this.TmsAxios(this.tmsAxiosName)).listByTag(this.bucketName, data[index])
+        createSchemaApi(this.TmsAxios(this.tmsAxiosName)).listByTag(
+          this.bucketName,
+          data[index]
+        )
       )
       return Promise.all(arrPromise)
         .then(res => {
@@ -705,35 +798,40 @@ const componentOptions = {
         })
     },
     async handleProperty() {
-      let tags = (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) || collection.tags
-      let default_tag = (process.env.VUE_APP_DEFAULT_TAG && process.env.VUE_APP_DEFAULT_TAG.split(',')) || collection.default_tag
+      let tags =
+        (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) ||
+        collection.tags
+      let default_tag =
+        (process.env.VUE_APP_DEFAULT_TAG &&
+          process.env.VUE_APP_DEFAULT_TAG.split(',')) ||
+        collection.default_tag
       let temp = {}
 
       if (default_tag && default_tag.length) {
-        await this.getTaglist(default_tag).then(res => temp = res)
+        await this.getTaglist(default_tag).then(res => (temp = res))
       } else if (tags && tags.length) {
-        await this.getTaglist(tags).then(res => temp = res)
+        await this.getTaglist(tags).then(res => (temp = res))
       } else {
         Object.assign(temp, collection.schema.body.properties)
       }
       this.properties = Object.freeze(temp)
     }
-	},
-	mounted() {
+  },
+  mounted() {
     createCollectionApi(this.TmsAxios(this.tmsAxiosName))
       .byName(this.bucketName, this.dbName, this.clName)
       .then(async col => {
         Object.assign(collection, col)
         await this.handleProperty()
-				this.listDocument()
-				if (this.role==='admin') {
+        this.listDocument()
+        if (this.role === 'admin') {
           this.listPlugin()
           createPluginApi(this.TmsAxios(this.tmsAxiosName))
             .getPlugins()
             .then(plugins => {
               this.pluginData = plugins
-            })  
-				}
+            })
+        }
       })
   },
   beforeDestroy() {
@@ -743,14 +841,14 @@ const componentOptions = {
 export default componentOptions
 
 export function createAndMount(Vue, propsData, id) {
-	const ele = document.getElementById(id)
-	const CompClass = Vue.extend(componentOptions)
-	
+  const ele = document.getElementById(id)
+  const CompClass = Vue.extend(componentOptions)
+
   Vue.use(Flex).use(Frame)
-  
+
   new CompClass({
     propsData
-	}).$mount(ele)
+  }).$mount(ele)
 }
 </script>
 <style lang="less" scoped>
