@@ -824,14 +824,6 @@ const componentOptions = {
         Object.assign(collection, col)
         await this.handleProperty()
         this.listDocument()
-        if (this.role === 'admin') {
-          this.listPlugin()
-          createPluginApi(this.TmsAxios(this.tmsAxiosName))
-            .getPlugins()
-            .then(plugins => {
-              this.pluginData = plugins
-            })
-        }
       })
   },
   beforeDestroy() {
