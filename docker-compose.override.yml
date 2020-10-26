@@ -1,78 +1,37 @@
 version: '3.7'
 services:
-    omongodb:
-      volumes:
-        - /home/devops/mongodata/order:/data/db
-      ports:
-        - '27013:27017'
-      logging:
-        driver: 'none'
-      networks:
-        - portal
+  mongodb:
+    volumes:
+      - ./mongodb/data:/data/db
+    ports:
+      - '27017:27017'
+    logging:
+      driver: 'none'
 
-    back:
-      ports:
-        - '3650:3000'
-      environment:
-      - TMS_REDIS_PREFIX=dev-op
-      - TMS_REDIS_HOST=192.168.20.247
-      - TMS_REDIS_PORT=6300
-      - TMS_HTTP_SYNCTOPOOL_URL=http://192.168.20.248/pool/plugin/order/updateInfo
-      - TMS_HTTP_SYNCTOWORK_URL=http://192.168.56.107:8008/checkapi/api/ordermanage
-      - TMS_MONGODB_USER=root
-      - TMS_MONGODB_PASSWORD=password
-      - TMS_HTTP_ACCEPTCRM_URL=["."]
-      - TRUSTIPS_PLUGIN_IT_IPS=["192.168.20.248"]
-      - TMS_PLUGINS_IP=http://192.168.20.248:80
-      networks:
-      - portal
+  back:
+    ports:
+      - '3000:3000'
 
-    admin:
-      build: 
-        context: .
-        args:
-          vue_app_back_auth_server: http://192.168.20.71:3330
-          vue_app_back_api_server: http://back:3650
-      environment: 
-        NODE_ENV: production
-      ports:
-        - '3640:80'
-      dns: 
-        - 223.6.6.6
-        - 223.5.5.5
-      networks:
-      - portal
-   
-    mongo:
-      build: 
-        context: .
-        args:
-          vue_app_back_auth_server: http://oauth
-#          vue_app_back_api_server: http://back:3650
-      environment: 
-        NODE_ENV: production
-      ports:
-        - '3630:80'
-      dns:
-        - 223.6.6.6
-        - 223.5.5.5
-      networks:
-        - portal
+  ue_admin:
+    build:
+      context: ./ue_admin
+      args:
+        vue_app_back_auth_server: http://localhost:3000
+        vue_app_back_api_server: http://localhost:3000
+    ports:
+      - '3840:80'
+    dns:
+      - 223.6.6.6
+      - 223.5.5.5
 
-    sale:
-      build: 
-        context: .
-        args:
-          vue_app_back_auth_server: http://192.168.20.71:3330
-          vue_app_back_api_server: http://back:3650
-      ports:
-        - '3660:80'
-      dns:
-        - 223.6.6.6
-        - 223.5.5.5
-      networks:
-        - portal
-networks:
-  portal:
-    driver: bridge
-    external: true
+  ue_mongo:
+    build:
+      context: ./ue_mongo
+      args:
+        vue_app_back_auth_server: http://localhost:3000
+        vue_app_back_api_server: http://localhost:3000
+    ports:
+      - '3830:80'
+    dns:
+      - 223.6.6.6
+      - 223.5.5.5
