@@ -1,7 +1,9 @@
 .vscode
-node_modules/
-public/
+/node_modules/
+/public/
 .env
 .env.*
 *.xlsx
-config/app.local2.js
+/config/*.local.js
+/config/*.local2.js
+/config/plugins.js

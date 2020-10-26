@@ -8,7 +8,7 @@
       </el-breadcrumb>
     </template>
     <template v-slot:center>
-      <el-table :data="documents" stripe id="tables" class="table-fixed" style="width: 100%">
+      <el-table id="tables" class="table-fixed" :data="documents" stripe style="width: 100%" :max-height="tableHeight">
         <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
           <template slot="header">
             <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
@@ -95,6 +95,7 @@ export default {
   props: ['bucketName', 'dbName', 'clName'],
   data() {
     return {
+      tableHeight: 0,
       properties: {},
       page: {
         at: 1,
@@ -110,6 +111,9 @@ export default {
   computed: {
     ...mapState(['documents', 'conditions'])
   },
+  created() {
+    this.tableHeight = window.innerHeight * 0.8
+  },
   methods: {
     ...mapMutations(['updateDocument', 'conditionReset']),
     handleCondition() {
@@ -123,12 +127,14 @@ export default {
           orderBy: _obj[0].rule.orderBy
         }
       }
-      return _obj.map(ele => ele.rule).reduce((prev, curr) => {
-        return {
-          filter: Object.assign(prev.filter, curr.filter),
-          orderBy: Object.assign(prev.orderBy, curr.orderBy)
-        }
-      })
+      return _obj
+        .map(ele => ele.rule)
+        .reduce((prev, curr) => {
+          return {
+            filter: Object.assign(prev.filter, curr.filter),
+            orderBy: Object.assign(prev.orderBy, curr.orderBy)
+          }
+        })
     },
     listByColumn(
       columnName,
@@ -280,7 +286,9 @@ export default {
     },
     handleDownload(file) {
       const access_token = sessionStorage.getItem('access_token')
-      window.open(`${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`)
+      window.open(
+        `${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`
+      )
     },
     handleSize(val) {
       this.page.size = val
