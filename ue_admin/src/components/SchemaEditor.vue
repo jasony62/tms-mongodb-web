@@ -17,7 +17,13 @@
         </el-select>
       </el-form-item>
     </el-form>
-    <tms-json-schema v-show="activeTab === 'second'" :schema="schema.body"></tms-json-schema>
+    <tms-json-schema v-show="activeTab === 'second'" :schema="schema.body" :extendSchema="extendSchema" :on-upload="onUploadFile" class="schema-editor">
+      <template v-slot:extKeywords="props">
+        <el-form-item label="不可修改">
+          <el-switch v-model="props.schema.readonly"></el-switch>
+        </el-form-item>
+      </template>
+    </tms-json-schema>
     <div slot="footer" class="dialog-footer">
       <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button @click="dialogVisible = false">取消</el-button>
@@ -28,6 +34,7 @@
 import { JsonSchema as TmsJsonSchema } from 'tms-vue-ui'
 import apiSchema from '../apis/schema'
 import apiTag from '../apis/tag'
+import apiDoc from '../apis/document'
 
 export default {
   name: 'SchemaEditor',
@@ -38,7 +45,7 @@ export default {
     schema: {
       type: Object,
       default: function() {
-        return { title: '', description: '', scope: '', body: {} }
+        return { title: '', description: '', scope: '', tags: [], body: {} }
       }
     }
   },
@@ -47,7 +54,10 @@ export default {
       activeTab: 'first',
       tags: [],
       destroyOnClose: true,
-      closeOnClickModal: false
+      closeOnClickModal: false,
+      extendSchema: (vm, schema) => {
+        vm.$set(schema, 'readonly', schema.readonly || false)
+      }
     }
   },
   mounted() {
@@ -56,6 +66,17 @@ export default {
     })
   },
   methods: {
+    onUploadFile(file) {
+      let fileData = new FormData()
+      fileData.append('file', file)
+      const config = { 'Content-Type': 'multipart/form-data' }
+      return apiDoc
+        .upload({ bucket: this.bucketName }, fileData, config)
+        .then(uploadUrl => {         
+          return {name: file.name, url: uploadUrl}      
+        })
+        .catch(error => { throw error })
+    },
     onTabClick() {},
     onSubmit() {
       if (this.schema._id) {

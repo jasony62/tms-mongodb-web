@@ -10,10 +10,20 @@ services:
     image: tms-mongodb/back:latest
     container_name: tms-mongodb-back
     environment:
-         - NODE_ENV=production
-         - TMS_MONGODB_HOST=mongodb
-         - TMS_MONGODB_PORT=27017
-    command: ['sh', './wait-for.sh', 'mongodb:27017', '-t', '300', '--', 'node', 'server']
+      - NODE_ENV=production
+      - TMS_MONGODB_HOST=mongodb
+      - TMS_MONGODB_PORT=27017
+    command:
+      [
+        'sh',
+        './wait-for.sh',
+        'mongodb:27017',
+        '-t',
+        '300',
+        '--',
+        'node',
+        'server',
+      ]
   ue_admin:
     build:
       context: ./ue_admin

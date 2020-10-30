@@ -9,11 +9,11 @@ const { nanoid } = require('nanoid')
  * 数据库控制器基类
  */
 class DbBase extends Base {
-  constructor(...args) {
+  constructor (...args) {
     super(...args)
     this.dbHelper = new DbHelper(this)
   }
-  async tmsBeforeEach() {
+  async tmsBeforeEach () {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
 
@@ -24,10 +24,13 @@ class DbBase extends Base {
   /**
    *
    */
-  async list() {
+  async list () {
     const query = { type: 'database' }
     if (this.bucket) query.bucket = this.bucket.name
-    const tmsDbs = await this.clMongoObj.find(query).sort({ top: -1 }).toArray()
+    const tmsDbs = await this.clMongoObj
+      .find(query)
+      .sort({ top: -1 })
+      .toArray()
 
     return new ResultData(tmsDbs)
   }
@@ -36,7 +39,7 @@ class DbBase extends Base {
    *
    * 只有创建集合，创建数据库才生效
    */
-  async create() {
+  async create () {
     let info = this.request.body
     info.type = 'database'
     if (this.bucket) info.bucket = this.bucket.name
@@ -65,16 +68,34 @@ class DbBase extends Base {
 
     return this.clMongoObj
       .insertOne(info)
-      .then((result) => new ResultData(result.ops[0]))
+      .then(result => new ResultData(result.ops[0]))
   }
   /**
    * 更新数据库对象信息
    */
-  async update() {
+  async update () {
     const beforeDb = await this.dbHelper.findRequestDb()
 
     let info = this.request.body
-    let { _id, name, bucket, ...updatedInfo } = info
+    let params = this.request.query
+
+    // 检查数据库名
+    let model = new modelDb()
+    let newName = model._checkDbName(info.name)
+    if (newName[0] === false) return new ResultFault(newName[1])
+    info.name = newName[1]
+
+    //修改集合查询
+    const queryList = { database: params.db, type: 'collection' }
+
+    // 修改集合值
+    const updateList = { database: info.name }
+
+    const rst = await this.clMongoObj.updateMany(queryList, {
+      $set: updateList
+    })
+
+    let { _id, bucket, ...updatedInfo } = info
 
     const query = { _id: ObjectId(beforeDb._id) }
 
@@ -82,10 +103,11 @@ class DbBase extends Base {
       .updateOne(query, { $set: updatedInfo })
       .then(() => new ResultData(info))
   }
+
   /**
    * 置顶
    */
-  async top() {
+  async top () {
     let { id, type = 'up' } = this.request.query
 
     let top = type === 'up' ? '10000' : null
@@ -94,7 +116,7 @@ class DbBase extends Base {
 
     return this.clMongoObj
       .updateOne(query, { $set: { top } })
-      .then((rst) => new ResultData(rst.result))
+      .then(rst => new ResultData(rst.result))
   }
 }
 

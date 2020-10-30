@@ -12,6 +12,8 @@ class Tag extends TagBase {
    */
   async create() {
     let info = this.request.body
+    info.name = info.name.replace(/(^\s*)|(\s*$)/g, "")
+
     info.type = 'tag'
     if (this.bucket) info.bucket = this.bucket.name
 

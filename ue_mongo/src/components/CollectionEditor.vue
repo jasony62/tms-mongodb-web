@@ -44,21 +44,24 @@
 </template>
 <script>
 import Vue from 'vue'
-import { Dialog, Form, FormItem, Input, Button, Message } from 'element-ui'
+import { Dialog, Form, FormItem, Input, Select, Option, Button, Message } from 'element-ui'
 Vue.use(Dialog)
   .use(Form)
   .use(FormItem)
   .use(Input)
+  .use(Select)
+  .use(Option)
   .use(Button)
 
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
-import apiCollection from '../apis/collection'
-import apiSchema from '../apis/schema'
-import apiTag from '../apis/tag'
+import createCollectionApi from '../apis/collection'
+import createSchemaApi from '../apis/schema'
+import createTagApi from '../apis/tag'
 
 export default {
   name: 'CollectionEditor',
   props: {
+		tmsAxiosName: String,
     dialogVisible: { default: true },
     bucketName: { type: String },
     dbName: { type: String },
@@ -91,14 +94,14 @@ export default {
     }
   },
   mounted() {
-    apiSchema.list(this.bucketName, 'document').then(schemas => {
+    createSchemaApi(this.TmsAxios(this.tmsAxiosName)).list(this.bucketName, 'document').then(schemas => {
       this.schemas = schemas
     })
-    apiSchema.list(this.bucketName, 'collection').then(extensions => {
+    createSchemaApi(this.TmsAxios(this.tmsAxiosName)).list(this.bucketName, 'collection').then(extensions => {
 			this.extensions = extensions
 			this.handleExtendId(this.collection.extensionInfo.schemaId, true)
     })
-    apiTag.list(this.bucketName).then(tags => {
+    createTagApi(this.TmsAxios(this.tmsAxiosName)).list(this.bucketName).then(tags => {
       this.tags = tags
     })
 	},
@@ -118,11 +121,11 @@ export default {
 		},
 		fnSubmit() {
 			if (this.mode === 'create')
-        apiCollection
+        createCollectionApi(this.TmsAxios(this.tmsAxiosName))
           .create(this.bucketName, this.dbName, this.collection)
           .then(newCollection => this.$emit('submit', newCollection))
       else if (this.mode === 'update')
-        apiCollection
+        createCollectionApi(this.TmsAxios(this.tmsAxiosName))
           .update(this.bucketName, this.dbName, this.clName, this.collection)
           .then(newCollection => this.$emit('submit', newCollection))
 		},
@@ -136,8 +139,9 @@ export default {
 			}
 			this.fnSubmit()
     },
-    open(mode, bucketName, dbName, collection) {
-      this.mode = mode
+    open(mode, tmsAxiosName, bucketName, dbName, collection) {
+			this.mode = mode
+			this.tmsAxiosName = tmsAxiosName
       this.bucketName = bucketName
       this.dbName = dbName
       if (mode === 'update') {

@@ -1,7 +1,4 @@
-const {
-  ResultData,
-  ResultFault
-} = require('tms-koa')
+const { ResultData, ResultFault } = require('tms-koa')
 const Base = require('./base')
 const DocumentHelper = require('./documentHelper')
 const fs = require('fs')
@@ -10,9 +7,7 @@ const modelColl = require('../models/mgdb/collection')
 const modelDocu = require('../models/mgdb/document')
 const ObjectId = require('mongodb').ObjectId
 const _ = require('lodash')
-const {
-  unrepeatByArray
-} = require('../tms/utilities')
+const { unrepeatByArray } = require('../tms/utilities')
 const APPCONTEXT = require('tms-koa').Context.AppContext
 const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
 const log4js = require('log4js')
@@ -29,10 +24,15 @@ class DocBase extends Base {
   async create() {
     const existDb = await this.docHelper.findRequestDb()
 
-    const {
-      cl: clName
-    } = this.request.query
+    const { cl: clName } = this.request.query
     let doc = this.request.body
+
+    let cl = this.mongoClient.db(existDb.sysname).collection(clName)
+    let oldDoc = await cl.findOne({ order_id: doc.order_id })
+    if (oldDoc) {
+      return new ResultFault('订单编号已存在')
+    }
+
     // 加工数据
     this._beforeProcessByInAndUp(doc, 'insert')
 
@@ -40,7 +40,7 @@ class DocBase extends Base {
       .db(existDb.sysname)
       .collection(clName)
       .insertOne(doc)
-      .then(async (r) => {
+      .then(async r => {
         let modelD = new modelDocu()
         await modelD.dataActionLog(r.ops, '创建', existDb.name, clName)
         return new ResultData(doc)
@@ -61,10 +61,7 @@ class DocBase extends Base {
   async remove() {
     const existDb = await this.docHelper.findRequestDb()
 
-    const {
-      cl: clName,
-      id
-    } = this.request.query
+    const { cl: clName, id } = this.request.query
     const cl = this.mongoClient.db(existDb.sysname).collection(clName)
 
     if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
@@ -80,7 +77,7 @@ class DocBase extends Base {
       .deleteOne({
         _id: ObjectId(id)
       })
-      .then((result) => new ResultData(result.result))
+      .then(result => new ResultData(result.result))
   }
   /**
    *  根据某一列的值分组
@@ -88,24 +85,26 @@ class DocBase extends Base {
   async getGroupByColumnVal() {
     const existDb = await this.docHelper.findRequestDb()
 
-    let {
-      cl: clName,
-      column,
-      page = null,
-      size = null
-    } = this.request.query
-    let {
-      filter
-    } = this.request.body
+    let { cl: clName, column, page = null, size = null } = this.request.query
+    let { filter } = this.request.body
 
     const client = this.mongoClient
     let cl = client.db(existDb.sysname).collection(clName)
+
+    if (this.client && this.client.data && this.client.data.rid === 1) {
+      if (!filter) filter = {}
+      filter.account = {
+        keyword: [this.client.data.account],
+        feature: 'in'
+      }
+    }
 
     let find = {}
     if (filter) {
       find = this._assembleFind(filter)
     }
-    let group = [{
+    let group = [
+      {
         $match: find
       },
       {
@@ -120,7 +119,7 @@ class DocBase extends Base {
         $sort: {
           _id: 1
         }
-      },
+      }
     ]
     if (page && page > 0 && size && size > 0) {
       let skip = {
@@ -136,9 +135,9 @@ class DocBase extends Base {
     return cl
       .aggregate(group)
       .toArray()
-      .then((arr) => {
+      .then(arr => {
         let data = []
-        arr.forEach((a) => {
+        arr.forEach(a => {
           let d = {}
           d.title = a._id
           d.sum = a.num_tutorial
@@ -154,14 +153,8 @@ class DocBase extends Base {
   async list() {
     const existDb = await this.docHelper.findRequestDb()
 
-    const {
-      cl: clName,
-      page = null,
-      size = null
-    } = this.request.query
-    const {
-      filter = null, orderBy = null
-    } = this.request.body
+    const { cl: clName, page = null, size = null } = this.request.query
+    const { filter = null, orderBy = null } = this.request.body
 
     let options = {
       filter,
@@ -169,6 +162,24 @@ class DocBase extends Base {
     }
     let model = new modelDocu()
     let data = await model.listDocs(existDb, clName, options, page, size)
+    if (data[0] === false) {
+      return new ResultFault(data[1])
+    }
+    data = data[1]
+
+    return new ResultData(data)
+  }
+  /**
+   * 根据区号查省和本地网
+   */
+  async listByAreaCode() {
+    const existDb = await this.docHelper.findRequestDb()
+    const { cl: clName } = this.request.query
+    const { filter = null } = this.request.body
+    let options = { filter }
+
+    let model = new modelDocu()
+    let data = await model.listDocs(existDb, clName, options)
     if (data[0] === false) {
       return new ResultFault(data[1])
     }
@@ -188,12 +199,12 @@ class DocBase extends Base {
    */
   async removeMany(ctx, cl = null, existDb = null, docIds = null) {
     let filter, clName
-    if(!cl && !docIds){
+    if (!cl && !docIds) {
       filter = this.request.body.filter
       clName = this.request.query.cl
       existDb = await this.docHelper.findRequestDb()
     }
-    
+
     docIds = docIds || this.request.body.docIds
     cl = cl || this.mongoClient.db(existDb.sysname).collection(clName)
 
@@ -201,7 +212,7 @@ class DocBase extends Base {
     if (docIds && docIds.length > 0) {
       // 按选中删除
       let docIds2 = []
-      docIds.forEach((id) => {
+      docIds.forEach(id => {
         docIds2.push(new ObjectId(id))
       })
 
@@ -235,7 +246,7 @@ class DocBase extends Base {
       await modelD.dataActionLog(datas2, operate_type, existDb.name, clName)
     }
 
-    return cl.deleteMany(find).then((result) => new ResultData(result.result))
+    return cl.deleteMany(find).then(result => new ResultData(result.result))
   }
   /**
    * 更新指定数据库指定集合下的文档
@@ -243,10 +254,7 @@ class DocBase extends Base {
   async update() {
     const existDb = await this.docHelper.findRequestDb()
 
-    const {
-      cl: clName,
-      id
-    } = this.request.query
+    const { cl: clName, id } = this.request.query
     let doc = this.request.body
     doc = _.omit(doc, ['_id', 'bucket'])
     // 加工数据
@@ -273,9 +281,11 @@ class DocBase extends Base {
       )
     }
 
-    return cl.updateOne(find, {
-      $set: doc
-    }).then(() => new ResultData(doc))
+    return cl
+      .updateOne(find, {
+        $set: doc
+      })
+      .then(() => new ResultData(doc))
   }
   /**
    *  剪切数据到指定集合中
@@ -297,13 +307,18 @@ class DocBase extends Base {
     let fields = {}
     if (!oldDocus || oldDocus.length === 0) {
       if (!docIds || docIds.length === 0) return [false, '没有要移动的数据']
-      oldDocus = await modelDocu.getDocumentByIds(oldExistDb, oldCl, docIds, fields)
+      oldDocus = await modelDocu.getDocumentByIds(
+        oldExistDb,
+        oldCl,
+        docIds,
+        fields
+      )
       if (oldDocus[0] === false) return [false, oldDocus[1]]
       oldDocus = oldDocus[1]
     }
 
     // 插入到指定集合中,补充没有的数据
-    let newDocs = oldDocus.map((doc) => {
+    let newDocs = oldDocus.map(doc => {
       let newd = {
         _id: doc._id
       }
@@ -321,9 +336,7 @@ class DocBase extends Base {
     // 需要插入的总数量
     let planMoveTotal = newDocs.length
     // 插件
-    let {
-      transforms
-    } = options
+    let { transforms } = options
     if (typeof transforms === 'string' && transforms.length !== 0) {
       let transforms2 = transforms.split(',')
       if (fs.existsSync(process.cwd() + '/config/plugins.js')) {
@@ -359,7 +372,7 @@ class DocBase extends Base {
       return [false, '没有选择数据或为重复数据或不满足插件要求']
 
     // 去除newDocs的_id
-    let newDocs2 = JSON.parse(JSON.stringify(newDocs)).map((nd) => {
+    let newDocs2 = JSON.parse(JSON.stringify(newDocs)).map(nd => {
       delete nd._id
       // 加工数据
       this._beforeProcessByInAndUp(nd, 'insert')
@@ -372,14 +385,14 @@ class DocBase extends Base {
     const clNew = client.db(newExistDb.sysname).collection(newCl)
     let rst = await clNew
       .insertMany(newDocs2)
-      .then((rst) => [true, rst])
-      .catch((err) => [false, err.toString()])
+      .then(rst => [true, rst])
+      .catch(err => [false, err.toString()])
     if (rst[0] === false) return [false, '数据插入指定表错误: ' + rst[1]]
     rst = rst[1]
 
     // 如果计划插入总数不等于实际插入总数，需回滚
     if (rst.insertedCount != newDocs.length) {
-      Object.keys(rst.insertedIds).forEach(async (k) => {
+      Object.keys(rst.insertedIds).forEach(async k => {
         let newId = rst.insertedIds[k]
         await clNew.deleteOne({
           _id: new ObjectId(newId)
@@ -388,15 +401,15 @@ class DocBase extends Base {
       return [
         false,
         '插入数据数量错误需插入：' +
-        newDocs.length +
-        '；实际插入：' +
-        rst.insertedCount,
+          newDocs.length +
+          '；实际插入：' +
+          rst.insertedCount
       ]
     }
 
     // 插入成功后删除旧数据
     let passDocIds = []
-    newDocs.forEach((nd) => {
+    newDocs.forEach(nd => {
       passDocIds.push(new ObjectId(nd._id))
     })
     const clOld = client.db(oldExistDb.sysname).collection(oldCl)
@@ -406,8 +419,8 @@ class DocBase extends Base {
           $in: passDocIds
         }
       })
-      .then((rst) => [true, rst])
-      .catch((err) => [false, err.toString()])
+      .then(rst => [true, rst])
+      .catch(err => [false, err.toString()])
 
     if (rstDelOld[0] === false)
       return [false, '数据以到指定集合中，但删除旧数据时失败']
@@ -416,7 +429,7 @@ class DocBase extends Base {
     // 记录日志
     if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       let moveOldDatas = {}
-      oldDocus.forEach((od) => {
+      oldDocus.forEach(od => {
         if (passDocIds.includes(od._id)) {
           moveOldDatas[od._id] = od
         }
@@ -437,7 +450,7 @@ class DocBase extends Base {
       planMoveTotal,
       afterFilterMoveTotal,
       rstInsNew: rst,
-      rstDelOld,
+      rstDelOld
     }
     return [true, returnData]
   }
@@ -445,14 +458,14 @@ class DocBase extends Base {
   /**
    * 多选单选转换
    * @param {*} model 'toValue' 'toLabel'
-   * @param {*} data 
-   * @param {*} columns 
+   * @param {*} data 数据源
+   * @param {*} columns 集合列
    */
   transformsCol(model, data, columns) {
     const gets = model === 'toLabel' ? 'value' : 'label'
     const sets = model === 'toLabel' ? 'label' : 'value'
     logger.info('data数据源', data)
-    
+
     Object.keys(columns).forEach(ele => {
       // 输入框
       if (columns[ele].type === 'string' && data.length) {
@@ -466,15 +479,35 @@ class DocBase extends Base {
         data = data.map(item => {
           if (model === 'toValue' && Array.isArray(item[ele])) return item
           let arr = []
-          let enums = model === 'toValue' && item[ele] && typeof (item[ele]) === 'string' ? item[ele].split(',').filter(ele => ele) : item[ele]
+          let enums =
+            model === 'toValue' && item[ele] && typeof item[ele] === 'string'
+              ? item[ele].split(',').filter(ele => ele)
+              : item[ele]
           if (enums && Array.isArray(enums)) {
-            if (model === 'toValue') enums = enums.map(ele => ele.trim().replace(/\n/g, ''))
+            if (model === 'toValue')
+              enums = enums.map(ele => ele.trim().replace(/\n/g, ''))
             columns[ele].enum.forEach(childItem => {
               if (enums.includes(childItem[gets])) arr.push(childItem[sets])
             })
             // 当且仅当导入多选选项，enums与集合列定义存在差集，则失败
-            if (model === 'toValue' && enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)).length) {
-              logger.info('存在差集', enums.filter(item => !columns[ele].enum.map(childItem => childItem['label']).includes(item)))
+            if (
+              model === 'toValue' &&
+              enums.filter(
+                item =>
+                  !columns[ele].enum
+                    .map(childItem => childItem['label'])
+                    .includes(item)
+              ).length
+            ) {
+              logger.info(
+                '存在差集',
+                enums.filter(
+                  item =>
+                    !columns[ele].enum
+                      .map(childItem => childItem['label'])
+                      .includes(item)
+                )
+              )
               throw '多选不匹配，导入失败'
             }
           }
@@ -488,8 +521,16 @@ class DocBase extends Base {
         })
       } else if (columns[ele].type === 'string' && columns[ele].enum) {
         data = data.map(item => {
-          if (model === 'toValue' && item[ele] && !columns[ele].enum.map(ele => ele.label).includes(item[ele])) {
-            logger.info('单选不匹配', item[ele], columns[ele].enum.map(ele => ele.label))
+          if (
+            model === 'toValue' &&
+            item[ele] &&
+            !columns[ele].enum.map(ele => ele.label).includes(item[ele])
+          ) {
+            logger.info(
+              '单选不匹配',
+              item[ele],
+              columns[ele].enum.map(ele => ele.label)
+            )
             throw '单选不匹配，导入失败'
           }
           columns[ele].enum.forEach(childItem => {
@@ -521,19 +562,34 @@ class DocBase extends Base {
       return [false, '指定的集合没有指定集合列']
     }
     console.log('rowsJson', rowsJson)
-    let jsonFinishRows = rowsJson.map((row) => {
+    let jsonFinishRows = rowsJson.map(row => {
       let newRow = {}
       for (const k in columns) {
         let column = columns[k]
+        let _default = column.default
         let rDByTitle = row[column.title]
         if (typeof rDByTitle === 'number') {
           newRow[k] = String(rDByTitle)
         } else if (typeof rDByTitle === 'undefined') {
           logger.info(column.title, column.default)
           // 单选
-          if (column.type === 'string' && column.enum && column.default) {
-            newRow[k] = column.enum.find(ele => ele.value === column.default).label
-          } else if (column.type === 'array' && column.enum && column.default.length) {
+          if (
+            column.type === 'string' &&
+            column.enum &&
+            column.enum.length &&
+            column.default &&
+            column.default.length
+          ) {
+            newRow[k] = column.enum.find(
+              ele => ele.value === column.default
+            ).label
+          } else if (
+            column.type === 'array' &&
+            column.enum &&
+            column.enum.length &&
+            column.default &&
+            column.default.length
+          ) {
             const target = column.enum.map(ele => {
               if (column.default.includes(ele.value)) {
                 return ele.label
@@ -574,7 +630,12 @@ class DocBase extends Base {
           if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
             // 记录日志
             let modelD = new modelDocu()
-            await modelD.dataActionLog(jsonFinishRows, '导入', existDb.name, clName)
+            await modelD.dataActionLog(
+              jsonFinishRows,
+              '导入',
+              existDb.name,
+              clName
+            )
           }
           return [true, jsonFinishRows]
         })
@@ -591,7 +652,7 @@ class DocBase extends Base {
     // 根据规则取出数据
     const client = this.mongoClient
     let cl = client.db(existDb.sysname).collection(clName)
-    let docs = rules.map(async (rule) => {
+    let docs = rules.map(async rule => {
       if (
         !planTotalColumn ||
         !rule[planTotalColumn] ||
@@ -652,7 +713,7 @@ class DocBase extends Base {
             if (schemaKey === 'byId') {
               let ids = whereVal.split(',')
               let ids2 = []
-              ids.forEach((id) => {
+              ids.forEach(id => {
                 ids2.push(new ObjectId(id))
               })
               whereAnd._id = {
@@ -709,7 +770,7 @@ class DocBase extends Base {
           code: 500,
           msg: '需求数大于实际数，不可分配',
           need_sum: need_sum,
-          exist_total: existTotal,
+          exist_total: existTotal
         }
         for (const k in rule) {
           data[k] = rule[k]
@@ -717,14 +778,17 @@ class DocBase extends Base {
         return data
       }
 
-      let dc = await cl.find(find).limit(need_sum).toArray()
+      let dc = await cl
+        .find(find)
+        .limit(need_sum)
+        .toArray()
 
       let data = {
         code: 0,
         msg: '成功',
         need_sum: need_sum,
         exist_total: existTotal,
-        data: dc,
+        data: dc
       }
 
       for (const k in rule) {
@@ -733,7 +797,7 @@ class DocBase extends Base {
       return data
     })
 
-    return Promise.all(docs).then((rst) => {
+    return Promise.all(docs).then(rst => {
       return [true, rst]
     })
   }
@@ -742,16 +806,10 @@ class DocBase extends Base {
    */
   async updateMany() {
     const existDb = await this.docHelper.findRequestDb()
-    let {
-      cl: clName
-    } = this.request.query
+    let { cl: clName } = this.request.query
     if (!clName) return new ResultFault('参数不完整')
 
-    let {
-      docIds,
-      filter,
-      columns
-    } = this.request.body
+    let { docIds, filter, columns } = this.request.body
     if (!columns || Object.keys(columns).length === 0)
       return new ResultFault('没有要修改的列')
 
@@ -760,7 +818,7 @@ class DocBase extends Base {
     if (docIds && docIds.length > 0) {
       // 按选中修改
       let docIds2 = []
-      docIds.forEach((id) => {
+      docIds.forEach(id => {
         docIds2.push(new ObjectId(id))
       })
       find = {
@@ -768,15 +826,15 @@ class DocBase extends Base {
           $in: docIds2
         }
       }
-      logOperate = "批量修改(按选中)"
+      logOperate = '批量修改(按选中)'
     } else if (filter && typeof filter === 'object') {
       // 按条件修改
       find = this._assembleFind(filter)
-      logOperate = "批量修改(按条件)"
+      logOperate = '批量修改(按条件)'
     } else if (typeof filter === 'string' && filter === 'ALL') {
       //修改全部
       find = {}
-      logOperate = "批量修改(按全部)"
+      logOperate = '批量修改(按全部)'
     } else {
       return new ResultFault('没有要修改的数据')
     }
@@ -795,7 +853,7 @@ class DocBase extends Base {
       .updateMany(find, {
         $set: set
       })
-      .then((rst) => {
+      .then(rst => {
         // 日志
         if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
           let modelD = new modelDocu()

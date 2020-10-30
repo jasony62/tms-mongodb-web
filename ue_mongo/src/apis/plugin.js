@@ -1,16 +1,14 @@
-import { TmsAxios } from 'tms-vue'
+const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/plugin'
 
-const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/plugins/index'
-
-export default {
-  getPlugins() {
-    return TmsAxios.ins('mongodb-api')
-      .get(`${base}/pluginDocument`)
-      .then(rst => rst.data.result)
-  },
-  handlePlugin() {
-    return TmsAxios.ins('mongodb-api')
-      .post(`${base}/commonExecute`, arguments[0], { params: arguments[1] })
-      .then(rst => rst.data.result)
+export default function create(tmsAxios) {
+  return {
+    getPlugins() {
+      return tmsAxios.get(`${base}/pluginDocument`).then(rst => rst.data.result)
+    },
+    handlePlugin() {
+      return tmsAxios
+        .post(`${base}/commonExecute`, arguments[0], { params: arguments[1] })
+        .then(rst => rst.data.result)
+    }
   }
 }

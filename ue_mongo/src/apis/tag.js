@@ -1,12 +1,12 @@
-import { TmsAxios } from 'tms-vue'
+const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/mongo/tag'
 
-const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/admin/tag'
-
-export default {
-	list(bucket) {
-		const params = { bucket }
-		return TmsAxios.ins('mongodb-api')
-			.get(`${base}/list`, { params })
-			.then(rst => rst.data.result)
+export default function create(tmsAxios) {
+	return {
+		list(bucket) {
+			const params = { bucket }
+			return tmsAxios
+				.get(`${base}/list`, { params })
+				.then(rst => rst.data.result)
+		}
 	}
 }

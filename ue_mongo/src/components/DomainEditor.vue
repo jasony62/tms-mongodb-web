@@ -1,19 +1,15 @@
 <template>
-  <el-dialog 
-    :visible.sync="dialogVisible"
-    :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal"
-  >
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <div slot="title">{{title}}</div>
     <el-form ref="form" :model="form" label-position="top">
       <el-form-item label="选择数据库">
         <el-select v-model="form.dbName" placeholder="请选择" @change="changeDdName" clearable filterable>
-            <el-option v-for="db in dbs" :key="db._id" :label="db.title" :value="db.name"></el-option>
+          <el-option v-for="db in dbs" :key="db._id" :label="db.title" :value="db.name"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="选择文档">
         <el-select v-model="form.clName" placeholder="请选择" clearable filterable>
-            <el-option v-for="cl in cls" :key="cl._id" :label="cl.title" :value="cl.name"></el-option>
+          <el-option v-for="cl in cls" :key="cl._id" :label="cl.title" :value="cl.name"></el-option>
         </el-select>
       </el-form-item>
     </el-form>
@@ -25,20 +21,22 @@
 </template>
 <script>
 import Vue from 'vue'
-import { Dialog, Form, FormItem, Select, Button } from 'element-ui'
+import { Dialog, Form, FormItem, Select, Option, Button } from 'element-ui'
 Vue.use(Dialog)
   .use(Form)
   .use(FormItem)
-  .use(Select)
+	.use(Select)
+  .use(Option)
   .use(Button)
 
-import apiDb from '../apis/database'
-import apiCollection from '../apis/collection'
+import createDbApi from '../apis/database'
+import createCollectionApi from '../apis/collection'
 
 export default {
   name: 'DomainEditor',
   props: {
 		dialogVisible: { default: true },
+		tmsAxiosName: { type: String },
 		bucketName: { type: String }
   },
   data() {
@@ -54,20 +52,23 @@ export default {
     }
   },
   mounted() {
-    apiDb.list(this.bucketName).then(dbs => {
-      this.dbs = dbs
-    })
+		createDbApi(this.TmsAxios(this.tmsAxiosName))
+			.list(this.bucketName).then(dbs => {
+				this.dbs = dbs
+			})
   },
   methods: {
     changeDdName() {
-      apiCollection.list(this.bucketName, this.form.dbName).then(cls => {
-        this.cls = cls
-      })
+			createCollectionApi(this.TmsAxios(this.tmsAxiosName))
+				.list(this.bucketName, this.form.dbName).then(cls => {
+					this.cls = cls
+				})
     },
     confirm() {
       this.$emit('submit', this.form)
     },
-    open(bucketName, config) {
+    open(tmsAxiosName, bucketName, config) {
+			this.tmsAxiosName = tmsAxiosName
 			this.bucketName = bucketName
       this.title = config.title ? config.title : ""
       this.$mount()

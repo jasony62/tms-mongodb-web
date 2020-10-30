@@ -35,6 +35,7 @@ export default {
   data() {
     return {
       mode: '',
+      oldDbName: '',
       destroyOnClose: true,
       closeOnClickModal: false
     }
@@ -47,7 +48,7 @@ export default {
       }
       if (this.mode === 'update') {
         apiDb
-          .update(this.bucketName, this.database.name, this.database)
+          .update(this.bucketName, this.oldDbName, this.database)
           .then(newDb => this.$emit('submit', newDb))
       } else if (this.mode === 'create') {
         apiDb
@@ -58,7 +59,10 @@ export default {
     open(mode, bucketName, db) {
       this.mode = mode
       this.bucketName = bucketName
-      if (mode === 'update') Object.assign(this.database, db)
+      if (mode === 'update') {
+        Object.assign(this.database, db)
+        this.oldDbName = this.database.name
+      }
       this.$mount()
       document.body.appendChild(this.$el)
       return new Promise(resolve => {

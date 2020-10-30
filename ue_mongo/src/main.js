@@ -6,17 +6,19 @@ import store from './store'
 import '@/assets/css/common.less'
 import { Message } from 'element-ui'
 import { Login } from 'tms-vue-ui'
-import apiLogin from './apis/login.js'
+import ApiPlugin from './apis'
+import apiLogin from './apis/login'
 import {
   TmsAxiosPlugin,
   TmsErrorPlugin,
+  TmsEventPlugin,
   TmsIgnorableError,
   TmsLockPromise
 } from 'tms-vue'
 
 Vue.config.productionTip = false
 
-Vue.use(TmsAxiosPlugin).use(TmsErrorPlugin)
+Vue.use(TmsAxiosPlugin).use(TmsErrorPlugin).use(TmsEventPlugin)
 
 const { fnGetCaptcha, fnGetJwt } = apiLogin
 const LoginSchema = [
@@ -103,9 +105,10 @@ let responseRule = Vue.TmsAxios.newInterceptorRule({
 })
 rules.push(responseRule)
 
-Vue.TmsAxios({ name: 'mongodb-api', rules })
-
-Vue.TmsAxios({ name: 'auth-api' })
+const tmsAxios = {}
+tmsAxios.api = Vue.TmsAxios({ name: 'mongodb-api', rules })
+tmsAxios.auth = Vue.TmsAxios({ name: 'auth-api' })
+Vue.use(ApiPlugin, { tmsAxios })
 
 Vue.directive('loadmore', {
   bind(el, binding) {
