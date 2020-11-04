@@ -1,19 +1,13 @@
-const {
-  Ctrl,
-  ResultFault,
-  ResultObjectNotFound
-} = require('tms-koa')
+const { Ctrl, ResultFault, ResultObjectNotFound } = require('tms-koa')
 
 function allowAccessBucket(bucket, clientId) {
   if (bucket.creator === clientId) return true
 
-  const {
-    coworkers
-  } = bucket
+  const { coworkers } = bucket
 
   if (!Array.isArray(coworkers)) return false
 
-  return coworkers.some((c) => c.id === clientId)
+  return coworkers.some(c => c.id === clientId)
 }
 
 class Base extends Ctrl {

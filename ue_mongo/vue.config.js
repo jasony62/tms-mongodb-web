@@ -61,14 +61,8 @@ module.exports = {
     // 生产环境
     if (config.mode === 'production') {
       // 设置cdn第三方包
-      config.externals = {
-
-      }
-      const prod = {
-        plugins: [
-
-        ]
-      }
+      config.externals = {}
+      const prod = { plugins: [] }
       return prod
     }
   }

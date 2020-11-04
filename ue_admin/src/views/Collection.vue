@@ -8,7 +8,7 @@
       </el-breadcrumb>
     </template>
     <template v-slot:center>
-      <el-table :data="documents" stripe id="tables" class="table-fixed" style="width: 100%">
+      <el-table id="tables" class="table-fixed" :data="documents" stripe style="width: 100%" :max-height="tableHeight">
         <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
           <template slot="header">
             <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
@@ -18,19 +18,41 @@
           </template>
           <template slot-scope="scope">
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
-            <span v-else-if="s.type==='array'&&s.format==='file'">
+            <span v-else-if="s.type==='array'&& s.items && s.items.format==='file'">
               <span v-for="(i, v) in scope.row[k]" :key="v">
                 <a href @click="handleDownload(i)">{{i.name}}</a><br />
               </span>
             </span>
-            <span v-else-if="s.type === 'array' && s.enum">
-              <span v-for="(i, v) in s.enum" :key="v">
-                <span v-if="scope.row[k] && scope.row[k].includes(i.value)">{{i.label}}&nbsp;</span>
+            <span v-else-if="s.type === 'array' && s.enum && s.enum.length">
+              <span v-if="s.enumGroups && s.enumGroups.length">
+                <span v-for="(g, i) in s.enumGroups" :key="i">
+                  <span v-if="scope.row[g.assocEnum.property]===g.assocEnum.value">
+                    <span v-for="(e, v) in s.enum" :key="v">
+                      <span v-if="e.group===g.id && scope.row[k] && scope.row[k].length && scope.row[k].includes(e.value)">{{e.label}}&nbsp;</span>
+                    </span>
+                  </span>
+                </span>
+              </span>
+              <span v-else>
+                <span v-for="(i, v) in s.enum" :key="v">
+                  <span v-if="scope.row[k] && scope.row[k].includes(i.value)">{{i.label}}&nbsp;</span>
+                </span>
               </span>
             </span>
-            <span v-else-if="s.type === 'string' && s.enum">
-              <span v-for="(i, v) in s.enum" :key="v">
-                <span v-if="scope.row[k] === i.value">{{i.label}}</span>
+            <span v-else-if="s.type === 'string' && s.enum && s.enum.length">
+              <span v-if="s.enumGroups && s.enumGroups.length">
+                <span v-for="(g, i) in s.enumGroups" :key="i">
+                  <span v-if="scope.row[g.assocEnum.property]===g.assocEnum.value">
+                    <span v-for="(e, v) in s.enum" :key="v">
+                      <span v-if="e.group===g.id && scope.row[k] === e.value">{{e.label}}</span>
+                    </span>
+                  </span>
+                </span>
+              </span>
+              <span v-else>
+                <span v-for="(i, v) in s.enum" :key="v">
+                  <span v-if="scope.row[k] === i.value">{{i.label}}</span>
+                </span>
               </span>
             </span>
             <span v-else>{{ scope.row[k] }}</span>
@@ -73,6 +95,7 @@ export default {
   props: ['bucketName', 'dbName', 'clName'],
   data() {
     return {
+      tableHeight: 0,
       properties: {},
       page: {
         at: 1,
@@ -88,6 +111,9 @@ export default {
   computed: {
     ...mapState(['documents', 'conditions'])
   },
+  created() {
+    this.tableHeight = window.innerHeight * 0.8
+  },
   methods: {
     ...mapMutations(['updateDocument', 'conditionReset']),
     handleCondition() {
@@ -101,12 +127,14 @@ export default {
           orderBy: _obj[0].rule.orderBy
         }
       }
-      return _obj.map(ele => ele.rule).reduce((prev, curr) => {
-        return {
-          filter: Object.assign(prev.filter, curr.filter),
-          orderBy: Object.assign(prev.orderBy, curr.orderBy)
-        }
-      })
+      return _obj
+        .map(ele => ele.rule)
+        .reduce((prev, curr) => {
+          return {
+            filter: Object.assign(prev.filter, curr.filter),
+            orderBy: Object.assign(prev.orderBy, curr.orderBy)
+          }
+        })
     },
     listByColumn(
       columnName,
@@ -259,9 +287,7 @@ export default {
     handleDownload(file) {
       const access_token = sessionStorage.getItem('access_token')
       window.open(
-        `${process.env.VUE_APP_BACK_API_FS}${
-          file.url
-        }?access_token=${access_token}`
+        `${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`
       )
     },
     handleSize(val) {
