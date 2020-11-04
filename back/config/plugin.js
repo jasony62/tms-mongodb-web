@@ -48,6 +48,9 @@ function initIpConfig(sendConfig) {
       // 默认均采取异步加载方式
       const asyncVal = (/async=N|async=Y/i).test(item[0].url.split('?')[1]) ? '' : '&async=Y'
       item[0].url = ip + item[0].url + str + `module=${module}` + asyncVal
+
+      // 默认权限放开*
+      if (!item[2].auth || !item[2].auth.length)  item[2].auth = ['*']
     })
   })
 }

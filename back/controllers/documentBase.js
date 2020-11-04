@@ -457,7 +457,7 @@ class DocBase extends Base {
       // 输入框
       if (columns[ele].type === 'string' && data.length) {
         data = data.map(item => {
-          item[ele] = item[ele] && item[ele].trim().replace(/\n/g, '')
+          item[ele] = item[ele] && typeof item[ele] === 'string' &&  item[ele].trim().replace(/\n/g, '')
           return item
         })
       }
@@ -468,7 +468,7 @@ class DocBase extends Base {
           let arr = []
           let enums = model === 'toValue' && item[ele] && typeof (item[ele]) === 'string' ? item[ele].split(',').filter(ele => ele) : item[ele]
           if (enums && Array.isArray(enums)) {
-            if (model === 'toValue') enums = enums.map(ele => ele.trim().replace(/\n/g, ''))
+            if (model === 'toValue') enums = enums.map(ele => typeof item[ele] === 'string' && ele.trim().replace(/\n/g, ''))
             columns[ele].enum.forEach(childItem => {
               if (enums.includes(childItem[gets])) arr.push(childItem[sets])
             })
