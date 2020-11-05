@@ -401,9 +401,9 @@ class DocBase extends Base {
       return [
         false,
         '插入数据数量错误需插入：' +
-          newDocs.length +
-          '；实际插入：' +
-          rst.insertedCount
+        newDocs.length +
+        '；实际插入：' +
+        rst.insertedCount
       ]
     }
 
@@ -561,7 +561,6 @@ class DocBase extends Base {
     if (!columns) {
       return [false, '指定的集合没有指定集合列']
     }
-    console.log('rowsJson', rowsJson)
     let jsonFinishRows = rowsJson.map(row => {
       let newRow = {}
       for (const k in columns) {
@@ -861,6 +860,30 @@ class DocBase extends Base {
         }
 
         return new ResultData(rst.result)
+      })
+  }
+  /**
+   * 返回指定文档的完成度
+   */
+  async getDocCompleteStatusById() {
+    const existDb = await this.docHelper.findRequestDb()
+    let { cl: clName } = this.request.query
+    if (!clName) return new ResultFault('参数不完整')
+
+    let { docIds } = this.request.body
+    if (!docIds || docIds.length === 0) return new ResultFault('没有要查询的数据')
+
+    const docIds2 = docIds.map(id => new ObjectId(id))
+    const find = { _id: { $in: docIds2 } }
+
+    const client = this.mongoClient
+    const cl = client.db(existDb.sysname).collection(clName)
+    return cl
+      .find(find)
+      .toArray()
+      .then(async (docs) => {
+        await modelDocu.getDocCompleteStatus(existDb, clName, docs)
+        return docs
       })
   }
 }
