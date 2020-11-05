@@ -871,7 +871,7 @@ class DocBase extends Base {
     if (!clName) return new ResultFault('参数不完整')
 
     let { docIds } = this.request.body
-    if (!docIds || docIds.length === 0) return new ResultFault('没有要查询的数据')
+    if (!Array.isArray(docIds) || docIds.length === 0) return new ResultFault('没有要查询的数据')
 
     const docIds2 = docIds.map(id => new ObjectId(id))
     const find = { _id: { $in: docIds2 } }
