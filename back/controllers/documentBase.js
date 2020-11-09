@@ -26,13 +26,6 @@ class DocBase extends Base {
 
     const { cl: clName } = this.request.query
     let doc = this.request.body
-
-    let cl = this.mongoClient.db(existDb.sysname).collection(clName)
-    let oldDoc = await cl.findOne({ order_id: doc.order_id })
-    if (oldDoc) {
-      return new ResultFault('订单编号已存在')
-    }
-
     // 加工数据
     this._beforeProcessByInAndUp(doc, 'insert')
 
@@ -462,52 +455,81 @@ class DocBase extends Base {
    * @param {*} columns 集合列
    */
   transformsCol(model, data, columns) {
+    let sourceData = JSON.parse(JSON.stringify(data))
+    logger.info('data数据源', sourceData)
+
     const gets = model === 'toLabel' ? 'value' : 'label'
     const sets = model === 'toLabel' ? 'label' : 'value'
-    logger.info('data数据源', data)
 
     Object.keys(columns).forEach(ele => {
       // 输入框
       if (columns[ele].type === 'string' && data.length) {
-        data = data.map(item => {
-          item[ele] = item[ele] && item[ele].trim().replace(/\n/g, '')
-          return item
+        sourceData.forEach((item, index) => {
+          data[index][ele] =
+            data[index][ele] && data[index][ele].trim().replace(/\n/g, '')
         })
       }
       // 多选
       if (columns[ele].type === 'array' && columns[ele].enum) {
-        data = data.map(item => {
-          if (model === 'toValue' && Array.isArray(item[ele])) return item
+        sourceData.forEach((item, index) => {
+          if (model === 'toValue' && Array.isArray(item[ele]))
+            return data[index]
           let arr = []
           let enums =
             model === 'toValue' && item[ele] && typeof item[ele] === 'string'
-              ? item[ele].split(',').filter(ele => ele)
-              : item[ele]
+              ? data[index][ele].split(',').filter(ele => ele)
+              : data[index][ele]
           if (enums && Array.isArray(enums)) {
-            if (model === 'toValue')
+            if (model === 'toValue') {
               enums = enums.map(ele => ele.trim().replace(/\n/g, ''))
-            columns[ele].enum.forEach(childItem => {
-              if (enums.includes(childItem[gets])) arr.push(childItem[sets])
-            })
+            }
+            if (columns[ele].enumGroups && columns[ele].enumGroups.length) {
+              columns[ele].enumGroups
+                .filter(enumGroup => {
+                  if (
+                    enumGroup.assocEnum &&
+                    enumGroup.assocEnum.property &&
+                    enumGroup.assocEnum.value
+                  ) {
+                    let currentVal = ''
+                    let property = enumGroup.assocEnum.property
+                    if (model === 'toValue') {
+                      let filterEnum = columns[property].enum.filter(
+                        e => e.label === item[property]
+                      )
+                      currentVal = filterEnum[0].value
+                    } else {
+                      currentVal = item[property]
+                    }
+                    return currentVal === enumGroup.assocEnum.value
+                  }
+                })
+                .map(oEnumG => {
+                  columns[ele].enum.forEach(childItem => {
+                    if (
+                      childItem.group === oEnumG.id &&
+                      enums.includes(childItem[gets])
+                    ) {
+                      arr.push(childItem[sets])
+                    }
+                  })
+                })
+            } else {
+              columns[ele].enum.forEach(childItem => {
+                if (enums.includes(childItem[gets])) arr.push(childItem[sets])
+              })
+            }
             // 当且仅当导入多选选项，enums与集合列定义存在差集，则失败
-            if (
-              model === 'toValue' &&
-              enums.filter(
-                item =>
-                  !columns[ele].enum
-                    .map(childItem => childItem['label'])
-                    .includes(item)
-              ).length
-            ) {
-              logger.info(
-                '存在差集',
-                enums.filter(
-                  item =>
-                    !columns[ele].enum
-                      .map(childItem => childItem['label'])
-                      .includes(item)
-                )
+            function enumFilter(item) {
+              let labels = columns[ele].enum.map(
+                childItem => childItem['label']
               )
+              if (!labels.includes(item)) return item
+              //return !columns[ele].enum.map(childItem => childItem['label']).includes(item)
+            }
+            const filterEnums = enums.filter(enumFilter)
+            if (model === 'toValue' && filterEnums.length) {
+              logger.info('存在差集', filterEnums)
               throw '多选不匹配，导入失败'
             }
           }
@@ -516,27 +538,23 @@ class DocBase extends Base {
             logger.info('非逗号间隔', item[ele], arr)
             throw '多选不匹配，导入失败'
           }
-          item[ele] = model === 'toLabel' ? arr.join(',') : arr
-          return item
+          data[index][ele] = model === 'toLabel' ? arr.join(',') : arr
+
+          return data[index]
         })
       } else if (columns[ele].type === 'string' && columns[ele].enum) {
-        data = data.map(item => {
-          if (
-            model === 'toValue' &&
-            item[ele] &&
-            !columns[ele].enum.map(ele => ele.label).includes(item[ele])
-          ) {
-            logger.info(
-              '单选不匹配',
-              item[ele],
-              columns[ele].enum.map(ele => ele.label)
-            )
+        sourceData.forEach((item, index) => {
+          let labels = columns[ele].enum.map(ele => ele.label)
+          let flag = labels.includes(item[ele])
+          if (model === 'toValue' && item[ele] && !flag) {
+            logger.info('单选不匹配', labels)
             throw '单选不匹配，导入失败'
           }
           columns[ele].enum.forEach(childItem => {
-            if (item[ele] === childItem[gets]) item[ele] = childItem[sets]
+            if (item[ele] === childItem[gets])
+              data[index][ele] = childItem[sets]
           })
-          return item
+          return data[index]
         })
       }
     })
