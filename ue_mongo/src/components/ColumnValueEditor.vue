@@ -67,6 +67,7 @@ Vue.use(Dialog)
   .use(Option)
   .use(Button)
   .use(Tag)
+import utils from '../tms/utils'
 
 export default {
   name: 'ColumnValueEditor',
@@ -81,21 +82,8 @@ export default {
       select: '',
       input: '',
       column: {},
-      tags: []
-    }
-  },
-  watch: {
-    // 多选暂不支持批量删除，故除之
-    collection() {
-      for (const key in this.collection.schema.body.properties) {
-        if (
-          this.collection.schema.body.properties[key].type === 'array' &&
-          this.collection.schema.body.properties[key].enum
-        ) {
-          delete this.collection.schema.body.properties[key]
-        }
-      }
-      this.$forceUpdate()
+      tags: [],
+      plugins: []
     }
   },
   methods: {
@@ -145,6 +133,19 @@ export default {
     },
     async onSubmit() {
       let validate = true
+      if (Object.keys(utils).length) {
+        validate = this.plugins
+          .map(item => {
+            const result = utils[item](this.collection.schema.body, this.column)
+            if (result.msg === 'success') {
+              this.column = result.data
+              return true
+            } else {
+              return false
+            }
+          })
+          .every(ele => ele === true)
+      }
       if (validate) {
         const properties = this.collection.schema.body.properties
         for (let [key, val] of Object.entries(this.column)) {
@@ -171,6 +172,10 @@ export default {
       this.collection = JSON.parse(
         JSON.stringify(Object.assign(this.collection, collection))
       )
+      if (process.env.VUE_APP_FRONT_BATCHEDITOR) {
+        let str = process.env.VUE_APP_FRONT_BATCHEDITOR.replace(/\s/g, '')
+        this.plugins = str.split(',')
+      }
       Object.entries(this.collection.schema.body.properties).forEach(
         ([key, value]) => {
           switch (value.type) {
