@@ -179,7 +179,7 @@ export default {
                 delete this.collection.schema.body.properties[key]
               break
             case 'string':
-              if (value.disabled === true)
+              if (value.readonly === true)
                 delete this.collection.schema.body.properties[key]
               break
           }
