@@ -53,17 +53,17 @@ import createDbApi from '../apis/database'
 export default {
   name: 'Home',
   props: {
-		bucketName: String,
-		tmsAxiosName: {
-			type: String,
-			default: 'mongodb-api'
-		}
-	},
-	computed: {
-		dbs() {
-			return this.$store.state.dbs
-		}
-	},
+    bucketName: String,
+    tmsAxiosName: {
+      type: String,
+      default: 'mongodb-api'
+    }
+  },
+  computed: {
+    dbs() {
+      return this.$store.state.dbs
+    }
+  },
   methods: {
     listDatabase() {
       store.dispatch('listDatabase', { bucket: this.bucketName })
@@ -80,25 +80,27 @@ export default {
     },
     editDb(db) {
       const editor = new Vue(DbEditor)
-      editor.open('update', this.tmsAxiosName, this.bucketName, db).then(newDb => {
-        Object.keys(newDb).forEach(k => {
-          Vue.set(db, k, newDb[k])
+      editor
+        .open('update', this.tmsAxiosName, this.bucketName, db)
+        .then(newDb => {
+          const index = this.dbs.find(item => item === db)
+          this.$store.commit({
+            type: 'updateDatabase',
+            db: newDb,
+            index,
+            bucket: this.bucketName
+          })
         })
-        this.$store.commit({
-          type: 'updateDatabase',
-          db: newDb,
-          bucket: this.bucketName
-        })
-      })
     },
     removeDb(db) {
       store.dispatch('removeDatabase', { db, bucket: this.bucketName })
     },
     topDb(db, type) {
-			createDbApi(this.TmsAxios(this.tmsAxiosName))
-				.top(this.bucketName, db._id, type).then(() => {
-					this.listDatabase()
-				})
+      createDbApi(this.TmsAxios(this.tmsAxiosName))
+        .top(this.bucketName, db._id, type)
+        .then(() => {
+          this.listDatabase()
+        })
     }
   },
   mounted() {
