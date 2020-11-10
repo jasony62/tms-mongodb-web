@@ -36,6 +36,8 @@ services:
         vue_app_back_api_base: /api
         vue_app_back_api_plugin: /plugin
         vue_app_back_api_fs: /fs
+        vue_app_front_doceditor_add: ''
+        vue_app_front_doceditor_modify: ''
     image: tms-mongodb/ue-admin:latest
     container_name: tms-mongodb-ue_admin
     environment:
@@ -53,6 +55,9 @@ services:
         vue_app_back_api_base: /api
         vue_app_back_api_plugin: /plugin
         vue_app_back_api_fs: /fs
+        vue_app_front_doceditor_add: ''
+        vue_app_front_doceditor_modify: ''
+        vue_app_front_batcheditor: ''
     image: tms-mongodb/ue-mongo:latest
     container_name: tms-mongodb-ue_mongo
     environment:
