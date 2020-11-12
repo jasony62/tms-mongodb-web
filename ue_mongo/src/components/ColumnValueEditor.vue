@@ -133,7 +133,7 @@ export default {
     },
     async onSubmit() {
       let validate = true
-      if (Object.keys(utils).length) {
+      if (this.plugins.length) {
         validate = this.plugins
           .map(item => {
             const result = utils[item](this.collection.schema.body, this.column)

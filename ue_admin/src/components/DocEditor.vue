@@ -77,9 +77,7 @@ export default {
     onJsonDocSubmit(slimDoc, newDoc) {
       this.isSubmit = true
       let validate = true
-      if (Object.keys(utils).length) {
-        console.log(1)
-
+      if (this.plugins.length) {
         validate = this.plugins
           .map(item => {
             const result = utils[item](this.body, newDoc)
