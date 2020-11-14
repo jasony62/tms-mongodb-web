@@ -5,7 +5,6 @@ class Upload extends UploadCtrl {
   constructor(...args) {
     super(...args)
   }
-  
 }
 
 module.exports = Upload

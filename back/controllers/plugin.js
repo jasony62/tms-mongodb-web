@@ -1,8 +1,4 @@
-const {
-  ResultFault,
-  ResultObjectNotFound,
-  ResultData
-} = require('tms-koa')
+const { ResultFault, ResultObjectNotFound, ResultData } = require('tms-koa')
 const Base = require('./base')
 const PluginConfig = require('../models/mgdb/plugin')
 const PluginHelper = require('./pluginHelper')
@@ -28,14 +24,11 @@ class Plugin extends Base {
     updateMany: 'updateMany',
   }
 
-
   /**
    * 获取插件db配置
    */
   async pluginDb() {
-    const {
-      sendConfig
-    } = PluginConfig.ins()
+    const { sendConfig } = PluginConfig.ins()
 
     return new ResultData(sendConfig.db)
   }
@@ -44,9 +37,7 @@ class Plugin extends Base {
    * 获取插件collection配置
    */
   async pluginCollection() {
-    const {
-      sendConfig
-    } = PluginConfig.ins()
+    const { sendConfig } = PluginConfig.ins()
 
     return new ResultData(sendConfig.collection)
   }
@@ -55,13 +46,10 @@ class Plugin extends Base {
    * 获取插件document配置
    */
   async pluginDocument() {
-    const {
-      sendConfig
-    } = PluginConfig.ins()
+    const { sendConfig } = PluginConfig.ins()
 
     return new ResultData(sendConfig.document)
   }
-
 
   /**
    * @description 插件实现机制
@@ -75,7 +63,11 @@ class Plugin extends Base {
     const existDb = await this.pluginHelper.findRequestDb(true, db)
     const cl = this.mongoClient.db(existDb.sysname).collection(clName)
 
-    if (Object.prototype.toString.call(pluginCfg) !== '[object Object]' || !pluginCfg.url) return Promise.resolve(new ResultFault('pluginCfg参数错误'))
+    if (
+      Object.prototype.toString.call(pluginCfg) !== '[object Object]' ||
+      !pluginCfg.url
+    )
+      return Promise.resolve(new ResultFault('pluginCfg参数错误'))
 
     // 读取sendConfig配置
     const { sendConfig: pluginConfig } = PluginConfig.ins()
@@ -85,7 +77,7 @@ class Plugin extends Base {
     for (let i = 0; i < arr.length; i++) {
       const key = arr[i]
       if (!pluginConfig[key].length) continue
-      const currentRes = pluginConfig[key].map(ele => ele[0] && ele[0].url)
+      const currentRes = pluginConfig[key].map((ele) => ele[0] && ele[0].url)
       type = currentRes.includes(pluginCfg.url) ? key : null
     }
 
@@ -94,18 +86,18 @@ class Plugin extends Base {
     const find = Plugin.getFindCondition(docIds, filter)
     let data = await cl.find(find).toArray()
 
-
-    return new Promise(async resolve => {
-
+    return new Promise(async (resolve) => {
       let cfg = {},
         args,
         res,
         params = {}
 
       const pluginConfigs = pluginConfig[type]
-      const currentConfig = pluginConfigs.find(ele => ele[0].url === pluginCfg.url)
+      const currentConfig = pluginConfigs.find(
+        (ele) => ele[0].url === pluginCfg.url
+      )
       if (Array.isArray(currentConfig) && currentConfig.length > 0) {
-        [cfg, ...args] = currentConfig
+        ;[cfg, ...args] = currentConfig
       } else if (typeof currentConfig === 'string') {
         cfg.url = currentConfig
       } else {
@@ -113,20 +105,24 @@ class Plugin extends Base {
       }
 
       // 获取集合属性
-      if (currentConfig[1].docSchemas) params = await Plugin.getSchemas(existDb, clName)
+      if (currentConfig[1].docSchemas)
+        params = await Plugin.getSchemas(existDb, clName)
 
-      const axios = require("axios")
+      const axios = require('axios')
       let axiosInstance = axios.create()
       params.data = data
 
       if (cfg.method === 'post') {
         let path
-        if (currentConfig[1].isNeedGetParams) path = Plugin.splitGetParams(this.request.query, cfg.url)
-        await axiosInstance.post(path ? path.slice(0, path.length - 1) : cfg.url, params).then(result => {
-          res = result
-        })
+        if (currentConfig[1].isNeedGetParams)
+          path = Plugin.splitGetParams(this.request.query, cfg.url)
+        await axiosInstance
+          .post(path ? path.slice(0, path.length - 1) : cfg.url, params)
+          .then((result) => {
+            res = result
+          })
       } else {
-        await axiosInstance.get(cfg.url, { params }).then(result => {
+        await axiosInstance.get(cfg.url, { params }).then((result) => {
           res = result
         })
       }
@@ -137,19 +133,34 @@ class Plugin extends Base {
 
       if (!dataRes.length) return resolve(new ResultData(dataRes))
       // Plugin.checkCol()
-      const oprateRes = await Plugin.operateData(Plugin.operateType.updateMany, dataRes, cl)
+      const oprateRes = await Plugin.operateData(
+        Plugin.operateType.updateMany,
+        dataRes,
+        cl
+      )
 
       const { callback } = currentConfig[1]
 
       if (!oprateRes[0]) return resolve(new ResultFault(oprateRes[1]))
 
-      if (!Plugin.isExistCallback(callback)[0]) return oprateRes[0] ? resolve(new ResultData(oprateRes[1])) : resolve(new ResultFault(oprateRes[1]))
+      if (!Plugin.isExistCallback(callback)[0])
+        return oprateRes[0]
+          ? resolve(new ResultData(oprateRes[1]))
+          : resolve(new ResultFault(oprateRes[1]))
 
       // 回调操作
-      return Plugin.executeCallback(this, callback, oprateRes, params, cl, existDb, clName, resolve)
+      return Plugin.executeCallback(
+        this,
+        callback,
+        oprateRes,
+        params,
+        cl,
+        existDb,
+        clName,
+        resolve
+      )
     })
   }
-
 
   /**
    * @description 接收外部接口的统一回调处理
@@ -166,7 +177,6 @@ class Plugin extends Base {
 
     let params
 
-
     logger.info('获取query参数', this.request.query)
     logger.info('获取body参数', this.request.body)
 
@@ -174,7 +184,9 @@ class Plugin extends Base {
     const { receiveConfig: pluginConfig } = PluginConfig.ins()
     // logger.info('获取receiveConfig配置信息', pluginConfig)
 
-    const currentCfg = pluginConfig[module].find(ele => ele.event === event && ele.eventType.includes(eventType))
+    const currentCfg = pluginConfig[module].find(
+      (ele) => ele.event === event && ele.eventType.includes(eventType)
+    )
     logger.info('获取当前接口配置信息', currentCfg)
 
     // 获取集合属性
@@ -183,17 +195,39 @@ class Plugin extends Base {
     const { callback, quota } = currentCfg
 
     // Plugin.checkCol()
-    const oprateRes = await Plugin.operateData(Plugin.operateType.updateMany, list, cl, quota)
+    const oprateRes = await Plugin.operateData(
+      Plugin.operateType.updateMany,
+      list,
+      cl,
+      quota
+    )
     if (!oprateRes[0]) return new ResultFault(oprateRes[1])
 
     // 日志记录
     let resLog = true
-    if (!currentCfg.noActionLog) resLog = await Plugin.recordActionLog(list, currentCfg.name, existDb.name, existDb.sysname, clName)
+    if (!currentCfg.noActionLog)
+      resLog = await Plugin.recordActionLog(
+        list,
+        currentCfg.name,
+        existDb.name,
+        existDb.sysname,
+        clName
+      )
 
     const resCB = Plugin.isExistCallback(callback)
     if (!resCB[0]) return new ResultData(resCB[1])
 
-    return Plugin.executeCallback(this, callback, oprateRes, params, cl, existDb, clName, undefined, this.request.query)
+    return Plugin.executeCallback(
+      this,
+      callback,
+      oprateRes,
+      params,
+      cl,
+      existDb,
+      clName,
+      undefined,
+      this.request.query
+    )
   }
 
   /**
@@ -221,7 +255,7 @@ class Plugin extends Base {
     delete getParams.pluginCfg
     delete getParams.db
     let path = url + (url.includes('?') ? '&' : '?')
-    Object.keys(getParams).forEach(key => {
+    Object.keys(getParams).forEach((key) => {
       path += `${key}=${getParams[key]}&`
     })
     return path
@@ -233,26 +267,41 @@ class Plugin extends Base {
     let colExtendProps = _.get(colObj, ['extensionInfo', 'info'], {})
     return {
       docSchemas,
-      colExtendProps
+      colExtendProps,
     }
   }
 
   /**
    * @description 执行发送/接受的回调函数
    * @param {object} content 当前上下文
-   * @param {function} callback 
+   * @param {function} callback
    * @param {array} oprateRes 入库后的数据
-   * @param {object} params 
-   * @param {*} cl 
-   * @param {*} existDb 
-   * @param {*} clName 
-   * @param {*} resolve 
+   * @param {object} params
+   * @param {*} cl
+   * @param {*} existDb
+   * @param {*} clName
+   * @param {*} resolve
    */
-  static async executeCallback(content, callback, oprateRes, params = {}, cl, existDb, clName, resolve) {
+  static async executeCallback(
+    content,
+    callback,
+    oprateRes,
+    params = {},
+    cl,
+    existDb,
+    clName,
+    resolve
+  ) {
     const { ctx, client, dbContext, mongoClient, mongoose } = content
     const { path, callbackName } = callback
     let currentCtro = require(path)
-    let currentClass = new currentCtro(ctx, client, dbContext, mongoClient, mongoose)
+    let currentClass = new currentCtro(
+      ctx,
+      client,
+      dbContext,
+      mongoClient,
+      mongoose
+    )
     const options = {
       data: oprateRes[1],
       docIds: oprateRes[2],
@@ -260,14 +309,15 @@ class Plugin extends Base {
       cl,
       existDb,
       clName,
-      query: content.request.query
+      query: content.request.query,
     }
     const res = await currentClass[callbackName](options)
     return resolve ? resolve(res) : res
   }
 
   static isExistCallback(callback) {
-    if (!callback || !_.isPlainObject(callback)) return [false, '当前接口无callback']
+    if (!callback || !_.isPlainObject(callback))
+      return [false, '当前接口无callback']
     const { path, callbackName } = callback
     if (!path && !callbackName) return [false, '请配置正确的path或callbackName']
     return [true, 'success']
@@ -276,16 +326,14 @@ class Plugin extends Base {
   /**
    * @description 对外部接口传过来的collection做校验
    */
-  static checkCol() {
-
-  }
+  static checkCol() {}
 
   /**
    * @description 操作mongodb数据
    * @param {string} operateType - 操作类型，以静态属性operateType定义为准
    * @param {object} data - 新数据
-   * @param {*} cl 
-   * @param {string} quota - 更新mongodb指标 
+   * @param {*} cl
+   * @param {string} quota - 更新mongodb指标
    */
   static async operateData(operateType, data, cl, quota = '_id') {
     switch (operateType) {
@@ -295,49 +343,62 @@ class Plugin extends Base {
         let docIds = []
         if (quota === '_id') {
           if (!Array.isArray(data)) [false, 'data must be a Array']
-          data.forEach(ele => {
+          data.forEach((ele) => {
             const id = ele._id
             docIds.push(id)
             delete ele._id
             arr.push(
-              cl.updateOne({ _id: ObjectId(id) }, {
-                $set: ele
-              })
+              cl.updateOne(
+                { _id: ObjectId(id) },
+                {
+                  $set: ele,
+                }
+              )
             )
           })
         } else {
           if (!Array.isArray(data)) [false, 'data must be a Array']
-          data.forEach(ele => {
+          data.forEach((ele) => {
             const id = ele._id
             docIds.push(id)
             delete ele._id
             arr.push(
-              cl.updateOne({ [quota]: ele[quota] }, {
-                $set: ele
-              })
+              cl.updateOne(
+                { [quota]: ele[quota] },
+                {
+                  $set: ele,
+                }
+              )
             )
           })
         }
-        return Promise.all(arr).then(() => {
-          logger.info('批量更新成功')
-          return [true, data, docIds]
-        }).catch(err => {
-          logger.info('批量更新失败', err)
-          return [false, err]
-        })
+        return Promise.all(arr)
+          .then(() => {
+            logger.info('批量更新成功')
+            return [true, data, docIds]
+          })
+          .catch((err) => {
+            logger.info('批量更新失败', err)
+            return [false, err]
+          })
       case Plugin.operateType.updateOne:
         logger.info('单次更新')
         const id = data._id
         delete data._id
-        return cl.updateOne({ [quota]: quota === '_id' ? ObjectId(id) : data[quota] }, {
-          $set: data
-        }).then(res => {
-          return [true, res, id]
-        }).catch(err => {
-          return [false, err]
-        })
+        return cl
+          .updateOne(
+            { [quota]: quota === '_id' ? ObjectId(id) : data[quota] },
+            {
+              $set: data,
+            }
+          )
+          .then((res) => {
+            return [true, res, id]
+          })
+          .catch((err) => {
+            return [false, err]
+          })
     }
-
   }
 
   /**
@@ -352,12 +413,12 @@ class Plugin extends Base {
     let find = {}
     if (docIds && docIds.length > 0) {
       // 按选中删除
-      const newIds = docIds.map(ele => new ObjectId(ele))
+      const newIds = docIds.map((ele) => new ObjectId(ele))
 
       find = {
         _id: {
-          $in: newIds
-        }
+          $in: newIds,
+        },
       }
     } else if (typeof filter === 'string' && _.toUpper(filter) === 'ALL') {
       // 清空表
