@@ -470,7 +470,8 @@ class DocBase extends Base {
       // 输入框
       if (columns[ele].type === 'string' && data.length) {
         data = data.map(item => {
-          item[ele] = item[ele] && typeof item[ele] === 'string' &&  item[ele].trim().replace(/\n/g, '')
+          if(typeof item[ele] !== 'string') return item
+          item[ele] = item[ele] && item[ele].trim().replace(/\n/g, '')
           return item
         })
       }

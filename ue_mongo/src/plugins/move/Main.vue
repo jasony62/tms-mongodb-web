@@ -26,16 +26,23 @@
 <script>
 import Vue from 'vue'
 import { Frame, Flex } from 'tms-vue-ui'
-Vue.use(Frame)
-  .use(Flex)
-import { Table, TableColumn, Input, Row, Col, Button, Message } from 'element-ui'
+Vue.use(Frame).use(Flex)
+import {
+  Table,
+  TableColumn,
+  Input,
+  Row,
+  Col,
+  Button,
+  Message
+} from 'element-ui'
 Vue.use(Table)
   .use(TableColumn)
   .use(Input)
   .use(Row)
   .use(Col)
   .use(Button)
-  
+
 import DomainEditor from '../../components/DomainEditor'
 import CollectionDialog from '../../components/CollectionDialog.vue'
 import createCollectionApi from '../../apis/collection'
@@ -71,19 +78,32 @@ export default {
         const { dbName, clName } = fields
         async function batch(rules) {
           for (let rule of rules) {
-            let args = [{
-              ruleId: rule._id,
-              docIds: _this.fnGetTelIdsOfEachRule(rule)
-            }]
-            await createCollectionApi(this.TmsAxios('mongodb-api')).movebyRule(dbName, clName, _this.dbName, _this.clName, _this.ruleDbName, _this.ruleClName, _this.transfroms, args).then(result => {          
-              rule.import_status = result[0].msg
-            })
+            let args = [
+              {
+                ruleId: rule._id,
+                docIds: _this.fnGetTelIdsOfEachRule(rule)
+              }
+            ]
+            await createCollectionApi(this.TmsAxios('mongodb-api'))
+              .movebyRule(
+                dbName,
+                clName,
+                _this.dbName,
+                _this.clName,
+                _this.ruleDbName,
+                _this.ruleClName,
+                _this.transfroms,
+                args
+              )
+              .then(result => {
+                rule.import_status = result[0].msg
+              })
           }
           return await rules
         }
         batch(_this.rules).then(function(rules) {
           _this.rules = rules
-          Message.success({ message: "迁移成功" })
+          Message.success({ message: '迁移成功' })
         })
       })
     },
@@ -108,18 +128,22 @@ export default {
     }
   },
   mounted() {
-    this.$refs.plugin.$el.style.zIndex = parseInt(document.body.lastChild.style.zIndex) + 1
-    api.list(this.dbName, this.clName, this.ruleDbName, this.ruleClName)
-    .then(data => { 
-      this.schemas = data.schemas
-      this.failed = data.failed
-      this.rules = this.failed.concat(data.passed) 
-    }).then(() => {
-			createCollectionApi(this.TmsAxios('mongodb-api'))
-				.byName(this.dbName, this.clName).then(collection => {
-					this.collection = collection
-				})
-    })
+    this.$refs.plugin.$el.style.zIndex =
+      parseInt(document.body.lastChild.style.zIndex) + 1
+    api
+      .list(this.dbName, this.clName, this.ruleDbName, this.ruleClName)
+      .then(data => {
+        this.schemas = data.schemas
+        this.failed = data.failed
+        this.rules = this.failed.concat(data.passed)
+      })
+      .then(() => {
+        createCollectionApi(this.TmsAxios('mongodb-api'))
+          .byName(this.bucketName, this.dbName, this.clName)
+          .then(collection => {
+            this.collection = collection
+          })
+      })
   }
 }
 </script>

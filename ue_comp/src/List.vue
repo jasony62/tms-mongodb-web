@@ -245,9 +245,10 @@ const componentOptions = {
       return this.multipleDocuments.length
     },
     computedPluginData() {
-      const currentAuth = this.getCurrentAuth()
+      const currentAuth = this.getCurrentAuth() || '*'
       return this.pluginData.filter(
-        item => item[2].auth && item[2].auth.includes(currentAuth)
+        item[2].auth &&
+          (item[2].auth.includes('*') || item[2].auth.includes(currentAuth))
       )
     }
   },
@@ -278,14 +279,12 @@ const componentOptions = {
           orderBy: _obj[0].rule.orderBy
         }
       }
-      return _obj
-        .map(ele => ele.rule)
-        .reduce((prev, curr) => {
-          return {
-            filter: Object.assign(prev.filter, curr.filter),
-            orderBy: Object.assign(prev.orderBy, curr.orderBy)
-          }
-        })
+      return _obj.map(ele => ele.rule).reduce((prev, curr) => {
+        return {
+          filter: Object.assign(prev.filter, curr.filter),
+          orderBy: Object.assign(prev.orderBy, curr.orderBy)
+        }
+      })
     },
     listByColumn(
       columnName,
@@ -326,20 +325,23 @@ const componentOptions = {
         filter = rule.filter
         orderBy = rule.orderBy
       }
-      this.listByColumn(
-        columnName,
-        this.conditions.length ? filter : undefined,
-        this.conditions.length ? orderBy : undefined,
-        this.dialogPage.at,
-        this.dialogPage.size
-      ).then(columnResult => {
-        select.condition.selectResult = columnResult
-        select.condition.multipleSelection = columnResult
-        // 暂时先用延迟解决，该方法还需改进
-        setTimeout(() => {
-          select.toggleSelection(columnResult)
-        }, 0)
-      })
+      // 允许分组
+      if (this.properties[columnName]['groupable']) {
+        this.listByColumn(
+          columnName,
+          this.conditions.length ? filter : undefined,
+          this.conditions.length ? orderBy : undefined,
+          this.dialogPage.at,
+          this.dialogPage.size
+        ).then(columnResult => {
+          select.condition.selectResult = columnResult
+          select.condition.multipleSelection = columnResult
+          // 暂时先用延迟解决，该方法还需改进
+          setTimeout(() => {
+            select.toggleSelection(columnResult)
+          }, 0)
+        })
+      }
       select
         .open(
           columnName,
@@ -613,14 +615,18 @@ const componentOptions = {
         .then(result => {
           const access_token = sessionStorage.getItem('access_token')
           window.open(
-            `${process.env.VUE_APP_BACK_API_FS}${result}?access_token=${access_token}`
+            `${
+              process.env.VUE_APP_BACK_API_FS
+            }${result}?access_token=${access_token}`
           )
         })
     },
     handleDownload(file) {
       const access_token = sessionStorage.getItem('access_token')
       window.open(
-        `${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`
+        `${process.env.VUE_APP_BACK_API_FS}${
+          file.url
+        }?access_token=${access_token}`
       )
     },
     pluginOfMoveByRule(transforms) {
@@ -631,6 +637,7 @@ const componentOptions = {
         const { dbName: ruleDbName, clName: ruleClName } = fields
         let moveByRule = new Vue(MoveByRulePlugin)
         moveByRule.showDialog(
+          this.bucketName,
           this.dbName,
           this.clName,
           ruleDbName,
@@ -706,7 +713,7 @@ const componentOptions = {
         ? this.fnSetReqParam(type)
         : { param: null }
       let getParams = {
-        bucket: this.bucketName || 'order',
+        bucket: env.process.VUE_APP_PLUGIN_BUCKET,
         pluginCfg: s[0],
         db: this.dbName,
         clName: this.clName
