@@ -59,9 +59,13 @@ module.exports = {
               manifest: path.resolve(__dirname, 'dll', `${name}.manifest.json`)
             })
           }),
-          new AddAssetHtmlPlugin(Object.keys(library).map(name => {
-            return { filepath: path.resolve(__dirname, 'dll', `${name}.dll.js`) }
-          }))
+          new AddAssetHtmlPlugin(
+            Object.keys(library).map(name => {
+              return {
+                filepath: path.resolve(__dirname, 'dll', `${name}.dll.js`)
+              }
+            })
+          )
         ]
       }
       return dev
@@ -69,13 +73,9 @@ module.exports = {
     // 生产环境
     if (config.mode === 'production') {
       // 设置cdn第三方包
-      config.externals = {
-
-      }
+      config.externals = {}
       const prod = {
-        plugins: [
-
-        ]
+        plugins: []
       }
       return prod
     }

@@ -1,11 +1,24 @@
 <template>
-  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <tms-el-json-doc :is-submit="isSubmit" :schema="body" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit" :on-axios="handleAxios" :on-file-download="handleDownload"></tms-el-json-doc>
+  <el-dialog
+    :visible.sync="dialogVisible"
+    :destroy-on-close="destroyOnClose"
+    :close-on-click-modal="closeOnClickModal"
+  >
+    <tms-el-json-doc
+      :is-submit="isSubmit"
+      :schema="body"
+      :doc="document"
+      v-on:submit="onJsonDocSubmit"
+      :on-file-submit="handleFileSubmit"
+      :on-axios="handleAxios"
+      :on-file-download="handleDownload"
+    ></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
 import { TmsAxios } from 'tms-vue'
+import utils from '../tms/utils'
 import apiDoc from '../apis/document'
 import apiSchema from '../apis/schema'
 
@@ -24,7 +37,8 @@ export default {
       document: {},
       collection: null,
       destroyOnClose: true,
-      closeOnClickModal: false
+      closeOnClickModal: false,
+      plugins: []
     }
   },
   methods: {
@@ -62,6 +76,24 @@ export default {
     },
     onJsonDocSubmit(slimDoc, newDoc) {
       this.isSubmit = true
+      let validate = true
+      if (this.plugins.length) {
+        validate = this.plugins
+          .map(item => {
+            const result = utils[item](this.body, newDoc)
+            if (result.msg === 'success') {
+              newDoc = result.data
+              return true
+            } else {
+              return false
+            }
+          })
+          .every(ele => ele === true)
+      }
+      if (!validate) {
+        this.isSubmit = false
+        return false
+      }
       if (this.document && this.document._id) {
         apiDoc
           .update(
@@ -109,8 +141,19 @@ export default {
       this.bucketName = bucketName
       this.dbName = dbName
       this.collection = collection
+      if (process.env.VUE_APP_FRONT_DOCEDITOR_ADD) {
+        let str = process.env.VUE_APP_FRONT_DOCEDITOR_ADD.replace(/\s/g, '')
+        this.plugins = str.split(',')
+      }
       await this.handleProperty()
       if (doc && doc._id) {
+        if (process.env.VUE_APP_FRONT_DOCEDITOR_MODIFY) {
+          let str = process.env.VUE_APP_FRONT_DOCEDITOR_MODIFY.replace(
+            /\s/g,
+            ''
+          )
+          this.plugins = str.split(',')
+        }
         this.document = JSON.parse(
           JSON.stringify(Object.assign(this.document, doc))
         )

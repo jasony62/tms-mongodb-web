@@ -5,15 +5,15 @@ module.exports = {
       'import',
       {
         libraryName: 'tms-vue-ui',
-        style: true
-      }
+        style: true,
+      },
     ],
     [
       'component',
       {
         libraryName: 'element-ui',
-        styleLibraryName: 'theme-chalk'
-      }
-    ]
-  ]
+        styleLibraryName: 'theme-chalk',
+      },
+    ],
+  ],
 }

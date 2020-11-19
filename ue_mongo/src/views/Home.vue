@@ -10,11 +10,11 @@
         </el-table-column>
         <el-table-column prop="title" label="名称" width="180"></el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
-        <el-table-column fixed="right" label="操作" width="250" v-if="false">
+        <el-table-column fixed="right" label="操作" width="250">
           <template slot-scope="scope">
-            <el-button v-if="!scope.row.top||scope.row.top==0" @click="topDb(scope.row, 'up')" size="mini" type="text">置顶</el-button>
-            <el-button v-if="scope.row.top==10000" disabled size="mini" type="text">已置顶</el-button>
-            <el-button v-if="scope.row.top==10000" @click="topDb(scope.row, 'down')" size="mini" type="text">取消置顶</el-button>
+            <el-button v-if="!scope.row.top || scope.row.top == 0" @click="topDb(scope.row, 'up')" size="mini" type="text">置顶</el-button>
+            <el-button v-if="scope.row.top == 10000" disabled size="mini" type="text">已置顶</el-button>
+            <el-button v-if="scope.row.top == 10000" @click="topDb(scope.row, 'down')" size="mini" type="text">取消置顶</el-button>
             <el-button size="mini" @click="editDb(scope.row)" type="text">修改</el-button>
             <el-button size="mini" @click="removeDb(scope.row)" type="text" v-if="false">删除</el-button>
           </template>
@@ -22,7 +22,7 @@
       </el-table>
     </template>
     <template v-slot:right>
-      <el-button @click="createDb" v-if="false">添加数据库</el-button>
+      <el-button @click="createDb">添加数据库</el-button>
     </template>
   </tms-frame>
 </template>
@@ -84,6 +84,9 @@ export default {
         .open('update', this.tmsAxiosName, this.bucketName, db)
         .then(newDb => {
           const index = this.dbs.find(item => item === db)
+          Object.keys(newDb).forEach(k => {
+            Vue.set(db, k, newDb[k])
+          })
           this.$store.commit({
             type: 'updateDatabase',
             db: newDb,

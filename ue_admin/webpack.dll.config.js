@@ -3,7 +3,6 @@ const path = require('path')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const { DllPlugin } = require('webpack')
 
-console.log('dll')
 module.exports = {
   mode: 'development',
   entry: {
@@ -19,7 +18,6 @@ module.exports = {
     new DllPlugin({
       path: path.resolve(__dirname, 'dll', '[name].manifest.json'),
       name: '[name]_[hash:4]'
-    }),
-
+    })
   ]
 }

@@ -1,5 +1,6 @@
 const ObjectId = require('mongodb').ObjectId
 const Base = require('./base')
+const clModel = require('./collection')
 const moment = require('moment')
 const APPCONTEXT = require('tms-koa').Context.AppContext
 const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
@@ -55,7 +56,10 @@ class Document extends Base {
       .limit(limit)
       .sort(sort)
       .toArray()
-      .then((docs) => docs)
+      .then(async (docs) => {
+        await Document.getDocCompleteStatus(existDb, clName, docs)
+        return docs
+      })
 
     data.total = await cl.find(find).count()
 
@@ -85,7 +89,9 @@ class Document extends Base {
       .then((rst) => [true, rst])
       .catch((err) => [false, err.toString()])
   }
-  // 记录数据操作日志
+  /**
+   * 记录数据操作日志
+   */
   async dataActionLog(
     oDatas,
     operate_type,
@@ -162,6 +168,30 @@ class Document extends Base {
     }
 
     return true
+  }
+  /**
+   * 查询文档完成情况
+   */
+  static async getDocCompleteStatus(existDb, clName, docs) {
+    const clSchemas = await clModel.getSchemaByCollection(existDb, clName)
+    if (!clSchemas) return docs
+    //
+    docs.forEach(doc => {
+      let status = {
+        unCompleted: {},
+        completed: {}
+      }
+      for (const k in clSchemas) {
+        const v = clSchemas[k]
+        if (v.required === true) { // 必填
+          if ([undefined, '', null].includes(doc[k])) status.unCompleted[k] = v
+          else status.completed[k] = v
+        } else status.completed[k] = v
+      }
+      doc.completeStatus = status
+    })
+
+    return docs
   }
 }
 

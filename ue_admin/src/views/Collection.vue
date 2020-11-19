@@ -1,57 +1,103 @@
 <template>
-  <tms-frame class="tmw-collection" :display="{ header: true, footer: true, right: true }" :leftWidth="'20%'">
+  <tms-frame
+    class="tmw-collection"
+    :display="{ header: true, footer: true, right: true }"
+    :leftWidth="'20%'"
+  >
     <template v-slot:header>
       <el-breadcrumb separator-class="el-icon-arrow-right">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ name: 'database', params: { dbName: dbName } }">{{dbName}}</el-breadcrumb-item>
-        <el-breadcrumb-item>{{clName}}</el-breadcrumb-item>
+        <el-breadcrumb-item
+          :to="{ name: 'database', params: { dbName: dbName } }"
+          >{{ dbName }}</el-breadcrumb-item
+        >
+        <el-breadcrumb-item>{{ clName }}</el-breadcrumb-item>
       </el-breadcrumb>
     </template>
     <template v-slot:center>
-      <el-table id="tables" class="table-fixed" :data="documents" stripe style="width: 100%" :max-height="tableHeight">
+      <el-table
+        id="tables"
+        class="table-fixed"
+        :data="documents"
+        stripe
+        style="width: 100%"
+        :max-height="tableHeight"
+      >
         <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
           <template slot="header">
-            <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
+            <i
+              v-if="s.description"
+              class="el-icon-info"
+              :title="s.description"
+            ></i>
             <i v-if="s.required" style="color:red">*</i>
             <span> {{ s.title }} </span>
-            <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
+            <img
+              src="../assets/icon_filter.png"
+              class="icon_filter"
+              @click="handleSelect(s, k)"
+            />
           </template>
           <template slot-scope="scope">
-            <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
-            <span v-else-if="s.type==='array'&& s.items && s.items.format==='file'">
+            <span v-if="s.type === 'boolean'">{{
+              scope.row[k] ? '是' : '否'
+            }}</span>
+            <span
+              v-else-if="
+                s.type === 'array' && s.items && s.items.format === 'file'
+              "
+            >
               <span v-for="(i, v) in scope.row[k]" :key="v">
-                <a href @click="handleDownload(i)">{{i.name}}</a><br />
+                <a href="#" @click="handleDownload(i)">{{ i.name }}</a
+                ><br />
               </span>
             </span>
             <span v-else-if="s.type === 'array' && s.enum && s.enum.length">
               <span v-if="s.enumGroups && s.enumGroups.length">
                 <span v-for="(g, i) in s.enumGroups" :key="i">
-                  <span v-if="scope.row[g.assocEnum.property]===g.assocEnum.value">
+                  <span
+                    v-if="scope.row[g.assocEnum.property] === g.assocEnum.value"
+                  >
                     <span v-for="(e, v) in s.enum" :key="v">
-                      <span v-if="e.group===g.id && scope.row[k] && scope.row[k].length && scope.row[k].includes(e.value)">{{e.label}}&nbsp;</span>
+                      <span
+                        v-if="
+                          e.group === g.id &&
+                            scope.row[k] &&
+                            scope.row[k].length &&
+                            scope.row[k].includes(e.value)
+                        "
+                        >{{ e.label }}&nbsp;</span
+                      >
                     </span>
                   </span>
                 </span>
               </span>
               <span v-else>
                 <span v-for="(i, v) in s.enum" :key="v">
-                  <span v-if="scope.row[k] && scope.row[k].includes(i.value)">{{i.label}}&nbsp;</span>
+                  <span v-if="scope.row[k] && scope.row[k].includes(i.value)"
+                    >{{ i.label }}&nbsp;</span
+                  >
                 </span>
               </span>
             </span>
             <span v-else-if="s.type === 'string' && s.enum && s.enum.length">
               <span v-if="s.enumGroups && s.enumGroups.length">
                 <span v-for="(g, i) in s.enumGroups" :key="i">
-                  <span v-if="scope.row[g.assocEnum.property]===g.assocEnum.value">
+                  <span
+                    v-if="scope.row[g.assocEnum.property] === g.assocEnum.value"
+                  >
                     <span v-for="(e, v) in s.enum" :key="v">
-                      <span v-if="e.group===g.id && scope.row[k] === e.value">{{e.label}}</span>
+                      <span
+                        v-if="e.group === g.id && scope.row[k] === e.value"
+                        >{{ e.label }}</span
+                      >
                     </span>
                   </span>
                 </span>
               </span>
               <span v-else>
                 <span v-for="(i, v) in s.enum" :key="v">
-                  <span v-if="scope.row[k] === i.value">{{i.label}}</span>
+                  <span v-if="scope.row[k] === i.value">{{ i.label }}</span>
                 </span>
               </span>
             </span>
@@ -60,12 +106,26 @@
         </el-table-column>
         <el-table-column fixed="right" label="操作" width="180">
           <template slot-scope="scope">
-            <el-button size="mini" @click="editDocument(scope.row)">修改</el-button>
-            <el-button size="mini" @click="handleDocument(scope.row)">删除</el-button>
+            <el-button size="mini" @click="editDocument(scope.row)"
+              >修改</el-button
+            >
+            <el-button size="mini" @click="handleDocument(scope.row)"
+              >删除</el-button
+            >
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination style="float: right" background @size-change="handleSize" @current-change="handleCurrentPage" :current-page.sync="page.at" :page-sizes="[10, 25, 50, 100]" :page-size="page.size" layout="total, sizes, prev, pager, next" :total="page.total">
+      <el-pagination
+        style="float: right"
+        background
+        @size-change="handleSize"
+        @current-change="handleCurrentPage"
+        :current-page.sync="page.at"
+        :page-sizes="[10, 25, 50, 100]"
+        :page-size="page.size"
+        layout="total, sizes, prev, pager, next"
+        :total="page.total"
+      >
       </el-pagination>
     </template>
     <template v-slot:right>
@@ -369,4 +429,3 @@ export default {
   }
 }
 </style>
-

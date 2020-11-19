@@ -35,7 +35,7 @@ function loadConfig(name, defaultConfig) {
   return false
 }
 /**
- * 
+ *
  */
 function findCtrlClassInControllers(ctrlName, path) {
   // 从控制器路径查找
@@ -130,7 +130,12 @@ async function fnCtrlWrapper(ctx, next) {
   }
   //
   const { ResultFault, AccessTokenFault } = require('tms-koa/lib/response')
-  const { DbContext, MongoContext, MongooseContext, PushContext } = require('tms-koa').Context
+  const {
+    DbContext,
+    MongoContext,
+    MongooseContext,
+    PushContext,
+  } = require('tms-koa').Context
   //
   const [ctrlName, CtrlClass, method] = findCtrlClassAndMethodName(ctx)
 
@@ -191,7 +196,7 @@ async function fnCtrlWrapper(ctx, next) {
       tmsClient = aResult[1]
     }
   }
-  
+
   // 数据库连接
   let dbContext, mongoClient, mongoose, pushContext
   try {
