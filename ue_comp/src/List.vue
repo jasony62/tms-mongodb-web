@@ -247,7 +247,8 @@ const componentOptions = {
     computedPluginData() {
       const currentAuth = this.getCurrentAuth() || '*'
       return this.pluginData.filter(
-        item[2].auth &&
+        item =>
+          item[2].auth &&
           (item[2].auth.includes('*') || item[2].auth.includes(currentAuth))
       )
     }
@@ -825,13 +826,15 @@ const componentOptions = {
     }
   },
   mounted() {
-    createCollectionApi(this.TmsAxios(this.tmsAxiosName))
-      .byName(this.bucketName, this.dbName, this.clName)
-      .then(async col => {
-        Object.assign(collection, col)
-        await this.handleProperty()
-        this.listDocument()
-      })
+    Promise.all([
+      this.$apis.collection.byName(this.bucketName, this.dbName, this.clName),
+      this.$apis.plugin.getPlugins()
+    ]).then(async res => {
+      Object.assign(collection, res[0])
+      this.pluginData = res[1]
+      await this.handleProperty()
+      this.listDocument()
+    })
   },
   beforeDestroy() {
     this.conditionReset()
