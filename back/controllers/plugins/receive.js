@@ -61,14 +61,12 @@ class Receive extends Base {
     const oprateRes = await PluginCommon.operateData(PluginCommon.operateType.updateMany, list, cl, quota)
     if (!oprateRes[0]) return new ResultFault(oprateRes[1])
 
-    // 日志记录
-    let resLog = true
-    if (!currentCfg.noActionLog) resLog = await PluginCommon.recordActionLog(list, currentCfg.name, existDb.name, existDb.sysname, clName)
-
     const resCB = PluginCommon.isExistCallback(callback)
-    if (!resCB[0]) return new ResultData(resCB[1])
+    if (!resCB[0] && !currentCfg.noActionLog) return await PluginCommon.recordActionLog(list, currentCfg.name, existDb.name, existDb.sysname, clName) && new ResultData(resCB[1])
 
-    return PluginCommon.executeCallback(this, callback, oprateRes, params, cl, existDb, clName, undefined)
+    const afterRes = await PluginCommon.executeCallback(this, callback, oprateRes, params, cl, existDb, clName, undefined)
+    if (afterRes.code === 0 && !currentCfg.noActionLog) await PluginCommon.recordActionLog(list, currentCfg.name, existDb.name, existDb.sysname, clName)
+    return afterRes
   }
 }
 

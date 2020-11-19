@@ -7,16 +7,18 @@ import createTag from './tag'
 import createPlugin from './plugin'
 
 function init(options) {
+  const api = {
+    bucket: createBucket(options.tmsAxios.api),
+    db: createDb(options.tmsAxios.api),
+    schema: createSchema(options.tmsAxios.api),
+    collection: createCollection(options.tmsAxios.api),
+    doc: createDoc(options.tmsAxios.api),
+    tag: createTag(options.tmsAxios.api),
+    plugin: createPlugin(options.tmsAxios.api),
+  }
   return {
-    api: {
-      bucket: createBucket(options.tmsAxios.api),
-      db: createDb(options.tmsAxios.api),
-      schema: createSchema(options.tmsAxios.api),
-      collection: createCollection(options.tmsAxios.api),
-      doc: createDoc(options.tmsAxios.api),
-      tag: createTag(options.tmsAxios.api),
-      plugin: createPlugin(options.tmsAxios.api),
-    }
+    api,
+    ...api
   }
 }
 

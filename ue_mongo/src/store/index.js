@@ -23,7 +23,9 @@ export default new Vuex.Store({
     appendDatabase (state, payload) {
       state.dbs.push(payload.db)
     },
-    updateDatabase () {},
+    updateDatabase () {
+      state.dbs.splice(state.dbs.indexOf(payload.index), 1, payload.db)
+    },
     removeDatabase (state, payload) {
       state.dbs.splice(state.dbs.indexOf(payload.db), 1)
     },
