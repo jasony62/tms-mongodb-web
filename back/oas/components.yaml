@@ -1,0 +1,11 @@
+components:
+  schemas:
+    ResponseData:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        result:
+          type: object

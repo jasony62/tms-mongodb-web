@@ -3,12 +3,44 @@ const ObjectId = require('mongodb').ObjectId
 const Base = require('./base')
 const modelDb = require('../../models/mgdb/db')
 
+/** 预制数据库 */
 class Db extends Base {
   constructor(...args) {
     super(...args)
   }
   /**
-   * 新建预制数据库
+   * @swagger
+   *
+   * /api/system/db/create:
+   *   post:
+   *     tags:
+   *       - system
+   *     description:
+   *       创建预制数据库
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               name:
+   *                 description: 预制数据库名称。必须以英文字母开头，最长64位，不允许重名。
+   *                 type: string
+   *                 required: true
+   *           examples:
+   *             basic:
+   *               summary: 基础功能
+   *               value: {"name": "db01"}
+   *             name_invalid:
+   *               summary: 命名不符合规则
+   *               value: {"name": "预制数据库01"}
+   *     responses:
+   *       '200':
+   *         description: result为创建的预制数据库
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
    */
   async create() {
     let info = this.request.body
@@ -29,7 +61,41 @@ class Db extends Base {
       .then((result) => new ResultData(result.ops[0]))
   }
   /**
-   * 更新数据库对象信息
+   * @swagger
+   *
+   * /api/system/db/update:
+   *   post:
+   *     tags:
+   *       - system
+   *     description:
+   *       更改预制数据库
+   *     parameters:
+   *       - name: db
+   *         description: 预制数据库名称
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               name:
+   *                 description: 预制数据库名称
+   *                 type: string
+   *           examples:
+   *             basic:
+   *               summary: 基础功能
+   *               value: {"name": "db02"}
+   *     responses:
+   *       '200':
+   *         description: result为更新后的预制数据库
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
    */
   async update() {
     const beforeDb = await this.helper.findRequestDb()
@@ -47,7 +113,28 @@ class Db extends Base {
       .then(() => new ResultData(info))
   }
   /**
-   * 删除数据
+   * @swagger
+   *
+   * /api/system/db/remove:
+   *   get:
+   *     tags:
+   *       - system
+   *     description:
+   *       删除预制数据库
+   *     parameters:
+   *       - name: db
+   *         description: 预制数据库名称
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       '200':
+   *         description: result为ok
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
    */
   async remove() {
     const existDb = await this.helper.findRequestDb()
@@ -65,7 +152,21 @@ class Db extends Base {
       .then(() => new ResultData('ok'))
   }
   /**
+   * @swagger
    *
+   * /api/system/db/list:
+   *   get:
+   *     tags:
+   *       - system
+   *     description:
+   *       列出已有预制数据库
+   *     responses:
+   *       '200':
+   *         description: result为预制数据库数组
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
    */
   async list() {
     const query = { type: 'database' }

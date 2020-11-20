@@ -1,12 +1,54 @@
 const { ResultData, ResultFault, ResultObjectNotFound } = require('tms-koa')
 const Base = require('./base')
 
+/** 预计集合 */
 class Collection extends Base {
   constructor(...args) {
     super(...args)
   }
   /**
-   * 指定数据库下新建集合
+   * @swagger
+   *
+   * /api/system/collection/create:
+   *   post:
+   *     tags:
+   *       - system
+   *     description:
+   *       新建预制集合对象信息
+   *     parameters:
+   *       - name: db
+   *         description: 指定预制数据库名称
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               name:
+   *                 description: 预制集合名称。
+   *                 type: string
+   *                 required: true
+   *               title:
+   *                 description: 预制集合中文标题。
+   *                 type: string
+   *                 required: true
+   *               description:
+   *                 description: 预制集合说明。
+   *                 type: string
+   *               schema_id:
+   *                 description: 集合中文档对应的json-schema定义。
+   *                 type: string
+   *     responses:
+   *       '200':
+   *         description: result为创建的预制集合
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
    */
   async create() {
     const existDb = await this.helper.findRequestDb()
@@ -30,7 +72,49 @@ class Collection extends Base {
       .then((result) => new ResultData(result.ops[0]))
   }
   /**
-   * 更新集合对象信息
+   * @swagger
+   *
+   * /api/system/collection/update:
+   *   post:
+   *     tags:
+   *       - system
+   *     description:
+   *       更新预制集合对象信息
+   *     parameters:
+   *       - name: db
+   *         description: 指定预制数据库名称
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               name:
+   *                 description: 预制集合名称。
+   *                 type: string
+   *                 required: true
+   *               title:
+   *                 description: 预制集合中文标题。
+   *                 type: string
+   *                 required: true
+   *               description:
+   *                 description: 预制集合说明。
+   *                 type: string
+   *                 required: true
+   *               schema_id:
+   *                 description: 集合中文档对应的json-schema定义。
+   *                 type: string
+   *     responses:
+   *       '200':
+   *         description: result为更新的预制集合
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
    */
   async update() {
     const existDb = await this.helper.findRequestDb()
@@ -66,7 +150,34 @@ class Collection extends Base {
     return new ResultData(info)
   }
   /**
-   * 删除集合
+   * @swagger
+   *
+   * /api/system/collection/remove:
+   *   get:
+   *     tags:
+   *       - system
+   *     description:
+   *       删除指定名称的预制集合
+   *     parameters:
+   *       - name: db
+   *         description: 指定预制数据库名称
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *       - name: cl
+   *         description: 指定预制集合名称
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       '200':
+   *         description: result为ok
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
    */
   async remove() {
     const existDb = await this.helper.findRequestDb()
@@ -78,7 +189,34 @@ class Collection extends Base {
     return this.clPreset.deleteOne(query).then(() => new ResultData('ok'))
   }
   /**
-   * 根据名称返回指定集合
+   * @swagger
+   *
+   * /api/system/collection/byName:
+   *   get:
+   *     tags:
+   *       - system
+   *     description:
+   *       返回指定名称的预制集合
+   *     parameters:
+   *       - name: db
+   *         description: 指定预制数据库名称
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *       - name: cl
+   *         description: 指定预制集合名称
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       '200':
+   *         description: result为符合条件预制集合
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
    */
   async byName() {
     const existDb = await this.helper.findRequestDb()
@@ -105,7 +243,28 @@ class Collection extends Base {
       )
   }
   /**
-   * 指定库下所有的集合
+   * @swagger
+   *
+   * /api/system/collection/list:
+   *   get:
+   *     tags:
+   *       - system
+   *     description:
+   *       列出指定预制库下所有预制集合
+   *     parameters:
+   *       - name: db
+   *         description: 指定预制数据库名称
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       '200':
+   *         description: result为预制集合数组
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
    */
   async list() {
     const existDb = await this.helper.findRequestDb()
