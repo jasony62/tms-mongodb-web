@@ -41,7 +41,7 @@ import BucketEditor from '../components/BucketEditor.vue'
 export default {
   name: 'Bucket',
   computed: {
-    ...mapState(['buckets'])
+    ...mapState(['buckets']),
   },
   data() {
     return {}
@@ -51,7 +51,7 @@ export default {
     ...mapActions(['listBucket', 'removeBucket']),
     createBucket() {
       let editor = new Vue(BucketEditor)
-      editor.open('create').then(bucket => {
+      editor.open('create').then((bucket) => {
         this.appendBucket({ bucket })
       })
     },
@@ -59,9 +59,9 @@ export default {
       let editor = new Vue(BucketEditor)
       editor
         .open('update', {
-          ...bucket
+          ...bucket,
         })
-        .then(newBucket => {
+        .then((newBucket) => {
           this.updateBucket({ bucket: newBucket, index })
         })
     },
@@ -69,10 +69,10 @@ export default {
       this.$customeConfirm('【存储空间】', () => {
         return this.removeBucket({ bucket })
       })
-    }
+    },
   },
   mounted() {
     this.listBucket()
-  }
+  },
 }
 </script>

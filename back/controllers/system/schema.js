@@ -26,18 +26,19 @@ class Schema extends Base {
    *               title:
    *                 description: 扩展定义中文名称。
    *                 type: string
-   *                 required: true
    *               scope:
    *                 description: 适用对象类型：文档（document），数据库（db）或集合（collection）。
    *                 type: string
-   *                 required: true
    *               description:
    *                 description: 扩展定义说明。
    *                 type: string
    *               body:
    *                 description: 扩展定义内容，符合json-schema规范。
    *                 type: string
-   *                 required: true
+   *             required:
+   *               - title
+   *               - scope
+   *               - body
    *           examples:
    *             basic:
    *               summary: 基础功能

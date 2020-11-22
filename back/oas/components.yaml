@@ -5,7 +5,80 @@ components:
       properties:
         code:
           type: integer
+          example: 0
         msg:
           type: string
+          example: 正常
         result:
           type: object
+    ResponseDataString:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 0
+        msg:
+          type: string
+          example: 正常
+        result:
+          type: string
+          example: ok
+    ResponseDataArray:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 0
+        msg:
+          type: string
+          example: 正常
+        result:
+          type: array
+          items:
+            type: object
+  examples:
+  parameters:
+    bucket:
+      name: bucket
+      description: 管理对象所属空间
+      in: query
+      schema:
+        type: string
+    dbName:
+      name: db
+      description: 管理对象所属数据库
+      in: query
+      schema:
+        type: string
+    clName:
+      name: cl
+      description: 集合名称
+      in: query
+      schema:
+        type: string
+    docSchemaId:
+      name: id
+      description: 文档对象列定义系统id
+      in: query
+      required: true
+      schema:
+        type: string
+    docId:
+      name: id
+      description: 文档对象系统id
+      in: query
+      required: true
+      schema:
+        type: string
+  responses:
+    ResponseOK:
+      description: 返回ok
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ResponseDataString"
+  securitySchemes:
+    HeaderTokenAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

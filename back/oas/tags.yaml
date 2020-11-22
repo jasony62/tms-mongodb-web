@@ -1,4 +1,6 @@
 tags:
+  - name: 认证
+    description: 登录换取token，为执行需要认证API作准备
   - name: system 
     description: 系统配置
   - name: admin

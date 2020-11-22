@@ -31,17 +31,18 @@ class Collection extends Base {
    *               name:
    *                 description: 预制集合名称。
    *                 type: string
-   *                 required: true
    *               title:
    *                 description: 预制集合中文标题。
    *                 type: string
-   *                 required: true
    *               description:
    *                 description: 预制集合说明。
    *                 type: string
    *               schema_id:
    *                 description: 集合中文档对应的json-schema定义。
    *                 type: string
+   *             required:
+   *               - name
+   *               - title
    *     responses:
    *       '200':
    *         description: result为创建的预制集合
@@ -96,18 +97,18 @@ class Collection extends Base {
    *               name:
    *                 description: 预制集合名称。
    *                 type: string
-   *                 required: true
    *               title:
    *                 description: 预制集合中文标题。
    *                 type: string
-   *                 required: true
    *               description:
    *                 description: 预制集合说明。
    *                 type: string
-   *                 required: true
    *               schema_id:
    *                 description: 集合中文档对应的json-schema定义。
    *                 type: string
+   *             required:
+   *               - name
+   *               - title
    *     responses:
    *       '200':
    *         description: result为更新的预制集合

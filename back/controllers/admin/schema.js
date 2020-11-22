@@ -3,12 +3,116 @@ const { ResultData, ResultFault } = require('tms-koa')
 const ObjectId = require('mongodb').ObjectId
 const SchemaBase = require('../schemaBase')
 
+/** 管理端文档列定义对象控制器 */
 class Schema extends SchemaBase {
   constructor(...args) {
     super(...args)
   }
   /**
+   * @swagger
    *
+   * /api/admin/schema/list:
+   *   get:
+   *     tags:
+   *       - admin
+   *     description:
+   *       列出已有文档列定义
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - name: scope
+   *         description: 文档列定义使用对象范围，包括：文档（document），数据库（db）或集合（collection），不指定为document，可以用逗号分割指定多个使用对象类型。
+   *         in: query
+   *         schema:
+   *           type: string
+   *           enum:
+   *             - document
+   *             - collection
+   *             - db
+   *     responses:
+   *       '200':
+   *         description: result为文档列定义数组
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseDataArray"
+   */
+  async list() {
+    return super.list()
+  }
+  /**
+   * @swagger
+   *
+   * /api/admin/schema/listSimple:
+   *   get:
+   *     tags:
+   *       - admin
+   *     description:
+   *       列出已有文档列定义，结果中包含：title, description, scope。
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - name: scope
+   *         description: 文档列定义使用对象范围，包括：文档（document），数据库（db）或集合（collection），不指定为document
+   *         in: query
+   *         schema:
+   *           type: string
+   *           enum:
+   *             - document
+   *             - collection
+   *             - db
+   *     responses:
+   *       '200':
+   *         description: result为文档列定义数组，结果中包含：title, description, scope。
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseDataArray"
+   */
+  async listSimple() {
+    return super.listSimple()
+  }
+  /**
+   * @swagger
+   *
+   * /api/admin/schema/create:
+   *   post:
+   *     tags:
+   *       - admin
+   *     description:
+   *       新建文档列定义。
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               scope:
+   *                 description: 文档列定义适用对象。
+   *                 type: string
+   *                 enum:
+   *                   - document
+   *                   - collection
+   *                   - db
+   *               title:
+   *                 description: 文档列定义标题。
+   *                 type: string
+   *               body:
+   *                 description: 文档列定义内容，符合json-schema规范。
+   *                 type: object
+   *             required:
+   *               - scope
+   *           examples:
+   *             basic:
+   *               summary: 基础功能
+   *               value: {"scope": "collection", "name": "col01"}
+   *     responses:
+   *       '200':
+   *         description: result为创建的集合
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
    */
   async create() {
     let info = this.request.body
@@ -21,13 +125,46 @@ class Schema extends SchemaBase {
       .then((result) => new ResultData(result.ops[0]))
   }
   /**
+   * @swagger
    *
+   * /api/admin/schema/update:
+   *   post:
+   *     tags:
+   *       - admin
+   *     description:
+   *       更新文档列定义。
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/docSchemaId'
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               title:
+   *                 description: 文档列定义标题。
+   *                 type: string
+   *               body:
+   *                 description: 文档列定义内容，符合json-schema规范。
+   *                 type: object
+   *           examples:
+   *             basic:
+   *               summary: 基础功能
+   *               value: {"name": "文档列定义01", "body":{}}
+   *     responses:
+   *       '200':
+   *         description: result为更新后的文档列定义
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
    */
   async update() {
     const { id } = this.request.query
     let info = this.request.body
     const { scope } = info
-    info = _.omit(info, ['_id', 'name', 'scope', 'bucket'])
+    info = _.omit(info, ['_id', 'scope', 'bucket'])
 
     const query = { _id: new ObjectId(id), type: 'schema' }
     if (this.bucket) query.bucket = this.bucket.name
@@ -40,6 +177,20 @@ class Schema extends SchemaBase {
       })
   }
   /**
+   * @swagger
+   *
+   * /api/admin/schema/remove:
+   *   get:
+   *     tags:
+   *       - admin
+   *     description:
+   *       删除文档列定义。
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/docSchemaId'
+   *     responses:
+   *       '200':
+   *         $ref: '#/components/responses/ResponseOK'
    *
    */
   async remove() {
@@ -52,7 +203,7 @@ class Schema extends SchemaBase {
       type: 'collection',
     })
     if (rst) {
-      return new ResultFault('属性定义正在被使用不能删除')
+      return new ResultFault('文档列定义正在被使用，不能删除')
     }
     const query = { _id: new ObjectId(id), type: 'schema' }
     if (this.bucket) query.bucket = this.bucket.name

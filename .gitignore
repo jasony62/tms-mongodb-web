@@ -1,5 +1,6 @@
 /mongodb/data
 /ue_sale/
-Dockerfile-uesale
 
-docker-compose.override.yml
+# docker相关
+Dockerfile-uesale
+*.override.yml

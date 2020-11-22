@@ -57,6 +57,8 @@ module.exports = {
 | TMS_APP_DEFAULT_CREATETIME | 集合中添加、创建、导入数据时默认添加创建时间字段，字段名。                                                   | TMS_DEFAULT_CREATE_TIME    |
 | TMS_APP_DEFAULT_UPDATETIME | 修改集合中文档时默认增加修改时间字段，字段名名。                                                             | TMS_APP_DEFAULT_UPDATETIME |
 | TMS_APP_DATA_ACTION_LOG    | 数据操作日志，日志会记录到`tms_admin`库下的`tms_app_data_action_log`集合中。                                 |                            |
+| TMW_API_HOST               | 对外提供 API 服务的主机地址。                                                                                | http://localhost           |
+| TMW_API_PORT               | 对外提供 API 服务的主机端口。                                                                                | 3000                       |
 
 ## ue_mongo
 

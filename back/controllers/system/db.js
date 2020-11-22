@@ -26,7 +26,8 @@ class Db extends Base {
    *               name:
    *                 description: 预制数据库名称。必须以英文字母开头，最长64位，不允许重名。
    *                 type: string
-   *                 required: true
+   *             required:
+   *               - name
    *           examples:
    *             basic:
    *               summary: 基础功能

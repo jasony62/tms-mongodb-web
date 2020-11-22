@@ -520,7 +520,7 @@ class DocBase extends Base {
                 if (enums.includes(childItem[gets])) arr.push(childItem[sets])
               })
             }
-            // 当且仅当导入多选选项，enums与集合列定义存在差集，则失败
+            // 当且仅当导入多选选项，enums与文档列定义存在差集，则失败
             function enumFilter(item) {
               let labels = columns[ele].enum.map(
                 (childItem) => childItem['label']
