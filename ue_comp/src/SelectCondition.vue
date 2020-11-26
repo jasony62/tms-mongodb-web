@@ -14,7 +14,7 @@
       <el-form-item>
         <el-input v-model="condition.keyword" placeholder="请输入搜索关键词" @input="handleInputChange"></el-input>
       </el-form-item>
-      <el-form-item v-if="currentPro.groupable">
+      <el-form-item v-if="currentPro.groupable !== false">
         <el-table ref="multipleTable" :data="condition.selectResult" tooltip-effect="dark" border id="tables" style="min-width: 240px" max-height="250" v-loadmore="loadMore" @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="55">
           </el-table-column>
@@ -149,7 +149,7 @@ export default {
       }
       this.setKeyword(val)
       clearTimeout(this.timer)
-      if (!this.currentPro.groupable) return
+      if (!this.currentPro.groupable !== false) return
       this.timer = setTimeout(() => {
         this.updateByColumn()
       }, 500)
