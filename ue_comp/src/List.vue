@@ -327,7 +327,7 @@ const componentOptions = {
         orderBy = rule.orderBy
       }
       // 允许分组
-      if (this.properties[columnName]['groupable']) {
+      if (this.properties[columnName]['groupable'] !== false) {
         this.listByColumn(
           columnName,
           this.conditions.length ? filter : undefined,
@@ -630,85 +630,7 @@ const componentOptions = {
         }?access_token=${access_token}`
       )
     },
-    pluginOfMoveByRule(transforms) {
-      let confirm, config
-      confirm = new Vue(DomainEditor)
-      config = { title: '选定规则表' }
-      confirm.open(this.tmsAxiosName, this.bucketName, config).then(fields => {
-        const { dbName: ruleDbName, clName: ruleClName } = fields
-        let moveByRule = new Vue(MoveByRulePlugin)
-        moveByRule.showDialog(
-          this.bucketName,
-          this.dbName,
-          this.clName,
-          ruleDbName,
-          ruleClName,
-          transforms
-        )
-      })
-    },
-    pluginOfSync(type, transforms, param, pTotal, aSTotal, aSPTotal) {
-      let msg = Message.info({ message: '开始同步数据...', duration: 0 }),
-        _this = this
-      async function fnsync(
-        type,
-        transforms,
-        param,
-        pTotal,
-        aSTotal,
-        aSPTotal
-      ) {
-        let {
-          planTotal,
-          alreadySyncTotal,
-          alreadySyncPassTotal,
-          alreadySyncFailTotal,
-          spareTotal
-        } = await apiPlugins.sync[type](
-          _this.dbName,
-          _this.clName,
-          transforms,
-          param,
-          pTotal,
-          aSTotal,
-          aSPTotal
-        ).catch(() => msg.close())
-        msg.message = '正在同步数据...'
-        if (spareTotal <= 0) {
-          msg.message =
-            '成功同步' +
-            alreadySyncPassTotal +
-            '条，失败' +
-            alreadySyncFailTotal +
-            '条'
-          _this.listDocument()
-          setTimeout(() => msg.close(), 1500)
-          return false
-        }
-        fnsync(
-          type,
-          transforms,
-          param,
-          planTotal,
-          alreadySyncTotal,
-          alreadySyncPassTotal
-        )
-      }
-      fnsync(type, transforms, param, pTotal, aSTotal, aSPTotal)
-    },
-    handlePlugin(submit, type) {
-      let transforms = submit.checkList ? submit.checkList.join(',') : ''
-      let { param } = type ? this.fnSetReqParam(type) : { param: null }
-      switch (submit.id) {
-        case 'moveByRule':
-          this.pluginOfMoveByRule(transforms, param)
-          break
-        case 'syncMobilePool':
-        case 'syncToPool':
-        case 'syncToWork':
-          this.pluginOfSync(submit.id, transforms, param, 0, 0, 0)
-      }
-    },
+    handlePlugin(submit, type) {},
     handlePlugins(s, type) {
       const { param: postParams } = type
         ? this.fnSetReqParam(type)
