@@ -13,8 +13,7 @@ class Collection extends Base {
    *   post:
    *     tags:
    *       - system
-   *     description:
-   *       新建预制集合对象信息
+   *     summary: 新建预制集合对象信息
    *     parameters:
    *       - name: db
    *         description: 指定预制数据库名称
@@ -79,8 +78,7 @@ class Collection extends Base {
    *   post:
    *     tags:
    *       - system
-   *     description:
-   *       更新预制集合对象信息
+   *     summary: 更新预制集合对象信息
    *     parameters:
    *       - name: db
    *         description: 指定预制数据库名称
@@ -157,8 +155,7 @@ class Collection extends Base {
    *   get:
    *     tags:
    *       - system
-   *     description:
-   *       删除指定名称的预制集合
+   *     summary: 删除指定名称的预制集合
    *     parameters:
    *       - name: db
    *         description: 指定预制数据库名称
@@ -196,8 +193,7 @@ class Collection extends Base {
    *   get:
    *     tags:
    *       - system
-   *     description:
-   *       返回指定名称的预制集合
+   *     summary: 返回指定名称的预制集合
    *     parameters:
    *       - name: db
    *         description: 指定预制数据库名称
@@ -250,8 +246,7 @@ class Collection extends Base {
    *   get:
    *     tags:
    *       - system
-   *     description:
-   *       列出指定预制库下所有预制集合
+   *     summary: 列出指定预制库下所有预制集合
    *     parameters:
    *       - name: db
    *         description: 指定预制数据库名称

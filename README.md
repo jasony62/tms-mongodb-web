@@ -4,9 +4,11 @@
 
 支持独立的管理端和使用端。
 
+支持多租户模式。
+
 支持数据导出。
 
-支持多租户模式。
+支持通过插件扩展系统功能。
 
 **back**后端服务。
 
@@ -25,6 +27,10 @@
 指定 nginx 的配置文件
 
 > docker-compose up -d
+
+启动 API 在线文档
+
+> docker-compose -f docker-compose.swagger.yml -f docker-compose.swagger.override.yml up swaager-ui swagger-editor
 
 # 上传导出文件
 

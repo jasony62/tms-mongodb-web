@@ -7,3 +7,5 @@ tags:
     description: 业务配置
   - name: mongo
     description: 用户使用
+  - name: plugin
+    description: 插件

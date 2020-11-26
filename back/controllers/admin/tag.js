@@ -15,8 +15,7 @@ class Tag extends TagBase {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       新建标签。
+   *     summary: 新建标签
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *     requestBody:
@@ -64,8 +63,7 @@ class Tag extends TagBase {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       更新标签。
+   *     summary: 更新标签
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - name: id
@@ -123,8 +121,7 @@ class Tag extends TagBase {
    *   get:
    *     tags:
    *       - admin
-   *     description:
-   *       删除标签。
+   *     summary: 删除标签
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - name: name

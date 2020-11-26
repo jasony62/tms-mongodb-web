@@ -15,8 +15,7 @@ class Schema extends Base {
    *   post:
    *     tags:
    *       - system
-   *     description:
-   *       创建预制系统管理对象扩展定义
+   *     summary: 创建预制系统管理对象扩展定义
    *     requestBody:
    *       content:
    *         application/json:
@@ -67,8 +66,7 @@ class Schema extends Base {
    *   post:
    *     tags:
    *       - system
-   *     description:
-   *       更改预制管理对象扩展定义
+   *     summary: 更改预制管理对象扩展定义
    *     parameters:
    *       - name: id
    *         description: 预制管理对象扩展定义id
@@ -121,8 +119,7 @@ class Schema extends Base {
    *   get:
    *     tags:
    *       - system
-   *     description:
-   *       删除预制管理对象扩展定义
+   *     summary: 删除预制管理对象扩展定义
    *     parameters:
    *       - name: id
    *         description: 预制管理对象扩展定义id
@@ -161,8 +158,7 @@ class Schema extends Base {
    *   get:
    *     tags:
    *       - system
-   *     description:
-   *       列出已有预制管理对象扩展定义
+   *     summary: 列出已有预制管理对象扩展定义
    *     parameters:
    *       - name: scope
    *         description: 管理对象类型
@@ -197,8 +193,8 @@ class Schema extends Base {
    *   get:
    *     tags:
    *       - system
-   *     description:
-   *       列出已有预制管理对象扩展定义，不包含body字段。
+   *     summary: 列出已有预制管理对象扩展定义
+   *     description: 列出已有预制管理对象扩展定义，不包含body字段。
    *     parameters:
    *       - name: scope
    *         description: 管理对象类型

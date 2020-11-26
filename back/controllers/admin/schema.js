@@ -15,8 +15,7 @@ class Schema extends SchemaBase {
    *   get:
    *     tags:
    *       - admin
-   *     description:
-   *       列出已有文档列定义
+   *     summary: 列出已有文档列定义
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - name: scope
@@ -46,8 +45,8 @@ class Schema extends SchemaBase {
    *   get:
    *     tags:
    *       - admin
-   *     description:
-   *       列出已有文档列定义，结果中包含：title, description, scope。
+   *     summary: 列出已有文档列定义
+   *     description: 列出已有文档列定义，结果中包含：title, description, scope。
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - name: scope
@@ -77,8 +76,7 @@ class Schema extends SchemaBase {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       新建文档列定义。
+   *     summary: 新建文档列定义
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *     requestBody:
@@ -131,8 +129,7 @@ class Schema extends SchemaBase {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       更新文档列定义。
+   *     summary: 更新文档列定义
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/docSchemaId'
@@ -183,8 +180,7 @@ class Schema extends SchemaBase {
    *   get:
    *     tags:
    *       - admin
-   *     description:
-   *       删除文档列定义。
+   *     summary: 删除文档列定义
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/docSchemaId'

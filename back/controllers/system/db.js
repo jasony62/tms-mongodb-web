@@ -15,8 +15,7 @@ class Db extends Base {
    *   post:
    *     tags:
    *       - system
-   *     description:
-   *       创建预制数据库
+   *     summary: 创建预制数据库
    *     requestBody:
    *       content:
    *         application/json:
@@ -68,8 +67,7 @@ class Db extends Base {
    *   post:
    *     tags:
    *       - system
-   *     description:
-   *       更改预制数据库
+   *     summary: 更改预制数据库
    *     parameters:
    *       - name: db
    *         description: 预制数据库名称
@@ -120,8 +118,7 @@ class Db extends Base {
    *   get:
    *     tags:
    *       - system
-   *     description:
-   *       删除预制数据库
+   *     summary: 删除预制数据库
    *     parameters:
    *       - name: db
    *         description: 预制数据库名称
@@ -159,8 +156,7 @@ class Db extends Base {
    *   get:
    *     tags:
    *       - system
-   *     description:
-   *       列出已有预制数据库
+   *     summary: 列出已有预制数据库
    *     responses:
    *       '200':
    *         description: result为预制数据库数组

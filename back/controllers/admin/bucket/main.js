@@ -20,8 +20,8 @@ class Bucket extends BucketBase {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       新建存储空间。空间名称不允许重复。
+   *     summary: 新建存储空间
+   *     description: 新建存储空间。空间名称不允许重复。
    *     security:
    *       - HeaderTokenAuth: []
    *     requestBody:
@@ -75,8 +75,8 @@ class Bucket extends BucketBase {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       新建存储空间。空间名称不允许重复。
+   *     summary: 更新存储空间
+   *     description: 更新存储空间。空间名称不允许重复。
    *     security:
    *       - HeaderTokenAuth: []
    *     parameters:
@@ -120,8 +120,7 @@ class Bucket extends BucketBase {
    *   get:
    *     tags:
    *       - admin
-   *     description:
-   *       删除存储空间。
+   *     summary: 删除存储空间
    *     security:
    *       - HeaderTokenAuth: []
    *     parameters:
@@ -148,8 +147,7 @@ class Bucket extends BucketBase {
    *   get:
    *     tags:
    *       - admin
-   *     description:
-   *       当前用户创建的存储空间
+   *     summary: 当前用户创建的存储空间
    *     security:
    *       - HeaderTokenAuth: []
    *     responses:

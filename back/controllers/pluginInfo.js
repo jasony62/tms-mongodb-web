@@ -6,7 +6,18 @@ class PluginInfo extends Ctrl {
     super(...args)
   }
   /**
-   * 获取集合页面插件
+   * @swagger
+   *
+   * /api/getPlugins:
+   *   get:
+   *     tags:
+   *       - plugin
+   *     summary: 获取集合页面插件
+   *     description: 应该由接口commonExecute替代
+   *     responses:
+   *       '200':
+   *         description: result为插件数组
+   *     deprecated: true
    */
   getPlugins() {
     let config = {}

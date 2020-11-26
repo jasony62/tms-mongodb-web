@@ -22,8 +22,7 @@ class Coworker extends Base {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       创建空间邀请。
+   *     summary: 创建空间邀请
    *     security:
    *       - HeaderTokenAuth: []
    *     parameters:
@@ -112,8 +111,7 @@ class Coworker extends Base {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       接受空间邀请。
+   *     summary: 接受空间邀请
    *     security:
    *       - HeaderTokenAuth: []
    *     parameters:
@@ -203,8 +201,7 @@ class Coworker extends Base {
    *   get:
    *     tags:
    *       - admin
-   *     description:
-   *       删除授权访问用户。
+   *     summary: 删除授权访问用户
    *     security:
    *       - HeaderTokenAuth: []
    *     parameters:

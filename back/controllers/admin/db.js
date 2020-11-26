@@ -13,8 +13,7 @@ class Db extends DbBase {
    *   get:
    *     tags:
    *       - admin
-   *     description:
-   *       列出已有数据库
+   *     summary: 列出已有数据库
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *     responses:
@@ -35,8 +34,8 @@ class Db extends DbBase {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       新建数据库。只有创建集合，创建数据库才生效。
+   *     summary: 新建数据库
+   *     description: 新建数据库。只有创建集合，创建数据库才生效。
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *     requestBody:
@@ -72,8 +71,7 @@ class Db extends DbBase {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       更新数据库属性信息。
+   *     summary: 更新数据库属性信息
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbName'
@@ -110,6 +108,7 @@ class Db extends DbBase {
    *   get:
    *     tags:
    *       - admin
+   *     summary: 删除数据库
    *     description:
    *       删除数据库。数据库中的集合为空才允许删除。系统自带数据库（admin，config，local，tms_admin）不允许删除。
    *     parameters:
@@ -147,8 +146,7 @@ class Db extends DbBase {
    *   get:
    *     tags:
    *       - admin
-   *     description:
-   *       置顶数据库。
+   *     summary: 置顶数据库
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - name: id

@@ -13,8 +13,7 @@ class Document extends DocBase {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       列出已有文档
+   *     summary: 列出已有文档
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbName'
@@ -63,8 +62,7 @@ class Document extends DocBase {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       新建文档
+   *     summary: 新建文档
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbName'
@@ -97,8 +95,7 @@ class Document extends DocBase {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       新建文档
+   *     summary: 新建文档
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbName'
@@ -132,8 +129,7 @@ class Document extends DocBase {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       批量删除文档（代码有问题）
+   *     summary: 批量删除文档（代码有问题）
    *     responses:
    *       '200':
    *         description: result为???
@@ -152,8 +148,7 @@ class Document extends DocBase {
    *   get:
    *     tags:
    *       - admin
-   *     description:
-   *       根据指定id，删除文档
+   *     summary: 根据指定id，删除文档
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbName'
@@ -177,8 +172,7 @@ class Document extends DocBase {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       批量删除文档（代码有问题）
+   *     summary: 批量删除文档（代码有问题）
    *     responses:
    *       '200':
    *         description: result为???
@@ -189,10 +183,6 @@ class Document extends DocBase {
    */
   async removeMany() {
     return super.remove()
-  }
-  //
-  bulk() {
-    return new ResultData('指定数据库下批量新建文档')
   }
 }
 module.exports = Document

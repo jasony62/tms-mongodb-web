@@ -11,8 +11,7 @@ class Collection extends CollectionBase {
    *   get:
    *     tags:
    *       - admin
-   *     description:
-   *       列出已有集合
+   *     summary: 列出已有集合
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbName'
@@ -34,8 +33,7 @@ class Collection extends CollectionBase {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       新建集合。
+   *     summary: 新建集合
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbName'
@@ -72,8 +70,7 @@ class Collection extends CollectionBase {
    *   post:
    *     tags:
    *       - admin
-   *     description:
-   *       新建集合。
+   *     summary: 新建集合
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbName'
@@ -109,8 +106,7 @@ class Collection extends CollectionBase {
    *   get:
    *     tags:
    *       - admin
-   *     description:
-   *       更新集合名称。
+   *     summary: 更新集合名称
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbName'
@@ -135,8 +131,8 @@ class Collection extends CollectionBase {
    *   get:
    *     tags:
    *       - admin
-   *     description:
-   *       删除集合。不能删除系统自带集合。
+   *     summary: 删除集合
+   *     description: 删除集合。不能删除系统自带集合。
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbName'
