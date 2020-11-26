@@ -163,24 +163,6 @@ class DocBase extends Base {
     return new ResultData(data)
   }
   /**
-   * 根据区号查省和本地网
-   */
-  async listByAreaCode() {
-    const existDb = await this.docHelper.findRequestDb()
-    const { cl: clName } = this.request.query
-    const { filter = null } = this.request.body
-    let options = { filter }
-
-    let model = new modelDocu()
-    let data = await model.listDocs(existDb, clName, options)
-    if (data[0] === false) {
-      return new ResultFault(data[1])
-    }
-    data = data[1]
-
-    return new ResultData(data)
-  }
-  /**
    * 组装 查询条件
    */
   _assembleFind(filter, like = true) {
@@ -520,7 +502,7 @@ class DocBase extends Base {
                 if (enums.includes(childItem[gets])) arr.push(childItem[sets])
               })
             }
-            // 当且仅当导入多选选项，enums与集合列定义存在差集，则失败
+            // 当且仅当导入多选选项，enums与文档列定义存在差集，则失败
             function enumFilter(item) {
               let labels = columns[ele].enum.map(
                 (childItem) => childItem['label']

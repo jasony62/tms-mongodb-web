@@ -3,12 +3,47 @@ const Base = require('../../base')
 const { nanoid } = require('nanoid')
 const ObjectId = require('mongodb').ObjectId
 
+/** 空间用户管理控制器 */
 class Coworker extends Base {
   constructor(...args) {
     super(...args)
   }
+  /** 执行方法调用前检查 */
+  async tmsBeforeEach() {
+    if (!this.client)
+      return new ResultFault('只有通过认证的用户才可以执行该操作')
+
+    return true
+  }
   /**
-   * 创建邀请
+   * @swagger
+   *
+   * /api/admin/bucket/coworker/invite:
+   *   post:
+   *     tags:
+   *       - admin
+   *     description:
+   *       创建空间邀请。
+   *     security:
+   *       - HeaderTokenAuth: []
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               nickname:
+   *                 description: 被邀请用户的昵称。
+   *                 type: string
+   *     responses:
+   *       '200':
+   *         description: result为4位字符的邀请码
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
    */
   async invite() {
     if (!this.bucket) return new ResultFault('没有指定邀请的空间')
@@ -71,7 +106,40 @@ class Coworker extends Base {
     return clLog.insertOne(invite).then(() => new ResultData(code))
   }
   /**
-   * 接受邀请
+   * @swagger
+   *
+   * /api/admin/bucket/coworker/accept:
+   *   post:
+   *     tags:
+   *       - admin
+   *     description:
+   *       接受空间邀请。
+   *     security:
+   *       - HeaderTokenAuth: []
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               code:
+   *                 description: 邀请码。
+   *                 type: string
+   *               nickname:
+   *                 description: 被邀请用户的昵称。
+   *                 type: string
+   *             required:
+   *               - code
+   *               - nickname
+   *     responses:
+   *       '200':
+   *         description: result为ok
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
    */
   async accept() {
     const { bucket } = this.request.query
@@ -129,7 +197,31 @@ class Coworker extends Base {
       .then(() => new ResultData('ok'))
   }
   /**
-   * 删除授权访问用户
+   * @swagger
+   *
+   * /api/admin/bucket/coworker/remove:
+   *   get:
+   *     tags:
+   *       - admin
+   *     description:
+   *       删除授权访问用户。
+   *     security:
+   *       - HeaderTokenAuth: []
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - name: coworker
+   *         description: 被邀请用户的id
+   *         in: query
+   *         schema:
+   *           type: string
+   *         required: true
+   *     responses:
+   *       '200':
+   *         description: result为ok
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
    */
   async remove() {
     if (!this.bucket) return new ResultFault('没有指定邀请的空间')

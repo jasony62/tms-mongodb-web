@@ -26,16 +26,16 @@ export default {
     dialogVisible: { default: true },
     bucket: {
       type: Object,
-      default: function() {
+      default: function () {
         return { name: '', title: '', description: '' }
-      }
-    }
+      },
+    },
   },
   data() {
     return {
       mode: '',
       destroyOnClose: true,
-      closeOnClickModal: false
+      closeOnClickModal: false,
     }
   },
   methods: {
@@ -43,11 +43,11 @@ export default {
       if (this.mode === 'update') {
         apiDkt
           .update(this.bucket.name, this.bucket)
-          .then(newBucket => this.$emit('submit', newBucket))
+          .then((newBucket) => this.$emit('submit', newBucket))
       } else if (this.mode === 'create') {
         apiDkt
           .create(this.bucket)
-          .then(newBucket => this.$emit('submit', newBucket))
+          .then((newBucket) => this.$emit('submit', newBucket))
       }
     },
     open(mode, bucket) {
@@ -55,13 +55,13 @@ export default {
       if (mode === 'update') Object.assign(this.bucket, bucket)
       this.$mount()
       document.body.appendChild(this.$el)
-      return new Promise(resolve => {
-        this.$on('submit', newBucket => {
+      return new Promise((resolve) => {
+        this.$on('submit', (newBucket) => {
           this.dialogVisible = false
           resolve(newBucket)
         })
       })
-    }
-  }
+    },
+  },
 }
 </script>
