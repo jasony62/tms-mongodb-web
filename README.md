@@ -30,7 +30,7 @@
 
 启动 API 在线文档
 
-> docker-compose -f docker-compose.swagger.yml -f docker-compose.swagger.override.yml up swaager-ui swagger-editor
+> docker-compose -f docker-compose.swagger.yml -f docker-compose.swagger.override.yml up swagger-ui swagger-editor
 
 # 上传导出文件
 

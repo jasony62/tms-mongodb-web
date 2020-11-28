@@ -1,9 +1,0 @@
-
-#!/bin/zsh
-
-curl "http://localhost:3000/api/admin/document/create?db=$1&collection=$2" \
-  -D - \
-  -X POST \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  --data '{"title": "Some title", "content": "document content"}'
