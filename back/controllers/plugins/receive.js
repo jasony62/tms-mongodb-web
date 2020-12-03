@@ -1,14 +1,11 @@
-const {
-  ResultFault,
-  ResultData
-} = require('tms-koa')
-const Base = require('.././base')
+const { ResultFault, ResultData } = require('tms-koa')
+const Base = require('../../base')
 const PluginConfig = require('../../models/mgdb/plugin')
 const PluginHelper = require('./pluginHelper')
-const _ = require('lodash')
 const PluginCommon = require('./pluginCommon')
+const _ = require('lodash')
 const log4js = require('log4js')
-const logger = log4js.getLogger('mg-pool')
+const logger = log4js.getLogger('tms-mongo-web')
 
 class Receive extends Base {
   constructor(...args) {
@@ -31,7 +28,6 @@ class Receive extends Base {
 
     let params
 
-
     logger.info('获取query参数', this.request.query)
     logger.info('获取body参数', this.request.body)
 
@@ -39,11 +35,14 @@ class Receive extends Base {
     const { receiveConfig: pluginConfig } = PluginConfig.ins()
     // logger.info('获取receiveConfig配置信息', pluginConfig)
 
-    const currentCfg = pluginConfig[module].find(ele => ele.event === event && ele.eventType.includes(eventType))
+    const currentCfg = pluginConfig[module].find(
+      ele => ele.event === event && ele.eventType.includes(eventType)
+    )
     logger.info('获取当前接口配置信息', currentCfg)
 
     // 获取集合属性
-    if (currentCfg.docSchemas) params = await PluginCommon.getSchemas(existDb, clName)
+    if (currentCfg.docSchemas)
+      params = await PluginCommon.getSchemas(existDb, clName)
 
     const { callback, quota } = currentCfg
 
@@ -58,14 +57,44 @@ class Receive extends Base {
     }
 
     // PluginCommon.checkCol()
-    const oprateRes = await PluginCommon.operateData(PluginCommon.operateType.updateMany, list, cl, quota)
+    const oprateRes = await PluginCommon.operateData(
+      PluginCommon.operateType.updateMany,
+      list,
+      cl,
+      quota
+    )
     if (!oprateRes[0]) return new ResultFault(oprateRes[1])
 
     const resCB = PluginCommon.isExistCallback(callback)
-    if (!resCB[0] && !currentCfg.noActionLog) return await PluginCommon.recordActionLog(list, currentCfg.name, existDb.name, existDb.sysname, clName) && new ResultData(resCB[1])
+    if (!resCB[0] && !currentCfg.noActionLog)
+      return (
+        (await PluginCommon.recordActionLog(
+          list,
+          currentCfg.name,
+          existDb.name,
+          existDb.sysname,
+          clName
+        )) && new ResultData(resCB[1])
+      )
 
-    const afterRes = await PluginCommon.executeCallback(this, callback, oprateRes, params, cl, existDb, clName, undefined)
-    if (afterRes.code === 0 && !currentCfg.noActionLog) await PluginCommon.recordActionLog(list, currentCfg.name, existDb.name, existDb.sysname, clName)
+    const afterRes = await PluginCommon.executeCallback(
+      this,
+      callback,
+      oprateRes,
+      params,
+      cl,
+      existDb,
+      clName,
+      undefined
+    )
+    if (afterRes.code === 0 && !currentCfg.noActionLog)
+      await PluginCommon.recordActionLog(
+        list,
+        currentCfg.name,
+        existDb.name,
+        existDb.sysname,
+        clName
+      )
     return afterRes
   }
 }

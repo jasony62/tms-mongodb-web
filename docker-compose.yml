@@ -74,7 +74,6 @@ services:
         vue_app_front_doceditor_add: ''
         vue_app_front_doceditor_modify: ''
         vue_app_front_batcheditor: ''
-        vue_app_plugin_bucket:'web'
     image: tms-mongodb/ue-mongo:latest
     container_name: tms-mongodb-ue_mongo
     environment:

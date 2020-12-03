@@ -5,7 +5,7 @@ const modelDocu = require('../../models/mgdb/document')
 const _ = require('lodash')
 const ObjectId = require('mongodb').ObjectId
 const log4js = require('log4js')
-const logger = log4js.getLogger('mg-pool-plugin')
+const logger = log4js.getLogger('tms-mongo-web-plugin')
 
 // 目前PluginCommon中的部分方法，实现的不够好，为了保证数据流容易理解，后期应将方法均改为纯函数
 class PluginCommon extends Base {
@@ -19,9 +19,8 @@ class PluginCommon extends Base {
     insertMany: 'insertMany',
     remove: 'remove',
     updateOne: 'updateOne',
-    updateMany: 'updateMany',
+    updateMany: 'updateMany'
   }
-
 
   /**
    * @description 日志记录
@@ -44,9 +43,6 @@ class PluginCommon extends Base {
 
   static splitGetParams(params, url) {
     let getParams = JSON.parse(JSON.stringify(params))
-    getParams.dbName = params.db
-    delete getParams.pluginCfg
-    delete getParams.db
     let path = url + (url.includes('?') ? '&' : '?')
     Object.keys(getParams).forEach(key => {
       path += `${key}=${getParams[key]}&`
@@ -67,19 +63,34 @@ class PluginCommon extends Base {
   /**
    * @description 执行发送/接受的回调函数
    * @param {object} content 当前上下文
-   * @param {function} callback 
+   * @param {function} callback
    * @param {array} oprateRes 入库后的数据
-   * @param {object} params 
-   * @param {*} cl 
-   * @param {*} existDb 
-   * @param {*} clName 
-   * @param {*} resolve 
+   * @param {object} params
+   * @param {*} cl
+   * @param {*} existDb
+   * @param {*} clName
+   * @param {*} resolve
    */
-  static async executeCallback(content, callback, oprateRes, params = {}, cl, existDb, clName, resolve) {
+  static async executeCallback(
+    content,
+    callback,
+    oprateRes,
+    params = {},
+    cl,
+    existDb,
+    clName,
+    resolve
+  ) {
     const { ctx, client, dbContext, mongoClient, mongoose } = content
     const { path, callbackName } = callback
     let currentCtro = require(path)
-    let currentClass = new currentCtro(ctx, client, dbContext, mongoClient, mongoose)
+    let currentClass = new currentCtro(
+      ctx,
+      client,
+      dbContext,
+      mongoClient,
+      mongoose
+    )
     const options = {
       data: oprateRes[1],
       docIds: oprateRes[2],
@@ -95,7 +106,8 @@ class PluginCommon extends Base {
   }
 
   static isExistCallback(callback) {
-    if (!callback || !_.isPlainObject(callback)) return [false, '当前接口无callback']
+    if (!callback || !_.isPlainObject(callback))
+      return [false, '当前接口无callback']
     const { path, callbackName } = callback
     if (!path && !callbackName) return [false, '请配置正确的path或callbackName']
     return [true, 'success']
@@ -104,16 +116,14 @@ class PluginCommon extends Base {
   /**
    * @description 对外部接口传过来的collection做校验
    */
-  static checkCol() {
-
-  }
+  static checkCol() {}
 
   /**
    * @description 操作mongodb数据
    * @param {string} operateType - 操作类型，以静态属性operateType定义为准
    * @param {object} data - 新数据
-   * @param {*} cl 
-   * @param {string} quota - 更新mongodb指标 
+   * @param {*} cl
+   * @param {string} quota - 更新mongodb指标
    */
   static async operateData(operateType, data, cl, quota = '_id') {
     switch (operateType) {
@@ -128,9 +138,12 @@ class PluginCommon extends Base {
             docIds.push(id)
             delete ele._id
             arr.push(
-              cl.updateOne({ _id: ObjectId(id) }, {
-                $set: ele
-              })
+              cl.updateOne(
+                { _id: ObjectId(id) },
+                {
+                  $set: ele
+                }
+              )
             )
           })
         } else {
@@ -140,32 +153,42 @@ class PluginCommon extends Base {
             docIds.push(id)
             delete ele._id
             arr.push(
-              cl.updateOne({ [quota]: ele[quota] }, {
-                $set: ele
-              })
+              cl.updateOne(
+                { [quota]: ele[quota] },
+                {
+                  $set: ele
+                }
+              )
             )
           })
         }
-        return Promise.all(arr).then(() => {
-          logger.info('批量更新成功')
-          return [true, data, docIds]
-        }).catch(err => {
-          logger.info('批量更新失败', err)
-          return [false, err]
-        })
+        return Promise.all(arr)
+          .then(() => {
+            logger.info('批量更新成功')
+            return [true, data, docIds]
+          })
+          .catch(err => {
+            logger.info('批量更新失败', err)
+            return [false, err]
+          })
       case PluginCommon.operateType.updateOne:
         logger.info('单次更新')
         const id = data._id
         delete data._id
-        return cl.updateOne({ [quota]: quota === '_id' ? ObjectId(id) : data[quota] }, {
-          $set: data
-        }).then(res => {
-          return [true, res, id]
-        }).catch(err => {
-          return [false, err]
-        })
+        return cl
+          .updateOne(
+            { [quota]: quota === '_id' ? ObjectId(id) : data[quota] },
+            {
+              $set: data
+            }
+          )
+          .then(res => {
+            return [true, res, id]
+          })
+          .catch(err => {
+            return [false, err]
+          })
     }
-
   }
 
   /**

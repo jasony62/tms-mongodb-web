@@ -108,19 +108,19 @@
           </el-dropdown-menu>
         </el-dropdown>
         <hr />
-        <div v-for="(s, i) in computedPluginData" :key="i">
-          <el-button @click="handlePlugins(s, null)" v-if="!s[2].batch">{{s[2].name}}</el-button>
-          <el-dropdown v-if="s[2].batch">
-            <el-button type="success" plain>{{s[2].name}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+        <div v-for="(b, i) in computedPluginData" :key="i">
+          <el-button @click="handlePlugins(s, null)" v-if="!b.batch">{{b.title}}</el-button>
+          <el-dropdown v-if="b.batch">
+            <el-button type="success" plain>{{b.title}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(s, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
+                <el-button type="text" @click="handlePlugins(b, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(s, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
+                <el-button type="text" @click="handlePlugins(b, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(s, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
+                <el-button type="text" @click="handlePlugins(b, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -219,10 +219,11 @@ const componentOptions = {
     },
     computedPluginData() {
       const currentAuth = this.getCurrentAuth() || '*'
-      return this.pluginData.filter(
+      const data = this.pluginData
+      return data.filter(
         item =>
-          item[2].auth &&
-          (item[2].auth.includes('*') || item[2].auth.includes(currentAuth))
+          item.auth &&
+          (item.auth.includes('*') || item.auth.includes(currentAuth))
       )
     }
   },
@@ -601,35 +602,50 @@ const componentOptions = {
         `${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`
       )
     },
-    handlePlugins(s, type) {
+    handlePlugins(button, type) {
       const { param: postParams } = type
         ? this.fnSetReqParam(type)
         : { param: null }
       let getParams = {
-        bucket: env.process.VUE_APP_PLUGIN_BUCKET,
-        pluginCfg: s[0],
-        db: this.dbName,
-        clName: this.clName
+        dbName: this.dbName,
+        clName: this.clName,
+        type: button.type,
+        name: button.name
       }
-      if (!s[2].isConfirm) {
-        return this.handlePluginsApi(s, getParams, postParams, 'defaultParams')
-      }
-    },
-    async handlePluginsApi(s, getParams, postParams, mergeParams) {
-      const toType = Object.prototype.toString
-      const source =
-        s[2][mergeParams] &&
-        toType.call(s[2][mergeParams]) === '[object Object]'
-          ? s[2][mergeParams]
-          : {}
-
-      Object.assign(getParams, source)
-
-      await createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(
+      createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(
         postParams,
         getParams
       )
     },
+    // handlePlugins(button, type) {
+    //   const { param: postParams } = type
+    //     ? this.fnSetReqParam(type)
+    //     : { param: null }
+    //   let getParams = {
+    //     bucket: env.process.VUE_APP_PLUGIN_BUCKET,
+    //     pluginCfg: s[0],
+    //     db: this.dbName,
+    //     clName: this.clName
+    //   }
+    //   if (!s[2].isConfirm) {
+    //     return this.handlePluginsApi(s, getParams, postParams, 'defaultParams')
+    //   }
+    // },
+    // async handlePluginsApi(s, getParams, postParams, mergeParams) {
+    //   const toType = Object.prototype.toString
+    //   const source =
+    //     s[2][mergeParams] &&
+    //     toType.call(s[2][mergeParams]) === '[object Object]'
+    //       ? s[2][mergeParams]
+    //       : {}
+
+    //   Object.assign(getParams, source)
+
+    //   await createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(
+    //     postParams,
+    //     getParams
+    //   )
+    // },
     handleSize(val) {
       this.page.size = val
       this.dialogPage.size = val
