@@ -3,9 +3,4 @@
 /public/
 .env
 .env.*
-/config/*.local.js
-/config/*.local2.js
-/config/plugin.js
-/config/plugins.js
 /storage
-*.xlsx

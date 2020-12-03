@@ -11,8 +11,24 @@ services:
     container_name: tms-mongodb-back
     environment:
       - NODE_ENV=production
-      - TMS_MONGODB_HOST=mongodb
+      - TMS_APP_NAME=tms-mongo-web
+      - TMS_APP_PORT=3000
+      - TMS_FINDER_FS_ROOTDIR=/storage
+      - TMS_FINDER_FS_OUTDIR=/storage
+      - TMS_FINDER_FS_CUSTOMNAME=true
+      - TMS_APP_LOG4JS_LEVEL=debug
+      - TMS_MONGODB_HOST=localhost
       - TMS_MONGODB_PORT=27017
+      - TMS_MONGODB_USER=root
+      - TMS_MONGODB_PASSWORD=root
+      - TMS_REDIS_PREFIX=dev-op
+      - TMS_REDIS_HOST=localhost
+      - TMS_REDIS_PORT=6378
+      - TMS_REDIS_EXPIRESIN=7200
+      - TMW_API_HOST=http://localhost
+      - TMW_API_PORT=3000
+      - TMW_REQUIRE_BUCKET=
+      - TMS_PLUGINS_IT_IP=
     command:
       [
         'sh',
@@ -58,6 +74,7 @@ services:
         vue_app_front_doceditor_add: ''
         vue_app_front_doceditor_modify: ''
         vue_app_front_batcheditor: ''
+        vue_app_plugin_bucket:'web'
     image: tms-mongodb/ue-mongo:latest
     container_name: tms-mongodb-ue_mongo
     environment:
