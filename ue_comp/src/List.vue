@@ -99,9 +99,6 @@
           </el-dropdown-menu>
         </el-dropdown>
         <hr />
-        <el-checkbox-group v-model="moveCheckList" v-if="plugins.document.transforms&&plugins.document.transforms.move">
-          <el-checkbox v-for="(t, k) in plugins.document.transforms.move" :label="t.name" :key="k">{{t.label}}</el-checkbox>
-        </el-checkbox-group>
         <el-dropdown @command="batchMoveDocument">
           <el-button>数据迁移<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
@@ -111,40 +108,19 @@
           </el-dropdown-menu>
         </el-dropdown>
         <hr />
-        <div v-for="s in plugins.document.submits" :key="s.id">
-          <el-checkbox-group v-model="s.checkList" v-if="plugins.document.transforms&&plugins.document.transforms[s.id]">
-            <el-checkbox v-for="(t, k) in plugins.document.transforms[s.id]" :label="t.name" :key="k">{{t.label}}</el-checkbox>
-          </el-checkbox-group>
-          <el-button @click="handlePlugin(s, null)" v-if="!s.batch">{{s.name}}</el-button>
-          <el-dropdown v-if="s.batch">
-            <el-button>{{s.name}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+        <div v-for="(b, i) in computedPluginData" :key="i">
+          <el-button @click="handlePlugins(s, null)" v-if="!b.batch">{{b.title}}</el-button>
+          <el-dropdown v-if="b.batch">
+            <el-button type="success" plain>{{b.title}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugin(s, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
+                <el-button type="text" @click="handlePlugins(b, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugin(s, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
+                <el-button type="text" @click="handlePlugins(b, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugin(s, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-          <hr v-if="plugins.document.transforms&&plugins.document.transforms[s.id]" />
-        </div>
-        <div v-for="(s, i) in computedPluginData" :key="i">
-          <el-button @click="handlePlugins(s, null)" v-if="!s[2].batch">{{s[2].name}}</el-button>
-          <el-dropdown v-if="s[2].batch">
-            <el-button type="success" plain>{{s[2].name}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(s, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
-              </el-dropdown-item>
-              <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(s, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
-              </el-dropdown-item>
-              <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(s, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
+                <el-button type="text" @click="handlePlugins(b, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -177,12 +153,10 @@ import DocEditor from './DocEditor.vue'
 import SelectCondition from './SelectCondition.vue'
 import ColumnValueEditor from '../../ue_mongo/src/components/ColumnValueEditor.vue'
 import DomainEditor from '../../ue_mongo/src/components/DomainEditor.vue'
-import MoveByRulePlugin from '../../ue_mongo/src/plugins/move/Main.vue'
 import createCollectionApi from '../../ue_mongo/src/apis/collection'
 import createDocApi from '../../ue_mongo/src/apis/document'
 import createSchemaApi from '../../ue_mongo/src/apis/schema'
 import createPluginApi from '../../ue_mongo/src/apis/plugin'
-import apiPlugins from '../../ue_mongo/src/plugins'
 
 const collection = {}
 
@@ -220,7 +194,6 @@ const componentOptions = {
       },
       multipleDocuments: [],
       properties: {},
-      plugins: { document: { submits: [], transforms: {} } },
       dialogPage: {
         at: 1,
         size: 100
@@ -246,10 +219,12 @@ const componentOptions = {
     },
     computedPluginData() {
       const currentAuth = this.getCurrentAuth() || '*'
-      return this.pluginData.filter(
+      const data = this.pluginData
+      if (!this.pluginData.length) return []
+      return data.filter(
         item =>
-          item[2].auth &&
-          (item[2].auth.includes('*') || item[2].auth.includes(currentAuth))
+          item.auth &&
+          (item.auth.includes('*') || item.auth.includes(currentAuth))
       )
     }
   },
@@ -280,12 +255,14 @@ const componentOptions = {
           orderBy: _obj[0].rule.orderBy
         }
       }
-      return _obj.map(ele => ele.rule).reduce((prev, curr) => {
-        return {
-          filter: Object.assign(prev.filter, curr.filter),
-          orderBy: Object.assign(prev.orderBy, curr.orderBy)
-        }
-      })
+      return _obj
+        .map(ele => ele.rule)
+        .reduce((prev, curr) => {
+          return {
+            filter: Object.assign(prev.filter, curr.filter),
+            orderBy: Object.assign(prev.orderBy, curr.orderBy)
+          }
+        })
     },
     listByColumn(
       columnName,
@@ -616,50 +593,60 @@ const componentOptions = {
         .then(result => {
           const access_token = sessionStorage.getItem('access_token')
           window.open(
-            `${
-              process.env.VUE_APP_BACK_API_FS
-            }${result}?access_token=${access_token}`
+            `${process.env.VUE_APP_BACK_API_FS}${result}?access_token=${access_token}`
           )
         })
     },
     handleDownload(file) {
       const access_token = sessionStorage.getItem('access_token')
       window.open(
-        `${process.env.VUE_APP_BACK_API_FS}${
-          file.url
-        }?access_token=${access_token}`
+        `${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`
       )
     },
-    handlePlugin(submit, type) {},
-    handlePlugins(s, type) {
+    handlePlugins(button, type) {
       const { param: postParams } = type
         ? this.fnSetReqParam(type)
         : { param: null }
       let getParams = {
-        bucket: env.process.VUE_APP_PLUGIN_BUCKET,
-        pluginCfg: s[0],
-        db: this.dbName,
-        clName: this.clName
+        dbName: this.dbName,
+        clName: this.clName,
+        type: button.type,
+        name: button.name
       }
-      if (!s[2].isConfirm) {
-        return this.handlePluginsApi(s, getParams, postParams, 'defaultParams')
-      }
-    },
-    async handlePluginsApi(s, getParams, postParams, mergeParams) {
-      const toType = Object.prototype.toString
-      const source =
-        s[2][mergeParams] &&
-        toType.call(s[2][mergeParams]) === '[object Object]'
-          ? s[2][mergeParams]
-          : {}
-
-      Object.assign(getParams, source)
-
-      await createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(
+      createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(
         postParams,
         getParams
       )
     },
+    // handlePlugins(button, type) {
+    //   const { param: postParams } = type
+    //     ? this.fnSetReqParam(type)
+    //     : { param: null }
+    //   let getParams = {
+    //     bucket: env.process.VUE_APP_PLUGIN_BUCKET,
+    //     pluginCfg: s[0],
+    //     db: this.dbName,
+    //     clName: this.clName
+    //   }
+    //   if (!s[2].isConfirm) {
+    //     return this.handlePluginsApi(s, getParams, postParams, 'defaultParams')
+    //   }
+    // },
+    // async handlePluginsApi(s, getParams, postParams, mergeParams) {
+    //   const toType = Object.prototype.toString
+    //   const source =
+    //     s[2][mergeParams] &&
+    //     toType.call(s[2][mergeParams]) === '[object Object]'
+    //       ? s[2][mergeParams]
+    //       : {}
+
+    //   Object.assign(getParams, source)
+
+    //   await createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(
+    //     postParams,
+    //     getParams
+    //   )
+    // },
     handleSize(val) {
       this.page.size = val
       this.dialogPage.size = val
@@ -668,24 +655,6 @@ const componentOptions = {
     handleCurrentPage(val) {
       this.page.at = val
       this.listDocument()
-    },
-    listPlugin() {
-      apiPlugins.plugin.list().then(plugins => {
-        if (JSON.stringify(plugins) !== '{}') {
-          if (plugins.document.transforms) {
-            this.moveCheckList = plugins.document.transforms.move.map(
-              option => option.name
-            )
-            plugins.document.submits.forEach(submit => {
-              let transforms = plugins.document.transforms[submit.id]
-              submit.checkList = transforms
-                ? transforms.map(item => item.name)
-                : []
-            })
-          }
-          this.plugins = plugins
-        }
-      })
     },
     listDocument() {
       const rule = this.handleCondition()

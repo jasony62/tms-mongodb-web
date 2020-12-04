@@ -9,10 +9,38 @@ services:
     build: ./back
     image: tms-mongodb/back:latest
     container_name: tms-mongodb-back
-    environment:
-      - NODE_ENV=production
-      - TMS_MONGODB_HOST=mongodb
-      - TMS_MONGODB_PORT=27017
+    # environment:
+    #   默认
+    #   - NODE_ENV=production
+    #   app 名称
+    #   - TMS_APP_NAME=tms-mongo-web
+    #   app 端口号
+    #   - TMS_APP_PORT=3000
+    #   导入文件存放目录
+    #   - TMS_FINDER_FS_ROOTDIR=/storage
+    #   导出文件存放目录
+    #   - TMS_FINDER_FS_OUTDIR=/storage
+    #   是否使用文件自身命名
+    #   - TMS_FINDER_FS_CUSTOMNAME=true
+    #   日志输出级别
+    #   - TMS_APP_LOG4JS_LEVEL=debug
+    #   mongodb 配置
+    #   - TMS_MONGODB_HOST=localhost
+    #   - TMS_MONGODB_PORT=27017
+    #   - TMS_MONGODB_USER=root
+    #   - TMS_MONGODB_PASSWORD=root
+    #   redis 配置
+    #   - TMS_REDIS_PREFIX=dev-op
+    #   - TMS_REDIS_HOST=localhost
+    #   - TMS_REDIS_PORT=6378
+    #   - TMS_REDIS_EXPIRESIN=7200
+    #   swagger 配置
+    #   - TMW_API_HOST=http://localhost
+    #   - TMW_API_PORT=3000
+    #   bucket
+    #   - TMW_REQUIRE_BUCKET=
+    #   插件发送配置地址
+    #   - TMS_PLUGINS_SEND_IP=
     command:
       [
         'sh',
