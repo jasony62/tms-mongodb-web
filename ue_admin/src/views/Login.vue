@@ -1,6 +1,6 @@
 <template>
   <div class="login">
-    <tms-login :on-success="fnOnSuccess" :on-fail="fnOnFail" class="pool-mongo"></tms-login>
+    <tms-login :on-success="fnOnSuccess" :on-fail="fnOnFail" class="admin"></tms-login>
   </div>
 </template>
 <script>
@@ -12,12 +12,16 @@ export default {
         if (this.$tmsRouterHistory.canBack()) {
           this.$router.back()
         } else {
-          this.$router.push({name: 'home'})
+          this.$router.push({ name: 'home' })
         }
       }
     },
     fnOnFail(rsl) {
-      this.$message({ message: rsl.msg || '登录失败', type: 'error', showClose: true })
+      this.$message({
+        message: rsl.msg || '登录失败',
+        type: 'error',
+        showClose: true
+      })
     }
   }
 }
@@ -27,7 +31,7 @@ export default {
   display: flex;
   justify-content: center;
   margin-top: 200px;
-  .pool-mongo {
+  .admin {
     border: 1px solid #ddd;
   }
 }
