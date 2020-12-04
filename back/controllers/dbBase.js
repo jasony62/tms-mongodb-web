@@ -9,11 +9,11 @@ const { nanoid } = require('nanoid')
  * 数据库控制器基类
  */
 class DbBase extends Base {
-  constructor (...args) {
+  constructor(...args) {
     super(...args)
     this.dbHelper = new DbHelper(this)
   }
-  async tmsBeforeEach () {
+  async tmsBeforeEach() {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
 
@@ -22,13 +22,15 @@ class DbBase extends Base {
     return true
   }
   /**
-   *
+   * 返回集合列表
    */
-  async list () {
+  async list() {
     const query = { type: 'database' }
     if (this.bucket) query.bucket = this.bucket.name
     const tmsDbs = await this.clMongoObj
-      .find(query)
+      .find(query, {
+        projection: { type: 0 },
+      })
       .sort({ top: -1 })
       .toArray()
 
@@ -39,7 +41,7 @@ class DbBase extends Base {
    *
    * 只有创建集合，创建数据库才生效
    */
-  async create () {
+  async create() {
     let info = this.request.body
     info.type = 'database'
     if (this.bucket) info.bucket = this.bucket.name
@@ -68,12 +70,12 @@ class DbBase extends Base {
 
     return this.clMongoObj
       .insertOne(info)
-      .then(result => new ResultData(result.ops[0]))
+      .then((result) => new ResultData(result.ops[0]))
   }
   /**
    * 更新数据库对象信息
    */
-  async update () {
+  async update() {
     const beforeDb = await this.dbHelper.findRequestDb()
 
     let info = this.request.body
@@ -92,7 +94,7 @@ class DbBase extends Base {
     const updateList = { database: info.name }
 
     const rst = await this.clMongoObj.updateMany(queryList, {
-      $set: updateList
+      $set: updateList,
     })
 
     let { _id, bucket, ...updatedInfo } = info
@@ -107,7 +109,7 @@ class DbBase extends Base {
   /**
    * 置顶
    */
-  async top () {
+  async top() {
     let { id, type = 'up' } = this.request.query
 
     let top = type === 'up' ? '10000' : null
@@ -116,7 +118,7 @@ class DbBase extends Base {
 
     return this.clMongoObj
       .updateOne(query, { $set: { top } })
-      .then(rst => new ResultData(rst.result))
+      .then((rst) => new ResultData(rst.result))
   }
 }
 

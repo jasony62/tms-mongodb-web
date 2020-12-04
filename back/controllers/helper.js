@@ -17,7 +17,9 @@ class Helper {
   /**
    * 获得请求的数据库
    *
-   * @param {boolean} bThrowNotFound 如果不可访问是否抛出异常
+   * @param {boolean} bThrowNotFound - 如果不可访问是否抛出异常
+   *
+   * @return 数据库
    */
   async findRequestDb(bThrowNotFound = true, dbName = null) {
     if (!dbName) dbName = this.ctrl.request.query.db

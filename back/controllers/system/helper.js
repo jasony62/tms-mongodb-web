@@ -61,7 +61,7 @@ class Helper {
    */
   checkClName(clName) {
     let model = new modelColl()
-    return model._checkClName(clName)
+    return model.checkClName(clName)
   }
 }
 

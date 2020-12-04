@@ -260,7 +260,7 @@ class Collection extends Base {
    *         content:
    *           application/json:
    *             schema:
-   *               "$ref": "#/components/schemas/ResponseData"
+   *               "$ref": "#/components/schemas/ResponseDataArray"
    */
   async list() {
     const existDb = await this.helper.findRequestDb()

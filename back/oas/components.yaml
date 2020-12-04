@@ -50,12 +50,26 @@ components:
       in: query
       schema:
         type: string
+    dbNameRequired:
+      name: db
+      description: 管理对象所属数据库
+      in: query
+      schema:
+        type: string
+      required: true
     clName:
       name: cl
       description: 集合名称
       in: query
       schema:
         type: string
+    clNameRequired:
+      name: cl
+      description: 集合名称
+      in: query
+      schema:
+        type: string
+      required: true
     docSchemaId:
       name: id
       description: 文档对象列定义系统id

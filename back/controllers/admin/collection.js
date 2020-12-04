@@ -14,7 +14,7 @@ class Collection extends CollectionBase {
    *     summary: 列出已有集合
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
-   *       - $ref: '#/components/parameters/dbName'
+   *       - $ref: '#/components/parameters/dbNameRequired'
    *     responses:
    *       '200':
    *         description: result为集合数组
@@ -36,7 +36,7 @@ class Collection extends CollectionBase {
    *     summary: 新建集合
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
-   *       - $ref: '#/components/parameters/dbName'
+   *       - $ref: '#/components/parameters/dbNameRequired'
    *     requestBody:
    *       content:
    *         application/json:
@@ -51,7 +51,7 @@ class Collection extends CollectionBase {
    *           examples:
    *             basic:
    *               summary: 基础功能
-   *               value: {"name": "col01"}
+   *               value: {"name": "cl01"}
    *     responses:
    *       '200':
    *         description: result为创建的集合
@@ -70,10 +70,11 @@ class Collection extends CollectionBase {
    *   post:
    *     tags:
    *       - admin
-   *     summary: 新建集合
+   *     summary: 修改集合属性
+   *     description: 修改集合属性，不能修改name，usage，database，bucket等字段
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
-   *       - $ref: '#/components/parameters/dbName'
+   *       - $ref: '#/components/parameters/dbNameRequired'
    *       - $ref: '#/components/parameters/clName'
    *     requestBody:
    *       content:
@@ -87,7 +88,7 @@ class Collection extends CollectionBase {
    *           examples:
    *             basic:
    *               summary: 基础功能
-   *               value: {"schema_id": "schema_01"}
+   *               value: {"title": "中文名称","description": "说明", "schema_id": "schema_01"}
    *     responses:
    *       '200':
    *         description: result为更新后的集合
@@ -135,8 +136,8 @@ class Collection extends CollectionBase {
    *     description: 删除集合。不能删除系统自带集合。
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
-   *       - $ref: '#/components/parameters/dbName'
-   *       - $ref: '#/components/parameters/clName'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - $ref: '#/components/parameters/clNameRequired'
    *     responses:
    *       '200':
    *         $ref: '#/components/responses/ResponseOK'
