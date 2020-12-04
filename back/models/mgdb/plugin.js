@@ -36,9 +36,9 @@ PluginConfig.ins = (function() {
     if (instance) return instance
 
     instance = new PluginConfig()
-    const { commonConfig, sendConfig, receiveConfig } = loadConfig('plugin')
+    const { commonConfig, sendConfig } = loadConfig('plugin')
 
-    _.merge(instance, { commonConfig, sendConfig, receiveConfig })
+    _.merge(instance, { commonConfig, sendConfig })
 
     return instance
   }

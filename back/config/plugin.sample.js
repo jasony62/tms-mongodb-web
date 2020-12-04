@@ -1,6 +1,6 @@
 const _ = require('tms-koa/node_modules/lodash')
 const Path = require('path')
-let commonConfig, sendConfig, receiveConfig, pluginConfig
+let commonConfig, sendConfig, pluginConfig
 
 const commonPath = Path.resolve(__dirname, '../controllers/plugins/')
 function inintCommonConfig() {
@@ -35,32 +35,18 @@ function initSendConfig() {
   // 发送配置
   sendConfig = {
     sync: [
-      { url: process.env.TMS_PLUGINS_IT_IP, methos: 'post' },
+      { url: process.env.TMS_PLUGINS_SEND_IP, methos: 'post' },
       { docSchemas: true, isNeedGetParams: true }
     ]
   }
 }
 
-function initReceiveConfig() {
-  // 接收回调相对路径
-  const receiveCBPath = Path.join(commonPath, 'receiveCallback/')
-
-  // 接收配置-以模块划分
-  receiveConfig = {
-    // it模块每个会receiveCB接口都会包含event和eventType
-    // callback: { path: `${receiveCBPath}/document`, callbackName: '' }
-    it: [{ name: '**', event: '**', eventType: '**', quota: '**' }]
-  }
-}
-
 inintCommonConfig()
 initSendConfig()
-initReceiveConfig()
 
 pluginConfig = {
   commonConfig,
-  sendConfig,
-  receiveConfig
+  sendConfig
 }
 
 const fs = require('fs')

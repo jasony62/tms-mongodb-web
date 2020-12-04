@@ -72,6 +72,8 @@ class Plugin extends Base {
   async pluginDocument() {
     const { commonConfig } = PluginConfig.ins()
 
+    if (!commonConfig || !commonConfig.document) return new ResultData({})
+
     return new ResultData(commonConfig.document)
   }
 

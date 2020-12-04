@@ -220,6 +220,7 @@ const componentOptions = {
     computedPluginData() {
       const currentAuth = this.getCurrentAuth() || '*'
       const data = this.pluginData
+      if (!this.pluginData.length) return []
       return data.filter(
         item =>
           item.auth &&
