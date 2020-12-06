@@ -69,6 +69,24 @@ class Collection extends Base {
 
     return [true, clName]
   }
+  /**
+   * 获得用户指定的集合信息
+   *
+   * @param {object} db - 集合所属数据库
+   * @param {string} clName - 用户指定集合名称
+   *
+   * @returns {object} 集合对象
+   */
+  async byName(db, clName) {
+    const query = { database: db.name, name: clName, type: 'collection' }
+    if (this.bucket) query.bucket = this.bucket.name
+
+    const client = await this.mongoClient()
+    const clMongoObj = client.db('tms_admin').collection('mongodb_object')
+
+    const cl = await clMongoObj.findOne(query)
+    return cl
+  }
 }
 
 module.exports = Collection

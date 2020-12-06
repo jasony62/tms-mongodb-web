@@ -48,7 +48,7 @@ class Db extends Base {
 
     // 检查数据库名
     let model = new modelDb()
-    let newName = model._checkDbName(info.name)
+    let newName = model.checkDbName(info.name)
     if (newName[0] === false) return new ResultFault(newName[1])
     info.name = newName[1]
 

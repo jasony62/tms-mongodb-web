@@ -89,7 +89,7 @@ class CollectionBase extends Base {
     info.database = this.reqDb.name
     if (this.bucket) info.bucket = this.bucket.name
 
-    // 检查集合名
+    // 检查指定的集合名
     let newName = this.clHelper.checkClName(info.name)
     if (newName[0] === false) return new ResultFault(newName[1])
     info.name = newName[1]
@@ -125,9 +125,12 @@ class CollectionBase extends Base {
     let info = this.request.body
 
     // 格式化集合名
-    let newClName = this.clHelper.checkClName(info.name)
-    if (newClName[0] === false) return new ResultFault(newClName[1])
-    newClName = newClName[1]
+    let newClName
+    if (info.name !== undefined) {
+      newClName = this.clHelper.checkClName(info.name)
+      if (newClName[0] === false) return new ResultFault(newClName[1])
+      newClName = newClName[1]
+    }
 
     // 查询集合是否存在
     const client = this.mongoClient
@@ -152,9 +155,9 @@ class CollectionBase extends Base {
       .catch((err) => [false, err.message])
 
     if (rst[0] === false) return new ResultFault(rst[1])
-    if (newClName === clName) {
-      return new ResultData(info)
-    }
+
+    if (undefined === newClName) return new ResultData(info)
+
     // 更改集合名
     const rst2 = await this.clHelper.rename(this.reqDb, clName, newClName)
 

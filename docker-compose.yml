@@ -3,7 +3,7 @@ services:
   mongodb:
     build: ./mongodb
     image: tms-mongodb/mongo:latest
-    container_name: tms-mongo-mongo
+    container_name: tms-mongodb-mongo
 
   back:
     build: ./back

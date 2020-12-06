@@ -15,7 +15,7 @@ class CollectionHelper extends Helper {
    */
   async rename(db, clName, newName) {
     const { name: dbName, sysname } = db
-    const client = this.mongoClient
+    const client = this.ctrl.mongoClient
     // 检查是否已存在同名集合
     let equalNameSum = await this.clMongoObj
       .find({ name: newName, database: dbName, type: 'collection' })

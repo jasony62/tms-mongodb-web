@@ -7,6 +7,7 @@ const modelDb = require('../models/mgdb/db')
 const { nanoid } = require('nanoid')
 /**
  * 数据库控制器基类
+ * @extends Base
  */
 class DbBase extends Base {
   constructor(...args) {
@@ -48,7 +49,7 @@ class DbBase extends Base {
 
     // 检查数据库名
     let model = new modelDb()
-    let newName = model._checkDbName(info.name)
+    let newName = model.checkDbName(info.name)
     if (newName[0] === false) return new ResultFault(newName[1])
     info.name = newName[1]
 
@@ -83,9 +84,13 @@ class DbBase extends Base {
 
     // 检查数据库名
     let model = new modelDb()
-    let newName = model._checkDbName(info.name)
-    if (newName[0] === false) return new ResultFault(newName[1])
-    info.name = newName[1]
+
+    let newName
+    if (info.name !== undefined) {
+      newName = model.checkDbName(info.name)
+      if (newName[0] === false) return new ResultFault(newName[1])
+      info.name = newName[1]
+    }
 
     //修改集合查询
     const queryList = { database: params.db, type: 'collection' }

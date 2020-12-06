@@ -1,6 +1,8 @@
 /mongodb/data
-/ue_sale/
-
-# docker相关
-Dockerfile-uesale
+.env.local
 *.override.yml
+
+/back/config/*.local.js
+
+Dockerfile-uesale
+/ue_sale/

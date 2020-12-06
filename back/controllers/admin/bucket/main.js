@@ -1,7 +1,7 @@
 const { ResultData, ResultFault } = require('tms-koa')
 const BucketBase = require('../../bucketBase')
 
-/** 用于给用户分配租户空间 */
+/** 用于给用户分配存储空间 */
 class Bucket extends BucketBase {
   constructor(...args) {
     super(...args)
@@ -58,7 +58,7 @@ class Bucket extends BucketBase {
 
     const cl = this.clBucket
 
-    // 查询是否存在同名库
+    // 查询是否存在同名存储空间
     let buckets = await cl.find({ name: info.name }).toArray()
     if (buckets.length > 0) {
       return new ResultFault('已存在同名存储空间')
