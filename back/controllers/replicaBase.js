@@ -35,7 +35,7 @@ class ReplicaBase extends Base {
       ] = await this.replicaHelper.findDbAndCl(primary)
       if (success !== true) return new ResultFault(`主集合-${priDbOrCause}`)
       query['primary.db'] = priDbOrCause.sysname
-      query['primary.cl'] = priCl.name
+      query['primary.cl'] = priCl.sysname
     }
     if (secondary && typeof secondary === 'object') {
       const [
@@ -45,7 +45,7 @@ class ReplicaBase extends Base {
       ] = await this.replicaHelper.findDbAndCl(secondary)
       if (success !== true) return new ResultFault(`从集合-${secDbOrCause}`)
       query['secondary.db'] = secDbOrCause.sysname
-      query['secondary.cl'] = secCl.name
+      query['secondary.cl'] = secCl.sysname
     }
 
     const maps = await this.clReplicaMap.find(query).toArray()
@@ -58,22 +58,27 @@ class ReplicaBase extends Base {
         sysname: primary.db,
         type: 'database',
       })
-      let priCl = await this.clMongoObj.findOne({ _id: primary.clId })
+      let priCl = await this.clMongoObj.findOne({
+        'db.sysname': priDb.sysname,
+        sysname: primary.cl,
+        type: 'collection',
+      })
       if (priCl) {
-        let ts = primary.i
         primary.db = { name: priDb.name, title: priDb.title }
         primary.cl = { name: priCl.name, title: priCl.title }
-        delete primary.clId
       }
       let secDb = await this.clMongoObj.findOne({
         sysname: secondary.db,
         type: 'database',
       })
-      let secCl = await this.clMongoObj.findOne({ _id: secondary.clId })
+      let secCl = await this.clMongoObj.findOne({
+        'db.sysname': secDb.sysname,
+        sysname: secondary.cl,
+        type: 'collection',
+      })
       if (secCl) {
         secondary.db = { name: secDb.name, title: secDb.title }
         secondary.cl = { name: secCl.name, title: secCl.title }
-        delete secondary.clId
       }
       delete map._id
     }
@@ -106,8 +111,8 @@ class ReplicaBase extends Base {
      * 建立复制关系
      */
     const replicaMap = {
-      primary: { clId: pri.cl._id, db: pri.db.sysname, cl: pri.cl.name },
-      secondary: { clId: sec.cl._id, db: sec.db.sysname, cl: sec.cl.name },
+      primary: { db: pri.db.sysname, cl: pri.cl.sysname },
+      secondary: { db: sec.db.sysname, cl: sec.cl.sysname },
     }
     return this.clReplicaMap
       .insertOne(replicaMap)
@@ -135,32 +140,41 @@ class ReplicaBase extends Base {
     ] = await this.replicaHelper.checkRequestReplicaMap({ existent: true })
     if (passed !== true) return new ResultFault(causeOrBefore)
 
-    const total = await pri.cl.countDocuments()
+    const priSysCl = this.replicaHelper.findSysColl(pri.cl)
+    const secSysCl = this.replicaHelper.findSysColl(sec.cl)
+
+    let deleted // 删除的记录数量
+    const total = await priSysCl.countDocuments()
     if (total) {
       let { limit } = this.request.query
       limit = limit === undefined ? 10 : parseInt(limit)
       const syncAt = Date.now()
       // 同步数据
       for (let remainder = total; remainder; ) {
-        let docs = await pri.cl.find({}, { limit }).toArray()
+        let docs = await priSysCl.find({}, { limit }).toArray()
         for (let i = 0, l = docs.length; i < l; i++) {
           let { _id, ...doc } = docs[i]
           doc.__pri = {
-            db: pri.cl.dbName,
-            cl: pri.cl.collectionName,
+            db: pri.db.sysname,
+            cl: pri.cl.sysname,
             id: _id,
             time: syncAt,
           }
-          sec.cl.replaceOne({ '__pri.id': _id }, doc, { upsert: true })
+          secSysCl.replaceOne({ '__pri.id': _id }, doc, { upsert: true })
         }
         remainder -= docs.length
       }
       // 清除删除的数据
-      await sec.cl.deleteMany({
-        __pri: { db: pri.cl.dbName, cl: pri.cl.collectionName },
-        '__pri.time': { $not: { $eq: syncAt } },
-      })
+      deleted = await secSysCl
+        .deleteMany({
+          '__pri.db': pri.db.sysname,
+          '__pri.cl': pri.cl.sysname,
+          '__pri.time': { $not: { $eq: syncAt } },
+        })
+        .then(({ deletedCount }) => deletedCount)
     }
+
+    return new ResultData({ replaced: total, deleted })
   }
 }
 

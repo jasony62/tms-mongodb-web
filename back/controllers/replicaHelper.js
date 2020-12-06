@@ -47,7 +47,7 @@ class ReplicaHelper extends Helper {
    *
    * @returns {Array} 第1位代表是否通过了参数检查，true通过，false未通过；若未通过第2位为原因；若通过且已经建立过映射关系，第2为为已存在的复制映射关系。
    */
-  async checkRequestReplicaMap({ existent = false }) {
+  async checkRequestReplicaMap({ existent = false } = {}) {
     let { primary, secondary } = this.ctrl.request.body
 
     if (!primary || typeof primary !== 'object')
@@ -101,9 +101,9 @@ class ReplicaHelper extends Helper {
 
     const beforeMap = await this.clReplicaMap.findOne({
       'primary.db': priDb.sysname,
-      'primary.cl': priCl.name,
+      'primary.cl': priCl.sysname,
       'secondary.db': secDb.sysname,
-      'secondary.cl': secCl.name,
+      'secondary.cl': secCl.sysname,
     })
 
     if (existent === true && !beforeMap) {

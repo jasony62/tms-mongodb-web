@@ -184,6 +184,63 @@ class Replica extends ReplicaBase {
   async remove() {
     return super.remove()
   }
+  /**
+   * @swagger
+   *
+   * /api/admin/replica/synchronize:
+   *   post:
+   *     tags:
+   *       - admin
+   *     summary: 将一个集合的数据复制到另一个集合
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               primary:
+   *                 description: 主集合
+   *                 type: object
+   *                 properties:
+   *                   db:
+   *                     description: 主集合所属数据库名称
+   *                     type: string
+   *                   cl:
+   *                     description: 主集合名称
+   *                     type: string
+   *                 required:
+   *                   - db
+   *                   - cl
+   *               secondary:
+   *                 description: 从集合（接收数据的集合）
+   *                 type: object
+   *                 properties:
+   *                   db:
+   *                     description: 从集合所属数据库名称
+   *                     type: string
+   *                   cl:
+   *                     description: 从集合名称
+   *                     type: string
+   *                 required:
+   *                   - db
+   *                   - cl
+   *             required:
+   *               - primary
+   *               - secondary
+   *           examples:
+   *             basic:
+   *               summary: 基础功能
+   *               value: {"primary": {"db": "db01", "cl": "cl01"}, "secondary": {"db": "db02", "cl": "cl02"}}
+   *     responses:
+   *       '200':
+   *         $ref: '#/components/responses/ResponseOK'
+   *
+   */
+  async synchronize() {
+    return super.synchronize()
+  }
 }
 
 module.exports = Replica

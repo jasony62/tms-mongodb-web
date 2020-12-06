@@ -49,7 +49,7 @@ class CollectionBase extends Base {
    */
   async list() {
     const client = this.mongoClient
-    const p1 = client
+    const pRawCls = client
       .db(this.reqDb.sysname)
       .listCollections({}, { nameOnly: true })
       .toArray()
@@ -58,15 +58,15 @@ class CollectionBase extends Base {
     const query = { type: 'collection', 'db.sysname': this.reqDb.sysname }
     if (this.bucket) query.bucket = this.bucket.name
 
-    const p2 = this.clMongoObj
+    const pTmwCls = this.clMongoObj
       .find(query, { projection: { type: 0 } })
       .toArray()
 
-    return Promise.all([p1, p2]).then((values) => {
+    return Promise.all([pRawCls, pTmwCls]).then((values) => {
       const [rawClNames, tmwCls] = values
-      const tmsClNames = tmwCls.map((c) => c.sysname)
+      const tmsClNames = tmwCls.map((cl) => cl.sysname)
       const diff = _.difference(rawClNames, tmsClNames)
-      diff.forEach((name) => tmwCls.push({ name }))
+      diff.forEach((sysname) => tmwCls.push({ sysname }))
       return new ResultData(tmwCls)
     })
   }
