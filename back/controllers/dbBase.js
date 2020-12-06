@@ -3,7 +3,7 @@ const { ResultData, ResultFault } = require('tms-koa')
 const Base = require('./base')
 const DbHelper = require('./dbHelper')
 const ObjectId = require('mongodb').ObjectId
-const modelDb = require('../models/mgdb/db')
+const ModelDb = require('../models/mgdb/db')
 const { nanoid } = require('nanoid')
 /**
  * 数据库控制器基类
@@ -48,24 +48,24 @@ class DbBase extends Base {
     if (this.bucket) info.bucket = this.bucket.name
 
     // 检查数据库名
-    let model = new modelDb()
-    let newName = model.checkDbName(info.name)
+    let modelDb = new ModelDb()
+    let newName = modelDb.checkDbName(info.name)
     if (newName[0] === false) return new ResultFault(newName[1])
     info.name = newName[1]
 
     // 查询是否存在同名库
-    let existDb = await this.dbHelper.dbByName(info.name)
-    if (existDb) return new ResultFault('已存在同名数据库')
+    let existTmwDb = await this.dbHelper.dbByName(info.name)
+    if (existTmwDb)
+      return new ResultFault(`已存在同名数据库[name=${info.name}]`)
 
     // 生成数据库系统名
-    let tries = 0
-    let sysname = nanoid(10)
-    while (tries <= 2) {
-      existDb = await this.dbHelper.dbBySysname(sysname)
+    let existSysDb, sysname
+    for (let tries = 0; tries <= 2; tries++) {
       sysname = nanoid(10)
-      tries++
+      existSysDb = await this.dbHelper.dbBySysname(sysname)
+      if (!existSysDb) break
     }
-    if (existDb) return new ResultFault('无法生成有效数据库名称')
+    if (existSysDb) return new ResultFault('无法生成有效数据库名称')
 
     info.sysname = sysname
 
@@ -83,11 +83,11 @@ class DbBase extends Base {
     let params = this.request.query
 
     // 检查数据库名
-    let model = new modelDb()
+    let modelDb = new ModelDb()
 
     let newName
     if (info.name !== undefined) {
-      newName = model.checkDbName(info.name)
+      newName = modelDb.checkDbName(info.name)
       if (newName[0] === false) return new ResultFault(newName[1])
       info.name = newName[1]
     }

@@ -7,6 +7,29 @@ class Collection extends CollectionBase {
   /**
    * @swagger
    *
+   * /api/admin/collection/byName:
+   *   get:
+   *     tags:
+   *       - admin
+   *     summary: 单个集合的完整信息
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - $ref: '#/components/parameters/clNameRequired'
+   *     responses:
+   *       '200':
+   *         description: result为集合
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
+   */
+  async byName() {
+    return super.byName()
+  }
+  /**
+   * @swagger
+   *
    * /api/admin/collection/list:
    *   get:
    *     tags:
@@ -50,8 +73,8 @@ class Collection extends CollectionBase {
    *               - name
    *           examples:
    *             basic:
-   *               summary: 基础功能
-   *               value: {"name": "cl01"}
+   *               summary: 基本示例
+   *               value: {"name": "cl01", "title": "集合01"}
    *     responses:
    *       '200':
    *         description: result为创建的集合
@@ -75,7 +98,7 @@ class Collection extends CollectionBase {
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbNameRequired'
-   *       - $ref: '#/components/parameters/clName'
+   *       - $ref: '#/components/parameters/clNameRequired'
    *     requestBody:
    *       content:
    *         application/json:
@@ -110,8 +133,8 @@ class Collection extends CollectionBase {
    *     summary: 更新集合名称
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
-   *       - $ref: '#/components/parameters/dbName'
-   *       - $ref: '#/components/parameters/clName'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - $ref: '#/components/parameters/clNameRequired'
    *       - name: newName
    *         description: 新集合名称
    *         in: query

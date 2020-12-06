@@ -16,8 +16,8 @@ class Document extends DocBase {
    *     summary: 列出已有文档
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
-   *       - $ref: '#/components/parameters/dbName'
-   *       - $ref: '#/components/parameters/clName'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - $ref: '#/components/parameters/clNameRequired'
    *       - name: page
    *         in: query
    *         description: 分页条件，起始页
@@ -65,8 +65,8 @@ class Document extends DocBase {
    *     summary: 新建文档
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
-   *       - $ref: '#/components/parameters/dbName'
-   *       - $ref: '#/components/parameters/clName'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - $ref: '#/components/parameters/clNameRequired'
    *     requestBody:
    *       description: 和文档列定义一致的文档数据。
    *       content:
@@ -98,8 +98,8 @@ class Document extends DocBase {
    *     summary: 新建文档
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
-   *       - $ref: '#/components/parameters/dbName'
-   *       - $ref: '#/components/parameters/clName'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - $ref: '#/components/parameters/clNameRequired'
    *       - $ref: '#/components/parameters/docId'
    *     requestBody:
    *       description: 和文档列定义一致的文档数据。
@@ -129,7 +129,21 @@ class Document extends DocBase {
    *   post:
    *     tags:
    *       - admin
-   *     summary: 批量删除文档（代码有问题）
+   *     summary: 批量更新文档（代码有问题）
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - $ref: '#/components/parameters/clNameRequired'
+   *     requestBody:
+   *       description: 和文档列定义一致的文档数据。
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *           examples:
+   *             basic:
+   *               summary: 基本示例
+   *               value: {"docIds": [], "filter": {}, "columns": {}}
    *     responses:
    *       '200':
    *         description: result为???
@@ -139,7 +153,7 @@ class Document extends DocBase {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async updateMany() {
-    return super.update()
+    return super.updateMany()
   }
   /**
    * @swagger
@@ -151,8 +165,8 @@ class Document extends DocBase {
    *     summary: 根据指定id，删除文档
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
-   *       - $ref: '#/components/parameters/dbName'
-   *       - $ref: '#/components/parameters/clName'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - $ref: '#/components/parameters/clNameRequired'
    *       - $ref: '#/components/parameters/docId'
    *     responses:
    *       '200':
@@ -172,7 +186,20 @@ class Document extends DocBase {
    *   post:
    *     tags:
    *       - admin
-   *     summary: 批量删除文档（代码有问题）
+   *     summary: 批量删除文档
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - $ref: '#/components/parameters/clNameRequired'
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *           examples:
+   *             basic:
+   *               summary: 基本示例
+   *               value: {"docIds": [], "filter": {}}
    *     responses:
    *       '200':
    *         description: result为???
@@ -182,7 +209,86 @@ class Document extends DocBase {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async removeMany() {
-    return super.remove()
+    return super.removeMany()
+  }
+  /**
+   * @swagger
+   *
+   * /api/admin/document/getGroupByColumnVal:
+   *   post:
+   *     tags:
+   *       - admin
+   *     summary: 根据某一列的值分组
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - $ref: '#/components/parameters/clNameRequired'
+   *       - name: column
+   *         in: query
+   *         description: 指定的列
+   *         schema:
+   *           type: string
+   *       - name: page
+   *         in: query
+   *         description: 分页条件，起始页
+   *         schema:
+   *           type: integer
+   *       - name: size
+   *         in: query
+   *         description: 分页条件，每页包含的文档数
+   *         schema:
+   *           type: integer
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *           examples:
+   *             basic:
+   *               summary: 基本示例
+   *               value: {"filter": {}}
+   *     responses:
+   *       '200':
+   *         description: result为???
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
+   */
+  async getGroupByColumnVal() {
+    return super.getGroupByColumnVal()
+  }
+  /**
+   * @swagger
+   *
+   * /api/admin/document/getDocCompleteStatusById:
+   *   post:
+   *     tags:
+   *       - admin
+   *     summary: 根据某一列的值分组
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - $ref: '#/components/parameters/clNameRequired'
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *           examples:
+   *             basic:
+   *               summary: 基本示例
+   *               value: {"docIds": []}
+   *     responses:
+   *       '200':
+   *         description: result为???
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
+   */
+  async getDocCompleteStatusById() {
+    return super.getDocCompleteStatusById()
   }
 }
 module.exports = Document

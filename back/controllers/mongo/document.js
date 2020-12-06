@@ -1,9 +1,8 @@
 const { ResultData, ResultFault, ResultObjectNotFound } = require('tms-koa')
 const DocBase = require('../documentBase')
 const _ = require('lodash')
-const fs = require('fs')
 const ObjectId = require('mongodb').ObjectId
-const modelColl = require('../../models/mgdb/collection')
+const ModelColl = require('../../models/mgdb/collection')
 
 class Document extends DocBase {
   constructor(...args) {
@@ -16,24 +15,20 @@ class Document extends DocBase {
     if (!this.request.files || !this.request.files.file) {
       return new ResultFault('没有上传文件')
     }
+    const existCl = await this.docHelper.findRequestCl()
     const {
-      db: dbName,
-      cl: clName,
       checkRepeatColumns = '',
       keepFirstRepeatData = false,
     } = this.request.query
-    if (!dbName || !clName) {
-      return new ResultData('参数不完整')
-    }
 
     const { UploadPlain } = require('tms-koa/lib/model/fs/upload')
     const { LocalFS } = require('tms-koa/lib/model/fs/local')
     const { FsContext } = require('tms-koa').Context
 
+    const file = this.request.files.file
     const fsContextIns = FsContext.insSync()
     const domain = fsContextIns.getDomain(fsContextIns.defaultDomain)
     const tmsFs = new LocalFS(domain)
-    const file = this.request.files.file
     const upload = new UploadPlain(tmsFs)
     let filepath
     try {
@@ -50,8 +45,7 @@ class Document extends DocBase {
         : false
     }
 
-    const existDb = await this.docHelper.findRequestDb()
-    let rst = await this._importToColl(existDb, clName, filepath, options)
+    let rst = await this.docHelper.importToColl(existCl, filepath, options)
 
     if (rst[0] === true) {
       return new ResultData('ok')
@@ -63,7 +57,6 @@ class Document extends DocBase {
    * 导出数据
    */
   async export() {
-    let { db: dbName, cl: clName } = this.request.query
     const { filter, docIds } = this.request.body
 
     let find
@@ -84,71 +77,65 @@ class Document extends DocBase {
       return new ResultFault('没有要导出的数据')
     }
 
-    const existDb = await this.docHelper.findRequestDb()
+    const existCl = await this.docHelper.findRequestCl()
     // 集合列
-    let columns = await modelColl.getSchemaByCollection(existDb, clName)
-    if (!columns) {
-      return new ResultFault('指定的集合没有指定集合列')
-    }
+    let modelCl = new ModelColl()
+    let columns = await modelCl.getSchemaByCollection(existCl)
+    if (!columns) return new ResultFault('指定的集合没有指定集合列')
 
     const client = this.mongoClient
     // 集合数据
     let data = await client
-      .db(existDb.sysname)
-      .collection(clName)
+      .db(existCl.db.sysname)
+      .collection(existCl.sysname)
       .find(find)
       .toArray()
 
     // 数据处理-针对单选多选转化
-    this.transformsCol('toLabel', data, columns)
-    
-    const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
-    let rst = ExcelCtrl.export(columns, data, clName + '.xlsx')
+    this.docHelper.transformsCol('toLabel', data, columns)
 
-    if (rst[0] === false) {
-      return new ResultFault(rst[1])
-    }
+    const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
+    let rst = ExcelCtrl.export(columns, data, existCl.name + '.xlsx')
+
+    if (rst[0] === false) return new ResultFault(rst[1])
+
     rst = rst[1]
 
     return new ResultData(rst)
   }
   /**
-   * 指定数据库下批量新建文档
-   */
-  bulk() {
-    return new ResultData('指定数据库下批量新建文档')
-  }
-  /**
-   * 剪切数据到指定库
+   * 剪切文档到指定集合
+   *
    * @execNum 本次最大迁移数
    * @planTotal 总计划迁移数
    * @alreadyMoveTotal 已经迁移的个数
    * @alreadyMovePassTotal 已经迁移成功的个数
    */
-  async move(ctx, oldDb, oldCl, newDb, newCl, docIds) {
-    oldDb = oldDb || this.request.query.oldDb
-		oldCl = oldCl || this.request.query.oldCl
-		newDb = newDb || this.request.query.newDb
-		newCl = newCl || this.request.query.newCl
-		docIds = docIds || this.request.body.docIds
-
-		let {
+  async move() {
+    let {
+      oldDb,
+      oldCl,
+      newDb,
+      newCl,
       transforms,
-			execNum = 100,
-			planTotal = 0,
-			alreadyMoveTotal = 0,
-			alreadyMovePassTotal = 0,
-		} = this.request.query
-		if (!oldDb || !oldCl || !newDb || !newCl) {
-			return new ResultFault('参数不完整')
-		}
-		let { filter } = this.request.body
+      execNum = 100,
+      planTotal = 0,
+      alreadyMoveTotal = 0,
+      alreadyMovePassTotal = 0,
+    } = this.request.query
+
+    let { docIds, filter } = this.request.body
+
+    if (!oldDb || !oldCl || !newDb || !newCl) {
+      return new ResultFault('参数不完整')
+    }
     if (!filter && (!docIds || !Array.isArray(docIds) || docIds.length == 0)) {
       return new ResultFault('没有要移动的数据')
     }
 
-    const oldExistDb = await this.docHelper.findRequestDb(true, oldDb)
-    const newExistDb = await this.docHelper.findRequestDb(true, newDb)
+    let modelCl = new ModelColl()
+    const oldExistCl = await modelCl.byName(oldDb, oldCl)
+    const newExistCl = await modelCl.byName(newDb, newCl)
 
     let docIds2, oldDocus, total
     if (docIds) {
@@ -160,20 +147,17 @@ class Document extends DocBase {
       if (_.toUpper(filter) !== 'ALL') {
         find = this._assembleFind(filter)
       }
-      let client = this.mongoClient
-      let cl = client.db(oldExistDb.sysname).collection(oldCl)
+      let cl = this.docHelper.findSysColl(oldExistCl)
       oldDocus = await cl.find(find).limit(parseInt(execNum)).toArray()
       total = await cl.find(find).count()
     }
-    
+
     let options = {}
     options.transforms = transforms
-    
-    let rst = await this.cutDocs(
-      oldExistDb,
-      oldCl,
-      newExistDb,
-      newCl,
+
+    let rst = await this.docHelper.cutDocs(
+      oldExistCl,
+      newExistCl,
       docIds2,
       options,
       oldDocus
@@ -195,86 +179,23 @@ class Document extends DocBase {
       alreadyMoveFailTotal,
       spareTotal,
     }
+
     return new ResultData(data)
-  }
-  /**
-   *
-   */
-  async _getDocsByRule(again = false) {
-    let {
-      ruleDb: ruleDbName,
-      ruleCl: ruleClName,
-      db: dbName,
-      cl: clName,
-      markResultColumn = 'import_status',
-      planTotalColumn = 'need_sum',
-    } = this.request.query
-    if (!ruleDbName || !ruleClName || !dbName || !clName)
-      return [false, '参数不完整']
-
-    const ruleExistDb = await this.docHelper.findRequestDb(true, ruleDbName)
-    const existDb = await this.docHelper.findRequestDb(true, dbName)
-
-    // 获取规则表表头
-    let schemas = await modelColl.getSchemaByCollection(ruleExistDb, ruleClName)
-    if (!schemas) {
-      return [false, '指定的集合没有指定集合列']
-    }
-    if (markResultColumn && !schemas[markResultColumn])
-      return [false, '需求表缺少完成状态（' + markResultColumn + '）列']
-    if (planTotalColumn && !schemas[planTotalColumn])
-      return [false, '需求表缺少需求数量（' + planTotalColumn + '）列']
-
-    schemas.exist_total = { type: 'string', title: '匹配总数' }
-
-    //取出规则
-    const client = this.mongoClient
-    let find = {}
-    find[planTotalColumn] = { $not: { $in: [null, '', '0'] } }
-    if (again !== true) find[markResultColumn] = { $in: [null, ''] }
-    let rules = await client
-      .db(ruleExistDb.sysname)
-      .collection(ruleClName)
-      .find(find)
-      .toArray()
-    if (rules.length == 0) return [false, '未指定规则或已使用的规则']
-
-    let data = await this.getDocsByRule2(
-      existDb,
-      clName,
-      rules,
-      planTotalColumn
-    )
-    if (data[0] === false) return [false, data[1]]
-
-    data = data[1]
-    let failed = []
-    let passed = []
-    for (const val of data) {
-      if (val.code != 0) {
-        failed.push(val)
-      } else {
-        passed.push(val)
-      }
-    }
-
-    return [true, { schemas, failed, passed }]
   }
   /**
    *  根据规则获取数据
    */
   async getDocsByRule() {
-    let data = await this._getDocsByRule()
+    let data = await this.docHelper.getDocsByRule()
     if (data[0] === false) return new ResultFault(data[1])
 
     return new ResultData(data[1])
   }
-
   /**
    *  导出根据规则获取得数据详情
    */
   async exportDocsByRule() {
-    let data = await this._getDocsByRule(true)
+    let data = await this.docHelper.getDocsByRule(true)
     if (data[0] === false) return new ResultFault(data[1])
 
     let { schemas, failed, passed } = data[1]
@@ -304,14 +225,13 @@ class Document extends DocBase {
    * 根据规则替换数据
    */
   async replaceDocsByRule() {
-    let { db, cl } = this.request.query
     let { rule, dels } = this.request.body
 
     dels = dels.join(',')
     rule.byId = 'notin:' + dels
     let rules = [rule]
-    const existDb = await this.docHelper.findRequestDb()
-    let data = await this.getDocsByRule2(existDb, cl, rules)
+    const existCl = await this.docHelper.findRequestCl()
+    let data = await this.docHelper.getDocsByRule2(existCl, rules)
     if (data[0] === false) return new ResultFault(data[1])
 
     data = data[1]
@@ -356,22 +276,16 @@ class Document extends DocBase {
       return new ResultFault('没有要移动的数据')
     }
 
-    const ruleExistDb = await this.docHelper.findRequestDb(true, ruleDbName)
-    const oldExistDb = await this.docHelper.findRequestDb(true, oldDbName)
-    const newExistDb = await this.docHelper.findRequestDb(true, newDbName)
+    let modelCl = new ModelColl()
+    const ruleExistCl = await modelCl.byName(ruleDbName, ruleClName)
+    const oldExistCl = await modelCl.byName(oldDbName, oldClName)
+    const newExistCl = await modelCl.byName(newDbName, newClName)
 
-    const client = this.mongoClient
-    let cl = client.db(ruleExistDb.sysname).collection(ruleClName)
+    let cl = this.docHelper.findSysColl(ruleExistCl)
     let moveRst = docsByRule.map(async (value) => {
       let ruleId = value.ruleId
       let docIds = value.docIds
-      let rst = await this.cutDocs(
-        oldExistDb,
-        oldClName,
-        newExistDb,
-        newClName,
-        docIds
-      )
+      let rst = await this.cutDocs(oldExistCl, newExistCl, docIds)
       if (rst[0] === false) {
         // 将结果存入需求表中
         if (markResultColumn) {
@@ -415,9 +329,8 @@ class Document extends DocBase {
       return { ruleId: ruleId, code: 0, msg: '成功' }
     })
 
-    return Promise.all(moveRst).then((rst) => {
-      return new ResultData(rst)
-    })
+    return new ResultData(moveRst)
   }
 }
+
 module.exports = Document

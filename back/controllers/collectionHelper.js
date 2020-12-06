@@ -1,15 +1,7 @@
 const Helper = require('./helper')
-const modelColl = require('../models/mgdb/collection')
 
 /** 数据库控制器辅助类 */
 class CollectionHelper extends Helper {
-  /**
-   *  检查集合名是否合规
-   */
-  checkClName(clName) {
-    let model = new modelColl()
-    return model.checkClName(clName)
-  }
   /**
    * 修改集合名称
    */

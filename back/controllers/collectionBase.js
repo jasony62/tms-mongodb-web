@@ -3,6 +3,8 @@ const { ResultData, ResultFault } = require('tms-koa')
 const Base = require('./base')
 const CollectionHelper = require('./collectionHelper')
 const ObjectId = require('mongodb').ObjectId
+const ModelCl = require('../models/mgdb/collection')
+const { nanoid } = require('nanoid')
 
 /**
  * 集合控制器基类
@@ -29,34 +31,21 @@ class CollectionBase extends Base {
    * 根据名称返回指定集合
    */
   async byName() {
-    const { cl: clName } = this.request.query
-    const query = {
-      database: this.reqDb.name,
-      name: clName,
-      type: 'collection',
-    }
-    if (this.bucket) query.bucket = this.bucket.name
+    const existCl = await this.clHelper.findRequestCl()
 
-    return this.clMongoObj
-      .findOne(query)
-      .then((result) => result)
-      .then((myCl) => {
-        if (myCl.schema_id) {
-          return this.clMongoObj
-            .findOne({ type: 'schema', _id: new ObjectId(myCl.schema_id) })
-            .then((schema) => {
-              myCl.schema = schema
-              delete myCl.schema_id
-              return myCl
-            })
-        }
-        delete myCl.schema_id
-        return myCl
-      })
-      .then((myCl) => new ResultData(myCl))
+    if (existCl.schema_id) {
+      await this.clMongoObj
+        .findOne({ type: 'schema', _id: new ObjectId(existCl.schema_id) })
+        .then((schema) => {
+          existCl.schema = schema
+          delete existCl.schema_id
+          return existCl
+        })
+    }
+    return new ResultData(existCl)
   }
   /**
-   * 指定库下所有的集合
+   * 指定库下所有的集合，包含未被管理的结合
    */
   async list() {
     const client = this.mongoClient
@@ -66,18 +55,19 @@ class CollectionBase extends Base {
       .toArray()
       .then((collections) => collections.map((c) => c.name))
 
-    const query = { type: 'collection', database: this.reqDb.name }
+    const query = { type: 'collection', 'db.sysname': this.reqDb.sysname }
     if (this.bucket) query.bucket = this.bucket.name
+
     const p2 = this.clMongoObj
       .find(query, { projection: { type: 0 } })
       .toArray()
 
     return Promise.all([p1, p2]).then((values) => {
-      const [rawClNames, tmsCls] = values
-      const tmsClNames = tmsCls.map((c) => c.name)
+      const [rawClNames, tmwCls] = values
+      const tmsClNames = tmwCls.map((c) => c.sysname)
       const diff = _.difference(rawClNames, tmsClNames)
-      diff.forEach((name) => tmsCls.push({ name }))
-      return new ResultData(tmsCls)
+      diff.forEach((name) => tmwCls.push({ name }))
+      return new ResultData(tmwCls)
     })
   }
   /**
@@ -87,22 +77,22 @@ class CollectionBase extends Base {
     const info = this.request.body
     info.type = 'collection'
     info.database = this.reqDb.name
+    info.db = { sysname: this.reqDb.sysname, name: this.reqDb.name }
     if (this.bucket) info.bucket = this.bucket.name
 
-    // 检查指定的集合名
-    let newName = this.clHelper.checkClName(info.name)
-    if (newName[0] === false) return new ResultFault(newName[1])
-    info.name = newName[1]
+    let modelCl = new ModelCl()
 
-    const client = this.mongoClient
-    const mgdb = client.db(this.reqDb.sysname)
+    // 检查指定的集合名
+    let [passed, nameOrCause] = modelCl.checkClName(info.name)
+    if (passed === false) return new ResultFault(nameOrCause)
+    info.name = nameOrCause
 
     // 查询是否已存在同名集合
-    const repeatCls = await mgdb
-      .listCollections({ name: info.name }, { nameOnly: true })
-      .toArray()
-    if (repeatCls.length > 0)
-      return new ResultFault(`已存在同名集合[name=${info.name}]`)
+    let existTmwCl = await modelCl.byName(this.reqDb, info.name)
+    if (existTmwCl)
+      return new ResultFault(
+        `数据库[name=${this.reqDb.name}]中，已存在同名集合[name=${info.name}]`
+      )
 
     // 检查是否指定了用途
     let { usage } = info
@@ -112,8 +102,23 @@ class CollectionBase extends Base {
       info.usage = parseInt(usage)
     }
 
+    // 生成数据库系统名
+    let existSysCl, sysname
+    for (let tries = 0; tries <= 2; tries++) {
+      sysname = nanoid(10)
+      existSysCl = await modelCl.bySysname(this.reqDb, sysname)
+      if (!existSysCl) break
+    }
+    if (existSysCl) return new ResultFault('无法生成唯一的集合系统名称')
+
+    info.sysname = sysname
+
+    /**在系统中创建集合后记录集合对象信息 */
+    const client = this.mongoClient
+    const mgdb = client.db(this.reqDb.sysname)
+
     return mgdb
-      .createCollection(info.name)
+      .createCollection(info.sysname)
       .then(() => this.clMongoObj.insertOne(info))
       .then((result) => new ResultData(result.ops[0]))
   }
@@ -121,92 +126,92 @@ class CollectionBase extends Base {
    * 更新集合对象信息
    */
   async update() {
-    let { cl: clName } = this.request.query
+    const existCl = await this.clHelper.findRequestCl()
+
     let info = this.request.body
+    let modelCl = new ModelCl()
 
     // 格式化集合名
-    let newClName
+    // let newClName
     if (info.name !== undefined) {
-      newClName = this.clHelper.checkClName(info.name)
+      let newClName = modelCl.checkClName(info.name)
       if (newClName[0] === false) return new ResultFault(newClName[1])
-      newClName = newClName[1]
     }
 
-    // 查询集合是否存在
-    const client = this.mongoClient
-    let repeatCls = await client
-      .db(this.reqDb.sysname)
-      .listCollections({ name: clName }, { nameOnly: true })
-      .toArray()
-    if (repeatCls.length === 0) {
-      return new ResultFault('指定的集合不存在')
-    }
+    // 查询是否已存在同名集合
+    let existTmwCl = await modelCl.byName(this.reqDb, info.name)
+    if (existTmwCl)
+      return new ResultFault(
+        `数据库[name=${this.reqDb.name}]中，已存在同名集合[name=${info.name}]`
+      )
 
-    const query = {
-      database: this.reqDb.name,
-      name: clName,
-      type: 'collection',
-    }
-    if (this.bucket) query.bucket = this.bucket.name
-    const { _id, name, database, type, bucket, usage, ...updatedInfo } = info
+    const {
+      _id,
+      sysname,
+      database,
+      db,
+      type,
+      bucket,
+      usage,
+      ...updatedInfo
+    } = info
+
     const rst = await this.clMongoObj
-      .updateOne(query, { $set: updatedInfo }, { upsert: true })
+      .updateOne({ _id: existCl._id }, { $set: updatedInfo })
       .then((rst) => [true, rst.result])
       .catch((err) => [false, err.message])
 
     if (rst[0] === false) return new ResultFault(rst[1])
 
-    if (undefined === newClName) return new ResultData(info)
-
-    // 更改集合名
-    const rst2 = await this.clHelper.rename(this.reqDb, clName, newClName)
-
-    if (rst2[0] === true) return new ResultData(info)
-    else return new ResultFault(rst2[1])
+    return new ResultData(info)
   }
   /**
    * 修改集合名称
    */
   async rename() {
-    let { cl: clName, newName } = this.request.query
+    const existCl = await this.clHelper.findRequestCl()
+
+    let { newName } = this.request.query
+
+    let modelCl = new ModelCl()
 
     //格式化集合名
-    newName = this.clHelper.checkClName(info.name)
+    newName = modelCl.checkClName(newName)
     if (newName[0] === false) return new ResultFault(newName[1])
     newName = newName[1]
 
-    let rst = await thi.colHelper.rename(this.reqDb, clName, newName)
+    let rst = await this.colHelper.rename(this.reqDb, existCl.name, newName)
 
     if (rst[0] === true) return new ResultData(rst[1])
     else return new ResultFault(rst[1])
   }
   /**
-   * 删除集合
+   * 删除集合。如果集合中存在文档可以被删除吗？
    */
   async remove() {
-    let { db: dbName, cl: clName } = this.request.query
+    const existCl = await this.clHelper.findRequestCl()
+
+    let { db, name: clName } = existCl
 
     // 如果是系统自带集合不能删除
     if (
-      (dbName === 'admin' && clName === 'system.version') ||
-      (dbName === 'config' && clName === 'system.sessions') ||
-      (dbName === 'local' && clName === 'startup_log') ||
-      (dbName === 'tms_admin' && clName === 'mongodb_object') ||
-      (dbName === 'tms_admin' && clName === 'bucket') ||
-      (dbName === 'tms_admin' && clName === 'bucket') ||
-      (dbName === 'tms_admin' && clName === 'bucket_invite_log') ||
-      (dbName === 'tms_admin' && clName === 'bucket_preset_object') ||
-      (dbName === 'tms_admin' && clName === 'tms_app_data_action_log')
+      (db.sysname === 'admin' && clName === 'system.version') ||
+      (db.sysname === 'config' && clName === 'system.sessions') ||
+      (db.sysname === 'local' && clName === 'startup_log') ||
+      (db.sysname === 'tms_admin' && clName === 'mongodb_object') ||
+      (db.sysname === 'tms_admin' && clName === 'bucket') ||
+      (db.sysname === 'tms_admin' && clName === 'bucket_invite_log') ||
+      (db.sysname === 'tms_admin' && clName === 'bucket_preset_object') ||
+      (db.sysname === 'tms_admin' && clName === 'tms_app_data_action_log') ||
+      (db.sysname === 'tms_admin' && clName === 'replica_map')
     )
-      return new ResultFault('系统自带集合，不能删除')
+      return new ResultFault(`系统自带集合[${clName}]，不能删除`)
 
     const client = this.mongoClient
-    const query = { name: clName, type: 'collection' }
-    if (this.bucket) query.bucket = this.bucket.name
 
     return this.clMongoObj
-      .deleteOne(query)
-      .then(() => client.db(this.reqDb.sysname).dropCollection(clName))
+      .deleteOne({ _id: existCl._id })
+      .then(() => client.db(this.reqDb.sysname).dropCollection(existCl.sysname))
       .then(() => new ResultData('ok'))
       .catch((err) => new ResultFault(err.message))
   }

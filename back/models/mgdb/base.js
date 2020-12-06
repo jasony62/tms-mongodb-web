@@ -72,7 +72,7 @@ class Base {
   /**
    * 对插入到表中的数据进行加工
    */
-  _beforeProcessByInAndUp(data, type) {
+  beforeProcessByInAndUp(data, type) {
     let today = moment()
     let current = today.format('YYYY-MM-DD HH:mm:ss')
 

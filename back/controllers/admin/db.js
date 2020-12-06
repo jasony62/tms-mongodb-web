@@ -52,7 +52,7 @@ class Db extends DbBase {
    *           examples:
    *             basic:
    *               summary: 基础功能
-   *               value: {"name": "db01"}
+   *               value: {"name": "db01", "title": "数据库01"}
    *     responses:
    *       '200':
    *         description: result为创建的数据库
