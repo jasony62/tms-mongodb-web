@@ -78,11 +78,11 @@ class DocBase extends Base {
     const { page = null, size = null } = this.request.query
     const { filter = null, orderBy = null } = this.request.body
 
-    let options = {
-      filter,
-      orderBy,
-    }
-    let data = await this.modelDoc.listDocs(existCl, options, page, size)
+    let data = await this.modelDoc.list(
+      existCl,
+      { filter, orderBy },
+      { page, size }
+    )
     if (data[0] === false) return new ResultFault(data[1])
 
     data = data[1]
@@ -118,7 +118,7 @@ class DocBase extends Base {
       operate_type = '批量删除(按全部)'
     } else if (typeof filter === 'object') {
       // 按条件删除
-      find = this.modelDoc._assembleFind(filter)
+      find = this.modelDoc.assembleQuery(filter)
       operate_type = '批量删除(按条件)'
     } else {
       return new ResultData({
@@ -206,7 +206,7 @@ class DocBase extends Base {
       logOperate = '批量修改(按选中)'
     } else if (filter && typeof filter === 'object') {
       // 按条件修改
-      find = this.modelDoc._assembleFind(filter)
+      find = this.modelDoc.assembleQuery(filter)
       logOperate = '批量修改(按条件)'
     } else if (typeof filter === 'string' && filter === 'ALL') {
       //修改全部
@@ -261,7 +261,7 @@ class DocBase extends Base {
 
     let find = {}
     if (filter) {
-      find = this.modelDoc._assembleFind(filter)
+      find = this.modelDoc.assembleQuery(filter)
     }
     let group = [
       {

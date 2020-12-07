@@ -14,7 +14,7 @@ class Base {
   /**
    * 组装 查询条件
    */
-  _assembleFind(filter, like = true) {
+  assembleQuery(filter, like = true) {
     let find = {}
     let fKeys = Object.keys(filter)
     if (like === true) {

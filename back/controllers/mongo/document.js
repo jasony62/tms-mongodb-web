@@ -3,6 +3,7 @@ const DocBase = require('../documentBase')
 const _ = require('lodash')
 const ObjectId = require('mongodb').ObjectId
 const ModelColl = require('../../models/mgdb/collection')
+const ModelDoc = require('../../models/mgdb/document')
 
 class Document extends DocBase {
   constructor(...args) {
@@ -59,27 +60,26 @@ class Document extends DocBase {
   async export() {
     const { filter, docIds } = this.request.body
 
-    let find
+    let modelDoc = new ModelDoc(this.bucket)
+
+    let query
     if (docIds && docIds.length > 0) {
       // 按选中修改
-      let docIds2 = []
-      docIds.forEach((id) => {
-        docIds2.push(new ObjectId(id))
-      })
-      find = { _id: { $in: docIds2 } }
+      let docIds2 = docIds.map((id) => new ObjectId(id))
+      query = { _id: { $in: docIds2 } }
     } else if (filter && typeof filter === 'object') {
       // 按条件修改
-      find = this._assembleFind(filter)
+      query = modelDoc.assembleQuery(filter)
     } else if (typeof filter === 'string' && filter === 'ALL') {
       //修改全部
-      find = {}
+      query = {}
     } else {
       return new ResultFault('没有要导出的数据')
     }
 
     const existCl = await this.docHelper.findRequestCl()
     // 集合列
-    let modelCl = new ModelColl()
+    let modelCl = new ModelColl(this.bucket)
     let columns = await modelCl.getSchemaByCollection(existCl)
     if (!columns) return new ResultFault('指定的集合没有指定集合列')
 
@@ -88,7 +88,7 @@ class Document extends DocBase {
     let data = await client
       .db(existCl.db.sysname)
       .collection(existCl.sysname)
-      .find(find)
+      .find(query)
       .toArray()
 
     // 数据处理-针对单选多选转化
@@ -137,19 +137,21 @@ class Document extends DocBase {
     const oldExistCl = await modelCl.byName(oldDb, oldCl)
     const newExistCl = await modelCl.byName(newDb, newCl)
 
+    let modelDoc = new ModelDoc(this.bucket)
+
     let docIds2, oldDocus, total
     if (docIds) {
       total = docIds.length
       docIds2 = docIds
     } else {
       // 按条件
-      let find = {}
+      let query = {}
       if (_.toUpper(filter) !== 'ALL') {
-        find = this._assembleFind(filter)
+        query = modelDoc.assembleQuery(filter)
       }
       let cl = this.docHelper.findSysColl(oldExistCl)
-      oldDocus = await cl.find(find).limit(parseInt(execNum)).toArray()
-      total = await cl.find(find).count()
+      oldDocus = await cl.find(query).limit(parseInt(execNum)).toArray()
+      total = await cl.find(query).count()
     }
 
     let options = {}
