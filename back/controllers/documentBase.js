@@ -1,8 +1,6 @@
 const { ResultData, ResultFault } = require('tms-koa')
 const Base = require('./base')
 const DocumentHelper = require('./documentHelper')
-const fs = require('fs')
-const ModelColl = require('../models/mgdb/collection')
 const ModelDoc = require('../models/mgdb/document')
 const ObjectId = require('mongodb').ObjectId
 const _ = require('lodash')
@@ -250,14 +248,6 @@ class DocBase extends Base {
     let { filter } = this.request.body
 
     let cl = this.docHelper.findSysColl(existCl)
-
-    if (this.client && this.client.data && this.client.data.rid === 1) {
-      if (!filter) filter = {}
-      filter.account = {
-        keyword: [this.client.data.account],
-        feature: 'in',
-      }
-    }
 
     let find = {}
     if (filter) {
