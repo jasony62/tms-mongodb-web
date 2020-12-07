@@ -12,6 +12,7 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.19.2",
+    "glob": "^7.1.6",
     "lodash": "^4.17.20",
     "log4js": "^6.1.0",
     "moment": "^2.24.0",
@@ -19,6 +20,6 @@
     "nanoid": "^3.1.4",
     "redis": "^2.8.0",
     "request": "^2.88.2",
-    "tms-koa": "^0.0.60"
+    "tms-koa": "^0.0.61"
   }
 }

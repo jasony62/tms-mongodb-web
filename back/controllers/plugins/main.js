@@ -1,9 +1,11 @@
 const { ResultFault, ResultData } = require('tms-koa')
 const Base = require('../base')
 const PluginConfig = require('../../models/mgdb/plugin')
-const PluginHelper = require('./pluginHelper')
 const SendConfig = require('./send')
 const NativeConfig = require('../../plugins')
+
+const PluginHelper = require('./pluginHelper')
+const PluginContext = require('../../models/plugin/context').Context
 
 /** 插件控制器类 */
 class Plugin extends Base {
@@ -19,6 +21,7 @@ class Plugin extends Base {
    *     tags:
    *       - plugin
    *     summary: 获取用于处理db对象的插件列表
+   *     deprecated: true
    *     responses:
    *       '200':
    *         description: result为插件数组
@@ -40,6 +43,7 @@ class Plugin extends Base {
    *     tags:
    *       - plugin
    *     summary: 获取用于处理collection对象的插件列表
+   *     deprecated: true
    *     responses:
    *       '200':
    *         description: result为插件数组
@@ -61,6 +65,7 @@ class Plugin extends Base {
    *     tags:
    *       - plugin
    *     summary: 获取用于处理document对象的插件列表
+   *     deprecated: true
    *     responses:
    *       '200':
    *         description: result为插件数组
@@ -76,11 +81,6 @@ class Plugin extends Base {
 
     return new ResultData(commonConfig.document)
   }
-
-  /**
-   * @description 插件实现机制
-   * @param {string} type
-   */
   /**
    * @swagger
    *
@@ -89,6 +89,7 @@ class Plugin extends Base {
    *     tags:
    *       - plugin
    *     summary: 执行指定的插件
+   *     deprecated: true
    *     responses:
    *       '200':
    *         description: result为
@@ -119,6 +120,94 @@ class Plugin extends Base {
     } else {
       return new ResultFault('暂不处理此类型的插件')
     }
+  }
+  /**
+   * @swagger
+   *
+   * /api/plugins/list:
+   *   get:
+   *     tags:
+   *       - plugin
+   *     summary: 获取用于处理document对象的插件列表
+   *     parameters:
+   *       - name: scope
+   *         description: 插件适用对象
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       '200':
+   *         description: result为插件数组
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseDataArray"
+   */
+  async list() {
+    const { scope } = this.request.query
+    if (!['document', 'collection', 'database'].includes(scope))
+      return new ResultFault(`参数错误[scope=${scope}]`)
+
+    const ins = await PluginContext.ins()
+
+    const plugins =
+      scope === 'document'
+        ? ins.docPlugins
+        : scope === 'collection'
+        ? ins.clPlugins
+        : ins.dbPlugins
+
+    return new ResultData(plugins)
+  }
+  /**
+   * @swagger
+   *
+   * /api/plugins/execute:
+   *   post:
+   *     tags:
+   *       - plugin
+   *     summary: 执行指定的插件
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/dbName'
+   *       - $ref: '#/components/parameters/clName'
+   *       - name: plugin
+   *         in: query
+   *         description: 插件名称
+   *         required: true
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *     responses:
+   *       '200':
+   *         description: result为???
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
+   */
+  async execute() {
+    let { plugin: pluginName } = this.request.query
+
+    if (!pluginName) return new ResultFault('缺少plugin参数')
+
+    const ins = await PluginContext.ins()
+
+    const plugin = ins.byName(pluginName)
+    if (!plugin) return new ResultFault(`未找到指定插件[plugin=${pluginName}]`)
+
+    if (plugin.scope === 'document') {
+      const existCl = await this.pluginHelper.findRequestCl()
+      const result = await plugin.execute(this, existCl)
+      return new ResultData(result)
+    }
+
+    return new ResultData('ok')
   }
 }
 
