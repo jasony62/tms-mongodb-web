@@ -45,30 +45,17 @@ class CollectionBase extends Base {
     return new ResultData(existCl)
   }
   /**
-   * 指定库下所有的集合，包含未被管理的结合
+   * 指定库下所有的集合，包含未被管理的集合
    */
   async list() {
-    const client = this.mongoClient
-    const pRawCls = client
-      .db(this.reqDb.sysname)
-      .listCollections({}, { nameOnly: true })
-      .toArray()
-      .then((collections) => collections.map((c) => c.name))
-
     const query = { type: 'collection', 'db.sysname': this.reqDb.sysname }
     if (this.bucket) query.bucket = this.bucket.name
 
-    const pTmwCls = this.clMongoObj
+    const tmwCls = await this.clMongoObj
       .find(query, { projection: { type: 0 } })
       .toArray()
 
-    return Promise.all([pRawCls, pTmwCls]).then((values) => {
-      const [rawClNames, tmwCls] = values
-      const tmsClNames = tmwCls.map((cl) => cl.sysname)
-      const diff = _.difference(rawClNames, tmsClNames)
-      diff.forEach((sysname) => tmwCls.push({ sysname }))
-      return new ResultData(tmwCls)
-    })
+    return new ResultData(tmwCls)
   }
   /**
    * 指定数据库下新建集合

@@ -1,4 +1,6 @@
 const CollectionBase = require('../collectionBase')
+const { ResultData, ResultFault } = require('tms-koa')
+const ModelCl = require('../../models/mgdb/collection')
 
 class Collection extends CollectionBase {
   constructor(...args) {
@@ -52,6 +54,44 @@ class Collection extends CollectionBase {
   /**
    * @swagger
    *
+   * /api/admin/collection/uncontrolled:
+   *   get:
+   *     tags:
+   *       - admin
+   *     summary: 列出未作为管理对象的集合
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *     responses:
+   *       '200':
+   *         description: result为集合数组
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseDataArray"
+   */
+  async uncontrolled() {
+    const client = this.mongoClient
+    const rawCls = await client
+      .db(this.reqDb.sysname)
+      .listCollections({}, { nameOnly: true })
+      .toArray()
+
+    let uncontrolled = []
+    for (let i = 0, rawCl; i < rawCls.length; i++) {
+      rawCl = rawCls[i]
+      let tmwCl = await this.clMongoObj.findOne({
+        sysname: rawCl.name,
+        type: 'collection',
+      })
+      if (!tmwCl) uncontrolled.push({ sysname: rawCl.name })
+    }
+
+    return new ResultData(uncontrolled)
+  }
+  /**
+   * @swagger
+   *
    * /api/admin/collection/create:
    *   post:
    *     tags:
@@ -85,6 +125,85 @@ class Collection extends CollectionBase {
    */
   async create() {
     return super.create()
+  }
+  /**
+   * @swagger
+   *
+   * /api/admin/collection/add:
+   *   post:
+   *     tags:
+   *       - admin
+   *     summary: 将未管理集合作为管理对象
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - name: sysname
+   *         description: 系统集合名称
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               name:
+   *                 description: 集合名称。必须以英文字母开头，最长64位，不允许重名。
+   *                 type: string
+   *             required:
+   *               - name
+   *           examples:
+   *             basic:
+   *               summary: 基本示例
+   *               value: {"name": "cl01", "title": "集合01"}
+   *     responses:
+   *       '200':
+   *         description: result为创建的集合
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
+   */
+  async add() {
+    const modelCl = new ModelCl()
+
+    const { sysname } = this.request.query
+    const existSysCl = await modelCl.bySysname(this.reqDb, sysname)
+    if (existSysCl)
+      return new ResultFault(`集合[sysname=${sysname}]已经是管理对象`)
+
+    const info = this.request.body
+
+    // 检查指定的集合名
+    let [passed, cause] = modelCl.checkClName(info.name)
+    if (passed === false) return new ResultFault(cause)
+
+    // 查询是否已存在同名集合
+    let existTmwCl = await modelCl.byName(this.reqDb, info.name)
+    if (existTmwCl)
+      return new ResultFault(
+        `数据库[name=${this.reqDb.name}]中，已存在同名集合[name=${info.name}]`
+      )
+
+    info.type = 'collection'
+    info.sysname = sysname
+    info.database = this.reqDb.name
+    info.db = { sysname: this.reqDb.sysname, name: this.reqDb.name }
+    if (this.bucket) info.bucket = this.bucket.name
+
+    // 检查是否指定了用途
+    let { usage } = info
+    if (usage !== undefined) {
+      if (![0, 1].includes(parseInt(usage)))
+        return new ResultFault(`指定了不支持的集合用途值[usage=${usage}]`)
+      info.usage = parseInt(usage)
+    }
+
+    return this.clMongoObj
+      .insertOne(info)
+      .then((result) => new ResultData(result.ops[0]))
   }
   /**
    * @swagger
@@ -168,6 +287,30 @@ class Collection extends CollectionBase {
    */
   async remove() {
     return super.remove()
+  }
+  /**
+   * @swagger
+   *
+   * /api/admin/collection/discard:
+   *   get:
+   *     tags:
+   *       - admin
+   *     summary:  集合不再作为管理对象
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - $ref: '#/components/parameters/clNameRequired'
+   *     responses:
+   *       '200':
+   *         $ref: '#/components/responses/ResponseOK'
+   *
+   */
+  async discard() {
+    const existCl = await this.clHelper.findRequestCl()
+
+    return this.clMongoObj
+      .deleteOne({ _id: existCl._id })
+      .then(() => new ResultData('ok'))
   }
 }
 
