@@ -67,7 +67,7 @@ class Document extends Base {
    * @param {*} ids
    * @param {*} fields
    */
-  static async getDocumentByIds(existCl, ids, fields = {}) {
+  async getDocumentByIds(existCl, ids, fields = {}) {
     if (!existCl || !ids) {
       return [false, '参数不完整']
     }

@@ -10,10 +10,10 @@ let appConfig = {
     },
     plugins: {
       prefix: 'plugin', // 插件接口调用url的前缀
-		},
-		fsdomain: {
-			prefix: 'fs'
-		}
+    },
+    fsdomain: {
+      prefix: 'fs'
+    }
   },
   tmsTransaction: false,
   // 鉴权 jwt
@@ -54,9 +54,9 @@ let appConfig = {
     },
   },
   tmwConfig: {
-    TMS_APP_DEFAULT_CREATETIME: 'TMS_DEFAULT_CREATE_TIME', // 集合中添加、创建、导入数据时默认添加创建时间字段，字段名
-    TMS_APP_DEFAULT_UPDATETIME: 'TMS_DEFAULT_UPDATE_TIME', // 修改集合中文档时默认增加修改时间字段，字段名名
-    TMS_APP_DATA_ACTION_LOG: 'N' // 数据操作日志， 日志会记录到tms_admin库下的 tms_app_data_action_log 集合中
+    TMS_APP_DEFAULT_CREATETIME: process.env.TMS_APP_DEFAULT_CREATETIME || 'TMS_DEFAULT_CREATE_TIME', // 集合中添加、创建、导入数据时默认添加创建时间字段，字段名
+    TMS_APP_DEFAULT_UPDATETIME: process.env.TMS_APP_DEFAULT_UPDATETIME || 'TMS_DEFAULT_UPDATE_TIME', // 修改集合中文档时默认增加修改时间字段，字段名名
+    TMS_APP_DATA_ACTION_LOG: process.env.TMS_APP_DATA_ACTION_LOG || 'N' // 数据操作日志， 日志会记录到tms_admin库下的 tms_app_data_action_log 集合中
   }
 }
 

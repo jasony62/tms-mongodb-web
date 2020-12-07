@@ -153,26 +153,6 @@ class CollectionBase extends Base {
     return new ResultData(info)
   }
   /**
-   * 修改集合名称
-   */
-  async rename() {
-    const existCl = await this.clHelper.findRequestCl()
-
-    let { newName } = this.request.query
-
-    let modelCl = new ModelCl()
-
-    //格式化集合名
-    newName = modelCl.checkClName(newName)
-    if (newName[0] === false) return new ResultFault(newName[1])
-    newName = newName[1]
-
-    let rst = await this.colHelper.rename(this.reqDb, existCl.name, newName)
-
-    if (rst[0] === true) return new ResultData(rst[1])
-    else return new ResultFault(rst[1])
-  }
-  /**
    * 删除集合。如果集合中存在文档可以被删除吗？
    */
   async remove() {
