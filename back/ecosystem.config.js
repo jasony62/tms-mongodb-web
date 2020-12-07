@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'tms-mongoorder-back',
+      name: 'tms-mongodb-back',
       script: './server.js',
 
       // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/

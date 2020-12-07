@@ -1,6 +1,6 @@
 const ObjectId = require('mongodb').ObjectId
 const Base = require('./base')
-const clModel = require('./collection')
+const ModelColl = require('./collection')
 const moment = require('moment')
 const APPCONTEXT = require('tms-koa').Context.AppContext
 const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
@@ -8,22 +8,18 @@ const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
 class Document extends Base {
   /**
    * 模糊搜索数据
+   * @param {*} existCl
+   * @param {*} options
+   * @param {*} page
+   * @param {*} size
+   * @param {*} like
    */
-  async listDocs(
-    existDb,
-    clName,
-    options = {},
-    page = null,
-    size = null,
-    like = true
-  ) {
+  async listDocs(existCl, options = {}, page = null, size = null, like = true) {
     let find = {}
-    if (options.filter) {
-      find = this._assembleFind(options.filter, like)
-    }
+    if (options.filter) find = this._assembleFind(options.filter, like)
 
     const client = await this.mongoClient()
-    let cl = client.db(existDb.sysname).collection(clName)
+    let cl = client.db(existCl.db.sysname).collection(existCl.sysname)
     let data = {}
     let skip = 0
     let limit = 0
@@ -57,7 +53,7 @@ class Document extends Base {
       .sort(sort)
       .toArray()
       .then(async (docs) => {
-        await Document.getDocCompleteStatus(existDb, clName, docs)
+        await this.getDocCompleteStatus(existCl, docs)
         return docs
       })
 
@@ -65,14 +61,16 @@ class Document extends Base {
 
     return [true, data]
   }
-  //
-  static async getDocumentByIds(existDb, clName, ids, fields = {}) {
-    if (!existDb || !clName || !ids) {
+  /**
+   * 根据指定的id数组，获得文档列表
+   * @param {*} existCl
+   * @param {*} ids
+   * @param {*} fields
+   */
+  static async getDocumentByIds(existCl, ids, fields = {}) {
+    if (!existCl || !ids) {
       return [false, '参数不完整']
     }
-
-    let model = new Base()
-    const client = await model.mongoClient()
 
     let docIds = []
     ids.forEach((id) => {
@@ -80,7 +78,8 @@ class Document extends Base {
     })
     let find = { _id: { $in: docIds } }
 
-    const cl = client.db(existDb.sysname).collection(clName)
+    const client = await this.mongoClient()
+    const cl = client.db(existCl.db.sysname).collection(existCl.sysname)
     // 获取表列
     return cl
       .find(find)
@@ -172,18 +171,20 @@ class Document extends Base {
   /**
    * 查询文档完成情况
    */
-  static async getDocCompleteStatus(existDb, clName, docs) {
-    const clSchemas = await clModel.getSchemaByCollection(existDb, clName)
+  async getDocCompleteStatus(existCl, docs) {
+    const modelCl = new ModelColl()
+    const clSchemas = await modelCl.getSchemaByCollection(existCl)
     if (!clSchemas) return docs
     //
-    docs.forEach(doc => {
+    docs.forEach((doc) => {
       let status = {
         unCompleted: {},
-        completed: {}
+        completed: {},
       }
       for (const k in clSchemas) {
         const v = clSchemas[k]
-        if (v.required === true) { // 必填
+        if (v.required === true) {
+          // 必填
           if ([undefined, '', null].includes(doc[k])) status.unCompleted[k] = v
           else status.completed[k] = v
         } else status.completed[k] = v

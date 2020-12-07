@@ -4,7 +4,13 @@ const APPCONTEXT = require('tms-koa').Context.AppContext
 const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
 
 class Base {
-  constructor() { }
+  /**
+   *
+   * @param {object} bucket - 用户存储空间
+   */
+  constructor(bucket) {
+    this.bucket = bucket
+  }
   /**
    * 组装 查询条件
    */
@@ -66,7 +72,7 @@ class Base {
   /**
    * 对插入到表中的数据进行加工
    */
-  _beforeProcessByInAndUp(data, type) {
+  beforeProcessByInAndUp(data, type) {
     let today = moment()
     let current = today.format('YYYY-MM-DD HH:mm:ss')
 
@@ -82,7 +88,6 @@ class Base {
 
     return data
   }
-
 }
 
 module.exports = Base

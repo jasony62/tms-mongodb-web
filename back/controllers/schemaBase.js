@@ -1,17 +1,21 @@
 const { ResultData } = require('tms-koa')
 const Base = require('./base')
+const SchemaHelper = require('./schemaHelper')
 
+/**
+ * 集合列定义控制器基类
+ * @extends Base
+ */
 class SchemaBase extends Base {
   constructor(...args) {
     super(...args)
+    this.schemaHelper = new SchemaHelper(this)
   }
   async tmsBeforeEach() {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
 
-    const client = this.mongoClient
-    const cl = client.db('tms_admin').collection('mongodb_object')
-    this.clMongoObj = cl
+    this.clMongoObj = this.schemaHelper.clMongoObj
 
     return true
   }
