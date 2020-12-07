@@ -91,14 +91,12 @@ class DocumentHelper extends Helper {
     }
 
     this.transformsCol('toValue', jsonFinishRows, columns)
-    console.log(123, TMWCONFIG.TMS_APP_DATA_ACTION_LOG)
     try {
       return this.findSysColl(existCl)
         .insertMany(jsonFinishRows)
         .then(async () => {
           if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
             // 记录日志
-            console.log(111, 222, 333)
             const modelDoc = new ModelDoc()
             await modelDoc.dataActionLog(
               jsonFinishRows,
