@@ -8,19 +8,29 @@ const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
 class Document extends Base {
   /**
    * 模糊搜索数据
-   * @param {*} existCl
-   * @param {*} options
-   * @param {*} page
-   * @param {*} size
-   * @param {*} like
+   * @param {object} existCl
+   * @param {object} [options={}]
+   * @param {object} [options.filter]
+   * @param {object} [options.orderBy]
+   * @param {object} [page={}]
+   * @param {number} [page.page]
+   * @param {number} [page.size]
+   * @param {boolean} [like=true]
+   *
+   * @returns {[]}
    */
-  async listDocs(existCl, options = {}, page = null, size = null, like = true) {
-    let find = {}
-    if (options.filter) find = this._assembleFind(options.filter, like)
+  async list(
+    existCl,
+    { filter, orderBy } = {},
+    { page, size } = {},
+    like = true
+  ) {
+    let query = filter ? this.assembleQuery(filter, like) : {}
 
     const client = await this.mongoClient()
     let cl = client.db(existCl.db.sysname).collection(existCl.sysname)
-    let data = {}
+
+    // 分页
     let skip = 0
     let limit = 0
     if (page && page > 0 && size && size > 0) {
@@ -29,25 +39,15 @@ class Document extends Base {
     }
     // 排序
     let sort = {}
-    if (
-      options.orderBy &&
-      typeof options.orderBy === 'object' &&
-      Object.keys(options.orderBy).length
-    ) {
-      for (const key in options.orderBy) {
-        let val = options.orderBy[key]
-        if (val === 'desc') {
-          sort[key] = -1
-        } else {
-          sort[key] = 1
-        }
-      }
+    if (orderBy && typeof orderBy === 'object' && Object.keys(orderBy).length) {
+      for (const key in orderBy) sort[key] = orderBy[key] === 'desc' ? -1 : 1
     } else {
       sort._id = -1
     }
 
+    let data = {}
     data.docs = await cl
-      .find(find)
+      .find(query)
       .skip(skip)
       .limit(limit)
       .sort(sort)
@@ -57,32 +57,29 @@ class Document extends Base {
         return docs
       })
 
-    data.total = await cl.find(find).count()
+    data.total = await cl.find(query).count()
 
     return [true, data]
   }
   /**
    * 根据指定的id数组，获得文档列表
-   * @param {*} existCl
-   * @param {*} ids
-   * @param {*} fields
+   * @param {object} existCl - 文档所在集合
+   * @param {string[]} ids - 文档id数组
+   * @param {object} [fields={}] - 要显示的列
+   *
+   * @returns {[]} 第1位：是否成功，第2位：错误信息或文档列表
    */
-  async getDocumentByIds(existCl, ids, fields = {}) {
-    if (!existCl || !ids) {
-      return [false, '参数不完整']
-    }
+  async byIds(existCl, ids, fields = {}) {
+    if (!existCl || !ids) return [false, '参数不完整']
 
-    let docIds = []
-    ids.forEach((id) => {
-      docIds.push(new ObjectId(id))
-    })
-    let find = { _id: { $in: docIds } }
+    let docIds = ids.map((id) => new ObjectId(id))
+    let query = { _id: { $in: docIds } }
 
     const client = await this.mongoClient()
     const cl = client.db(existCl.db.sysname).collection(existCl.sysname)
-    // 获取表列
+
     return cl
-      .find(find)
+      .find(query)
       .project(fields)
       .toArray()
       .then((rst) => [true, rst])
