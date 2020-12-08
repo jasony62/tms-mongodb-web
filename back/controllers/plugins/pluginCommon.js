@@ -1,7 +1,6 @@
 const Base = require('../base')
-const modelBase = require('../../models/mgdb/base')
-const modelColl = require('../../models/mgdb/collection')
-const modelDocu = require('../../models/mgdb/document')
+const ModelColl = require('../../models/mgdb/collection')
+const ModelDoc = require('../../models/mgdb/document')
 const _ = require('lodash')
 const ObjectId = require('mongodb').ObjectId
 const log4js = require('log4js')
@@ -19,7 +18,7 @@ class PluginCommon extends Base {
     insertMany: 'insertMany',
     remove: 'remove',
     updateOne: 'updateOne',
-    updateMany: 'updateMany'
+    updateMany: 'updateMany',
   }
 
   /**
@@ -37,26 +36,26 @@ class PluginCommon extends Base {
   static async recordActionLog(...params) {
     logger.info(`日志记录-${params[1]}`)
     // 记录日志
-    let modelD = new modelDocu()
+    let modelD = new ModelDoc()
     return await modelD.dataActionLog(...params)
   }
 
   static splitGetParams(params, url) {
     let getParams = JSON.parse(JSON.stringify(params))
     let path = url + (url.includes('?') ? '&' : '?')
-    Object.keys(getParams).forEach(key => {
+    Object.keys(getParams).forEach((key) => {
       path += `${key}=${getParams[key]}&`
     })
     return path
   }
 
   static async getSchemas(existDb, clName) {
-    let colObj = await modelColl.getCollection(existDb, clName)
+    let colObj = await ModelColl.getCollection(existDb, clName)
     let docSchemas = _.get(colObj, ['schema', 'body', 'properties'], {})
     let colExtendProps = _.get(colObj, ['extensionInfo', 'info'], {})
     return {
       docSchemas,
-      colExtendProps
+      colExtendProps,
     }
   }
 
@@ -99,7 +98,7 @@ class PluginCommon extends Base {
       existDb,
       clName,
       query: content.request.query,
-      body: content.request.body
+      body: content.request.body,
     }
     const res = await currentClass[callbackName](options)
     return resolve ? resolve(res) : res
@@ -133,7 +132,7 @@ class PluginCommon extends Base {
         let docIds = []
         if (quota === '_id') {
           if (!Array.isArray(data)) [false, 'data must be a Array']
-          data.forEach(ele => {
+          data.forEach((ele) => {
             const id = ele._id
             docIds.push(id)
             delete ele._id
@@ -141,14 +140,14 @@ class PluginCommon extends Base {
               cl.updateOne(
                 { _id: ObjectId(id) },
                 {
-                  $set: ele
+                  $set: ele,
                 }
               )
             )
           })
         } else {
           if (!Array.isArray(data)) [false, 'data must be a Array']
-          data.forEach(ele => {
+          data.forEach((ele) => {
             const id = ele._id
             docIds.push(id)
             delete ele._id
@@ -156,7 +155,7 @@ class PluginCommon extends Base {
               cl.updateOne(
                 { [quota]: ele[quota] },
                 {
-                  $set: ele
+                  $set: ele,
                 }
               )
             )
@@ -167,7 +166,7 @@ class PluginCommon extends Base {
             logger.info('批量更新成功')
             return [true, data, docIds]
           })
-          .catch(err => {
+          .catch((err) => {
             logger.info('批量更新失败', err)
             return [false, err]
           })
@@ -179,46 +178,37 @@ class PluginCommon extends Base {
           .updateOne(
             { [quota]: quota === '_id' ? ObjectId(id) : data[quota] },
             {
-              $set: data
+              $set: data,
             }
           )
-          .then(res => {
+          .then((res) => {
             return [true, res, id]
           })
-          .catch(err => {
+          .catch((err) => {
             return [false, err]
           })
     }
   }
-
-  /**
-   * 组装 查询条件
-   */
-  static _assembleFind(filter, like = true) {
-    let model = new modelBase()
-    return model._assembleFind(filter, like)
-  }
-
   static getFindCondition(docIds, filter) {
-    let find = {}
+    let query = {}
     if (docIds && docIds.length > 0) {
       // 按选中删除
-      const newIds = docIds.map(ele => new ObjectId(ele))
-
-      find = {
+      const newIds = docIds.map((id) => new ObjectId(id))
+      query = {
         _id: {
-          $in: newIds
-        }
+          $in: newIds,
+        },
       }
     } else if (typeof filter === 'string' && _.toUpper(filter) === 'ALL') {
       // 清空表
-      find = {}
+      query = {}
     } else if (typeof filter === 'object') {
       // 按条件
-      find = PluginCommon._assembleFind(filter)
+      let modelDoc = new ModelDoc()
+      query = modelDoc.assembleQuery(filter, like)
     }
 
-    return find
+    return query
   }
 }
 

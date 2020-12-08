@@ -3,6 +3,7 @@ const DocBase = require('../documentBase')
 const _ = require('lodash')
 const ObjectId = require('mongodb').ObjectId
 const ModelColl = require('../../models/mgdb/collection')
+const ModelDoc = require('../../models/mgdb/document')
 
 class Document extends DocBase {
   constructor(...args) {
@@ -59,27 +60,26 @@ class Document extends DocBase {
   async export() {
     const { filter, docIds } = this.request.body
 
-    let find
+    let modelDoc = new ModelDoc(this.bucket)
+
+    let query
     if (docIds && docIds.length > 0) {
       // 按选中修改
-      let docIds2 = []
-      docIds.forEach((id) => {
-        docIds2.push(new ObjectId(id))
-      })
-      find = { _id: { $in: docIds2 } }
+      let docIds2 = docIds.map((id) => new ObjectId(id))
+      query = { _id: { $in: docIds2 } }
     } else if (filter && typeof filter === 'object') {
       // 按条件修改
-      find = this._assembleFind(filter)
+      query = modelDoc.assembleQuery(filter)
     } else if (typeof filter === 'string' && filter === 'ALL') {
       //修改全部
-      find = {}
+      query = {}
     } else {
       return new ResultFault('没有要导出的数据')
     }
 
     const existCl = await this.docHelper.findRequestCl()
     // 集合列
-    let modelCl = new ModelColl()
+    let modelCl = new ModelColl(this.bucket)
     let columns = await modelCl.getSchemaByCollection(existCl)
     if (!columns) return new ResultFault('指定的集合没有指定集合列')
 
@@ -88,7 +88,7 @@ class Document extends DocBase {
     let data = await client
       .db(existCl.db.sysname)
       .collection(existCl.sysname)
-      .find(find)
+      .find(query)
       .toArray()
 
     // 数据处理-针对单选多选转化
@@ -129,7 +129,7 @@ class Document extends DocBase {
     if (!oldDb || !oldCl || !newDb || !newCl) {
       return new ResultFault('参数不完整')
     }
-    if (!filter && (!docIds || !Array.isArray(docIds) || docIds.length == 0)) {
+    if (!filter && (!Array.isArray(docIds) || docIds.length == 0)) {
       return new ResultFault('没有要移动的数据')
     }
 
@@ -137,19 +137,21 @@ class Document extends DocBase {
     const oldExistCl = await modelCl.byName(oldDb, oldCl)
     const newExistCl = await modelCl.byName(newDb, newCl)
 
+    let modelDoc = new ModelDoc(this.bucket)
+
     let docIds2, oldDocus, total
     if (docIds) {
       total = docIds.length
       docIds2 = docIds
     } else {
       // 按条件
-      let find = {}
+      let query = {}
       if (_.toUpper(filter) !== 'ALL') {
-        find = this._assembleFind(filter)
+        query = modelDoc.assembleQuery(filter)
       }
       let cl = this.docHelper.findSysColl(oldExistCl)
-      oldDocus = await cl.find(find).limit(parseInt(execNum)).toArray()
-      total = await cl.find(find).count()
+      oldDocus = await cl.find(query).limit(parseInt(execNum)).toArray()
+      total = await cl.find(query).count()
     }
 
     let options = {}
@@ -181,155 +183,6 @@ class Document extends DocBase {
     }
 
     return new ResultData(data)
-  }
-  /**
-   *  根据规则获取数据
-   */
-  async getDocsByRule() {
-    let data = await this.docHelper.getDocsByRule()
-    if (data[0] === false) return new ResultFault(data[1])
-
-    return new ResultData(data[1])
-  }
-  /**
-   *  导出根据规则获取得数据详情
-   */
-  async exportDocsByRule() {
-    let data = await this.docHelper.getDocsByRule(true)
-    if (data[0] === false) return new ResultFault(data[1])
-
-    let { schemas, failed, passed } = data[1]
-    schemas.msg = { type: 'string', title: '自动分配情况' }
-    let docs = _.concat(failed, passed)
-    docs.forEach((doc) => {
-      if (doc.import_status === '成功') {
-        doc.msg = ''
-        doc.exist_total = ''
-      }
-    })
-
-    const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
-    let rst = ExcelCtrl.export(
-      schemas,
-      docs,
-      '根据规则表【' + this.request.query.ruleCl + '】获取数据'
-    )
-    if (rst[0] === false) {
-      return new ResultFault(rst[1])
-    }
-    rst = rst[1]
-
-    return new ResultData(rst)
-  }
-  /**
-   * 根据规则替换数据
-   */
-  async replaceDocsByRule() {
-    let { rule, dels } = this.request.body
-
-    dels = dels.join(',')
-    rule.byId = 'notin:' + dels
-    let rules = [rule]
-    const existCl = await this.docHelper.findRequestCl()
-    let data = await this.docHelper.getDocsByRule2(existCl, rules)
-    if (data[0] === false) return new ResultFault(data[1])
-
-    data = data[1]
-    let failed = []
-    let passed = []
-    for (const val of data) {
-      if (val.code != 0) {
-        failed.push(val)
-      } else {
-        passed.push(val)
-      }
-    }
-
-    return new ResultData({ failed, passed })
-  }
-  /**
-   * 根据规则迁移数据
-   */
-  async moveByRule() {
-    let {
-      ruleDb: ruleDbName,
-      ruleCl: ruleClName,
-      oldDb: oldDbName,
-      oldCl: oldClName,
-      newDb: newDbName,
-      newCl: newClName,
-      markResultColumn = 'import_status',
-    } = this.request.query
-    if (
-      !ruleDbName ||
-      !ruleClName ||
-      !oldDbName ||
-      !oldClName ||
-      !newDbName ||
-      !newClName
-    ) {
-      return new ResultFault('参数不完整')
-    }
-
-    let docsByRule = this.request.body
-    if (!docsByRule || !Array.isArray(docsByRule) || docsByRule.length == 0) {
-      return new ResultFault('没有要移动的数据')
-    }
-
-    let modelCl = new ModelColl()
-    const ruleExistCl = await modelCl.byName(ruleDbName, ruleClName)
-    const oldExistCl = await modelCl.byName(oldDbName, oldClName)
-    const newExistCl = await modelCl.byName(newDbName, newClName)
-
-    let cl = this.docHelper.findSysColl(ruleExistCl)
-    let moveRst = docsByRule.map(async (value) => {
-      let ruleId = value.ruleId
-      let docIds = value.docIds
-      let rst = await this.cutDocs(oldExistCl, newExistCl, docIds)
-      if (rst[0] === false) {
-        // 将结果存入需求表中
-        if (markResultColumn) {
-          let set = {}
-          set[markResultColumn] = '失败：' + rst[1]
-          await cl.updateOne({ _id: ObjectId(ruleId) }, { $set: set })
-        }
-        return { ruleId: ruleId, code: 500, msg: rst[1] }
-      }
-
-      rst = rst[1]
-      if (rst.planMoveTotal != rst.rstDelOld.result.n) {
-        if (markResultColumn) {
-          let set = {}
-          set[markResultColumn] =
-            '异常：需求数量' +
-            rst.planMoveTotal +
-            '与实际迁移数量' +
-            rst.rstDelOld.result.n +
-            '不符'
-          await cl.updateOne({ _id: ObjectId(ruleId) }, { $set: set })
-        }
-        return {
-          ruleId: ruleId,
-          code: 500,
-          msg:
-            '需求数量' +
-            rst.planMoveTotal +
-            '与实际迁移数量' +
-            rst.rstDelOld.result.n +
-            '不符',
-        }
-      }
-
-      if (markResultColumn) {
-        let set = {}
-        set[markResultColumn] = '成功'
-        await cl.updateOne({ _id: ObjectId(ruleId) }, { $set: set })
-      }
-
-      return { ruleId: ruleId, code: 0, msg: '成功' }
-    })
-
-    return new ResultData(moveRst)
   }
 }
 
