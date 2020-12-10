@@ -29,33 +29,18 @@ class Context {
 /**
  * 检查插件信息是否设置正确
  *
- * @param {string} file
  * @param {object} plugin
  */
-async function checkPlugin(file, plugin) {
-  let promises = RequiredProps.map((prop) => {
-    return new Promise((resolve, reject) => {
-      if (typeof plugin[prop] !== 'string' || !plugin[prop]) {
-        logger.warn(
-          `文件[${path.basename(file)}]创建的插件属性[${prop}]，不可用`
-        )
-        reject()
-      } else {
-        resolve()
-      }
-    })
-  })
-  return Promise.all(promises)
+function validatePlugin(plugin) {
+  return plugin
+    .validate()
     .then(() => {
-      let { scope } = plugin
-      if (!['database', 'collection', 'document'].includes(scope)) {
-        logger.warn(
-          `文件[${path.basename(file)}]插件属性[scope=${scope}]无效，不可用`
-        )
-      }
+      return true
     })
-    .then(() => true)
-    .catch(() => false)
+    .catch((reason) => {
+      logger.warn(reason)
+      return false
+    })
 }
 
 Context.init = (function () {
@@ -65,32 +50,34 @@ Context.init = (function () {
 
     let { dir } = pluginConfig
     let absDir = path.resolve(process.cwd(), dir)
-    logger.info(`从目录[${absDir}]读取插件`)
+    logger.info(`从目录[${absDir}]读取插件文件`)
     let files = glob.sync(`${absDir}/*.js`)
     for (let i = 0, file; i < files.length; i++) {
       file = files[i]
       let { createPlugin } = require(file)
       if (!createPlugin || typeof createPlugin !== 'function') {
         logger.warn(
-          `文件[${path.basename(file)}]没有导出'createPlugin'方法，不可用`
+          `插件文件[${path.basename(file)}]不可用，没有导出[createPlugin]方法`
         )
         continue
       }
-      let plugin = createPlugin()
+      let plugin = createPlugin(path.basename(file))
       if (!plugin || !(plugin instanceof PluginBase)) {
-        logger.warn(`文件[${path.basename(file)}]未创建插件对象，不可用`)
+        logger.warn(`插件文件[${path.basename(file)}]不可用，未创建插件对象`)
         continue
       }
-      if (!plugin.execute || typeof plugin.execute !== 'function') {
-        {
+      if (plugin.disabled === true) {
+        logger.warn(`插件文件[${plugin.file}]已禁用`)
+        continue
+      }
+      let passed = await validatePlugin(plugin)
+      if (passed) {
+        if (_pluginsByName.has(plugin.name)) {
           logger.warn(
-            `文件[${path.basename(file)}]创建的插件未包含'execute'方法，不可用`
+            `插件文件[${plugin.file}]不可用，已有同名插件[name=${plugin.name}]`
           )
           continue
         }
-      }
-      let passed = await checkPlugin(file, plugin)
-      if (passed) {
         let { name, scope } = plugin
         switch (scope) {
           case 'database':
@@ -105,7 +92,7 @@ Context.init = (function () {
         }
         _pluginsByName.set(name, plugin)
 
-        logger.info(`从文件[${path.basename(file)}]创建插件[name=${name}]`)
+        logger.info(`从文件[${plugin.file}]创建插件[name=${name}]`)
       }
     }
 

@@ -15,7 +15,7 @@ class Base {
    * 组装 查询条件
    */
   assembleQuery(filter, like = true) {
-    let find = {}
+    let query = {}
     let fKeys = Object.keys(filter)
     if (like === true) {
       for (let fk of fKeys) {
@@ -53,15 +53,15 @@ class Base {
           find2 = { $regex: val }
         }
 
-        if (typeof find2 !== 'undefined') find[fk] = find2
+        if (typeof find2 !== 'undefined') query[fk] = find2
       }
     } else {
       for (let fk of fKeys) {
-        find[fk] = filter[fk]
+        query[fk] = filter[fk]
       }
     }
 
-    return find
+    return query
   }
   /**
    *

@@ -236,6 +236,17 @@ class Plugin extends SendBase {
    *         application/json:
    *           schema:
    *             type: object
+   *             properties:
+   *               ids:
+   *                 description: 文档id数组
+   *                 type: array
+   *               filter:
+   *                 description: 筛选条件
+   *                 type: object
+   *           examples:
+   *             basic:
+   *               summary: 基本示例
+   *               value: {"ids": [], "filter": {}}
    *     responses:
    *       '200':
    *         description: result为???
