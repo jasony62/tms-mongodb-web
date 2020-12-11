@@ -10,13 +10,57 @@ import {
   TmsIgnorableError,
   TmsLockPromise
 } from 'tms-vue'
-import ElementUI from 'element-ui'
-import { Message } from 'element-ui'
-import 'element-ui/lib/theme-chalk/index.css'
+import {
+  Pagination,
+  Dialog,
+  Dropdown,
+  DropdownMenu,
+  DropdownItem,
+  Input,
+  RadioGroup,
+  RadioButton,
+  Select,
+  Option,
+  Button,
+  Table,
+  TableColumn,
+  Breadcrumb,
+  BreadcrumbItem,
+  Form,
+  FormItem,
+  Tabs,
+  TabPane,
+  Tag,
+  Tree,
+  Card,
+  Message
+} from 'element-ui'
 import './assets/css/common.less'
-Vue.use(ElementUI)
 
-Vue.use(TmsAxiosPlugin).use(TmsErrorPlugin)
+Vue.use(TmsAxiosPlugin)
+  .use(TmsErrorPlugin)
+  .use(Pagination)
+  .use(Dialog)
+  .use(Dropdown)
+  .use(DropdownMenu)
+  .use(DropdownItem)
+  .use(Input)
+  .use(RadioGroup)
+  .use(RadioButton)
+  .use(Select)
+  .use(Option)
+  .use(Button)
+  .use(Table)
+  .use(TableColumn)
+  .use(Breadcrumb)
+  .use(BreadcrumbItem)
+  .use(Form)
+  .use(FormItem)
+  .use(Tabs)
+  .use(TabPane)
+  .use(Tag)
+  .use(Tree)
+  .use(Card)
 
 const { fnGetCaptcha, fnGetToken } = apiLogin
 const schema = [
