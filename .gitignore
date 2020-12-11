@@ -1,5 +1,7 @@
 .DS_Store
 /mongodb/data
+/mongodb-*
+
 .env.local
 *.override.yml
 

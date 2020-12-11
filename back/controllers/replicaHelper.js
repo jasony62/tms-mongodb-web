@@ -96,7 +96,7 @@ class ReplicaHelper extends Helper {
     if (secCl.usage !== 1)
       return [
         false,
-        `指定的从集合[secondary.db=${secondary.db}][secondary.cl=${secondary.cl}]的用途[usage=${sec.cl.usage}]必须等于1`,
+        `指定的从集合[secondary.db=${secondary.db}][secondary.cl=${secondary.cl}]的用途[usage=${secCl.usage}]必须等于1`,
       ]
 
     const beforeMap = await this.clReplicaMap.findOne({
