@@ -143,14 +143,15 @@ class ReplicaBase extends Base {
     const priSysCl = this.replicaHelper.findSysColl(pri.cl)
     const secSysCl = this.replicaHelper.findSysColl(sec.cl)
 
-    let deleted // 删除的记录数量
-    const total = await priSysCl.countDocuments()
-    if (total) {
+    let deletedCount // 删除的记录数量
+    const syncAt = Date.now()
+    // 同步集合中的数据
+    const replacedCount = await priSysCl.countDocuments()
+    if (replacedCount) {
       let { limit } = this.request.query
       limit = limit === undefined ? 10 : parseInt(limit)
-      const syncAt = Date.now()
       // 同步数据
-      for (let remainder = total; remainder; ) {
+      for (let remainder = replacedCount; remainder; ) {
         let docs = await priSysCl.find({}, { limit }).toArray()
         for (let i = 0, l = docs.length; i < l; i++) {
           let { _id, ...doc } = docs[i]
@@ -164,17 +165,29 @@ class ReplicaBase extends Base {
         }
         remainder -= docs.length
       }
-      // 清除删除的数据
-      deleted = await secSysCl
-        .deleteMany({
-          '__pri.db': pri.db.sysname,
-          '__pri.cl': pri.cl.sysname,
-          '__pri.time': { $not: { $eq: syncAt } },
-        })
-        .then(({ deletedCount }) => deletedCount)
     }
+    // 清除删除的数据
+    deletedCount = await secSysCl
+      .deleteMany({
+        '__pri.db': pri.db.sysname,
+        '__pri.cl': pri.cl.sysname,
+        '__pri.time': { $not: { $eq: syncAt } },
+      })
+      .then(({ deletedCount }) => deletedCount)
 
-    return new ResultData({ replaced: total, deleted })
+    return new ResultData({ replacedCount, deletedCount })
+  }
+  /**根据replica_map集合中的记录，执行所有的集合间同步 */
+  async synchronizeAll() {
+    const count = await this.clReplicaMap.countDocuments()
+    if (count === 0)
+      return new ResultFault('没有配置集合间复制关系，未执行集合同步操作')
+
+    setTimeout(() => {
+      console.log('在后台执行集合同步操作')
+    })
+
+    return new ResultData(count)
   }
 }
 

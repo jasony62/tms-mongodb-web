@@ -5,6 +5,7 @@
 .env.local
 *.override.yml
 
+/tests/
 /patch/
 
 /back/config/*.local.js

@@ -1,5 +1,7 @@
-const Base = require('./base')
+const ModelBkt = require('./bucket')
+const ModelDb = require('./db')
+const ModelCl = require('./collection')
+const ModelDoc = require('./document')
+const ModalTag = require('./tag')
 
-class Index extends Base {}
-
-module.exports = Index
+module.exports = { ModelBkt, ModelDb, ModelCl, ModelDoc, ModalTag }

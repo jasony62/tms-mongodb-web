@@ -16,6 +16,37 @@ const Helper = require('./helper')
  */
 class DocumentHelper extends Helper {
   /**
+   * 获得请求的批量更新/删除条件
+   *
+   * @returns {object} 失败时errCause不为空，其内容为失败原因；否则，query为查询条件；operation为操作类型说明。
+   */
+  getRequestBatchQuery() {
+    let { filter, docIds } = this.ctrl.request.body
+    let query, operation, errCause
+
+    if (Array.isArray(docIds) && docIds.length) {
+      // 按选中删除
+      query = {
+        _id: {
+          $in: docIds.map((id) => ObjectId(id)),
+        },
+      }
+      operation = '批量（按选中）'
+    } else if (typeof filter === 'string' && /all/i.test(filter)) {
+      // 清空表
+      query = {}
+      operation = '批量（按全部）'
+    } else if (typeof filter === 'object' && Object.keys(filter).length) {
+      // 按条件删除
+      query = this.modelDoc.assembleQuery(filter)
+      operation = '批量（按条件）'
+    } else {
+      errCause = '无效的批量文档指定条件，未执行删除操作'
+    }
+
+    return { query, operation, errCause }
+  }
+  /**
    *  提取excel数据到集合中
    *  unrepeat 是否对数据去重
    */
@@ -305,9 +336,9 @@ class DocumentHelper extends Helper {
       return [
         false,
         '插入数据数量错误需插入：' +
-        newDocs.length +
-        '；实际插入：' +
-        rst.insertedCount,
+          newDocs.length +
+          '；实际插入：' +
+          rst.insertedCount,
       ]
     }
 

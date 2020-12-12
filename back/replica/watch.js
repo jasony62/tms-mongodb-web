@@ -19,36 +19,37 @@ function getMongoClient() {
  */
 async function newReplicaWatcher(mongoClient, pri, sec) {
   const priCl = mongoClient.db(pri.db).collection(pri.cl)
-  const secTo = mongoClient.db(sec.db).collection(sec.cl)
+  const secCl = mongoClient.db(sec.db).collection(sec.cl)
 
-  const cs = priCl.watch([], { fullDocument: 'updateLookup' })
+  // 主集合监听器
+  const priCs = priCl.watch([], { fullDocument: 'updateLookup' })
 
   logger.debug(`开始监听[${pri.db}.${pri.cl}][${sec.db}.${sec.cl}]`)
 
-  cs.on('change', (csEvent) => {
+  priCs.on('change', (csEvent) => {
     const { operationType, ns } = csEvent
     if (operationType === 'insert') {
       let { _id, ...doc } = csEvent.fullDocument
       doc.__pri = { db: ns.db, cl: ns.coll, id: _id, time: Date.now() }
-      secTo.insertOne(doc)
+      secCl.insertOne(doc)
     } else if (operationType === 'update' || operationType === 'replace') {
       let { _id, ...doc } = csEvent.fullDocument
       doc.__pri = { db: ns.db, cl: ns.coll, id: _id, time: Date.now() }
-      secTo.replaceOne({ '__pri.id': _id }, doc)
+      secCl.replaceOne({ '__pri.id': _id }, doc)
     } else if (operationType === 'delete') {
       let { _id } = csEvent.documentKey
-      secTo.deleteOne({ '__pri.id': _id })
+      secCl.deleteOne({ '__pri.id': _id })
     } else if (operationType === 'invalidate') {
     }
   })
-  cs.on('close', () => {
+  priCs.on('close', () => {
     logger.debug(`关闭监听[${pri.db}.${pri.cl}][${sec.db}.${sec.cl}]`)
   })
-  cs.on('end', () => {
+  priCs.on('end', () => {
     logger.debug(`结束监听[${pri.db}.${pri.cl}][${sec.db}.${sec.cl}]`)
   })
 
-  return cs
+  return priCs
 }
 let ReplicaMapWatcher // 复制关系表监听器
 /**

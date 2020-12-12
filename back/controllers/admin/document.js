@@ -129,7 +129,7 @@ class Document extends DocBase {
    *   post:
    *     tags:
    *       - admin
-   *     summary: 批量更新文档（代码有问题）
+   *     summary: 批量更新文档
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbNameRequired'
@@ -146,7 +146,7 @@ class Document extends DocBase {
    *               value: {"docIds": [], "filter": {}, "columns": {}}
    *     responses:
    *       '200':
-   *         description: result为???
+   *         description: result为更新的文档数量
    *         content:
    *           application/json:
    *             schema:
@@ -170,7 +170,7 @@ class Document extends DocBase {
    *       - $ref: '#/components/parameters/docId'
    *     responses:
    *       '200':
-   *         description: result为???
+   *         description: result为是否删除成功
    *         content:
    *           application/json:
    *             schema:
@@ -202,7 +202,7 @@ class Document extends DocBase {
    *               value: {"docIds": [], "filter": {}}
    *     responses:
    *       '200':
-   *         description: result为???
+   *         description: result为删除文档的数量
    *         content:
    *           application/json:
    *             schema:
