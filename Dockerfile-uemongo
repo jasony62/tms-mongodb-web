@@ -8,13 +8,12 @@ RUN npm install -g cnpm --registry=https://registry.npm.taobao.org
 COPY . .
 
 # 生成.env文件
-ARG vue_app_title=订单用户端
+ARG vue_app_title=用户端
 ARG vue_app_base_url
 ARG vue_app_back_auth_base
 ARG vue_app_back_auth_server
 ARG vue_app_back_api_base
 ARG vue_app_back_api_server
-ARG vue_app_back_api_plugin
 ARG vue_app_back_api_fs
 ARG vue_app_front_doceditor_add
 ARG vue_app_front_doceditor_modify
@@ -26,7 +25,6 @@ RUN echo VUE_APP_TITLE=$vue_app_title > ./ue_mongo/.env && \
   echo VUE_APP_BACK_AUTH_SERVER=$vue_app_back_auth_server >> ./ue_mongo/.env && \
   echo VUE_APP_BACK_API_BASE=$vue_app_back_api_base >> ./ue_mongo/.env && \
   echo VUE_APP_BACK_API_SERVER=$vue_app_back_api_server >> ./ue_mongo/.env && \
-  echo VUE_APP_BACK_API_PLUGIN=$vue_app_back_api_plugin >> ./ue_mongo/.env && \
   echo VUE_APP_BACK_API_FS=$vue_app_back_api_fs >> ./ue_mongo/.env && \
   echo VUE_APP_FRONT_DOCEDITOR_ADD=$vue_app_front_doceditor_add >> ./ue_mongo/.env && \
 	echo VUE_APP_FRONT_DOCEDITOR_MODIFY=$vue_app_front_doceditor_modify >> ./ue_mongo/.env && \ 

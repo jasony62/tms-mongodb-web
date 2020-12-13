@@ -1,4 +1,4 @@
-const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/plugins/index'
+const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/plugins'
 export default function create(tmsAxios) {
   return {
     getPlugins() {

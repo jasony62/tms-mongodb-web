@@ -1,18 +1,6 @@
 <template>
-  <el-dialog
-    :visible.sync="dialogVisible"
-    :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal"
-  >
-    <tms-el-json-doc
-      :is-submit="isSubmit"
-      :schema="body"
-      :doc="document"
-      v-on:submit="onJsonDocSubmit"
-      :on-file-submit="handleFileSubmit"
-      :on-axios="handleAxios"
-      :on-file-download="handleDownload"
-    ></tms-el-json-doc>
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
+    <tms-el-json-doc :is-submit="isSubmit" :schema="body" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit" :on-axios="handleAxios" :on-file-download="handleDownload"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
@@ -27,7 +15,7 @@ export default {
   components: { TmsElJsonDoc },
   props: {
     dialogVisible: { default: true },
-    bucketName: { type: String }
+    bucketName: { type: String },
   },
   data() {
     return {
@@ -38,7 +26,7 @@ export default {
       collection: null,
       destroyOnClose: true,
       closeOnClickModal: false,
-      plugins: []
+      plugins: [],
     }
   },
   methods: {
@@ -53,7 +41,7 @@ export default {
     },
     handleFileSubmit(ref, files) {
       let result = {}
-      let objPromises = files.map(file => {
+      let objPromises = files.map((file) => {
         if (file.hasOwnProperty('url')) {
           return { name: file.name, url: file.url }
         }
@@ -62,24 +50,24 @@ export default {
         const config = { 'Content-Type': 'multipart/form-data' }
         return apiDoc
           .upload({ bucket: this.bucketName }, fileData, config)
-          .then(path => {
+          .then((path) => {
             return Promise.resolve({ url: path, name: file.name })
           })
-          .catch(err => Promise.reject(err))
+          .catch((err) => Promise.reject(err))
       })
       return Promise.all(objPromises)
-        .then(rsl => {
+        .then((rsl) => {
           result[ref] = rsl
           return Promise.resolve(result)
         })
-        .catch(err => Promise.reject(err))
+        .catch((err) => Promise.reject(err))
     },
     onJsonDocSubmit(slimDoc, newDoc) {
       this.isSubmit = true
       let validate = true
       if (this.plugins.length) {
         validate = this.plugins
-          .map(item => {
+          .map((item) => {
             const result = utils[item](this.body, newDoc)
             if (result.msg === 'success') {
               newDoc = result.data
@@ -88,7 +76,7 @@ export default {
               return false
             }
           })
-          .every(ele => ele === true)
+          .every((ele) => ele === true)
       }
       if (!validate) {
         this.isSubmit = false
@@ -103,12 +91,12 @@ export default {
             this.document._id,
             newDoc
           )
-          .then(newDoc => this.$emit('submit', newDoc))
+          .then((newDoc) => this.$emit('submit', newDoc))
           .finally(() => (this.isSubmit = false))
       } else {
         apiDoc
           .create(this.bucketName, this.dbName, this.collection.name, newDoc)
-          .then(newDoc => this.$emit('submit', newDoc))
+          .then((newDoc) => this.$emit('submit', newDoc))
           .finally(() => (this.isSubmit = false))
       }
     },
@@ -120,7 +108,7 @@ export default {
       if (tags && tags.length) {
         for (let i = 0; i < tags.length; i++) {
           let schemas = await apiSchema.listByTag(this.bucketName, tags[i])
-          schemas.forEach(schema => {
+          schemas.forEach((schema) => {
             Object.entries(schema.body).forEach(([key, val]) => {
               if (val && typeof val === 'object') {
                 // 如果属性值为空就不合并
@@ -160,13 +148,13 @@ export default {
       }
       this.$mount()
       document.body.appendChild(this.$el)
-      return new Promise(resolve => {
-        this.$on('submit', newDoc => {
+      return new Promise((resolve) => {
+        this.$on('submit', (newDoc) => {
           this.dialogVisible = false
           resolve(newDoc)
         })
       })
-    }
-  }
+    },
+  },
 }
 </script>

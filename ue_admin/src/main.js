@@ -148,7 +148,7 @@ function initFunc() {
   mountCustomMethod()
   let rules = []
   let rulesObj = { onResultFault, onResponseRejected }
-  if (process.env.VUE_APP_BACK_AUTH_SERVER) {
+  if (process.env.VUE_APP_BACK_AUTH_BASE) {
     rulesObj = {
       ...rulesObj,
       requestHeaders: new Map([['Authorization', getAccessToken]]),

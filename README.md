@@ -67,6 +67,21 @@ module.exports = {
 | TMW_REQUIRE_BUCKET         | 是否检查请求中的`bucket`参数，等于`yes`或`true`（不区分大小写）时打开。详细说明参见[多租户](doc/多租户.md)。 |                            |
 | TMW_REALTIME_REPLICA       | 是否支持集合实时复制功能，等于`yes`或`true`（不区分大小写）时打开。详细说明参见[聚合集合](doc/复制集合.md)。 |                            |
 
+## ue_admin
+
+| 环境变量                   | 说明 | 默认值 |
+| -------------------------- | ---- | ------ |
+| VUE_APP_TITLE              |      |        |
+| VUE_APP_BASE_URL           |      |        |
+| VUE_APP_BACK_AUTH_BASE     |      |        |
+| VUE_APP_BACK_AUTH_SERVER   |      |        |
+| VUE_APP_BACK_API_BASE      |      |        |
+| VUE_APP_BACK_API_SERVER    |      |        |
+| VUE_APP_LOGIN_KEY_USERNAME |      |        |
+| VUE_APP_LOGIN_KEY_PASSWORD |      |        |
+| VUE_APP_LOGIN_KEY_PIN      |      |        |
+| VUE_APP_TAGS               |      |        |
+
 ## ue_mongo
 
 | 环境变量                         | 说明                                                                                                     | 默认值 |

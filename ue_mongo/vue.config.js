@@ -11,14 +11,13 @@ const VUE_APP_BASE_URL = process.env.VUE_APP_BASE_URL
   : ''
 
 //代理auth请求
-devServer.proxy[`${process.env.VUE_APP_BACK_AUTH_BASE}`] = {
-  target: process.env.VUE_APP_BACK_AUTH_SERVER
+if (process.env.VUE_APP_BACK_AUTH_BASE) {
+  devServer.proxy[`${process.env.VUE_APP_BACK_AUTH_BASE}`] = {
+    target: process.env.VUE_APP_BACK_AUTH_SERVER
+  }
 }
 //代理base api请求
 devServer.proxy[`${process.env.VUE_APP_BACK_API_BASE}`] = {
-  target: process.env.VUE_APP_BACK_API_SERVER
-}
-devServer.proxy[`${process.env.VUE_APP_BACK_API_PLUGIN}`] = {
   target: process.env.VUE_APP_BACK_API_SERVER
 }
 devServer.proxy[`${process.env.VUE_APP_BACK_API_FS}`] = {
@@ -51,9 +50,13 @@ module.exports = {
               manifest: path.resolve(__dirname, 'dll', `${name}.manifest.json`)
             })
           }),
-          new AddAssetHtmlPlugin(Object.keys(library).map(name => {
-            return { filepath: path.resolve(__dirname, 'dll', `${name}.dll.js`) }
-          }))
+          new AddAssetHtmlPlugin(
+            Object.keys(library).map(name => {
+              return {
+                filepath: path.resolve(__dirname, 'dll', `${name}.dll.js`)
+              }
+            })
+          )
         ]
       }
       return dev

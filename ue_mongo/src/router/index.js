@@ -56,13 +56,17 @@ let router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.name !== 'login') {
-    let token = sessionStorage.getItem('access_token')
-    if (!token) {
-      Vue.TmsRouterHistory.push(to.path)
-      return next({ name: 'login' })
+  /**自动跳转到登录页 */
+  if (process.env.VUE_APP_BACK_AUTH_BASE) {
+    if (to.name !== 'login') {
+      let token = sessionStorage.getItem('access_token')
+      if (!token) {
+        Vue.TmsRouterHistory.push(to.path)
+        return next({ name: 'login' })
+      }
     }
   }
+  /**自动添加bucket参数 */
   if (/yes|true/i.test(process.env.VUE_APP_TMW_REQUIRE_BUCKET)) {
     // 多租户模式下，添加bucket参数
     if (!/bucket|login/.test(to.name)) {
