@@ -1,6 +1,11 @@
+const log4js = require('log4js')
+const logger = log4js.getLogger('tms-mongodb-web')
+
 const { ResultData, ResultFault } = require('tms-koa')
 const Base = require('./base')
 const ReplicaHelper = require('./replicaHelper')
+
+const ModelReplicaMap = require('../models/mgdb/replicaMap')
 
 /**
  * 集合复制控制器基类
@@ -10,6 +15,7 @@ class ReplicaBase extends Base {
   constructor(...args) {
     super(...args)
     this.replicaHelper = new ReplicaHelper(this)
+    this.modelReplicaMap = new ModelReplicaMap(this.mongoClient)
   }
   /**系统调用控制器方法前执行 */
   async tmsBeforeEach() {
@@ -135,47 +141,13 @@ class ReplicaBase extends Base {
     const [
       passed,
       causeOrBefore,
-      pri,
-      sec,
     ] = await this.replicaHelper.checkRequestReplicaMap({ existent: true })
     if (passed !== true) return new ResultFault(causeOrBefore)
 
-    const priSysCl = this.replicaHelper.findSysColl(pri.cl)
-    const secSysCl = this.replicaHelper.findSysColl(sec.cl)
+    let { primary, secondary } = causeOrBefore
+    let result = await this.modelReplicaMap.synchronize(primary, secondary)
 
-    let deletedCount // 删除的记录数量
-    const syncAt = Date.now()
-    // 同步集合中的数据
-    const replacedCount = await priSysCl.countDocuments()
-    if (replacedCount) {
-      let { limit } = this.request.query
-      limit = limit === undefined ? 10 : parseInt(limit)
-      // 同步数据
-      for (let remainder = replacedCount; remainder; ) {
-        let docs = await priSysCl.find({}, { limit }).toArray()
-        for (let i = 0, l = docs.length; i < l; i++) {
-          let { _id, ...doc } = docs[i]
-          doc.__pri = {
-            db: pri.db.sysname,
-            cl: pri.cl.sysname,
-            id: _id,
-            time: syncAt,
-          }
-          secSysCl.replaceOne({ '__pri.id': _id }, doc, { upsert: true })
-        }
-        remainder -= docs.length
-      }
-    }
-    // 清除删除的数据
-    deletedCount = await secSysCl
-      .deleteMany({
-        '__pri.db': pri.db.sysname,
-        '__pri.cl': pri.cl.sysname,
-        '__pri.time': { $not: { $eq: syncAt } },
-      })
-      .then(({ deletedCount }) => deletedCount)
-
-    return new ResultData({ replacedCount, deletedCount })
+    return new ResultData(result)
   }
   /**根据replica_map集合中的记录，执行所有的集合间同步 */
   async synchronizeAll() {
@@ -183,8 +155,14 @@ class ReplicaBase extends Base {
     if (count === 0)
       return new ResultFault('没有配置集合间复制关系，未执行集合同步操作')
 
+    // 后台执行
     setTimeout(() => {
-      console.log('在后台执行集合同步操作')
+      logger.info(`启动后台执行集合复制关系同步count=${count}]`)
+      const cp = require('child_process')
+      const child = cp.fork('./replica/synchronize.js')
+      child.on('message', (msg) => {
+        logger.info(`结束后台执行集合复制关系同步[syncCount=${msg.syncCount}]`)
+      })
     })
 
     return new ResultData(count)

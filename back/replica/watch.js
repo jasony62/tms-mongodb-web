@@ -1,7 +1,7 @@
 const log4jsConfig = require('../config/log4js')
 const log4js = require('log4js')
 log4js.configure(log4jsConfig)
-const logger = log4js.getLogger('tms-mongodb-web')
+const logger = log4js.getLogger('tmw-replica-watch')
 
 const { loadConfig } = require('tms-koa')
 const MongodbContext = require('tms-koa/lib/context/mongodb').Context
