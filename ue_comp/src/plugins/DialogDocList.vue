@@ -181,7 +181,11 @@ const componentOptions = {
     },
     confirm() {
       let docIds = this.selectedDocuments.map((doc) => doc._id)
-      this.$emit('confirm', { docIds })
+      this.$emit('confirm', {
+        db: this.criteria.database,
+        cl: this.criteria.collection,
+        docIds,
+      })
       this.$destroy()
     },
   },
