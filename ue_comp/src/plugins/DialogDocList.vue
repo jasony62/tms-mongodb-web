@@ -2,32 +2,32 @@
   <el-dialog :visible.sync="dialogVisible" :show-close="false" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <tms-flex direction="column" :elastic-items="[1]" style="height:100%">
       <tms-flex>
-        <el-select v-model="criteria.database" placeholder="选择数据库" clearable filterable remote :remote-method="listDbByKw" :loading="criteria.databaseLoading">
+        <el-select v-model="criteria.database" placeholder="选择数据库" clearable filterable remote :remote-method="listDbByKw" :loading="criteria.databaseLoading" style="width:240px">
           <el-option v-for="item in criteria.databases" :key="item.value" :label="item.label" :value="item.value">
           </el-option>
           <el-option :disabled="true" value="" v-if="criteria.dbBatch.pages>1">
-            <el-pagination :current-page="criteria.dbBatch.page" :total="criteria.dbBatch.total" :page-size="criteria.dbBatch.size" layout="prev, next" @current-change="changeDbCurPage">
+            <el-pagination :current-page="criteria.dbBatch.page" :total="criteria.dbBatch.total" :page-size="criteria.dbBatch.size" layout="prev, next" @current-change="changeDbPage">
             </el-pagination>
           </el-option>
         </el-select>
-        <el-select v-model="criteria.collection" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw" :loading="criteria.collectionLoading">
+        <el-select v-model="criteria.collection" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw" :loading="criteria.collectionLoading" style="width:240px">
           <el-option v-for="item in criteria.collections" :key="item.value" :label="item.label" :value="item.value">
           </el-option>
           <el-option :disabled="true" value="" v-if="criteria.clBatch.pages>1">
-            <el-pagination :current-page="criteria.clBatch.page" :total="criteria.clBatch.total" :page-size="criteria.clBatch.size" layout="prev, next" @current-change="changeClCurPage">
+            <el-pagination :current-page="criteria.clBatch.page" :total="criteria.clBatch.total" :page-size="criteria.clBatch.size" layout="prev, next" @current-change="changeClPage">
             </el-pagination>
           </el-option>
         </el-select>
         <el-button @click="listDocument">查找</el-button>
       </tms-flex>
-      <el-table :data="docs" stripe style="width:100%" height="1" @selection-change="handleSelectDocument">
+      <el-table :data="docs" stripe style="width:100%" height="1" @selection-change="selectDocument">
         <el-table-column fixed="left" type="selection" width="48"></el-table-column>
         <el-table-column v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k" :label="s.title"></el-table-column>
       </el-table>
     </tms-flex>
     <div slot="footer">
       <tms-flex style="width:100%" :elastic-items="[1]">
-        <el-pagination :current-page="page.at" :page-sizes="[50, 100, 200]" :page-size="100" layout="total, sizes, prev, pager, next" :total="page.total">
+        <el-pagination :current-page="docBatch.page" :page-sizes="[50, 100, 200]" :page-size="docBatch.size" layout="total, sizes, prev, pager, next" :total="docBatch.total" @current-change="changeDocPage" @size-change="changeDocSize">
         </el-pagination>
         <div>
           <el-button type="primary" @click="confirm">确定</el-button>
@@ -62,6 +62,7 @@ Vue.use(Dialog)
   .use(Button)
 
 // 查找条件下拉框分页包含记录数
+const LIST_PAGE_SIZE = 100
 const SELECT_PAGE_SIZE = 7
 
 // 创建api调用对象方法
@@ -84,11 +85,7 @@ const componentOptions = {
       collection: {
         schema: { body: { properties: { _id: { title: 'id' } } } },
       },
-      page: {
-        at: 1,
-        size: 15,
-        total: 0,
-      },
+      docBatch: new Batch(this.batchDocument),
       criteria: {
         databaseLoading: false,
         databases: [],
@@ -103,11 +100,14 @@ const componentOptions = {
   },
   methods: {
     listDbByKw(keyword) {
-      this.criteria.dbBatch = startBatch(this.listDatabase, [keyword], {
+      this.criteria.dbBatch = startBatch(this.batchDatabase, [keyword], {
         size: SELECT_PAGE_SIZE,
       })
     },
-    listDatabase(keyword, batchArg) {
+    changeDbPage(page) {
+      this.criteria.dbBatch.goto(page)
+    },
+    batchDatabase(keyword, batchArg) {
       this.criteria.databaseLoading = true
       return fnCreateDbApi(this.TmsAxios(this.tmsAxiosName))
         .list(this.bucketName, {
@@ -122,15 +122,12 @@ const componentOptions = {
           return result
         })
     },
-    changeDbCurPage(page) {
-      this.criteria.dbBatch.goto(page)
-    },
     listClByKw(keyword) {
-      this.criteria.clBatch = startBatch(this.listCollection, [keyword], {
+      this.criteria.clBatch = startBatch(this.batchCollection, [keyword], {
         size: SELECT_PAGE_SIZE,
       })
     },
-    listCollection(keyword, batchArg) {
+    batchCollection(keyword, batchArg) {
       this.criteria.collectionLoading = true
       if (this.criteria.database) {
         return fnCreateClApi(this.TmsAxios(this.tmsAxiosName))
@@ -151,28 +148,39 @@ const componentOptions = {
         return Promise.resolve({ total: 0 })
       }
     },
-    changeClCurPage(page) {
+    changeClPage(page) {
       this.criteria.clBatch.goto(page)
     },
-
     listDocument() {
-      fnCreateDocApi(this.TmsAxios(this.tmsAxiosName))
+      this.docBatch = startBatch(this.batchDocument, [], {
+        size: this.docBatch.size,
+      })
+    },
+    batchDocument(batchArg) {
+      return fnCreateDocApi(this.TmsAxios(this.tmsAxiosName))
         .list(
           this.bucketName,
           this.criteria.database,
           this.criteria.collection,
-          this.page
+          { at: batchArg.page, size: batchArg.size }
         )
         .then((result) => {
           this.docs = result.docs
-          this.page.total = result.total
+          return result
         })
     },
-    handleSelectDocument(rows) {
+    changeDocPage(page) {
+      this.docBatch.goto(page)
+    },
+    changeDocSize(size) {
+      this.docBatch.size = size
+      this.docBatch.goto(1)
+    },
+    selectDocument(rows) {
       this.selectedDocuments = rows
     },
     confirm() {
-      let docIds = this.selectedDocuments.map((document) => document._id)
+      let docIds = this.selectedDocuments.map((doc) => doc._id)
       this.$emit('confirm', { docIds })
       this.$destroy()
     },
@@ -180,14 +188,15 @@ const componentOptions = {
   watch: {
     'criteria.database': function () {
       this.criteria.collection = null
-      this.criteria.clBatch = startBatch(this.listCollection, [null], {
+      this.criteria.clBatch = startBatch(this.batchCollection, [null], {
         size: SELECT_PAGE_SIZE,
       })
     },
   },
   mounted() {
     document.body.appendChild(this.$el)
-    this.criteria.dbBatch = startBatch(this.listDatabase, [null], {
+    this.docBatch.size = LIST_PAGE_SIZE
+    this.criteria.dbBatch = startBatch(this.batchDatabase, [null], {
       size: SELECT_PAGE_SIZE,
     })
   },
@@ -222,6 +231,11 @@ export function createAndMount(Vue, propsData, apiCreators) {
   /deep/ .el-dialog__body {
     height: 60vh;
     padding-bottom: 0;
+    .el-select {
+      .el-input {
+        width: 100%;
+      }
+    }
   }
 }
 </style>
