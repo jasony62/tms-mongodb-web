@@ -184,16 +184,23 @@ class Plugin extends Base {
    *           schema:
    *             type: object
    *             properties:
-   *               ids:
+   *               docIds:
    *                 description: 文档id数组
    *                 type: array
    *               filter:
    *                 description: 筛选条件
    *                 type: object
+   *               related:
+   *                 description: 选择的相关文档
+   *                 type: object
+   *                 properties:
+   *                   docIds:
+   *                     description: 文档id数组
+   *                     type: array
    *           examples:
    *             basic:
    *               summary: 基本示例
-   *               value: {"ids": [], "filter": {}}
+   *               value: {"docIds": [], "filter": {}, "related": {"docIds": []}}
    *     responses:
    *       '200':
    *         description: result为???

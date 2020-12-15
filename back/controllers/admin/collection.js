@@ -40,9 +40,16 @@ class Collection extends CollectionBase {
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - $ref: '#/components/parameters/page'
+   *       - $ref: '#/components/parameters/size'
+   *       - name: keyword
+   *         description: 名称或标题包含的关键字
+   *         in: query
+   *         schema:
+   *           type: string
    *     responses:
    *       '200':
-   *         description: result为集合数组
+   *         description: result为集合数组。如果指定了分页参数，返回包行数据库对象的数组和符合条件的全部记录数。
    *         content:
    *           application/json:
    *             schema:

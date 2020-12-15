@@ -108,19 +108,18 @@
           </el-dropdown-menu>
         </el-dropdown>
         <hr />
-        <div v-for="(b, i) in computedPluginData" :key="i">
-          <el-button @click="handlePlugins(s, null)" v-if="!b.batch">{{b.title}}</el-button>
-          <el-dropdown v-if="b.batch">
-            <el-button type="success" plain>{{b.title}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+        <div v-for="p in computedPluginData" :key="p.name">
+          <el-dropdown>
+            <el-button type="success" plain>{{p.title}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(b, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
+                <el-button type="text" @click="handlePlugins(p, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(b, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
+                <el-button type="text" @click="handlePlugins(p, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(b, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
+                <el-button type="text" @click="handlePlugins(p, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -153,7 +152,8 @@ import DocEditor from './DocEditor.vue'
 import SelectCondition from './SelectCondition.vue'
 import ColumnValueEditor from '../../ue_mongo/src/components/ColumnValueEditor.vue'
 import DomainEditor from '../../ue_mongo/src/components/DomainEditor.vue'
-import createCollectionApi from '../../ue_mongo/src/apis/collection'
+import createDbApi from '../../ue_mongo/src/apis/database'
+import createClApi from '../../ue_mongo/src/apis/collection'
 import createDocApi from '../../ue_mongo/src/apis/document'
 import createSchemaApi from '../../ue_mongo/src/apis/schema'
 import createPluginApi from '../../ue_mongo/src/apis/plugin'
@@ -221,11 +221,12 @@ const componentOptions = {
       const currentAuth = this.getCurrentAuth() || '*'
       const data = this.pluginData
       if (!this.pluginData.length) return []
-      return data.filter(
-        (item) =>
-          item.auth &&
-          (item.auth.includes('*') || item.auth.includes(currentAuth))
-      )
+      // return data.filter(
+      //   (item) =>
+      //     item.auth &&
+      //     (item.auth.includes('*') || item.auth.includes(currentAuth))
+      // )
+      return data
     },
   },
   created() {
@@ -428,7 +429,7 @@ const componentOptions = {
         case 'checked':
           param.docIds = this.fnGetMultipleIds()
       }
-      return { param: param, transforms: transforms }
+      return { param, transforms }
     },
     fnHandleResResult(result, isMultiple) {
       const realAt = Math.ceil((this.page.total - result.n) / this.page.size)
@@ -617,50 +618,48 @@ const componentOptions = {
         `${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`
       )
     },
-    handlePlugins(button, type) {
-      const { param: postParams } = type
-        ? this.fnSetReqParam(type)
-        : { param: null }
-      let getParams = {
-        dbName: this.dbName,
-        clName: this.clName,
-        type: button.type,
-        name: button.name,
-      }
-      createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(
-        postParams,
-        getParams
-      )
+    handlePlugins(plugin, conditionType) {
+      new Promise((resolve) => {
+        let { beforeComp } = plugin
+        if (beforeComp && beforeComp.name === 'DialogDocList') {
+          import('./plugins/DialogDocList.vue').then((Module) => {
+            let { bucketName, dbName, clName, tmsAxiosName } = this
+            const vm = Module.createAndMount(
+              Vue,
+              {
+                bucketName,
+                dbName,
+                clName,
+                tmsAxiosName,
+              },
+              { createDbApi, createClApi, createDocApi }
+            )
+            vm.$on('confirm', (result) => {
+              resolve(result)
+            })
+          })
+        } else resolve()
+      }).then((beforeResult) => {
+        let postBody = conditionType
+          ? this.fnSetReqParam(conditionType).param
+          : null
+        if (beforeResult) {
+          if (!postBody) postBody = {}
+          postBody.related = beforeResult
+        }
+        let queryParams = {
+          db: this.dbName, // 参数名改为db
+          cl: this.clName, // 参数名改为cl
+          plugin: plugin.name,
+          // name: plugin.name,
+          // type: plugin.type, // 这个参数应该去掉，插件自己知道自己的类型
+        }
+        createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(
+          postBody,
+          queryParams
+        )
+      })
     },
-    // handlePlugins(button, type) {
-    //   const { param: postParams } = type
-    //     ? this.fnSetReqParam(type)
-    //     : { param: null }
-    //   let getParams = {
-    //     bucket: env.process.VUE_APP_PLUGIN_BUCKET,
-    //     pluginCfg: s[0],
-    //     db: this.dbName,
-    //     clName: this.clName
-    //   }
-    //   if (!s[2].isConfirm) {
-    //     return this.handlePluginsApi(s, getParams, postParams, 'defaultParams')
-    //   }
-    // },
-    // async handlePluginsApi(s, getParams, postParams, mergeParams) {
-    //   const toType = Object.prototype.toString
-    //   const source =
-    //     s[2][mergeParams] &&
-    //     toType.call(s[2][mergeParams]) === '[object Object]'
-    //       ? s[2][mergeParams]
-    //       : {}
-
-    //   Object.assign(getParams, source)
-
-    //   await createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(
-    //     postParams,
-    //     getParams
-    //   )
-    // },
     handleSize(val) {
       this.page.size = val
       this.dialogPage.size = val
@@ -730,6 +729,8 @@ const componentOptions = {
         collection.schema.body.properties
       ) {
         Object.assign(temp, collection.schema.body.properties)
+      } else {
+        temp._id = { title: 'id' }
       }
       this.properties = Object.freeze(temp)
     },

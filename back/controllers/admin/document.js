@@ -18,16 +18,8 @@ class Document extends DocBase {
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbNameRequired'
    *       - $ref: '#/components/parameters/clNameRequired'
-   *       - name: page
-   *         in: query
-   *         description: 分页条件，起始页
-   *         schema:
-   *           type: integer
-   *       - name: size
-   *         in: query
-   *         description: 分页条件，每页包含的文档数
-   *         schema:
-   *           type: integer
+   *       - $ref: '#/components/parameters/page'
+   *       - $ref: '#/components/parameters/size'
    *     requestBody:
    *       content:
    *         application/json:
@@ -46,7 +38,7 @@ class Document extends DocBase {
    *               value: {"filter": "", "orderBy": ""}
    *     responses:
    *       '200':
-   *         description: result为符合条件的文档数组
+   *         description: result为符合条件的文档数组。默认按_id降序排列。
    *         content:
    *           application/json:
    *             schema:

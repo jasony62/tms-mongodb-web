@@ -28,14 +28,33 @@ class DbBase extends Base {
   async list() {
     const query = { type: 'database' }
     if (this.bucket) query.bucket = this.bucket.name
-    const tmsDbs = await this.clMongoObj
-      .find(query, {
-        projection: { type: 0 },
-      })
-      .sort({ top: -1 })
-      .toArray()
+    const { keyword } = this.request.query
+    if (keyword) {
+      let re = new RegExp(keyword)
+      query['$or'] = [
+        { name: { $regex: re, $options: 'i' } },
+        { title: { $regex: re, $options: 'i' } },
+      ]
+    }
+    const options = {
+      projection: { type: 0 },
+      sort: { top: -1 },
+    }
+    let { skip, limit } = this.dbHelper.requestPage()
+    // 添加分页条件
+    if (typeof skip === 'number') {
+      options.skip = skip
+      options.limit = limit
+    }
 
-    return new ResultData(tmsDbs)
+    const tmwDbs = await this.clMongoObj.find(query, options).toArray()
+
+    if (typeof skip === 'number') {
+      let total = await this.clMongoObj.count(query)
+      return new ResultData({ databases: tmwDbs, total })
+    }
+
+    return new ResultData(tmwDbs)
   }
   /**
    * 新建数据库

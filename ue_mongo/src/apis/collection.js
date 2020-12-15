@@ -8,12 +8,12 @@ export default function create(tmsAxios) {
         .get(`${base}/byName`, { params })
         .then(rst => rst.data.result)
     },
-		/**
-		 *
-		 * @param {*} dbName
-		 */
-    list(bucket, dbName) {
-      const params = { bucket, db: dbName }
+    /**
+     *
+     * @param {*} dbName
+     */
+    list(bucket, dbName, { keyword, page, size } = {}) {
+      const params = { bucket, db: dbName, keyword, page, size }
       return tmsAxios
         .get(`${base}/list`, { params })
         .then(rst => rst.data.result)

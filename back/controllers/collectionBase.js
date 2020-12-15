@@ -50,10 +50,30 @@ class CollectionBase extends Base {
   async list() {
     const query = { type: 'collection', 'db.sysname': this.reqDb.sysname }
     if (this.bucket) query.bucket = this.bucket.name
+    const { keyword } = this.request.query
+    if (keyword) {
+      let re = new RegExp(keyword)
+      query['$or'] = [
+        { name: { $regex: re, $options: 'i' } },
+        { title: { $regex: re, $options: 'i' } },
+      ]
+    }
+    const options = {
+      projection: { type: 0 },
+    }
+    let { skip, limit } = this.clHelper.requestPage()
+    // 添加分页条件
+    if (typeof skip === 'number') {
+      options.skip = skip
+      options.limit = limit
+    }
 
-    const tmwCls = await this.clMongoObj
-      .find(query, { projection: { type: 0 } })
-      .toArray()
+    const tmwCls = await this.clMongoObj.find(query, options).toArray()
+
+    if (typeof skip === 'number') {
+      let total = await this.clMongoObj.count(query)
+      return new ResultData({ collections: tmwCls, total })
+    }
 
     return new ResultData(tmwCls)
   }

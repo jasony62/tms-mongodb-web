@@ -103,8 +103,8 @@ class DocBase extends Base {
   async list() {
     const existCl = await this.docHelper.findRequestCl()
 
-    const { page = null, size = null } = this.request.query
-    const { filter = null, orderBy = null } = this.request.body
+    const { page, size } = this.request.query
+    const { filter, orderBy } = this.request.body
 
     let data = await this.modelDoc.list(
       existCl,
