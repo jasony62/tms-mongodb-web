@@ -15,53 +15,74 @@ class Base {
    * 组装 查询条件
    */
   assembleQuery(filter, like = true) {
-    let query = {}
-    let fKeys = Object.keys(filter)
+    const fnKwRe = (keyword) => {
+      let kws = keyword.split(/,|，/)
+      return kws.length === 1 ? keyword : '(' + kws.join('|') + ')'
+    }
+    let query = {} // 要返回的mongodb查询条件
+    let columns = Object.keys(filter) // 指定的查询列
     if (like === true) {
-      for (let fk of fKeys) {
-        let val = filter[fk]
-        let find2
-        if (typeof val === 'object' && val.keyword) {
-          if (val.feature === 'start') {
-            find2 = { $regex: '^' + val.keyword }
-          } else if (val.feature === 'notStart') {
-            find2 = { $not: { $regex: '^' + val.keyword } }
-          } else if (val.feature === 'end') {
-            find2 = { $regex: '^.*' + val.keyword + '$' }
-          } else if (val.feature === 'notEnd') {
-            find2 = { $not: { $regex: '^.*' + val.keyword + '$' } }
-          } else if (val.feature === 'notLike') {
-            find2 = { $not: { $regex: val.keyword } }
-          } else if (val.feature === 'in') {
-            if (Array.isArray(val.keyword)) {
-              find2 = { $in: val.keyword }
-            }
-          } else if (val.feature === 'between') {
-            if (Array.isArray(val.keyword) && val.keyword.length === 2) {
-              find2 = { $gte: val.keyword[0], $lte: val.keyword[1] }
-            }
-          } else if (typeof val.keyword === 'string') {
-            find2 = { $regex: val.keyword }
+      for (let column of columns) {
+        let cond = filter[column]
+        let subQuery
+        if (typeof cond === 'object' && cond.keyword) {
+          const { keyword, feature } = cond
+          if (feature === 'start') {
+            subQuery = { $regex: `^${fnKwRe(keyword)}` }
+          } else if (feature === 'notStart') {
+            subQuery = { $not: { $regex: `^${fnKwRe(keyword)}` } }
+          } else if (feature === 'end') {
+            subQuery = { $regex: `^.*${fnKwRe(keyword)}$` }
+          } else if (feature === 'notEnd') {
+            subQuery = { $not: { $regex: `^.*${fnKwRe(keyword)}$` } }
+          } else if (feature === 'notLike') {
+            subQuery = { $not: { $regex: fnKwRe(keyword) } }
+          } else if (feature === 'in') {
+            if (Array.isArray(keyword)) subQuery = { $in: keyword }
+          } else if (feature === 'between') {
+            if (Array.isArray(keyword) && keyword.length === 2)
+              subQuery = { $gte: keyword[0], $lte: keyword[1] }
+          } else if (typeof keyword === 'string') {
+            subQuery = { $regex: fnKwRe(keyword) }
           }
         } else if (
-          typeof val === 'object' &&
-          !val.keyword &&
-          typeof val.keyword !== 'undefined'
+          typeof cond === 'object' &&
+          cond.keyword !== undefined &&
+          !cond.keyword
         ) {
-          find2 = val.keyword
-        } else if (typeof val === 'string') {
-          find2 = { $regex: val }
+          // 为了支持boolean值和0？
+          subQuery = cond.keyword
+        } else if (typeof cond === 'string') {
+          subQuery = { $regex: cond }
+        } else if (typeof cond === 'number') {
+          subQuery = cond
         }
 
-        if (typeof find2 !== 'undefined') query[fk] = find2
+        if (subQuery !== undefined) query[column] = subQuery
       }
     } else {
-      for (let fk of fKeys) {
-        query[fk] = filter[fk]
+      for (let column of columns) {
+        query[column] = filter[column]
       }
     }
 
     return query
+  }
+  /**
+   * 将指定的page和size参数转换为skip和limit参互
+   * @param {number} page
+   * @param {number} size
+   *
+   * @return {object} 包含skip和limit的对象
+   */
+  toSkipAndLimit(page, size) {
+    let skip = 0
+    let limit = 0
+    if (page && page > 0 && size && size > 0) {
+      skip = (parseInt(page) - 1) * parseInt(size)
+      limit = parseInt(size)
+    }
+    return { skip, limit }
   }
   /**
    *

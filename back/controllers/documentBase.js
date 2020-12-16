@@ -2,6 +2,7 @@ const { ResultData, ResultFault } = require('tms-koa')
 const Base = require('./base')
 const DocumentHelper = require('./documentHelper')
 const ModelDoc = require('../models/mgdb/document')
+const ModelCl = require('../models/mgdb/collection')
 const ObjectId = require('mongodb').ObjectId
 const _ = require('lodash')
 const APPCONTEXT = require('tms-koa').Context.AppContext
@@ -184,6 +185,31 @@ class DocBase extends Base {
       .then((modifiedCount) => {
         return new ResultData({ total, modifiedCount })
       })
+  }
+  /**
+   * 批量复制数据
+   */
+  async copyMany() {
+    const existCl = await this.docHelper.findRequestCl()
+
+    const { toDb, toCl } = this.request.query
+    const modelCl = new ModelCl(this.bucket)
+    const targetCl = await modelCl.byName(toDb, toCl)
+    if (!targetCl)
+      return new ResultFault(
+        `指定的目标集合[db=${targetDb}][cl=${targetCl}]不可访问`
+      )
+
+    const { query, operation, errCause } = this.docHelper.getRequestBatchQuery()
+    if (errCause) return new ResultFault(errCause)
+
+    let total = await this.modelDoc.count(existCl, query)
+    if (total === 0)
+      return new ResultFault('没有符合条件的数据，未执行复制操作')
+
+    return this.modelDoc
+      .copyMany(existCl, query, targetCl)
+      .then(() => new ResultData(total))
   }
   /**
    *  根据某一列的值分组

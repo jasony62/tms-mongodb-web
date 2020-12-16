@@ -50,7 +50,7 @@ class DbBase extends Base {
     const tmwDbs = await this.clMongoObj.find(query, options).toArray()
 
     if (typeof skip === 'number') {
-      let total = await this.clMongoObj.count(query)
+      let total = await this.clMongoObj.countDocuments(query)
       return new ResultData({ databases: tmwDbs, total })
     }
 

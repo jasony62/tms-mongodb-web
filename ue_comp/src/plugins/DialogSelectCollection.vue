@@ -18,22 +18,13 @@
             </el-pagination>
           </el-option>
         </el-select>
-        <el-button @click="listDocument">查找</el-button>
       </tms-flex>
-      <el-table :data="docs" stripe style="width:100%" height="1" @selection-change="selectDocument">
-        <el-table-column fixed="left" type="selection" width="48"></el-table-column>
-        <el-table-column v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k" :label="s.title"></el-table-column>
-      </el-table>
     </tms-flex>
     <div slot="footer">
-      <tms-flex style="width:100%" :elastic-items="[1]">
-        <el-pagination :current-page="docBatch.page" :page-sizes="[50, 100, 200]" :page-size="docBatch.size" layout="total, sizes, prev, pager, next" :total="docBatch.total" @current-change="changeDocPage" @size-change="changeDocSize">
-        </el-pagination>
-        <div>
-          <el-button type="primary" @click="confirm">确定</el-button>
-          <el-button @click="dialogVisible = false">取消</el-button>
-        </div>
-      </tms-flex>
+      <div>
+        <el-button type="primary" @click="confirm">确定</el-button>
+        <el-button @click="dialogVisible = false">取消</el-button>
+      </div>
     </div>
   </el-dialog>
 </template>
@@ -41,32 +32,17 @@
 import Vue from 'vue'
 import { Batch, startBatch } from 'tms-vue'
 import { Flex } from 'tms-vue-ui'
-import {
-  Dialog,
-  Table,
-  TableColumn,
-  Select,
-  Option,
-  Pagination,
-  Button,
-} from 'element-ui'
+import { Dialog, Select, Option, Button, Pagination } from 'element-ui'
 import { db } from '../../../ue_admin/src/apis'
 
 Vue.use(Flex)
-Vue.use(Dialog)
-  .use(Table)
-  .use(TableColumn)
-  .use(Select)
-  .use(Option)
-  .use(Pagination)
-  .use(Button)
+Vue.use(Dialog).use(Select).use(Option).use(Button).use(Pagination)
 
 // 查找条件下拉框分页包含记录数
-const LIST_PAGE_SIZE = 100
 const SELECT_PAGE_SIZE = 7
 
 // 创建api调用对象方法
-let fnCreateDbApi, fnCreateClApi, fnCreateDocApi
+let fnCreateDbApi, fnCreateClApi
 
 const componentOptions = {
   name: 'DialogDocList',
@@ -74,8 +50,6 @@ const componentOptions = {
     bucketName: String,
     fixedDbName: String,
     fixedClName: String,
-    fixedDocumentFilter: Object,
-    fixedDocumentOrderby: Object,
     tmsAxiosName: String,
     dialogVisible: { type: Boolean, default: true },
   },
@@ -83,11 +57,6 @@ const componentOptions = {
     return {
       destroyOnClose: true,
       closeOnClickModal: false,
-      docs: [],
-      collection: {
-        schema: { body: { properties: { _id: { title: 'id' } } } },
-      },
-      docBatch: new Batch(this.batchDocument),
       criteria: {
         databaseLoading: false,
         databases: [],
@@ -97,7 +66,6 @@ const componentOptions = {
         collection: '',
         clBatch: new Batch(),
       },
-      selectedDocuments: [],
     }
   },
   methods: {
@@ -153,42 +121,10 @@ const componentOptions = {
     changeClPage(page) {
       this.criteria.clBatch.goto(page)
     },
-    listDocument() {
-      this.docBatch = startBatch(this.batchDocument, [], {
-        size: this.docBatch.size,
-      })
-    },
-    batchDocument(batchArg) {
-      return fnCreateDocApi(this.TmsAxios(this.tmsAxiosName))
-        .list(
-          this.bucketName,
-          this.criteria.database,
-          this.criteria.collection,
-          batchArg,
-          this.fixedDocumentFilter,
-          this.fixedDocumentOrderby
-        )
-        .then((result) => {
-          this.docs = result.docs
-          return result
-        })
-    },
-    changeDocPage(page) {
-      this.docBatch.goto(page)
-    },
-    changeDocSize(size) {
-      this.docBatch.size = size
-      this.docBatch.goto(1)
-    },
-    selectDocument(rows) {
-      this.selectedDocuments = rows
-    },
     confirm() {
-      let docIds = this.selectedDocuments.map((doc) => doc._id)
       this.$emit('confirm', {
         db: this.criteria.database,
         cl: this.criteria.collection,
-        docIds,
       })
       this.$destroy()
     },
@@ -203,7 +139,6 @@ const componentOptions = {
   },
   mounted() {
     document.body.appendChild(this.$el)
-    this.docBatch.size = LIST_PAGE_SIZE
     let { criteria } = this
     if (this.fixedDbName) {
       criteria.database = this.fixedDbName
@@ -230,7 +165,6 @@ export function createAndMount(Vue, propsData, apiCreators) {
   // 指定使用的api
   fnCreateDbApi = apiCreators.createDbApi
   fnCreateClApi = apiCreators.createClApi
-  fnCreateDocApi = apiCreators.createDocApi
 
   const CompClass = Vue.extend(componentOptions)
   return new CompClass({
@@ -241,13 +175,13 @@ export function createAndMount(Vue, propsData, apiCreators) {
 <style lang="less" scoped>
 .el-dialog__wrapper {
   /deep/ .el-dialog {
-    width: 80%;
+    width: 600px;
   }
   /deep/ .el-dialog__header {
     display: none;
   }
   /deep/ .el-dialog__body {
-    height: 60vh;
+    height: 150px;
     padding-bottom: 0;
     .el-select {
       .el-input {

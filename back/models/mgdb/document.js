@@ -98,6 +98,41 @@ class Document extends Base {
     }
   }
   /**
+   * 按条件批量复制文档
+   *
+   * 保留原文档的id，如果id重复进行替换
+   *
+   * @param {object} existCl - 文档对象所在集合
+   * @param {object} query - 文档查询条件
+   * @param {object} targetCl - 目标集合
+   *
+   * @returns {number} 复制的文档数量
+   */
+  async copyMany(existCl, query, targetCl) {
+    let mongoClient = await this.mongoClient()
+    let existSysCl = mongoClient
+      .db(existCl.db.sysname)
+      .collection(existCl.sysname)
+
+    let copyedDocs = await existSysCl.find(query).toArray()
+    if (copyedDocs.length === 0) return 0
+
+    let targetSysCl = mongoClient
+      .db(targetCl.db.sysname)
+      .collection(targetCl.sysname)
+
+    let bulkOp = targetSysCl.initializeUnorderedBulkOp()
+    copyedDocs.forEach((doc) => {
+      bulkOp.find({ _id: doc._id }).upsert().updateOne({
+        $setOnInsert: doc,
+      })
+    })
+
+    return bulkOp.execute().then(({ nUpserted, nMatched, nModified }) => {
+      return { nUpserted, nMatched, nModified }
+    })
+  }
+  /**
    * 更新指定id的文档
    *
    * 如果更新的是从集合中的数据，改为更新主集合中的数据
@@ -206,12 +241,8 @@ class Document extends Base {
     let cl = client.db(existCl.db.sysname).collection(existCl.sysname)
 
     // 分页
-    let skip = 0
-    let limit = 0
-    if (page && page > 0 && size && size > 0) {
-      skip = (parseInt(page) - 1) * parseInt(size)
-      limit = parseInt(size)
-    }
+    let { skip, limit } = this.toSkipAndLimit(page, size)
+
     // 排序
     let sort = {}
     if (orderBy && typeof orderBy === 'object' && Object.keys(orderBy).length) {

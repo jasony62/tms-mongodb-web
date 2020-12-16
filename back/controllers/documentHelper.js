@@ -268,7 +268,7 @@ class DocumentHelper extends Helper {
     //获取指定集合的列
     const collModel = new ModelColl()
     let newClSchema = await collModel.getSchemaByCollection(newExistCl)
-    if (!newClSchema) return [false, '指定的集合未指定集合列']
+    if (!newClSchema) return [false, '指定的集合未指定集合列定义']
 
     // 查询获取旧数据
     let fields = {}

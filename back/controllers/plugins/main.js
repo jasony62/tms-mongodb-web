@@ -163,6 +163,51 @@ class Plugin extends Base {
   /**
    * @swagger
    *
+   * /api/plugins/remotePreCondition:
+   *   get:
+   *     tags:
+   *       - plugin
+   *     summary: 获取插件的前置条件
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/dbName'
+   *       - $ref: '#/components/parameters/clName'
+   *       - name: plugin
+   *         in: query
+   *         description: 插件名称
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       '200':
+   *         description: result为前置条件对象
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
+   */
+  async remotePreCondition() {
+    let { bucket, db, cl, plugin: pluginName } = this.request.query
+
+    if (!pluginName) return new ResultFault('缺少plugin参数')
+
+    const ins = await PluginContext.ins()
+
+    const plugin = ins.byName(pluginName)
+    if (!plugin) return new ResultFault(`未找到指定插件[plugin=${pluginName}]`)
+
+    if (typeof plugin.remotePreCondition !== 'function')
+      return new ResultFault(
+        `插件[plugin=${plugin.name}]没有定义[remotePreCondition]方法`
+      )
+
+    const condition = await plugin.remotePreCondition(bucket, db, cl)
+
+    return new ResultData(condition)
+  }
+  /**
+   * @swagger
+   *
    * /api/plugins/execute:
    *   post:
    *     tags:

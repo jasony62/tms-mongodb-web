@@ -14,6 +14,20 @@ export default function create(tmsAxios) {
           .post(`${base}/execute`, args[0], { params: args[1] })
           .then(rst => rst.data.result)
       )
+    },
+    /**
+     *
+     * @param {string} bucket - 用户存储空间名称
+     * @param {string} db - 数据名称
+     * @param {string} cl - 集合名称
+     * @param {string} plugin - 插件名称
+     */
+    remotePreCondition(bucket, db, cl, plugin) {
+      return tmsAxios
+        .get(`${base}/remotePreCondition`, {
+          params: { bucket, db, cl, plugin }
+        })
+        .then(rst => rst.data.result)
     }
   }
 }

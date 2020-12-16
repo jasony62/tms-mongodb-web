@@ -35,7 +35,7 @@ class Document extends DocBase {
    *           examples:
    *             basic:
    *               summary: 基础功能
-   *               value: {"filter": "", "orderBy": ""}
+   *               value: {"filter": {}, "orderBy": {}}
    *     responses:
    *       '200':
    *         description: result为符合条件的文档数组。默认按_id降序排列。
@@ -202,6 +202,50 @@ class Document extends DocBase {
    */
   async removeMany() {
     return super.removeMany()
+  }
+  /**
+   * @swagger
+   *
+   * /api/admin/document/copyMany:
+   *   post:
+   *     tags:
+   *       - admin
+   *     summary: 批量复制文档
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - $ref: '#/components/parameters/clNameRequired'
+   *       - name: toDb
+   *         descripton: 目标数据库名称
+   *         in: query
+   *         schema:
+   *           type: string
+   *         required: true
+   *       - name: toCl
+   *         descripton: 目标集合名称
+   *         in: query
+   *         schema:
+   *           type: string
+   *         required: true
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *           examples:
+   *             basic:
+   *               summary: 基本示例
+   *               value: {"docIds": [], "filter": {}}
+   *     responses:
+   *       '200':
+   *         description: result为复制文档的数量
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
+   */
+  async copyMany() {
+    return super.copyMany()
   }
   /**
    * @swagger
