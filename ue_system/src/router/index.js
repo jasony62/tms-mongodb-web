@@ -10,29 +10,29 @@ const routes = [
   {
     path: '/login',
     name: 'login',
-    component: Login
+    component: Login,
   },
   {
     path: '/bucket',
     name: 'bucket',
-    component: Bucket
+    component: Bucket,
   },
   {
     path: `/home`,
     name: 'home',
     component: Home,
-    props: true
+    props: true,
   },
   {
     path: `/database/:dbName`,
     name: 'database',
     component: Database,
-    props: true
+    props: true,
   },
   {
     path: '*',
-    redirect: { name: 'login' }
-  }
+    redirect: { name: 'home' },
+  },
 ]
 
 Vue.use(VueRouter).use(TmsRouterHistoryPlugin)
@@ -40,15 +40,17 @@ Vue.use(VueRouter).use(TmsRouterHistoryPlugin)
 let router = new VueRouter({
   mode: 'history',
   base: process.env.VUE_APP_BASE_URL,
-  routes
+  routes,
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.name !== 'login') {
-    let token = sessionStorage.getItem('access_token')
-    if (!token) {
-      Vue.TmsRouterHistory.push(to.path)
-      return next({ name: 'login' })
+  if (process.env.VUE_APP_BACK_AUTH_BASE) {
+    if (to.name !== 'login') {
+      let token = sessionStorage.getItem('access_token')
+      if (!token) {
+        Vue.TmsRouterHistory.push(to.path)
+        return next({ name: 'login' })
+      }
     }
   }
   next()

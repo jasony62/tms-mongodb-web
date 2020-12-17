@@ -17,6 +17,21 @@ class Helper {
     return cl
   }
   /**
+   * 将请求中指定的分页参数转换为mongodb查询参数
+   * @param {object} options - 指定默认值
+   * @param {number} [options.defaultSize=10] - 每页包含数量默认值
+   *
+   * @returns {object} 请求中未指定有效page参数，返回skip=false；否则，返回skip和limit值。
+   */
+  requestPage({ defaultSize = 10 } = {}) {
+    let { page, size } = this.ctrl.request.query
+    if (!parseInt(page)) return { skip: false }
+    let limit = parseInt(size) ? parseInt(size) : parseInt(defaultSize)
+    let skip = (page - 1) * limit
+
+    return { skip, limit }
+  }
+  /**
    * 获得请求的数据库
    *
    * @param {boolean} bThrowNotFound - 如果不可访问是否抛出异常

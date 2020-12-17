@@ -42,8 +42,8 @@ class PluginBase {
    * @returns {object} 插件的描述信息
    */
   get profile() {
-    const { name, scope, title, description } = this
-    return { name, scope, title, description }
+    const { name, scope, title, description, beforeComp, afterComp } = this
+    return { name, scope, title, description, beforeComp, afterComp }
   }
 }
 

@@ -62,7 +62,6 @@ services:
         vue_app_base_url: /admin
         vue_app_back_auth_base: /auth
         vue_app_back_api_base: /api
-        vue_app_back_api_plugin: /plugin
         vue_app_back_api_fs: /fs
         vue_app_front_doceditor_add: ''
         vue_app_front_doceditor_modify: ''
@@ -81,7 +80,6 @@ services:
         vue_app_base_url: /mongo
         vue_app_back_auth_base: /auth
         vue_app_back_api_base: /api
-        vue_app_back_api_plugin: /plugin
         vue_app_back_api_fs: /fs
         vue_app_front_doceditor_add: ''
         vue_app_front_doceditor_modify: ''

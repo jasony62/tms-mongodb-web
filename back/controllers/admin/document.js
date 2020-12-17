@@ -18,16 +18,8 @@ class Document extends DocBase {
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbNameRequired'
    *       - $ref: '#/components/parameters/clNameRequired'
-   *       - name: page
-   *         in: query
-   *         description: 分页条件，起始页
-   *         schema:
-   *           type: integer
-   *       - name: size
-   *         in: query
-   *         description: 分页条件，每页包含的文档数
-   *         schema:
-   *           type: integer
+   *       - $ref: '#/components/parameters/page'
+   *       - $ref: '#/components/parameters/size'
    *     requestBody:
    *       content:
    *         application/json:
@@ -43,10 +35,10 @@ class Document extends DocBase {
    *           examples:
    *             basic:
    *               summary: 基础功能
-   *               value: {"filter": "", "orderBy": ""}
+   *               value: {"filter": {}, "orderBy": {}}
    *     responses:
    *       '200':
-   *         description: result为符合条件的文档数组
+   *         description: result为符合条件的文档数组。默认按_id降序排列。
    *         content:
    *           application/json:
    *             schema:
@@ -129,7 +121,7 @@ class Document extends DocBase {
    *   post:
    *     tags:
    *       - admin
-   *     summary: 批量更新文档（代码有问题）
+   *     summary: 批量更新文档
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbNameRequired'
@@ -146,7 +138,7 @@ class Document extends DocBase {
    *               value: {"docIds": [], "filter": {}, "columns": {}}
    *     responses:
    *       '200':
-   *         description: result为???
+   *         description: result为更新的文档数量
    *         content:
    *           application/json:
    *             schema:
@@ -170,7 +162,7 @@ class Document extends DocBase {
    *       - $ref: '#/components/parameters/docId'
    *     responses:
    *       '200':
-   *         description: result为???
+   *         description: result为是否删除成功
    *         content:
    *           application/json:
    *             schema:
@@ -202,7 +194,7 @@ class Document extends DocBase {
    *               value: {"docIds": [], "filter": {}}
    *     responses:
    *       '200':
-   *         description: result为???
+   *         description: result为删除文档的数量
    *         content:
    *           application/json:
    *             schema:
@@ -210,6 +202,50 @@ class Document extends DocBase {
    */
   async removeMany() {
     return super.removeMany()
+  }
+  /**
+   * @swagger
+   *
+   * /api/admin/document/copyMany:
+   *   post:
+   *     tags:
+   *       - admin
+   *     summary: 批量复制文档
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - $ref: '#/components/parameters/clNameRequired'
+   *       - name: toDb
+   *         descripton: 目标数据库名称
+   *         in: query
+   *         schema:
+   *           type: string
+   *         required: true
+   *       - name: toCl
+   *         descripton: 目标集合名称
+   *         in: query
+   *         schema:
+   *           type: string
+   *         required: true
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *           examples:
+   *             basic:
+   *               summary: 基本示例
+   *               value: {"docIds": [], "filter": {}}
+   *     responses:
+   *       '200':
+   *         description: result为复制文档的数量
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
+   */
+  async copyMany() {
+    return super.copyMany()
   }
   /**
    * @swagger

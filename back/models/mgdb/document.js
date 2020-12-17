@@ -5,7 +5,217 @@ const moment = require('moment')
 const APPCONTEXT = require('tms-koa').Context.AppContext
 const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
 
+/**文档模型类基类 */
 class Document extends Base {
+  /**
+   * 获得指定id的文档
+   * @param {object} existCl - 文档所在集合
+   * @param {string} id - 文档id
+   *
+   * @returns {object} 文档对象
+   */
+  async byId(existCl, id) {
+    let mongoClient = await this.mongoClient()
+    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+    let existDoc = await sysCl.findOne({
+      _id: ObjectId(id),
+    })
+
+    return existDoc
+  }
+  /**
+   * 删除指定id的文档
+   *
+   * 如果删除的是从集合中的数据，改为删除主集合中的数据
+   *
+   * @param {object} existCl - 文档对象所在集合
+   * @param {string} id - 文档对象id
+   *
+   * @returns {boolean} 是否更新成功
+   */
+  async remove(existCl, id) {
+    let mongoClient = await this.mongoClient()
+    if (existCl.usage !== 1) {
+      let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+      return sysCl
+        .deleteOne({
+          _id: ObjectId(id),
+        })
+        .then(({ result }) => result.n === 1)
+    } else {
+      let doc = existCl.findOne({ _id: ObjectId(id) })
+      if (!doc) return false
+      let { __pri } = doc
+      let priCl = mongoClient.db(__pri.db).collection(__pri.cl)
+      return priCl
+        .deleteOne({ _id: __pri.id })
+        .then(({ result }) => result.n === 1)
+    }
+  }
+  /**
+   * 按条件批量删除文档
+   *
+   * 如果删除的是从集合中的数据，改为删除主集合中的数据，从集合的数据等复制机制进行更新
+   *
+   * @param {object} existCl - 文档对象所在集合
+   * @param {object} query - 文档查询条件
+   *
+   * @returns {number} 删除的文档数量
+   */
+  async removeMany(existCl, query) {
+    let mongoClient = await this.mongoClient()
+    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+    if (existCl.usage !== 1) {
+      return sysCl.deleteMany(query).then(({ deletedCount }) => deletedCount)
+    } else {
+      let removedDocs = await sysCl
+        .find(query, { projection: { __pri: 1 } })
+        .toArray()
+      if (removedDocs.length === 0) return 0
+
+      let priIdsByCl = new Map() // 按文档所属集合对文档的id分组记录
+      removedDocs.forEach(({ __pri }) => {
+        let priDbDotCl = `${__pri.db}.${__pri.cl}`
+        if (!priIdsByCl.has(priDbDotCl)) priIdsByCl.set(priDbDotCl, [])
+        priIdsByCl.get(priDbDotCl).push(__pri.id)
+      })
+
+      let promises = [] // 每个主集合中删除文档的promise
+      priIdsByCl.forEach((ids, dbDotCl) => {
+        let [db, cl] = dbDotCl.split('.')
+        promises.push(
+          mongoClient
+            .db(db)
+            .collection(cl)
+            .deleteMany({ _id: { $in: ids } })
+            .then(({ deletedCount }) => deletedCount)
+        )
+      })
+
+      return Promise.all(promises).then((deletedCounts) =>
+        deletedCounts.reduce((total, deletedCount) => total + deletedCount, 0)
+      )
+    }
+  }
+  /**
+   * 按条件批量复制文档
+   *
+   * 保留原文档的id，如果id重复进行替换
+   *
+   * @param {object} existCl - 文档对象所在集合
+   * @param {object} query - 文档查询条件
+   * @param {object} targetCl - 目标集合
+   *
+   * @returns {number} 复制的文档数量
+   */
+  async copyMany(existCl, query, targetCl) {
+    let mongoClient = await this.mongoClient()
+    let existSysCl = mongoClient
+      .db(existCl.db.sysname)
+      .collection(existCl.sysname)
+
+    let copyedDocs = await existSysCl.find(query).toArray()
+    if (copyedDocs.length === 0) return 0
+
+    let targetSysCl = mongoClient
+      .db(targetCl.db.sysname)
+      .collection(targetCl.sysname)
+
+    let bulkOp = targetSysCl.initializeUnorderedBulkOp()
+    copyedDocs.forEach((doc) => {
+      bulkOp.find({ _id: doc._id }).upsert().updateOne({
+        $setOnInsert: doc,
+      })
+    })
+
+    return bulkOp.execute().then(({ nUpserted, nMatched, nModified }) => {
+      return { nUpserted, nMatched, nModified }
+    })
+  }
+  /**
+   * 更新指定id的文档
+   *
+   * 如果更新的是从集合中的数据，改为更新主集合中的数据
+   *
+   * @param {object} existCl - 文档对象所在集合
+   * @param {string} id - 文档对象id
+   * @param {object} updated - 更新的数据
+   *
+   * @returns {boolean} 是否更新成功
+   */
+  async update(existCl, id, updated) {
+    let mongoClient = await this.mongoClient()
+    if (existCl.usage !== 1) {
+      let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+      return sysCl
+        .updateOne(
+          {
+            _id: ObjectId(id),
+          },
+          { $set: updated }
+        )
+        .then(({ modifiedCount }) => modifiedCount === 1)
+    } else {
+      let doc = existCl.findOne({ _id: ObjectId(id) })
+      if (!doc) return false
+      let { __pri } = doc
+      let priCl = mongoClient.db(__pri.db).collection(__pri.cl)
+      return priCl
+        .updateOne({ _id: __pri.id }, { $set: updated })
+        .then(({ modifiedCount }) => modifiedCount === 1)
+    }
+  }
+  /**
+   * 按条件批量更新文档
+   *
+   * 如果更新的是从集合中的数据，改为更新主集合中的数据，从集合的数据等复制机制进行更新
+   *
+   * @param {object} existCl - 文档对象所在集合
+   * @param {object} query - 文档查询条件
+   * @param {object} updated - 更新的数据
+   *
+   * @returns {number} 更新的文档数量
+   */
+  async updateMany(existCl, query, updated) {
+    let mongoClient = await this.mongoClient()
+    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+    if (existCl.usage !== 1) {
+      return sysCl
+        .updateMany(query, { $set: updated })
+        .then(({ modifiedCount }) => modifiedCount)
+    } else {
+      let updatedDocs = await sysCl
+        .find(query, { projection: { __pri: 1 } })
+        .toArray()
+      if (updatedDocs.length === 0) return 0
+
+      let priIdsByCl = new Map() // 按文档所属集合对文档的id分组记录
+      updatedDocs.forEach(({ __pri }) => {
+        let priDbDotCl = `${__pri.db}.${__pri.cl}`
+        if (!priIdsByCl.has(priDbDotCl)) priIdsByCl.set(priDbDotCl, [])
+        priIdsByCl.get(priDbDotCl).push(__pri.id)
+      })
+
+      let promises = [] // 每个主集合中更新文档的promise
+      priIdsByCl.forEach((ids, dbDotCl) => {
+        let [db, cl] = dbDotCl.split('.')
+        promises.push(
+          mongoClient
+            .db(db)
+            .collection(cl)
+            .updateMany({ _id: { $in: ids } }, { $set: updated })
+            .then(({ modifiedCount }) => modifiedCount)
+        )
+      })
+
+      return Promise.all(promises).then((modifiedCounts) =>
+        modifiedCounts.reduce(
+          (total, modifiedCount) => total + modifiedCount,
+          0
+        )
+      )
+    }
+  }
   /**
    * 模糊搜索数据
    * @param {object} existCl
@@ -31,12 +241,8 @@ class Document extends Base {
     let cl = client.db(existCl.db.sysname).collection(existCl.sysname)
 
     // 分页
-    let skip = 0
-    let limit = 0
-    if (page && page > 0 && size && size > 0) {
-      skip = (parseInt(page) - 1) * parseInt(size)
-      limit = parseInt(size)
-    }
+    let { skip, limit } = this.toSkipAndLimit(page, size)
+
     // 排序
     let sort = {}
     if (orderBy && typeof orderBy === 'object' && Object.keys(orderBy).length) {
@@ -86,6 +292,21 @@ class Document extends Base {
       .catch((err) => [false, err.toString()])
   }
   /**
+   * 获得符合条件的文档数量
+   * @param {object} existCl - 文档所在集合
+   * @param {object} query - 筛选条件
+   *
+   * @returns {number} 文档数量
+   */
+  async count(existCl, query) {
+    const client = await this.mongoClient()
+    const sysCl = client.db(existCl.db.sysname).collection(existCl.sysname)
+
+    let total = await sysCl.countDocuments(query)
+
+    return total
+  }
+  /**
    * 记录数据操作日志
    */
   async dataActionLog(
@@ -113,12 +334,6 @@ class Document extends Base {
 
     const client = await this.mongoClient()
     const cl = client.db('tms_admin')
-    //         // 检查日志表是否存在
-    //         let table = await cl.listCollections({ name: "tms_app_data_action_log"}, { nameOnly: true }).toArray()
-    //         if (table.length === 0) { // 创建集合
-    //             let rst = await cl.createCollection(info.name)
-    //         }
-
     // 插入日志表中
     let today = moment()
     let current = today.format('YYYY-MM-DD HH:mm:ss')

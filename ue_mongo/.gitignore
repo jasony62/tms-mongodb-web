@@ -4,7 +4,6 @@
 /dll/
 
 # local env files
-.env
 .env.*.local
 
 # Log files

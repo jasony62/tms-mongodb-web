@@ -1,6 +1,5 @@
 const Helper = require('./helper')
-const ModelDb = require('../models/mgdb/db')
-const ModelCl = require('../models/mgdb/collection')
+const { ModelDb, ModelCl, ModelReplicaMap } = require('../models/mgdb')
 
 /**
  * 集合复制控制器辅助类
@@ -45,23 +44,17 @@ class ReplicaHelper extends Helper {
    * @param {Object} options -
    * @param {boolean} [options.existent=false] - 检查是否存在复制映射关系
    *
-   * @returns {Array} 第1位代表是否通过了参数检查，true通过，false未通过；若未通过第2位为原因；若通过且已经建立过映射关系，第2为为已存在的复制映射关系。
+   * @returns {[boolean,(string|object)]} 第1位代表是否通过了参数检查，true通过，false未通过；若未通过第2位为原因；若通过且已经建立过映射关系，第2为为已存在的复制映射关系。
    */
   async checkRequestReplicaMap({ existent = false } = {}) {
     let { primary, secondary } = this.ctrl.request.body
 
-    if (!primary || typeof primary !== 'object')
-      return [false, '没有指定参数[primary]']
-    if (!primary.db || typeof primary.db !== 'string')
-      return [false, '没有指定参数[primary.db]']
-    if (!primary.cl || typeof primary.cl !== 'string')
-      return [false, '没有指定参数[primary.cl]']
-    if (!secondary || typeof secondary !== 'object')
-      return [false, '没有指定参数[secondary]']
-    if (!secondary.db || typeof secondary.db !== 'string')
-      return [false, '没有指定参数[secondary.db]']
-    if (!secondary.cl || typeof secondary.cl !== 'string')
-      return [false, '没有指定参数[secondary.cl]']
+    const modelRM = new ModelReplicaMap(this.ctrl.mongoClient)
+    let [passed, cause] = modelRM.check({
+      primary,
+      secondary,
+    })
+    if (passed === false) return [false, cause]
 
     const modelDb = new ModelDb(this.ctrl.bucket)
     const modelCl = new ModelCl(this.ctrl.bucket)
@@ -96,7 +89,7 @@ class ReplicaHelper extends Helper {
     if (secCl.usage !== 1)
       return [
         false,
-        `指定的从集合[secondary.db=${secondary.db}][secondary.cl=${secondary.cl}]的用途[usage=${sec.cl.usage}]必须等于1`,
+        `指定的从集合[secondary.db=${secondary.db}][secondary.cl=${secondary.cl}]的用途[usage=${secCl.usage}]必须等于1`,
       ]
 
     const beforeMap = await this.clReplicaMap.findOne({

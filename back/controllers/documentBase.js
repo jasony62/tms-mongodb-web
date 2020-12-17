@@ -2,16 +2,18 @@ const { ResultData, ResultFault } = require('tms-koa')
 const Base = require('./base')
 const DocumentHelper = require('./documentHelper')
 const ModelDoc = require('../models/mgdb/document')
+const ModelCl = require('../models/mgdb/collection')
 const ObjectId = require('mongodb').ObjectId
 const _ = require('lodash')
 const APPCONTEXT = require('tms-koa').Context.AppContext
 const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
 
+/**文档对象控制器基类 */
 class DocBase extends Base {
   constructor(...args) {
     super(...args)
     this.docHelper = new DocumentHelper(this)
-    this.modelDoc = new ModelDoc()
+    this.modelDoc = new ModelDoc(this.bucket)
   }
   /**
    * 指定数据库指定集合下新建文档
@@ -46,26 +48,55 @@ class DocBase extends Base {
 
     const { id } = this.request.query
 
-    const cl = this.docHelper.findSysColl(existCl)
+    let existDoc = await this.modelDoc.byId(existCl, id)
+    if (!existDoc) return new ResultFault('要删除的文档不存在')
 
     if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       // 记录操作日志
-      let data = await cl.findOne({
-        _id: ObjectId(id),
-      })
       await this.modelDoc.dataActionLog(
-        data,
+        existDoc,
         '删除',
         existCl.db.name,
         existCl.name
       )
     }
 
-    return cl
-      .deleteOne({
-        _id: ObjectId(id),
-      })
-      .then((result) => new ResultData(result.result))
+    const isOk = await this.modelDoc.remove(existCl, id)
+
+    return new ResultData(isOk)
+  }
+  /**
+   * 更新指定数据库指定集合下的文档
+   */
+  async update() {
+    const existCl = await this.docHelper.findRequestCl()
+
+    const { id } = this.request.query
+
+    let existDoc = await this.modelDoc.byId(existCl, id)
+    if (!existDoc) return new ResultFault('要更新的文档不存在')
+
+    let updated = this.request.body
+    updated = _.omit(updated, ['_id', 'bucket'])
+    // 加工数据
+    this.modelDoc.beforeProcessByInAndUp(updated, 'update')
+
+    // 日志
+    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
+      await this.modelDoc.dataActionLog(
+        updated,
+        '修改',
+        existCl.db.name,
+        existCl.name,
+        '',
+        '',
+        JSON.stringify(existDoc)
+      )
+    }
+
+    const isOk = await this.modelDoc.update(existCl, id, updated)
+
+    return new ResultData(isOk)
   }
   /**
    * 指定数据库指定集合下的文档
@@ -73,8 +104,8 @@ class DocBase extends Base {
   async list() {
     const existCl = await this.docHelper.findRequestCl()
 
-    const { page = null, size = null } = this.request.query
-    const { filter = null, orderBy = null } = this.request.body
+    const { page, size } = this.request.query
+    const { filter, orderBy } = this.request.body
 
     let data = await this.modelDoc.list(
       existCl,
@@ -91,92 +122,30 @@ class DocBase extends Base {
    * 批量删除
    */
   async removeMany() {
-    let existCl = await this.docHelper.findRequestCl()
-    let cl = this.docHelper.findSysColl(existCl)
+    const existCl = await this.docHelper.findRequestCl()
 
-    let { filter, docIds } = this.request.body
+    const { query, operation, errCause } = this.docHelper.getRequestBatchQuery()
+    if (errCause) return new ResultFault(errCause)
 
-    let find, operate_type
-    if (docIds && docIds.length > 0) {
-      // 按选中删除
-      let docIds2 = []
-      docIds.forEach((id) => {
-        docIds2.push(new ObjectId(id))
-      })
+    let total = await this.modelDoc.count(existCl, query)
+    if (total === 0)
+      return new ResultFault('没有符合条件的数据，未执行删除操作')
 
-      find = {
-        _id: {
-          $in: docIds2,
-        },
-      }
-      operate_type = '批量删除(按选中)'
-    } else if (typeof filter === 'string' && _.toUpper(filter) === 'ALL') {
-      // 清空表
-      find = {}
-      operate_type = '批量删除(按全部)'
-    } else if (typeof filter === 'object') {
-      // 按条件删除
-      find = this.modelDoc.assembleQuery(filter)
-      operate_type = '批量删除(按条件)'
-    } else {
-      return new ResultData({
-        n: 0,
-        ok: 0,
-      })
-    }
-
-    let total = await cl.find(find).count()
-    if (total === 0) return new ResultFault('没有数据或不能删除')
     if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       // 记录操作日志
-      let datas2 = await cl.find(find).toArray()
+      let sysCl = this.docHelper.findSysColl(existCl)
+      let removedDocs = await sysCl.find(query).toArray()
       await this.modelDoc.dataActionLog(
-        datas2,
-        operate_type,
+        removedDocs,
+        `${operation}删除`,
         existCl.db.name,
         existCl.name
       )
     }
 
-    return cl.deleteMany(find).then((result) => new ResultData(result.result))
-  }
-  /**
-   * 更新指定数据库指定集合下的文档
-   */
-  async update() {
-    const existCl = await this.docHelper.findRequestCl()
-
-    const { id } = this.request.query
-    let doc = this.request.body
-    doc = _.omit(doc, ['_id', 'bucket'])
-    // 加工数据
-    this.modelDoc.beforeProcessByInAndUp(doc, 'update')
-
-    let cl = this.docHelper.findSysColl(existCl)
-    let find = {
-      _id: ObjectId(id),
-    }
-
-    // 日志
-    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
-      // 获取原始数据
-      let oData = await cl.findOne(find)
-      await this.modelDoc.dataActionLog(
-        doc,
-        '修改',
-        existCl.db.name,
-        existCl.name,
-        '',
-        '',
-        JSON.stringify(oData)
-      )
-    }
-
-    return cl
-      .updateOne(find, {
-        $set: doc,
-      })
-      .then(() => new ResultData(doc))
+    return this.modelDoc
+      .removeMany(existCl, query)
+      .then((deletedCount) => new ResultData({ total, deletedCount }))
   }
   /**
    * 批量修改数据
@@ -184,59 +153,63 @@ class DocBase extends Base {
   async updateMany() {
     const existCl = await this.docHelper.findRequestCl()
 
-    let { docIds, filter, columns } = this.request.body
+    let { columns } = this.request.body
     if (!columns || Object.keys(columns).length === 0)
-      return new ResultFault('没有要修改的列')
+      return new ResultFault('没有指定要修改的列，未执行更新操作')
 
-    let find
-    let logOperate
-    if (docIds && docIds.length > 0) {
-      // 按选中修改
-      let docIds2 = []
-      docIds.forEach((id) => {
-        docIds2.push(new ObjectId(id))
-      })
-      find = {
-        _id: {
-          $in: docIds2,
-        },
-      }
-      logOperate = '批量修改(按选中)'
-    } else if (filter && typeof filter === 'object') {
-      // 按条件修改
-      find = this.modelDoc.assembleQuery(filter)
-      logOperate = '批量修改(按条件)'
-    } else if (typeof filter === 'string' && filter === 'ALL') {
-      //修改全部
-      find = {}
-      logOperate = '批量修改(按全部)'
-    } else {
-      return new ResultFault('没有要修改的数据')
+    const { query, operation, errCause } = this.docHelper.getRequestBatchQuery()
+    if (errCause) return new ResultFault(errCause)
+
+    let total = await this.modelDoc.count(existCl, query)
+    if (total === 0)
+      return new ResultFault('没有符合条件的数据，未执行更新操作')
+
+    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
+      this.modelDoc.dataActionLog(
+        {},
+        `${operation}修改`,
+        existCl.db.name,
+        existCl.name
+      )
     }
 
-    let set = {}
-    for (const key in columns) {
-      set[key] = columns[key]
+    let updated = {}
+    for (let key in columns) {
+      updated[key] = columns[key]
     }
     // 加工数据
-    this.modelDoc.beforeProcessByInAndUp(set, 'update')
-    return this.docHelper
-      .findSysColl(existCl)
-      .updateMany(find, {
-        $set: set,
-      })
-      .then((rst) => {
-        if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
-          this.modelDoc.dataActionLog(
-            {},
-            logOperate,
-            existCl.db.name,
-            existCl.name
-          )
-        }
+    this.modelDoc.beforeProcessByInAndUp(updated, 'update')
 
-        return new ResultData(rst.result)
+    return this.modelDoc
+      .updateMany(existCl, query, updated)
+      .then((modifiedCount) => {
+        return new ResultData({ total, modifiedCount })
       })
+  }
+  /**
+   * 批量复制数据
+   */
+  async copyMany() {
+    const existCl = await this.docHelper.findRequestCl()
+
+    const { toDb, toCl } = this.request.query
+    const modelCl = new ModelCl(this.bucket)
+    const targetCl = await modelCl.byName(toDb, toCl)
+    if (!targetCl)
+      return new ResultFault(
+        `指定的目标集合[db=${targetDb}][cl=${targetCl}]不可访问`
+      )
+
+    const { query, operation, errCause } = this.docHelper.getRequestBatchQuery()
+    if (errCause) return new ResultFault(errCause)
+
+    let total = await this.modelDoc.count(existCl, query)
+    if (total === 0)
+      return new ResultFault('没有符合条件的数据，未执行复制操作')
+
+    return this.modelDoc
+      .copyMany(existCl, query, targetCl)
+      .then(() => new ResultData(total))
   }
   /**
    *  根据某一列的值分组

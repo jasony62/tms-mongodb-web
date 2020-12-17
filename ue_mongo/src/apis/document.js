@@ -29,7 +29,7 @@ export default function create(tmsAxios) {
         bucket,
         db: dbName,
         cl: clName,
-        page: page.at,
+        page: page.at || page.page,
         size: page.size
       }
       return tmsAxios
@@ -64,6 +64,18 @@ export default function create(tmsAxios) {
       const params = { bucket, db: dbName, cl: clName }
       return tmsAxios
         .post(`${base}/removeMany`, removedRange, { params })
+        .then(rst => rst.data.result)
+    },
+    copyMany(bucket, dbName, clName, toDbName, toClName, copyedRange) {
+      const params = {
+        bucket,
+        db: dbName,
+        cl: clName,
+        toDb: toDbName,
+        toCl: toClName
+      }
+      return tmsAxios
+        .post(`${base}/copyMany`, copyedRange, { params })
         .then(rst => rst.data.result)
     },
     move(

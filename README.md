@@ -59,13 +59,28 @@ module.exports = {
 
 | 环境变量                   | 说明                                                                                                         | 默认值                     |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------- |
-| TMW_REQUIRE_BUCKET         | 是否检查请求中的`bucket`参数，等于`yes`或`true`（不区分大小写）时打开。详细说明参见[多租户](doc/多租户.md)。 |                            |
-| TMW_AGGREGATE_COLLECTION   | 是否开放聚合集合功能，等于`yes`或`true`（不区分大小写）时打开。详细说明参见[聚合集合](doc/聚合集合.md)。     |                            |
 | TMS_APP_DEFAULT_CREATETIME | 集合中添加、创建、导入数据时默认添加创建时间字段，字段名。                                                   | TMS_DEFAULT_CREATE_TIME    |
 | TMS_APP_DEFAULT_UPDATETIME | 修改集合中文档时默认增加修改时间字段，字段名名。                                                             | TMS_APP_DEFAULT_UPDATETIME |
 | TMS_APP_DATA_ACTION_LOG    | 数据操作日志，日志会记录到`tms_admin`库下的`tms_app_data_action_log`集合中。                                 |                            |
 | TMW_API_HOST               | 对外提供 API 服务的主机地址。                                                                                | http://localhost           |
 | TMW_API_PORT               | 对外提供 API 服务的主机端口。                                                                                | 3000                       |
+| TMW_REQUIRE_BUCKET         | 是否检查请求中的`bucket`参数，等于`yes`或`true`（不区分大小写）时打开。详细说明参见[多租户](doc/多租户.md)。 |                            |
+| TMW_REALTIME_REPLICA       | 是否支持集合实时复制功能，等于`yes`或`true`（不区分大小写）时打开。详细说明参见[聚合集合](doc/复制集合.md)。 |                            |
+
+## ue_admin
+
+| 环境变量                   | 说明 | 默认值 |
+| -------------------------- | ---- | ------ |
+| VUE_APP_TITLE              |      |        |
+| VUE_APP_BASE_URL           |      |        |
+| VUE_APP_BACK_AUTH_BASE     |      |        |
+| VUE_APP_BACK_AUTH_SERVER   |      |        |
+| VUE_APP_BACK_API_BASE      |      |        |
+| VUE_APP_BACK_API_SERVER    |      |        |
+| VUE_APP_LOGIN_KEY_USERNAME |      |        |
+| VUE_APP_LOGIN_KEY_PASSWORD |      |        |
+| VUE_APP_LOGIN_KEY_PIN      |      |        |
+| VUE_APP_TAGS               |      |        |
 
 ## ue_mongo
 

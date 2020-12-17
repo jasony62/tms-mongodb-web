@@ -216,6 +216,51 @@ class Plugin extends SendBase {
   /**
    * @swagger
    *
+   * /api/plugins/remotePreCondition:
+   *   get:
+   *     tags:
+   *       - plugin
+   *     summary: 获取插件的前置条件
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/dbName'
+   *       - $ref: '#/components/parameters/clName'
+   *       - name: plugin
+   *         in: query
+   *         description: 插件名称
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       '200':
+   *         description: result为前置条件对象
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseData"
+   */
+  async remotePreCondition() {
+    let { bucket, db, cl, plugin: pluginName } = this.request.query
+
+    if (!pluginName) return new ResultFault('缺少plugin参数')
+
+    const ins = await PluginContext.ins()
+
+    const plugin = ins.byName(pluginName)
+    if (!plugin) return new ResultFault(`未找到指定插件[plugin=${pluginName}]`)
+
+    if (typeof plugin.remotePreCondition !== 'function')
+      return new ResultFault(
+        `插件[plugin=${plugin.name}]没有定义[remotePreCondition]方法`
+      )
+
+    const condition = await plugin.remotePreCondition(bucket, db, cl)
+
+    return new ResultData(condition)
+  }
+  /**
+   * @swagger
+   *
    * /api/plugins/execute:
    *   post:
    *     tags:
@@ -237,16 +282,23 @@ class Plugin extends SendBase {
    *           schema:
    *             type: object
    *             properties:
-   *               ids:
+   *               docIds:
    *                 description: 文档id数组
    *                 type: array
    *               filter:
    *                 description: 筛选条件
    *                 type: object
+   *               related:
+   *                 description: 选择的相关文档
+   *                 type: object
+   *                 properties:
+   *                   docIds:
+   *                     description: 文档id数组
+   *                     type: array
    *           examples:
    *             basic:
    *               summary: 基本示例
-   *               value: {"ids": [], "filter": {}}
+   *               value: {"docIds": [], "filter": {}, "related": {"docIds": []}}
    *     responses:
    *       '200':
    *         description: result为???

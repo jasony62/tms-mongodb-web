@@ -8,7 +8,7 @@
             <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
             <i v-if="s.required" style="color:red">*</i>
             <span> {{s.title}} </span>
-            <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)">
+            <img src="../assets/icon_filter.png" class="icon_filter" @click="handleFilterByColumn(s, k)">
           </template>
           <template slot-scope="scope">
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
@@ -70,6 +70,9 @@
         <div>
           <el-button @click="createDocument">添加数据</el-button>
         </div>
+        <el-upload action="#" :show-file-list="false" :http-request="importDocument">
+          <el-button>导入数据</el-button>
+        </el-upload>
         <el-dropdown @command="batchEditDocument">
           <el-button>批量修改<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
@@ -78,18 +81,6 @@
             <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <el-upload action="#" :show-file-list="false" :http-request="importDocument">
-          <el-button>导入数据</el-button>
-        </el-upload>
-        <el-dropdown @command="exportDocument">
-          <el-button>导出数据<i class="el-icon-arrow-down el-icon--right"></i></el-button>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
-            <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
-            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
-        <hr />
         <el-dropdown @command="batchRemoveDocument" placement="bottom-start">
           <el-button>批量删除<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
@@ -98,29 +89,42 @@
             <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <hr />
-        <el-dropdown @command="batchMoveDocument">
-          <el-button>数据迁移<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+        <el-dropdown @command="copyManyDocument" placement="bottom-start">
+          <el-button>批量复制<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
             <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
             <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <hr />
-        <div v-for="(b, i) in computedPluginData" :key="i">
-          <el-button @click="handlePlugins(s, null)" v-if="!b.batch">{{b.title}}</el-button>
-          <el-dropdown v-if="b.batch">
-            <el-button type="success" plain>{{b.title}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+        <el-dropdown @command="batchMoveDocument">
+          <el-button>批量迁移<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
+            <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
+            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
+        <el-dropdown @command="exportDocument">
+          <el-button>导出数据<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
+            <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
+            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
+        <div v-for="p in computedPluginData" :key="p.name">
+          <el-dropdown>
+            <el-button type="success" plain>{{p.title}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(b, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
+                <el-button type="text" @click="handlePlugins(p, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(b, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
+                <el-button type="text" @click="handlePlugins(p, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(b, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
+                <el-button type="text" @click="handlePlugins(p, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -146,14 +150,15 @@ import {
   Dropdown,
   DropdownMenu,
   DropdownItem,
-  MessageBox
+  MessageBox,
 } from 'element-ui'
 
 import DocEditor from './DocEditor.vue'
 import SelectCondition from './SelectCondition.vue'
 import ColumnValueEditor from '../../ue_mongo/src/components/ColumnValueEditor.vue'
-import DomainEditor from '../../ue_mongo/src/components/DomainEditor.vue'
-import createCollectionApi from '../../ue_mongo/src/apis/collection'
+import { createAndMount as createAndMountSelectColl } from './plugins/DialogSelectCollection.vue'
+import createDbApi from '../../ue_mongo/src/apis/database'
+import createClApi from '../../ue_mongo/src/apis/collection'
 import createDocApi from '../../ue_mongo/src/apis/document'
 import createSchemaApi from '../../ue_mongo/src/apis/schema'
 import createPluginApi from '../../ue_mongo/src/apis/plugin'
@@ -171,7 +176,7 @@ const componentOptions = {
     'el-pagination': Pagination,
     'el-dropdown': Dropdown,
     'el-dropdown-menu': DropdownMenu,
-    'el-dropdown-item': DropdownItem
+    'el-dropdown-item': DropdownItem,
   },
   props: {
     bucketName: String,
@@ -179,8 +184,8 @@ const componentOptions = {
     clName: String,
     tmsAxiosName: {
       type: String,
-      default: 'mongodb-api'
-    }
+      default: 'mongodb-api',
+    },
   },
   data() {
     return {
@@ -190,15 +195,15 @@ const componentOptions = {
       page: {
         at: 1,
         size: 100,
-        total: 0
+        total: 0,
       },
       multipleDocuments: [],
       properties: {},
       dialogPage: {
         at: 1,
-        size: 100
+        size: 100,
       },
-      pluginData: []
+      pluginData: [],
     }
   },
   computed: {
@@ -221,12 +226,13 @@ const componentOptions = {
       const currentAuth = this.getCurrentAuth() || '*'
       const data = this.pluginData
       if (!this.pluginData.length) return []
-      return data.filter(
-        item =>
-          item.auth &&
-          (item.auth.includes('*') || item.auth.includes(currentAuth))
-      )
-    }
+      // return data.filter(
+      //   (item) =>
+      //     item.auth &&
+      //     (item.auth.includes('*') || item.auth.includes(currentAuth))
+      // )
+      return data
+    },
   },
   created() {
     this.tableHeight = window.innerHeight * 0.8
@@ -252,15 +258,15 @@ const componentOptions = {
       if (_obj.length === 1) {
         return {
           filter: _obj[0].rule.filter,
-          orderBy: _obj[0].rule.orderBy
+          orderBy: _obj[0].rule.orderBy,
         }
       }
       return _obj
-        .map(ele => ele.rule)
+        .map((ele) => ele.rule)
         .reduce((prev, curr) => {
           return {
             filter: Object.assign(prev.filter, curr.filter),
-            orderBy: Object.assign(prev.orderBy, curr.orderBy)
+            orderBy: Object.assign(prev.orderBy, curr.orderBy),
           }
         })
     },
@@ -285,13 +291,13 @@ const componentOptions = {
         size
       )
     },
-    handleSelect(obj, columnName) {
+    handleFilterByColumn(obj, columnName) {
       this.dialogPage.at = 1
       const select = new Vue(SelectCondition)
       let filter, orderBy
       if (this.conditions.length) {
         const columnobj = this.conditions.find(
-          ele => ele.columnName === columnName
+          (ele) => ele.columnName === columnName
         )
         const rule = this.handleCondition()
         if (columnobj) {
@@ -311,7 +317,7 @@ const componentOptions = {
           this.conditions.length ? orderBy : undefined,
           this.dialogPage.at,
           this.dialogPage.size
-        ).then(columnResult => {
+        ).then((columnResult) => {
           select.condition.selectResult = columnResult
           select.condition.multipleSelection = columnResult
           // 暂时先用延迟解决，该方法还需改进
@@ -328,7 +334,7 @@ const componentOptions = {
           this.listByColumn,
           this.properties[columnName]
         )
-        .then(rsl => {
+        .then((rsl) => {
           const { condition, isClear, isCheckBtn } = rsl
           store.commit('conditionAddColumn', { condition })
           if (isClear) store.commit('conditionDelColumn', { condition })
@@ -348,7 +354,7 @@ const componentOptions = {
               }
             } else if (isCheckBtn) {
               // 如果选择升降序规则，则需重置其他图标
-              this.conditions.map(conEle => {
+              this.conditions.map((conEle) => {
                 if (ele === conEle.columnName) {
                   if (
                     conEle.rule &&
@@ -376,7 +382,7 @@ const componentOptions = {
       this.multipleDocuments = rows
     },
     fnGetMultipleIds() {
-      let ids = this.multipleDocuments.map(document => document._id)
+      let ids = this.multipleDocuments.map((document) => document._id)
       return ids
     },
     createDocument() {
@@ -391,7 +397,7 @@ const componentOptions = {
       let editor = new Vue(DocEditor)
       editor
         .open(this.tmsAxiosName, this.bucketName, this.dbName, collection, doc)
-        .then(newDoc => {
+        .then((newDoc) => {
           Object.assign(doc, newDoc)
           store.commit('updateDocument', { document: newDoc })
         })
@@ -401,7 +407,7 @@ const componentOptions = {
         title: '提示',
         message: '确定删除该条数据？',
         confirmButtonText: '确定',
-        type: 'warning'
+        type: 'warning',
       })
         .then(() => {
           createDocApi(this.TmsAxios(this.tmsAxiosName))
@@ -428,7 +434,7 @@ const componentOptions = {
         case 'checked':
           param.docIds = this.fnGetMultipleIds()
       }
-      return { param: param, transforms: transforms }
+      return { param, transforms }
     },
     fnHandleResResult(result, isMultiple) {
       const realAt = Math.ceil((this.page.total - result.n) / this.page.size)
@@ -443,11 +449,11 @@ const componentOptions = {
       let { param } = this.fnSetReqParam(command),
         editor
       editor = new Vue(ColumnValueEditor)
-      editor.open(collection).then(columns => {
+      editor.open(collection).then((columns) => {
         Object.assign(param, { columns })
         createDocApi(this.TmsAxios(this.tmsAxiosName))
           .batchUpdate(this.bucketName, this.dbName, collection.name, param)
-          .then(result => {
+          .then((result) => {
             Message.success({ message: '已成功修改' + result.n + '条' })
             this.listDocument()
           })
@@ -493,7 +499,7 @@ const componentOptions = {
             alreadyMoveTotal,
             alreadyMovePassTotal,
             alreadyMoveFailTotal,
-            spareTotal
+            spareTotal,
           } = result
           msg.message = '正在迁移数据...'
           if (spareTotal <= 0) {
@@ -533,32 +539,58 @@ const componentOptions = {
         title: '提示',
         message: '确定删除这些数据？',
         confirmButtonText: '确定',
-        type: 'warning'
+        type: 'warning',
       })
         .then(() => {
           createDocApi(this.TmsAxios(this.tmsAxiosName))
             .batchRemove(this.bucketName, this.dbName, this.clName, param)
-            .then(result => {
+            .then((result) => {
               Message.success({ message: '已成功删除' + result.n + '条' })
               this.fnHandleResResult(result, true)
             })
         })
         .catch(() => {})
     },
+    copyManyDocument(command) {
+      import('./plugins/DialogSelectCollection.vue').then((Module) => {
+        let { bucketName, tmsAxiosName } = this
+        let propsData = {
+          bucketName,
+          tmsAxiosName,
+        }
+        const vm = Module.createAndMount(Vue, propsData, {
+          createDbApi,
+          createClApi,
+        })
+        vm.$on('confirm', ({ db, cl }) => {
+          let { param } = this.fnSetReqParam(command)
+          createDocApi(this.TmsAxios(this.tmsAxiosName))
+            .copyMany(this.bucketName, this.dbName, this.clName, db, cl, param)
+            .then((result) => {
+              Message.success({ message: '已成功复制' + result + '条' })
+            })
+        })
+      })
+    },
     batchMoveDocument(command) {
       let { param, transforms } = this.fnSetReqParam(
-          command,
-          this.moveCheckList
-        ),
-        confirm,
-        config
-      confirm = new Vue(DomainEditor)
-      config = { title: '迁移到' }
-      confirm.open(this.tmsAxiosName, this.bucketName, config).then(fields => {
-        const { dbName, clName } = fields
+        command,
+        this.moveCheckList
+      )
+
+      let { bucketName, tmsAxiosName } = this
+      let propsData = {
+        bucketName,
+        tmsAxiosName,
+      }
+      const vm = createAndMountSelectColl(Vue, propsData, {
+        createDbApi,
+        createClApi,
+      })
+      vm.$on('confirm', ({ db: dbName, cl: clName }) => {
         if (command === 'checked') {
           this.fnMoveDocument(dbName, clName, transforms, param, 0, 0, 0).then(
-            result => {
+            (result) => {
               this.fnHandleResResult({ n: result.alreadyMovePassTotal }, true)
             }
           )
@@ -590,7 +622,7 @@ const componentOptions = {
       let { param } = this.fnSetReqParam(command)
       createDocApi(this.TmsAxios(this.tmsAxiosName))
         .export(this.bucketName, this.dbName, this.clName, param)
-        .then(result => {
+        .then((result) => {
           const access_token = sessionStorage.getItem('access_token')
           window.open(
             `${process.env.VUE_APP_BACK_API_FS}${result}?access_token=${access_token}`
@@ -603,50 +635,65 @@ const componentOptions = {
         `${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`
       )
     },
-    handlePlugins(button, type) {
-      const { param: postParams } = type
-        ? this.fnSetReqParam(type)
-        : { param: null }
-      let getParams = {
-        dbName: this.dbName,
-        clName: this.clName,
-        type: button.type,
-        name: button.name
-      }
-      createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(
-        postParams,
-        getParams
-      )
+    handlePlugins(plugin, conditionType) {
+      new Promise((resolve) => {
+        let { beforeComp } = plugin
+        if (beforeComp && beforeComp.name === 'DialogDocList') {
+          import('./plugins/DialogDocList.vue').then((Module) => {
+            let { bucketName, dbName, clName, tmsAxiosName } = this
+            new Promise((resolve) => {
+              if (beforeComp.remotePreCondition === true)
+                return createPluginApi(this.TmsAxios(this.tmsAxiosName))
+                  .remotePreCondition(bucketName, dbName, clName, plugin.name)
+                  .then((result) => {
+                    resolve(result)
+                  })
+              else return {}
+            }).then((preCondition) => {
+              let propsData = {
+                bucketName,
+                tmsAxiosName,
+              }
+              // 插件设置的固定条件
+              if (preCondition && typeof preCondition === 'object') {
+                let { db, cl, filter, orderby } = preCondition
+                propsData.fixedDbName = db
+                propsData.fixedClName = cl
+                propsData.fixedDocumentFilter = filter
+                propsData.fixedDocumentOrderby = orderby
+              }
+              const vm = Module.createAndMount(Vue, propsData, {
+                createDbApi,
+                createClApi,
+                createDocApi,
+              })
+              vm.$on('confirm', (result) => {
+                resolve(result)
+              })
+            })
+          })
+        } else resolve()
+      }).then((beforeResult) => {
+        let postBody = conditionType
+          ? this.fnSetReqParam(conditionType).param
+          : null
+        if (beforeResult) {
+          if (!postBody) postBody = {}
+          postBody.related = beforeResult
+        }
+        let queryParams = {
+          db: this.dbName, // 参数名改为db
+          cl: this.clName, // 参数名改为cl
+          plugin: plugin.name,
+          // name: plugin.name,
+          // type: plugin.type, // 这个参数应该去掉，插件自己知道自己的类型
+        }
+        createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(
+          postBody,
+          queryParams
+        )
+      })
     },
-    // handlePlugins(button, type) {
-    //   const { param: postParams } = type
-    //     ? this.fnSetReqParam(type)
-    //     : { param: null }
-    //   let getParams = {
-    //     bucket: env.process.VUE_APP_PLUGIN_BUCKET,
-    //     pluginCfg: s[0],
-    //     db: this.dbName,
-    //     clName: this.clName
-    //   }
-    //   if (!s[2].isConfirm) {
-    //     return this.handlePluginsApi(s, getParams, postParams, 'defaultParams')
-    //   }
-    // },
-    // async handlePluginsApi(s, getParams, postParams, mergeParams) {
-    //   const toType = Object.prototype.toString
-    //   const source =
-    //     s[2][mergeParams] &&
-    //     toType.call(s[2][mergeParams]) === '[object Object]'
-    //       ? s[2][mergeParams]
-    //       : {}
-
-    //   Object.assign(getParams, source)
-
-    //   await createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(
-    //     postParams,
-    //     getParams
-    //   )
-    // },
     handleSize(val) {
       this.page.size = val
       this.dialogPage.size = val
@@ -669,7 +716,7 @@ const componentOptions = {
           filter,
           orderBy
         )
-        .then(result => {
+        .then((result) => {
           const documents = result.docs
           store.commit('documents', { documents })
           this.page.total = result.total
@@ -684,15 +731,15 @@ const componentOptions = {
         )
       )
       return Promise.all(arrPromise)
-        .then(res => {
-          res.forEach(schemas => {
-            schemas.forEach(schema => {
+        .then((res) => {
+          res.forEach((schemas) => {
+            schemas.forEach((schema) => {
               temp = { ...temp, ...schema.body.properties }
             })
           })
           return temp
         })
-        .catch(err => {
+        .catch((err) => {
           throw new Error(err)
         })
     },
@@ -707,20 +754,26 @@ const componentOptions = {
       let temp = {}
 
       if (default_tag && default_tag.length) {
-        await this.getTaglist(default_tag).then(res => (temp = res))
+        await this.getTaglist(default_tag).then((res) => (temp = res))
       } else if (tags && tags.length) {
-        await this.getTaglist(tags).then(res => (temp = res))
-      } else {
+        await this.getTaglist(tags).then((res) => (temp = res))
+      } else if (
+        collection.schema &&
+        collection.schema.body &&
+        collection.schema.body.properties
+      ) {
         Object.assign(temp, collection.schema.body.properties)
+      } else {
+        temp._id = { title: 'id' }
       }
       this.properties = Object.freeze(temp)
-    }
+    },
   },
   mounted() {
     Promise.all([
       this.$apis.collection.byName(this.bucketName, this.dbName, this.clName),
-      this.$apis.plugin.getPlugins()
-    ]).then(async res => {
+      this.$apis.plugin.getPlugins(),
+    ]).then(async (res) => {
       Object.assign(collection, res[0])
       this.pluginData = res[1]
       await this.handleProperty()
@@ -729,7 +782,7 @@ const componentOptions = {
   },
   beforeDestroy() {
     this.conditionReset()
-  }
+  },
 }
 export default componentOptions
 
@@ -740,7 +793,7 @@ export function createAndMount(Vue, propsData, id) {
   Vue.use(Flex).use(Frame)
 
   new CompClass({
-    propsData
+    propsData,
   }).$mount(ele)
 }
 </script>

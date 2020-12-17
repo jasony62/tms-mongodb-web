@@ -1,12 +1,6 @@
-let host
-if (process.env.TMS_MONGODB_WEB_ENV === 'docker') {
-  host = 'host.docker.internal'
-} else {
-  host = process.env.TMS_MONGODB_HOST || 'localhost'
-}
 module.exports = {
   master: {
-    host,
+    host: process.env.TMS_MONGODB_HOST || 'localhost',
     port: parseInt(process.env.TMS_MONGODB_PORT) || 27017,
     user: process.env.TMS_MONGODB_USER || false,
     password: process.env.TMS_MONGODB_PASSWORD || false,

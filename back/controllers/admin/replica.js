@@ -241,6 +241,25 @@ class Replica extends ReplicaBase {
   async synchronize() {
     return super.synchronize()
   }
+  /**
+   * @swagger
+   *
+   * /api/admin/replica/synchronizeAll:
+   *   get:
+   *     tags:
+   *       - admin
+   *     summary: 根据replica_map集合中的记录，执行所有的集合间同步
+   *     description: 返回要执行的集合复制关系数量，复制过程在后台进行。
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *     responses:
+   *       '200':
+   *         $ref: '#/components/responses/ResponseData'
+   *
+   */
+  async synchronizeAll() {
+    return super.synchronizeAll()
+  }
 }
 
 module.exports = Replica

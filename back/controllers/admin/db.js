@@ -16,9 +16,16 @@ class Db extends DbBase {
    *     summary: 列出已有数据库
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/page'
+   *       - $ref: '#/components/parameters/size'
+   *       - name: keyword
+   *         description: 名称或标题包含的关键字
+   *         in: query
+   *         schema:
+   *           type: string
    *     responses:
    *       '200':
-   *         description: result为数据库数组
+   *         description: result为数据库数组。如果指定了分页参数，返回包行数据库对象的数组和符合条件的全部记录数。
    *         content:
    *           application/json:
    *             schema:

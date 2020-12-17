@@ -84,6 +84,18 @@ components:
       required: true
       schema:
         type: string
+    page:
+      name: page
+      description: 分页条件，起始页
+      in: query
+      schema:
+        type: integer
+    size:
+      name: size
+      description: 分页条件，每页包含的文档数
+      in: query
+      schema:
+        type: integer
   responses:
     ResponseOK:
       description: 返回ok

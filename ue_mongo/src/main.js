@@ -18,7 +18,9 @@ import {
 
 Vue.config.productionTip = false
 
-Vue.use(TmsAxiosPlugin).use(TmsErrorPlugin).use(TmsEventPlugin)
+Vue.use(TmsAxiosPlugin)
+  .use(TmsErrorPlugin)
+  .use(TmsEventPlugin)
 
 const { fnGetCaptcha, fnGetJwt } = apiLogin
 const LoginSchema = [
@@ -40,11 +42,11 @@ const LoginSchema = [
 ]
 Vue.use(Login, { schema: LoginSchema, fnGetCaptcha, fnGetToken: fnGetJwt })
 
-const LoginPromise = (function () {
+const LoginPromise = (function() {
   let login = new Login(LoginSchema, fnGetCaptcha, fnGetJwt)
-  let ins = new TmsLockPromise(function () {
+  let ins = new TmsLockPromise(function() {
     return login
-      .showAsDialog(function (res) {
+      .showAsDialog(function(res) {
         Message({ message: res.msg, type: 'error', customClass: 'mzindex' })
       })
       .then(token => {
@@ -92,7 +94,7 @@ function onResponseRejected(err) {
 }
 
 let rules = []
-if (process.env.VUE_APP_BACK_AUTH_SERVER) {
+if (process.env.VUE_APP_BACK_AUTH_BASE) {
   let accessTokenTule = Vue.TmsAxios.newInterceptorRule({
     requestHeaders: new Map([['Authorization', getAccessToken]]),
     onRetryAttempt
@@ -113,7 +115,7 @@ Vue.use(ApiPlugin, { tmsAxios })
 Vue.directive('loadmore', {
   bind(el, binding) {
     const selectWrap = el.querySelector('.el-table__body-wrapper')
-    selectWrap.addEventListener('scroll', function () {
+    selectWrap.addEventListener('scroll', function() {
       const scrollDistance =
         this.scrollHeight - this.scrollTop - this.clientHeight
       if (scrollDistance <= 0) {
