@@ -1,27 +1,56 @@
 <template>
-  <tms-frame class="tmw-collection" :display="{ header: true, footer: true, right: true }" :leftWidth="'20%'">
+  <tms-frame
+    class="tmw-collection"
+    :display="{ header: true, footer: true, right: true }"
+    :leftWidth="'20%'"
+  >
     <template v-slot:header>
       <el-breadcrumb separator-class="el-icon-arrow-right">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item>{{dbName}}</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ dbName }}</el-breadcrumb-item>
       </el-breadcrumb>
     </template>
     <template v-slot:center>
       <el-table :data="collections" stripe style="width: 100%">
         <el-table-column label="collection" width="180">
           <template slot-scope="scope">
-            <router-link :to="{
+            <router-link
+              :to="{
                 name: 'collection',
                 params: { dbName, clName: scope.row.name }
-              }">{{ scope.row.name }}</router-link>
+              }"
+              >{{ scope.row.name }}</router-link
+            >
           </template>
         </el-table-column>
-        <el-table-column prop="title" label="名称" width="180"></el-table-column>
+        <el-table-column
+          prop="title"
+          label="名称"
+          width="180"
+        ></el-table-column>
+        <el-table-column label="集合类型" width="180">
+          <template slot-scope="scope">
+            <span v-if="'usage' in scope.row">
+              {{ scope.row.usage == 1 ? '从集合' : '普通集合' }}
+            </span>
+            <span v-else></span>
+          </template>
+        </el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
         <el-table-column fixed="right" label="操作" width="120">
           <template slot-scope="scope">
-            <el-button @click="editCollection(scope.row, scope.$index)" type="text" size="mini">修改</el-button>
-            <el-button @click="handleCollection(scope.row)" type="text" size="mini">删除</el-button>
+            <el-button
+              @click="editCollection(scope.row, scope.$index)"
+              type="text"
+              size="mini"
+              >修改</el-button
+            >
+            <el-button
+              @click="handleCollection(scope.row)"
+              type="text"
+              size="mini"
+              >删除</el-button
+            >
           </template>
         </el-table-column>
       </el-table>

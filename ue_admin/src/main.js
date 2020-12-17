@@ -33,7 +33,9 @@ import {
   Tag,
   Tree,
   Card,
-  Message
+  Message,
+  MessageBox,
+  Switch
 } from 'element-ui'
 import './assets/css/common.less'
 
@@ -61,6 +63,7 @@ Vue.use(TmsAxiosPlugin)
   .use(Tag)
   .use(Tree)
   .use(Card)
+  .use(Switch)
 
 const { fnGetCaptcha, fnGetToken } = apiLogin
 const schema = [
@@ -168,14 +171,14 @@ function mountCustomMethod() {
       return Promise.reject()
     }
   ) {
-    this.$confirm(`此操作将永久删除该【${msg}】, 是否继续?`, '提示', {
+    MessageBox.confirm(`此操作将永久删除该【${msg}】, 是否继续?`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
       .then(() => {
         successCB().then(() => {
-          this.$message({
+          Message({
             message: '删除成功!',
             type: 'success',
             showClose: true
@@ -183,7 +186,7 @@ function mountCustomMethod() {
         })
       })
       .catch(() => {
-        this.$message({ message: '已取消删除', type: 'info', showClose: true })
+        Message({ message: '已取消删除', type: 'info', showClose: true })
       })
   }
 }

@@ -54,7 +54,7 @@
       </el-table>
     </template>
     <template v-slot:right>
-      <el-button @click="createCollection" v-if="false">添加集合</el-button>
+      <el-button @click="createCollection">添加集合</el-button>
     </template>
   </tms-frame>
 </template>

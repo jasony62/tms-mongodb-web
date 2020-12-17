@@ -1,5 +1,9 @@
 <template>
-  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
+  <el-dialog
+    :visible.sync="dialogVisible"
+    :destroy-on-close="destroyOnClose"
+    :close-on-click-modal="closeOnClickModal"
+  >
     <el-form ref="form" :model="database" label-position="top">
       <el-form-item label="数据库名称（英文）">
         <el-input v-model="database.name"></el-input>
@@ -18,6 +22,7 @@
   </el-dialog>
 </template>
 <script>
+import { Message } from 'element-ui'
 import apiDb from '../apis/database'
 
 export default {
@@ -44,7 +49,7 @@ export default {
     onSubmit() {
       const reg = /^[a-zA-z]/
       if (!reg.test(this.database.name)) {
-        return this.$message.error('请输入以英文字母开头的库名')
+        return Message.error('请输入以英文字母开头的库名')
       }
       if (this.mode === 'update') {
         apiDb

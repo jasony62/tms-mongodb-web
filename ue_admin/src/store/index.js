@@ -15,7 +15,8 @@ export default new Vuex.Store({
     collections: [],
     tags: [],
     documents: [],
-    conditions: []
+    conditions: [],
+    replicas: []
   },
   mutations: {
     buckets(state, payload) {
@@ -77,7 +78,7 @@ export default new Vuex.Store({
     documents(state, payload) {
       state.documents = payload.documents
     },
-    updateDocument() { },
+    updateDocument() {},
     conditionAddColumn(state, payload) {
       const { condition } = payload
       const index = state.conditions.findIndex(
@@ -86,7 +87,9 @@ export default new Vuex.Store({
       if (index !== -1) {
         state.conditions.splice(index, 1)
       }
-      condition.rule.filter = { [condition.columnName]: condition.rule.filter[condition.columnName] }
+      condition.rule.filter = {
+        [condition.columnName]: condition.rule.filter[condition.columnName]
+      }
       state.conditions.push(condition)
     },
     conditionDelBtn(state, payload) {
@@ -123,6 +126,15 @@ export default new Vuex.Store({
     removeTag(state, payload) {
       state.tags.splice(state.tags.indexOf(payload.tag), 1)
     },
+    replicas(state, payload) {
+      state.replicas = payload.replicas
+    },
+    appendReplica(state, payload) {
+      state.replicas.push(payload.replica)
+    },
+    removeReplica(state, payload) {
+      state.replicas.splice(state.replicas.indexOf(payload.params), 1)
+    }
   },
   actions: {
     listBucket({ commit }) {
@@ -203,6 +215,28 @@ export default new Vuex.Store({
         return { tag }
       })
     },
+    listReplica({ commit }, payload) {
+      const { bucket } = payload
+      return apis.replica.list(bucket).then(replicas => {
+        commit({ type: 'replicas', replicas })
+        return { replicas }
+      })
+    },
+    removeReplica({ commit }, payload) {
+      const { bucket, params } = payload
+      return apis.replica.remove(bucket, params).then(() => {
+        commit({ type: 'removeReplica', params })
+        return { params }
+      })
+    },
+    syncReplica({}, payload) {
+      const { bucket, params } = payload
+      return apis.replica.synchronize(bucket, params)
+    },
+    synchronizeAll({}, payload) {
+      const { bucket, params } = payload
+      return apis.replica.synchronizeAll(bucket, params)
+    }
   },
   modules: {}
 })
