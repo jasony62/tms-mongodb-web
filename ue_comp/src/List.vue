@@ -1,5 +1,14 @@
 <template>
-  <tms-frame class="tmw-document" :display="{ header: false, footer: false, right: true }" :leftWidth="'20%'">
+  <tms-frame class="tmw-document" :display="frameDisplay" :leftWidth="'20%'">
+    <template v-slot:left>
+      <el-tree :data="groupData" default-expand-all node-key="id" :props="defaultProps" @node-click="selectGroupNode">
+        <span class="custom-tree-node" slot-scope="{ node, data }">
+          <span>{{ node.label }}
+            <el-badge v-if="data.count" class="mark" type="primary" :value="data.count" />
+          </span>
+        </span>
+      </el-tree>
+    </template>
     <template v-slot:center>
       <el-table id="tables" :data="documents" stripe ref="multipleTable" :max-height="tableHeight" @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55"></el-table-column>
@@ -151,6 +160,8 @@ import {
   DropdownMenu,
   DropdownItem,
   MessageBox,
+  Tree,
+  Badge,
 } from 'element-ui'
 
 import DocEditor from './DocEditor.vue'
@@ -177,6 +188,8 @@ const componentOptions = {
     'el-dropdown': Dropdown,
     'el-dropdown-menu': DropdownMenu,
     'el-dropdown-item': DropdownItem,
+    'el-tree': Tree,
+    'el-badge': Badge,
   },
   props: {
     bucketName: String,
@@ -189,6 +202,12 @@ const componentOptions = {
   },
   data() {
     return {
+      frameDisplay: {
+        header: false,
+        footer: false,
+        right: true,
+        left: false,
+      },
       tableHeight: 0,
       moveCheckList: [],
       filter: {},
@@ -204,6 +223,11 @@ const componentOptions = {
         size: 100,
       },
       pluginData: [],
+      groupData: [],
+      defaultProps: {
+        children: 'children',
+        label: 'value',
+      },
     }
   },
   computed: {
@@ -377,6 +401,16 @@ const componentOptions = {
           })
           this.listDocument()
         })
+    },
+    selectGroupNode(data) {
+      let groupBy = collection.custom.filters[0].data
+      let parents = []
+      for (let p = data; p; p = p.parent) parents.unshift(p.value)
+      let filter = parents.reduce((f, p, index) => {
+        f[groupBy[index]] = p
+        return f
+      }, {})
+      this.listDocument(filter)
     },
     handleSelectDocument(rows) {
       this.multipleDocuments = rows
@@ -644,7 +678,13 @@ const componentOptions = {
             new Promise((resolve) => {
               if (beforeComp.remotePreCondition === true)
                 return createPluginApi(this.TmsAxios(this.tmsAxiosName))
-                  .remotePreCondition(bucketName, dbName, clName, plugin.name)
+                  .remotePreCondition(
+                    bucketName,
+                    dbName,
+                    clName,
+                    plugin.name,
+                    this.filter
+                  )
                   .then((result) => {
                     resolve(result)
                   })
@@ -703,23 +743,37 @@ const componentOptions = {
       this.page.at = val
       this.listDocument()
     },
-    listDocument() {
+    listDocument(filter2) {
       const rule = this.handleCondition()
-      this.filter = rule.filter
       const { orderBy, filter } = rule
+      this.filter = Object.assign({}, filter, filter2)
       createDocApi(this.TmsAxios(this.tmsAxiosName))
         .list(
           this.bucketName,
           this.dbName,
           this.clName,
           this.page,
-          filter,
+          this.filter,
           orderBy
         )
         .then((result) => {
           const documents = result.docs
           store.commit('documents', { documents })
           this.page.total = result.total
+        })
+    },
+    groupDocument() {
+      const groupBy = collection.custom.filters[0].data
+      createDocApi(this.TmsAxios(this.tmsAxiosName))
+        .group(this.bucketName, this.dbName, this.clName, groupBy)
+        .then((groups) => {
+          const travel = (n, p) => {
+            if (n.children && n.children.length) {
+              n.children.forEach((c) => travel(c, n))
+            } else n.parent = p
+          }
+          groups.forEach((g) => travel(g))
+          this.groupData = groups
         })
     },
     getTaglist(data) {
@@ -778,6 +832,15 @@ const componentOptions = {
       this.pluginData = res[1]
       await this.handleProperty()
       this.listDocument()
+
+      if (
+        collection.custom &&
+        collection.custom.filters &&
+        collection.custom.filters.length
+      ) {
+        this.frameDisplay.left = true
+        this.groupDocument()
+      }
     })
   },
   beforeDestroy() {
