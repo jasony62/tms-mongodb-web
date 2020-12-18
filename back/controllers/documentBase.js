@@ -119,6 +119,96 @@ class DocBase extends Base {
     return new ResultData(data)
   }
   /**
+   * 按指定的列进行分组，并显示每个分组的记录数
+   */
+  async group() {
+    const existCl = await this.docHelper.findRequestCl()
+
+    let { groupBy, filter } = this.request.body
+    if (!groupBy || !Array.isArray(groupBy) || groupBy.length === 0)
+      return new ResultFault('参数[groupBy]无效，没有指定用于分组的列')
+
+    let groupId = groupBy.reduce((id, column) => {
+      if (column && typeof column === 'string') id[column] = '$' + column
+      return id
+    }, {})
+    if (Object.keys(groupId).length === 0)
+      return new ResultFault('参数[groupBy]包含的列名称类型错误，不是字符串')
+
+    let cl = this.docHelper.findSysColl(existCl)
+    let query = filter ? this.modelDoc.assembleQuery(filter) : {}
+    let pipeline = [
+      {
+        $match: query,
+      },
+      {
+        $group: {
+          _id: groupId,
+          count: {
+            $sum: 1,
+          },
+        },
+      },
+    ]
+
+    let { skip, limit } = this.docHelper.requestPage()
+    if (typeof skip === 'number') {
+      pipeline.push({ $skip: skip })
+      pipeline.push({ $limit: limit })
+    }
+
+    let groups = await cl.aggregate(pipeline).toArray()
+
+    if (groups.length === 0) return new ResultData([])
+
+    function Node(id, value) {
+      this.id = id
+      this.value = value
+      this.children = []
+    }
+    function Leaf(id, value, count) {
+      this.id = id
+      this.value = value
+      this.count = count
+    }
+
+    let leafDeepth = groupBy.length - 1 // 叶子节点的深度
+    let upperNodes = [] // 保存所有父节点
+
+    function getParent(index, group, deepth) {
+      if (deepth < 0) return false
+      let parentKey = []
+      for (let i = 0; i <= deepth; i++) parentKey.push(group._id[groupBy[i]])
+      parentKey = parentKey.join(',')
+      if (upperNodes[deepth].has(parentKey))
+        return upperNodes[deepth].get(parentKey)
+
+      let node = new Node(`${index}_${deepth}`, group._id[groupBy[deepth]])
+      upperNodes[deepth].set(parentKey, node)
+      console.log(upperNodes)
+      let parent = getParent(index, group, deepth - 1)
+      if (parent) parent.children.push(node)
+
+      return node
+    }
+
+    for (let i = 0; i < leafDeepth; i++) upperNodes.push(new Map())
+
+    let leafColumn = groupBy[leafDeepth]
+    groups.forEach((group, index) => {
+      let leaf = new Leaf(
+        `${index}_${leafDeepth}`,
+        group._id[leafColumn],
+        group.count
+      )
+      let parent = getParent(index, group, leafDeepth - 1)
+      if (parent) parent.children.push(leaf)
+      else upperNodes[0].set(leaf.value, leaf)
+    })
+    console.log('0000', upperNodes[0])
+    return new ResultData(Array.from(upperNodes[0].values()))
+  }
+  /**
    * 批量删除
    */
   async removeMany() {

@@ -36,6 +36,20 @@ export default function create(tmsAxios) {
         .post(`${base}/list`, { filter, orderBy }, { params })
         .then(rst => rst.data.result)
     },
+    group(bucket, dbName, clName, groupBy, page, filter = {}) {
+      const params = {
+        bucket,
+        db: dbName,
+        cl: clName
+      }
+      if (page && typeof page === 'object') {
+        params.page = page.at || page.page
+        params.size = page.size
+      }
+      return tmsAxios
+        .post(`${base}/group`, { filter, groupBy }, { params })
+        .then(rst => rst.data.result)
+    },
     create(bucket, dbName, clName, proto) {
       const params = { bucket, db: dbName, cl: clName }
       return tmsAxios

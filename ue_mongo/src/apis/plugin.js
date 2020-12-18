@@ -21,12 +21,17 @@ export default function create(tmsAxios) {
      * @param {string} db - 数据名称
      * @param {string} cl - 集合名称
      * @param {string} plugin - 插件名称
+     * @param {object} filter - 筛选条件
      */
-    remotePreCondition(bucket, db, cl, plugin) {
+    remotePreCondition(bucket, db, cl, plugin, filter) {
       return tmsAxios
-        .get(`${base}/remotePreCondition`, {
-          params: { bucket, db, cl, plugin }
-        })
+        .post(
+          `${base}/remotePreCondition`,
+          { filter },
+          {
+            params: { bucket, db, cl, plugin }
+          }
+        )
         .then(rst => rst.data.result)
     }
   }
