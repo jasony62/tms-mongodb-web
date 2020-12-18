@@ -50,6 +50,47 @@ class Document extends DocBase {
   /**
    * @swagger
    *
+   * /api/admin/document/group:
+   *   post:
+   *     tags:
+   *       - admin
+   *     summary: 按指定列对符合条件的文档分组计数
+   *     parameters:
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/dbNameRequired'
+   *       - $ref: '#/components/parameters/clNameRequired'
+   *       - $ref: '#/components/parameters/page'
+   *       - $ref: '#/components/parameters/size'
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               groupBy:
+   *                 description: 什么逻辑？
+   *                 type: array
+   *               filter:
+   *                 description: 什么逻辑？
+   *                 type: string
+   *           examples:
+   *             basic:
+   *               summary: 基础功能
+   *               value: {"groupBy":[], "filter": {}}
+   *     responses:
+   *       '200':
+   *         description: result为符合条件的文档数组。默认按_id降序排列。
+   *         content:
+   *           application/json:
+   *             schema:
+   *               "$ref": "#/components/schemas/ResponseDataArray"
+   */
+  async group() {
+    return super.group()
+  }
+  /**
+   * @swagger
+   *
    * /api/admin/document/create:
    *   post:
    *     tags:

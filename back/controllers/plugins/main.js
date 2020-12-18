@@ -164,7 +164,7 @@ class Plugin extends Base {
    * @swagger
    *
    * /api/plugins/remotePreCondition:
-   *   get:
+   *   post:
    *     tags:
    *       - plugin
    *     summary: 获取插件的前置条件
@@ -178,6 +178,15 @@ class Plugin extends Base {
    *         required: true
    *         schema:
    *           type: string
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               filter:
+   *                 description: 什么逻辑？
+   *                 type: string
    *     responses:
    *       '200':
    *         description: result为前置条件对象
