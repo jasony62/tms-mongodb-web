@@ -1,13 +1,20 @@
 <template>
   <tms-frame class="tmw-document" :display="frameDisplay" :leftWidth="'20%'">
     <template v-slot:left>
-      <el-tree :data="groupData" default-expand-all node-key="id" :props="defaultProps" @node-click="selectGroupNode">
-        <span class="custom-tree-node" slot-scope="{ node, data }">
-          <span>{{ node.label }}
-            <el-badge v-if="data.count" class="mark" type="primary" :value="data.count" />
+      <el-card class="box-card" shadow="never">
+        <div slot="header" class="clearfix">
+          <tms-flex direction="row-reverse">
+            <el-button @click="resetSelectedGroupNode" type="text">清除选择</el-button>
+          </tms-flex>
+        </div>
+        <el-tree ref="groupNodeTree" :highlight-current="true" :data="groupData" default-expand-all node-key="id" :props="defaultProps" @node-click="selectGroupNode">
+          <span class="custom-tree-node" slot-scope="{ node, data }">
+            <span>{{ node.label }}
+              <el-badge v-if="data.count" class="mark" type="primary" :value="data.count" />
+            </span>
           </span>
-        </span>
-      </el-tree>
+        </el-tree>
+      </el-card>
     </template>
     <template v-slot:center>
       <el-table id="table" :data="documents" stripe ref="documentsTable" :max-height="tableHeight" @selection-change="handleSelectDocument">
@@ -167,7 +174,7 @@ import {
 import DocEditor from './DocEditor.vue'
 import SelectCondition from './SelectCondition.vue'
 import ColumnValueEditor from '../../ue_mongo/src/components/ColumnValueEditor.vue'
-import { createAndMount as createAndMountSelectColl } from './plugins/DialogSelectCollection.vue'
+import { createAndMount as createAndMountSelectColl } from './widgets/DialogSelectCollection.vue'
 import createDbApi from '../../ue_mongo/src/apis/database'
 import createClApi from '../../ue_mongo/src/apis/collection'
 import createDocApi from '../../ue_mongo/src/apis/document'
@@ -419,6 +426,13 @@ const componentOptions = {
         return f
       }, {})
       this.listDocument(filter)
+    },
+    resetSelectedGroupNode() {
+      let selected = this.$refs.groupNodeTree.getCurrentKey()
+      if (selected) {
+        this.$refs.groupNodeTree.setCurrentKey()
+        this.listDocument()
+      }
     },
     handleSelectDocument(rows) {
       this.selectedDocuments = rows

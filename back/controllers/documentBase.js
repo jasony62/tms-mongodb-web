@@ -185,7 +185,6 @@ class DocBase extends Base {
 
       let node = new Node(`${index}_${deepth}`, group._id[groupBy[deepth]])
       upperNodes[deepth].set(parentKey, node)
-      console.log(upperNodes)
       let parent = getParent(index, group, deepth - 1)
       if (parent) parent.children.push(node)
 
