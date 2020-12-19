@@ -1,10 +1,10 @@
 const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/plugins'
 export default function create(tmsAxios) {
   return {
-    getPlugins() {
+    getPlugins(bucket, db, cl) {
       //return tmsAxios.get(`${base}/pluginDocument`).then(rst => rst.data.result)
       return tmsAxios
-        .get(`${base}/list?scope=document`)
+        .get(`${base}/list?scope=document`, { params: { bucket, db, cl } })
         .then(rst => rst.data.result)
     },
     handlePlugin(...args) {
@@ -23,10 +23,10 @@ export default function create(tmsAxios) {
      * @param {string} plugin - 插件名称
      * @param {object} filter - 筛选条件
      */
-    remotePreCondition(bucket, db, cl, plugin, filter) {
+    remoteWidgetOptions(bucket, db, cl, plugin, filter) {
       return tmsAxios
         .post(
-          `${base}/remotePreCondition`,
+          `${base}/remoteWidgetOptions`,
           { filter },
           {
             params: { bucket, db, cl, plugin }

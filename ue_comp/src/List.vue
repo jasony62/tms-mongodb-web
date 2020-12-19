@@ -10,7 +10,7 @@
       </el-tree>
     </template>
     <template v-slot:center>
-      <el-table id="tables" :data="documents" stripe ref="multipleTable" :max-height="tableHeight" @selection-change="handleSelectDocument">
+      <el-table id="table" :data="documents" stripe ref="documentsTable" :max-height="tableHeight" @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55"></el-table-column>
         <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
           <template slot="header">
@@ -61,10 +61,10 @@
             <span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="操作" width="150" v-if="documents.length">
+        <el-table-column fixed="right" label="操作" width="150" v-if="hasTableDocOperations">
           <template slot-scope="scope">
-            <el-button size="mini" @click="editDocument(scope.row)">修改</el-button>
-            <el-button size="mini" @click="removeDocument(scope.row)">删除</el-button>
+            <el-button v-if="docOperations.edit" size="mini" @click="editDocument(scope.row)">修改</el-button>
+            <el-button v-if="docOperations.remove" size="mini" @click="removeDocument(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -77,12 +77,12 @@
     <template v-slot:right>
       <tms-flex direction="column" align-items="flex-start">
         <div>
-          <el-button @click="createDocument">添加数据</el-button>
+          <el-button v-if="docOperations.create" @click="createDocument">添加数据</el-button>
         </div>
         <el-upload action="#" :show-file-list="false" :http-request="importDocument">
           <el-button>导入数据</el-button>
         </el-upload>
-        <el-dropdown @command="batchEditDocument">
+        <el-dropdown @command="editManyDocument">
           <el-button>批量修改<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -90,7 +90,7 @@
             <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <el-dropdown @command="batchRemoveDocument" placement="bottom-start">
+        <el-dropdown @command="removeManyDocument" placement="bottom-start">
           <el-button>批量删除<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -208,6 +208,11 @@ const componentOptions = {
         right: true,
         left: false,
       },
+      docOperations: {
+        create: true,
+        edit: true,
+        remove: true,
+      },
       tableHeight: 0,
       moveCheckList: [],
       filter: {},
@@ -216,7 +221,7 @@ const componentOptions = {
         size: 100,
         total: 0,
       },
-      multipleDocuments: [],
+      selectedDocuments: [],
       properties: {},
       dialogPage: {
         at: 1,
@@ -231,6 +236,9 @@ const componentOptions = {
     }
   },
   computed: {
+    hasTableDocOperations() {
+      return this.docOperations.edit || this.docOperations.remove
+    },
     documents() {
       return store.state.documents
     },
@@ -244,7 +252,7 @@ const componentOptions = {
       return Object.keys(this.filter).length ? this.page.total : 0
     },
     totalByChecked() {
-      return this.multipleDocuments.length
+      return this.selectedDocuments.length
     },
     computedPluginData() {
       const currentAuth = this.getCurrentAuth() || '*'
@@ -365,7 +373,7 @@ const componentOptions = {
           let objPro = this.properties
           if (isCheckBtn) store.commit('conditionDelBtn', { columnName })
           Object.keys(objPro).map((ele, index) => {
-            const attrs = document.querySelectorAll('#tables thead img')[index]
+            const attrs = document.querySelectorAll('#table thead img')[index]
             if (ele === columnName) {
               if (isClear) {
                 attrs.src = require('../assets/icon_filter.png')
@@ -413,10 +421,10 @@ const componentOptions = {
       this.listDocument(filter)
     },
     handleSelectDocument(rows) {
-      this.multipleDocuments = rows
+      this.selectedDocuments = rows
     },
-    fnGetMultipleIds() {
-      let ids = this.multipleDocuments.map((document) => document._id)
+    fnGetSelectedIds() {
+      let ids = this.selectedDocuments.map((document) => document._id)
       return ids
     },
     createDocument() {
@@ -466,7 +474,7 @@ const componentOptions = {
           this.filter = param.filter
           break
         case 'checked':
-          param.docIds = this.fnGetMultipleIds()
+          param.docIds = this.fnGetSelectedIds()
       }
       return { param, transforms }
     },
@@ -475,11 +483,11 @@ const componentOptions = {
       this.page.at = realAt > this.page.at ? this.page.at : realAt ? realAt : 1
       this.listDocument()
       if (isMultiple) {
-        this.$refs.multipleTable.clearSelection()
-        this.multipleDocuments = []
+        this.$refs.documentsTable.clearSelection()
+        this.selectedDocuments = []
       }
     },
-    batchEditDocument(command) {
+    editManyDocument(command) {
       let { param } = this.fnSetReqParam(command),
         editor
       editor = new Vue(ColumnValueEditor)
@@ -567,7 +575,7 @@ const componentOptions = {
         aMPTotal
       )
     },
-    batchRemoveDocument(command) {
+    removeManyDocument(command) {
       let { param } = this.fnSetReqParam(command)
       MessageBox({
         title: '提示',
@@ -586,7 +594,7 @@ const componentOptions = {
         .catch(() => {})
     },
     copyManyDocument(command) {
-      import('./plugins/DialogSelectCollection.vue').then((Module) => {
+      import('./widgets/DialogSelectCollection.vue').then((Module) => {
         let { bucketName, tmsAxiosName } = this
         let propsData = {
           bucketName,
@@ -671,14 +679,14 @@ const componentOptions = {
     },
     handlePlugins(plugin, conditionType) {
       new Promise((resolve) => {
-        let { beforeComp } = plugin
-        if (beforeComp && beforeComp.name === 'DialogDocList') {
-          import('./plugins/DialogDocList.vue').then((Module) => {
+        let { beforeWidget } = plugin
+        if (beforeWidget && beforeWidget.name === 'DialogSelectDocument') {
+          import('./widgets/DialogSelectDocument.vue').then((Module) => {
             let { bucketName, dbName, clName, tmsAxiosName } = this
             new Promise((resolve) => {
-              if (beforeComp.remotePreCondition === true)
+              if (beforeWidget.remoteWidgetOptions === true)
                 return createPluginApi(this.TmsAxios(this.tmsAxiosName))
-                  .remotePreCondition(
+                  .remoteWidgetOptions(
                     bucketName,
                     dbName,
                     clName,
@@ -776,7 +784,7 @@ const componentOptions = {
           this.groupData = groups
         })
     },
-    getTaglist(data) {
+    getSchemasByTags(data) {
       let temp = {}
       const arrPromise = data.map((item, index) =>
         createSchemaApi(this.TmsAxios(this.tmsAxiosName)).listByTag(
@@ -784,18 +792,14 @@ const componentOptions = {
           data[index]
         )
       )
-      return Promise.all(arrPromise)
-        .then((res) => {
-          res.forEach((schemas) => {
-            schemas.forEach((schema) => {
-              temp = { ...temp, ...schema.body.properties }
-            })
+      return Promise.all(arrPromise).then((res) => {
+        res.forEach((schemas) => {
+          schemas.forEach((schema) => {
+            temp = { ...temp, ...schema.body.properties }
           })
-          return temp
         })
-        .catch((err) => {
-          throw new Error(err)
-        })
+        return temp
+      })
     },
     async handleProperty() {
       let tags =
@@ -805,42 +809,48 @@ const componentOptions = {
         (process.env.VUE_APP_DEFAULT_TAG &&
           process.env.VUE_APP_DEFAULT_TAG.split(',')) ||
         collection.default_tag
-      let temp = {}
 
+      let temp = {}
       if (default_tag && default_tag.length) {
-        await this.getTaglist(default_tag).then((res) => (temp = res))
+        await this.getSchemasByTags(default_tag).then((res) => (temp = res))
       } else if (tags && tags.length) {
-        await this.getTaglist(tags).then((res) => (temp = res))
+        await this.getSchemasByTags(tags).then((res) => (temp = res))
       } else if (
         collection.schema &&
         collection.schema.body &&
         collection.schema.body.properties
       ) {
         Object.assign(temp, collection.schema.body.properties)
-      } else {
-        temp._id = { title: 'id' }
       }
+      if (Object.keys(temp).length === 0) temp._id = { title: 'id' }
       this.properties = Object.freeze(temp)
     },
   },
   mounted() {
     Promise.all([
       this.$apis.collection.byName(this.bucketName, this.dbName, this.clName),
-      this.$apis.plugin.getPlugins(),
+      this.$apis.plugin.getPlugins(this.bucketName, this.dbName, this.clName),
     ]).then(async (res) => {
       Object.assign(collection, res[0])
       this.pluginData = res[1]
       await this.handleProperty()
-      this.listDocument()
-
-      if (
-        collection.custom &&
-        collection.custom.filters &&
-        collection.custom.filters.length
-      ) {
-        this.frameDisplay.left = true
-        this.groupDocument()
+      /**集合定制功能设置 */
+      const { custom } = collection
+      if (custom) {
+        const { operations, filters } = custom
+        /**支持的文档操作 */
+        if (operations && typeof operations === 'object') {
+          if (operations.create === false) this.docOperations.create = false
+          if (operations.edit === false) this.docOperations.edit = false
+          if (operations.remove === false) this.docOperations.remove = false
+        }
+        /**文档筛选 */
+        if (filters && filters.length) {
+          this.frameDisplay.left = true
+          this.groupDocument()
+        }
       }
+      this.listDocument()
     })
   },
   beforeDestroy() {

@@ -44,7 +44,16 @@
 </template>
 <script>
 import Vue from 'vue'
-import { Dialog, Form, FormItem, Input, Select, Option, Button, Message } from 'element-ui'
+import {
+  Dialog,
+  Form,
+  FormItem,
+  Input,
+  Select,
+  Option,
+  Button,
+  Message,
+} from 'element-ui'
 Vue.use(Dialog)
   .use(Form)
   .use(FormItem)
@@ -61,24 +70,24 @@ import createTagApi from '../apis/tag'
 export default {
   name: 'CollectionEditor',
   props: {
-		tmsAxiosName: String,
+    tmsAxiosName: String,
     dialogVisible: { default: true },
     bucketName: { type: String },
     dbName: { type: String },
     collection: {
       type: Object,
-      default: function() {
+      default: function () {
         return {
           name: '',
           title: '',
           description: '',
           schema_id: '',
-          tags: [], 
+          tags: [],
           default_tag: [],
-          extensionInfo: { schemaId: '', info: {} }
+          extensionInfo: { schemaId: '', info: {} },
         }
-      }
-    }
+      },
+    },
   },
   components: { TmsElJsonDoc },
   data() {
@@ -88,75 +97,83 @@ export default {
       destroyOnClose: true,
       closeOnClickModal: false,
       schemas: [],
-			extensions: [],
+      extensions: [],
       extendSchema: {},
-      tags: []
+      tags: [],
     }
   },
   mounted() {
-    createSchemaApi(this.TmsAxios(this.tmsAxiosName)).list(this.bucketName, 'document').then(schemas => {
-      this.schemas = schemas
-    })
-    createSchemaApi(this.TmsAxios(this.tmsAxiosName)).list(this.bucketName, 'collection').then(extensions => {
-			this.extensions = extensions
-			this.handleExtendId(this.collection.extensionInfo.schemaId, true)
-    })
-    createTagApi(this.TmsAxios(this.tmsAxiosName)).list(this.bucketName).then(tags => {
-      this.tags = tags
-    })
-	},
+    createSchemaApi(this.TmsAxios(this.tmsAxiosName))
+      .list(this.bucketName, 'document')
+      .then((schemas) => {
+        this.schemas = schemas
+      })
+    createSchemaApi(this.TmsAxios(this.tmsAxiosName))
+      .list(this.bucketName, 'collection')
+      .then((extensions) => {
+        this.extensions = extensions
+        this.handleExtendId(this.collection.extensionInfo.schemaId, true)
+      })
+    createTagApi(this.TmsAxios(this.tmsAxiosName))
+      .list(this.bucketName)
+      .then((tags) => {
+        this.tags = tags
+      })
+  },
   methods: {
-		handleExtendId(id, init) {
-			this.extendSchema = {}
-			this.extensions.find(item => {
-				if (item._id==id) {
-					this.$nextTick(() => {
-						this.extendSchema = item.body
-						if (!init) {
-							this.collection.extensionInfo.info = {}
-						}
-					})
-				}
-			})
-		},
-		fnSubmit() {
-			if (this.mode === 'create')
+    handleExtendId(id, init) {
+      this.extendSchema = {}
+      this.extensions.find((item) => {
+        if (item._id == id) {
+          this.$nextTick(() => {
+            this.extendSchema = item.body
+            if (!init) {
+              this.collection.extensionInfo.info = {}
+            }
+          })
+        }
+      })
+    },
+    fnSubmit() {
+      if (this.mode === 'create')
         createCollectionApi(this.TmsAxios(this.tmsAxiosName))
           .create(this.bucketName, this.dbName, this.collection)
-          .then(newCollection => this.$emit('submit', newCollection))
+          .then((newCollection) => this.$emit('submit', newCollection))
       else if (this.mode === 'update')
         createCollectionApi(this.TmsAxios(this.tmsAxiosName))
           .update(this.bucketName, this.dbName, this.clName, this.collection)
-          .then(newCollection => this.$emit('submit', newCollection))
-		},
+          .then((newCollection) => this.$emit('submit', newCollection))
+    },
     onSubmit() {
-			if (this.$refs.attrForm) {
-				const tmsAttrForm = this.$refs.attrForm.$refs.TmsJsonDoc
-				tmsAttrForm.form().validate(valid => {
-					valid ? this.fnSubmit() : Message.error({message: '请填写必填字段'})
-				})
-				return false;
-			}
-			this.fnSubmit()
+      if (this.$refs.attrForm) {
+        const tmsAttrForm = this.$refs.attrForm.$refs.TmsJsonDoc
+        tmsAttrForm.form().validate((valid) => {
+          valid ? this.fnSubmit() : Message.error({ message: '请填写必填字段' })
+        })
+        return false
+      }
+      this.fnSubmit()
     },
     open(mode, tmsAxiosName, bucketName, dbName, collection) {
-			this.mode = mode
-			this.tmsAxiosName = tmsAxiosName
+      this.mode = mode
+      this.tmsAxiosName = tmsAxiosName
       this.bucketName = bucketName
       this.dbName = dbName
       if (mode === 'update') {
-				this.clName = collection.name
-				this.collection = JSON.parse(JSON.stringify(Object.assign(this.collection, collection)))
+        this.clName = collection.name
+        this.collection = JSON.parse(
+          JSON.stringify(Object.assign(this.collection, collection))
+        )
       }
       this.$mount()
       document.body.appendChild(this.$el)
-      return new Promise(resolve => {
-        this.$on('submit', newCollection => {
+      return new Promise((resolve) => {
+        this.$on('submit', (newCollection) => {
           this.dialogVisible = false
           resolve(newCollection)
         })
       })
-    }
-  }
+    },
+  },
 }
 </script>

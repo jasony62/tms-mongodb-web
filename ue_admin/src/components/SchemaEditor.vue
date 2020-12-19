@@ -44,10 +44,10 @@ export default {
     bucketName: { type: String },
     schema: {
       type: Object,
-      default: function() {
+      default: function () {
         return { title: '', description: '', scope: '', tags: [], body: {} }
-      }
-    }
+      },
+    },
   },
   data() {
     return {
@@ -57,11 +57,11 @@ export default {
       closeOnClickModal: false,
       extendSchema: (vm, schema) => {
         vm.$set(schema, 'readonly', schema.readonly || false)
-      }
+      },
     }
   },
   mounted() {
-    apiTag.list(this.bucketName).then(tags => {
+    apiTag.list(this.bucketName).then((tags) => {
       this.tags = tags
     })
   },
@@ -72,23 +72,25 @@ export default {
       const config = { 'Content-Type': 'multipart/form-data' }
       return apiDoc
         .upload({ bucket: this.bucketName }, fileData, config)
-        .then(uploadUrl => {         
-          return {name: file.name, url: uploadUrl}      
+        .then((uploadUrl) => {
+          return { name: file.name, url: uploadUrl }
         })
-        .catch(error => { throw error })
+        .catch((error) => {
+          throw error
+        })
     },
     onTabClick() {},
     onSubmit() {
       if (this.schema._id) {
         apiSchema
           .update(this.bucketName, this.schema, this.schema)
-          .then(newSchema =>
+          .then((newSchema) =>
             this.$emit('submit', { ...newSchema, _id: this.schema._id })
           )
       } else {
         apiSchema
           .create(this.bucketName, this.schema)
-          .then(newSchema => this.$emit('submit', newSchema))
+          .then((newSchema) => this.$emit('submit', newSchema))
       }
     },
     open(schema, bucketName) {
@@ -96,13 +98,13 @@ export default {
       Object.assign(this.schema, schema)
       this.$mount()
       document.body.appendChild(this.$el)
-      return new Promise(resolve => {
-        this.$on('submit', schema => {
+      return new Promise((resolve) => {
+        this.$on('submit', (schema) => {
           this.dialogVisible = false
           resolve(schema)
         })
       })
-    }
-  }
+    },
+  },
 }
 </script>

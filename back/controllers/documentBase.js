@@ -205,7 +205,6 @@ class DocBase extends Base {
       if (parent) parent.children.push(leaf)
       else upperNodes[0].set(leaf.value, leaf)
     })
-    console.log('0000', upperNodes[0])
     return new ResultData(Array.from(upperNodes[0].values()))
   }
   /**
