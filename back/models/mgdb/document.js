@@ -31,25 +31,33 @@ class Document extends Base {
    * @param {object} existCl - 文档对象所在集合
    * @param {string} id - 文档对象id
    *
+   * @throws 如果不满足删除条件，抛出异常说明原因
+   *
    * @returns {boolean} 是否更新成功
    */
   async remove(existCl, id) {
     let mongoClient = await this.mongoClient()
+    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+    const modelCl = new ModelColl(this.bucket)
+
     if (existCl.usage !== 1) {
-      let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
-      return sysCl
-        .deleteOne({
-          _id: ObjectId(id),
-        })
-        .then(({ result }) => result.n === 1)
+      /**主集合删除文档 */
+      let removeQuery = { _id: ObjectId(id) }
+      await modelCl.checkRemoveConstraint(existCl, removeQuery, sysCl)
+      return sysCl.deleteOne(removeQuery).then(({ result }) => result.n === 1)
     } else {
-      let doc = existCl.findOne({ _id: ObjectId(id) })
+      /**检查要删除的文档是否存在 */
+      let doc = await sysCl.findOne({ _id: ObjectId(id) })
       if (!doc) return false
+
+      /**从集合转到主集合删除 */
       let { __pri } = doc
       let priCl = mongoClient.db(__pri.db).collection(__pri.cl)
-      return priCl
-        .deleteOne({ _id: __pri.id })
-        .then(({ result }) => result.n === 1)
+      let existPriCl = await modelCl.bySysname({ sysname: __pri.db }, __pri.cl)
+      let removeQuery = { _id: __pri.id }
+      await modelCl.checkRemoveConstraint(existPriCl, removeQuery, priCl)
+
+      return priCl.deleteOne(removeQuery).then(({ result }) => result.n === 1)
     }
   }
   /**
@@ -60,12 +68,17 @@ class Document extends Base {
    * @param {object} existCl - 文档对象所在集合
    * @param {object} query - 文档查询条件
    *
+   * @throws 如果不满足删除条件，抛出异常说明原因
+   *
    * @returns {number} 删除的文档数量
    */
   async removeMany(existCl, query) {
     let mongoClient = await this.mongoClient()
     let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+    const modelCl = new ModelColl(this.bucket)
+
     if (existCl.usage !== 1) {
+      await modelCl.checkRemoveConstraint(existCl, query, sysCl)
       return sysCl.deleteMany(query).then(({ deletedCount }) => deletedCount)
     } else {
       let removedDocs = await sysCl
@@ -79,6 +92,15 @@ class Document extends Base {
         if (!priIdsByCl.has(priDbDotCl)) priIdsByCl.set(priDbDotCl, [])
         priIdsByCl.get(priDbDotCl).push(__pri.id)
       })
+
+      /**检查是否符合删除约束条件 */
+      for (const entry of priIdsByCl) {
+        let [dbDotCl, ids] = entry
+        let [db, cl] = dbDotCl.split('.')
+        let sysCl = mongoClient.db(db).collection(cl)
+        let tmwCl = await modelCl.bySysname({ sysname: db }, cl)
+        await modelCl.checkRemoveConstraint(tmwCl, { _id: { $in: ids } }, sysCl)
+      }
 
       let promises = [] // 每个主集合中删除文档的promise
       priIdsByCl.forEach((ids, dbDotCl) => {
@@ -156,7 +178,7 @@ class Document extends Base {
         )
         .then(({ modifiedCount }) => modifiedCount === 1)
     } else {
-      let doc = existCl.findOne({ _id: ObjectId(id) })
+      let doc = await existCl.findOne({ _id: ObjectId(id) })
       if (!doc) return false
       let { __pri } = doc
       let priCl = mongoClient.db(__pri.db).collection(__pri.cl)
@@ -384,7 +406,7 @@ class Document extends Base {
    * 查询文档完成情况
    */
   async getDocCompleteStatus(existCl, docs) {
-    const modelCl = new ModelColl()
+    const modelCl = new ModelColl(this.bucket)
     const clSchemas = await modelCl.getSchemaByCollection(existCl)
     if (!clSchemas) return docs
     //

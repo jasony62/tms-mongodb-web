@@ -16,6 +16,7 @@
     "lodash": "^4.17.20",
     "log4js": "^6.1.0",
     "moment": "^2.24.0",
+    "mongo-escape": "^2.0.6",
     "mongodb": "^3.6.3",
     "nanoid": "^3.1.4",
     "redis": "^2.8.0",

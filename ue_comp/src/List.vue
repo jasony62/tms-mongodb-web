@@ -89,7 +89,7 @@
         <el-upload action="#" :show-file-list="false" :http-request="importDocument">
           <el-button>导入数据</el-button>
         </el-upload>
-        <el-dropdown @command="editManyDocument">
+        <el-dropdown v-if="docOperations.editMany" @command="editManyDocument">
           <el-button>批量修改<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -97,7 +97,7 @@
             <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <el-dropdown @command="retransferManyDocument" placement="bottom-start">
+        <el-dropdown v-if="docOperations.removeMany" @command="removeManyDocument" placement="bottom-start">
           <el-button>批量删除<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -113,7 +113,7 @@
             <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <el-dropdown @command="transferManyDocument">
+        <el-dropdown v-if="docOperations.transferMany" @command="transferManyDocument">
           <el-button>批量迁移<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -219,6 +219,9 @@ const componentOptions = {
         create: true,
         edit: true,
         remove: true,
+        editMany: true,
+        removeMany: true,
+        transferMany: true,
       },
       tableHeight: 0,
       moveCheckList: [],
@@ -589,7 +592,7 @@ const componentOptions = {
         aMPTotal
       )
     },
-    retransferManyDocument(command) {
+    removeManyDocument(command) {
       let { param } = this.fnSetReqParam(command)
       MessageBox({
         title: '提示',
@@ -601,7 +604,7 @@ const componentOptions = {
           createDocApi(this.TmsAxios(this.tmsAxiosName))
             .batchRemove(this.bucketName, this.dbName, this.clName, param)
             .then((result) => {
-              Message.success({ message: '已成功删除' + result.n + '条' })
+              Message.success({ message: `已成功删除${result.deletedCount}条` })
               this.fnHandleResResult(result, true)
             })
         })
@@ -950,9 +953,14 @@ const componentOptions = {
         const { operations, filters } = custom
         /**支持的文档操作 */
         if (operations && typeof operations === 'object') {
-          if (operations.create === false) this.docOperations.create = false
-          if (operations.edit === false) this.docOperations.edit = false
-          if (operations.remove === false) this.docOperations.remove = false
+          const { docOperations } = this
+          if (operations.create === false) docOperations.create = false
+          if (operations.edit === false) docOperations.edit = false
+          if (operations.remove === false) docOperations.remove = false
+          if (operations.editMany === false) docOperations.editMany = false
+          if (operations.removeMany === false) docOperations.removeMany = false
+          if (operations.transferMany === false)
+            docOperations.transferMany = false
         }
         /**文档筛选 */
         if (filters && filters.length) {
