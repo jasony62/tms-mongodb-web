@@ -51,7 +51,6 @@ class PluginBase {
       everyTags,
       someTags,
       beforeWidget,
-      afterWidget,
     } = this
     return {
       name,
@@ -62,7 +61,6 @@ class PluginBase {
       everyTags,
       someTags,
       beforeWidget,
-      afterWidget,
     }
   }
 }

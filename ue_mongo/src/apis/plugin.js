@@ -7,11 +7,16 @@ export default function create(tmsAxios) {
         .get(`${base}/list?scope=document`, { params: { bucket, db, cl } })
         .then(rst => rst.data.result)
     },
-    handlePlugin(...args) {
+    /**
+     * 执行插件处理功能
+     * @param {object} params - http请求查询参数
+     * @param {object} body - http请求消息体
+     */
+    execute(params, body) {
       return (
         tmsAxios
           // .post(`${base}/commonExecute`, args[0], { params: args[1] })
-          .post(`${base}/execute`, args[0], { params: args[1] })
+          .post(`${base}/execute`, body, { params })
           .then(rst => rst.data.result)
       )
     },

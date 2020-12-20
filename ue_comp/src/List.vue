@@ -97,7 +97,7 @@
             <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <el-dropdown @command="removeManyDocument" placement="bottom-start">
+        <el-dropdown @command="retransferManyDocument" placement="bottom-start">
           <el-button>批量删除<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -113,7 +113,7 @@
             <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <el-dropdown @command="batchMoveDocument">
+        <el-dropdown @command="transferManyDocument">
           <el-button>批量迁移<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -589,7 +589,7 @@ const componentOptions = {
         aMPTotal
       )
     },
-    removeManyDocument(command) {
+    retransferManyDocument(command) {
       let { param } = this.fnSetReqParam(command)
       MessageBox({
         title: '提示',
@@ -628,7 +628,7 @@ const componentOptions = {
         })
       })
     },
-    batchMoveDocument(command) {
+    transferManyDocument(command) {
       let { param, transforms } = this.fnSetReqParam(
         command,
         this.moveCheckList
@@ -734,6 +734,37 @@ const componentOptions = {
               })
             })
           })
+        } else if (beforeWidget && beforeWidget.name === 'DialogSchemaForm') {
+          import('./widgets/DialogSchemaForm.vue').then((Module) => {
+            let { bucketName, dbName, clName, tmsAxiosName } = this
+            new Promise((resolve) => {
+              if (beforeWidget.remoteWidgetOptions === true)
+                return createPluginApi(this.TmsAxios(this.tmsAxiosName))
+                  .remoteWidgetOptions(
+                    bucketName,
+                    dbName,
+                    clName,
+                    plugin.name,
+                    this.filter
+                  )
+                  .then((result) => {
+                    resolve(result)
+                  })
+              else return {}
+            }).then((preCondition) => {
+              let propsData = {}
+              if (preCondition && typeof preCondition === 'object') {
+                let { schema } = preCondition
+                propsData.schema = schema
+              }
+              const vm = Module.createAndMount(Vue, propsData, {
+                createDocApi,
+              })
+              vm.$on('confirm', (result) => {
+                resolve(result)
+              })
+            })
+          })
         } else resolve()
       }).then((beforeResult) => {
         let postBody = conditionType
@@ -741,7 +772,7 @@ const componentOptions = {
           : null
         if (beforeResult) {
           if (!postBody) postBody = {}
-          postBody.related = beforeResult
+          postBody.widget = beforeResult
         }
         let queryParams = {
           db: this.dbName, // 参数名改为db
@@ -750,10 +781,75 @@ const componentOptions = {
           // name: plugin.name,
           // type: plugin.type, // 这个参数应该去掉，插件自己知道自己的类型
         }
-        createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(
-          postBody,
-          queryParams
-        )
+        createPluginApi(this.TmsAxios(this.tmsAxiosName))
+          .execute(queryParams, postBody)
+          .then((result) => {
+            if (typeof result === 'string') {
+              Message.success({
+                message: result,
+                showClose: true,
+              })
+            } else if (
+              result &&
+              typeof result === 'object' &&
+              result.type === 'documents'
+            ) {
+              /**返回操作结果——数据 */
+              let nInserted = 0,
+                nModified = 0,
+                nRemoved = 0
+              let { inserted, modified, removed } = result
+              /**在当前文档列表中移除删除的记录 */
+              if (Array.isArray(removed) && (nRemoved = removed.length)) {
+                let documents = this.documents.filter(
+                  (doc) => !removed.includes(doc._id)
+                )
+                store.commit('documents', { documents })
+              }
+              /**在当前文档列表中更新修改的记录 */
+              if (Array.isArray(modified) && (nModified = modified.length)) {
+                let map = modified.reduce((m, doc) => {
+                  if (doc._id && typeof doc._id === 'string') m[doc._id] = doc
+                  return m
+                }, {})
+                this.documents.forEach((doc) => {
+                  let newDoc = map[doc._id]
+                  if (newDoc) Object.assign(doc, newDoc)
+                  store.commit('updateDocument', { document: doc })
+                })
+              }
+              /**在当前文档列表中添加插入的记录 */
+              if (Array.isArray(inserted) && (nInserted = inserted.length)) {
+                inserted.forEach((newDoc) => {
+                  if (newDoc._id && typeof newDoc._id === 'string')
+                    this.documents.unshift(newDoc)
+                })
+              }
+            } else if (
+              result &&
+              typeof result === 'object' &&
+              result.type === 'numbers'
+            ) {
+              /**返回操作结果——数量 */
+              let { nInserted, nModified, nRemoved } = result
+              let message = `插件[${plugin.title}]执行完毕，添加[${
+                parseInt(nInserted) || 0
+              }]条，修改[${parseInt(nModified) || 0}]条，删除[${
+                parseInt(nRemoved) || 0
+              }]条记录。`
+              MessageBox.confirm(message, '提示', {
+                confirmButtonText: '关闭',
+                cancelButtonText: '刷新数据',
+              }).catch(() => {
+                this.listDocument()
+              })
+            } else {
+              Message.success({
+                message: `插件[${plugin.title}]执行完毕。`,
+                showClose: true,
+              })
+            }
+          })
       })
     },
     handleSize(val) {

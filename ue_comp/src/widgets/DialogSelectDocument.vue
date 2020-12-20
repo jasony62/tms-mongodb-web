@@ -50,7 +50,6 @@ import {
   Pagination,
   Button,
 } from 'element-ui'
-import { db } from '../../../ue_admin/src/apis'
 
 Vue.use(Flex)
 Vue.use(Dialog)

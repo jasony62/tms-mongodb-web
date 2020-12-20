@@ -133,8 +133,8 @@ class Plugin extends Base {
    *     summary: 获取用于处理document对象的插件列表
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
-   *       - $ref: '#/components/parameters/dbNameRequired'
-   *       - $ref: '#/components/parameters/clNameRequired'
+   *       - $ref: '#/components/parameters/dbName'
+   *       - $ref: '#/components/parameters/clName'
    *       - name: scope
    *         description: 插件适用对象
    *         in: query
@@ -150,8 +150,6 @@ class Plugin extends Base {
    *               "$ref": "#/components/schemas/ResponseDataArray"
    */
   async list() {
-    const existCl = await this.pluginHelper.findRequestCl()
-
     const { scope } = this.request.query
     if (!['document', 'collection', 'database'].includes(scope))
       return new ResultFault(`参数错误[scope=${scope}]`)
@@ -166,18 +164,25 @@ class Plugin extends Base {
         : ins.dbPlugins
 
     /**检查标签是否匹配 */
-    const clTags = Array.isArray(existCl.tags) ? existCl.tags : []
+    let objTags
+    if (scope === 'document') {
+      const existCl = await this.pluginHelper.findRequestCl()
+      objTags = Array.isArray(existCl.tags) ? existCl.tags : []
+    } else {
+      objTags = []
+    }
+
     plugins = plugins.filter((plugin) => {
       let { excludeTags, everyTags, someTags } = plugin
       // 集合标签中不能包括指定的标签
       if (Array.isArray(excludeTags) && excludeTags.length)
-        if (_.intersection(excludeTags, clTags).length) return false
+        if (_.intersection(excludeTags, objTags).length) return false
       // 集合标签中包括指定的所有标签
       if (Array.isArray(everyTags) && everyTags.length)
-        if (_.difference(everyTags, clTags).length) return false
+        if (_.difference(everyTags, objTags).length) return false
       // 集合标签中包括至少1个指定标签
       if (Array.isArray(someTags) && someTags.length)
-        if (_.intersection(everyTags, clTags).length === 0) return false
+        if (_.intersection(everyTags, objTags).length === 0) return false
 
       return true
     })
@@ -281,11 +286,21 @@ class Plugin extends Base {
    *               value: {"docIds": [], "filter": {}, "related": {"docIds": []}}
    *     responses:
    *       '200':
-   *         description: result为???
+   *         description: result为插件执行情况的说明
    *         content:
    *           application/json:
    *             schema:
    *               "$ref": "#/components/schemas/ResponseData"
+   *             examples:
+   *               documents:
+   *                 summary: 文档对象
+   *                 value: {"type":"documents", "inserted":[{"_id":""}], "modified":[{"_id":""}], "removed":[""]}
+   *               numbers:
+   *                 summary: 文档数量
+   *                 value: {"type":"numbers", "nInserted":0, "nModified":0, "nRemoved":0}
+   *               message:
+   *                 summary: 文本消息
+   *                 value: "执行完毕"
    */
   async execute() {
     let { plugin: pluginName } = this.request.query
