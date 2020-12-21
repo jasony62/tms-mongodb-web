@@ -218,6 +218,19 @@ export default new Vuex.Store({
     listReplica({ commit }, payload) {
       const { bucket } = payload
       return apis.replica.list(bucket).then(replicas => {
+        replicas = replicas.map(result => {
+          let {
+            primary: { db: pdb, cl: pcl },
+            secondary: { db: sdb, cl: scl }
+          } = result
+          ;[pdb, pcl, sdb, scl].forEach(item => {
+            item.label = `${item.title} (${item.name})`
+          })
+          return {
+            primary: { db: pdb, cl: pcl },
+            secondary: { db: sdb, cl: scl }
+          }
+        })
         commit({ type: 'replicas', replicas })
         return { replicas }
       })
@@ -235,7 +248,18 @@ export default new Vuex.Store({
     },
     synchronizeAll({}, payload) {
       const { bucket, params } = payload
-      return apis.replica.synchronizeAll(bucket, params)
+      let result = { success: [], error: [] }
+      for (const param of params) {
+        apis.replica
+          .synchronize(bucket, param)
+          .then(() => {
+            result.success.push(param)
+          })
+          .catch(() => {
+            result.error.push(param)
+          })
+      }
+      return result
     }
   },
   modules: {}

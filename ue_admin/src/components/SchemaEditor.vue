@@ -1,6 +1,6 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <el-tabs v-model="activeTab" type="card" @tab-click="onTabClick">
+    <el-tabs v-model="activeTab" type="card">
       <el-tab-pane label="基本信息" name="first"></el-tab-pane>
       <el-tab-pane label="列定义" name="second"></el-tab-pane>
     </el-tabs>
@@ -72,12 +72,13 @@ export default {
       const config = { 'Content-Type': 'multipart/form-data' }
       return apiDoc
         .upload({ bucket: this.bucketName }, fileData, config)
-        .then(uploadUrl => {         
-          return {name: file.name, url: uploadUrl}      
+        .then(uploadUrl => {
+          return { name: file.name, url: uploadUrl }
         })
-        .catch(error => { throw error })
+        .catch(error => {
+          throw error
+        })
     },
-    onTabClick() {},
     onSubmit() {
       if (this.schema._id) {
         apiSchema

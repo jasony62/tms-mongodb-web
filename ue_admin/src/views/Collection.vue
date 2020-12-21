@@ -17,12 +17,8 @@
             <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)" />
           </template>
           <template slot-scope="scope">
-            <span v-if="s.type === 'boolean'">{{
-              scope.row[k] ? '是' : '否'
-            }}</span>
-            <span v-else-if="
-                s.type === 'array' && s.items && s.items.format === 'file'
-              ">
+            <span v-if="s.type === 'boolean'">{{scope.row[k] ? '是' : '否'}}</span>
+            <span v-else-if="s.type === 'array' && s.items && s.items.format === 'file'">
               <span v-for="(i, v) in scope.row[k]" :key="v">
                 <a href="#" @click="handleDownload(i)">{{ i.name }}</a><br />
               </span>
@@ -94,7 +90,7 @@ import SelectCondition from '../components/SelectCondition.vue'
 import {
   collection as apiCol,
   doc as apiDoc,
-  schema as apiSchema,
+  schema as apiSchema
 } from '../apis'
 
 const collection = {}
@@ -109,16 +105,16 @@ export default {
       page: {
         at: 1,
         size: 100,
-        total: 0,
+        total: 0
       },
       dialogPage: {
         at: 1,
-        size: 100,
-      },
+        size: 100
+      }
     }
   },
   computed: {
-    ...mapState(['documents', 'conditions']),
+    ...mapState(['documents', 'conditions'])
   },
   created() {
     this.tableHeight = window.innerHeight * 0.8
@@ -133,15 +129,15 @@ export default {
       if (_obj.length === 1) {
         return {
           filter: _obj[0].rule.filter,
-          orderBy: _obj[0].rule.orderBy,
+          orderBy: _obj[0].rule.orderBy
         }
       }
       return _obj
-        .map((ele) => ele.rule)
+        .map(ele => ele.rule)
         .reduce((prev, curr) => {
           return {
             filter: Object.assign(prev.filter, curr.filter),
-            orderBy: Object.assign(prev.orderBy, curr.orderBy),
+            orderBy: Object.assign(prev.orderBy, curr.orderBy)
           }
         })
     },
@@ -172,7 +168,7 @@ export default {
       let filter, orderBy
       if (this.conditions.length) {
         const columnobj = this.conditions.find(
-          (ele) => ele.columnName === columnName
+          ele => ele.columnName === columnName
         )
         const rule = this.handleCondition()
         if (columnobj) {
@@ -190,7 +186,7 @@ export default {
         this.conditions.length ? orderBy : undefined,
         this.dialogPage.at,
         this.dialogPage.size
-      ).then((columnResult) => {
+      ).then(columnResult => {
         select.condition.selectResult = columnResult
         select.condition.multipleSelection = columnResult
         // 暂时先用延迟解决，该方法还需改进
@@ -206,7 +202,7 @@ export default {
           this.listByColumn,
           this.properties[columnName]
         )
-        .then((rsl) => {
+        .then(rsl => {
           const { condition, isClear, isCheckBtn } = rsl
           this.$store.commit('conditionAddColumn', { condition })
           if (isClear) this.$store.commit('conditionDelColumn', { condition })
@@ -228,7 +224,7 @@ export default {
               }
             } else if (isCheckBtn) {
               // 如果选择升降序规则，则需重置其他图标
-              this.conditions.map((conEle) => {
+              this.conditions.map(conEle => {
                 if (ele === conEle.columnName) {
                   if (
                     conEle.rule &&
@@ -262,7 +258,7 @@ export default {
       let editor = new Vue(DocEditor)
       editor
         .open(this.bucketName, this.dbName, collection, doc)
-        .then((newDoc) => {
+        .then(newDoc => {
           Object.assign(doc, newDoc)
           this.updateDocument({ document: newDoc })
         })
@@ -287,9 +283,9 @@ export default {
           cl: this.clName,
           page: this.page,
           orderBy,
-          filter,
+          filter
         })
-        .then((result) => {
+        .then(result => {
           this.page.total = result.total
         })
     },
@@ -314,15 +310,15 @@ export default {
         apiSchema.listByTag(this.bucketName, data[index])
       )
       return Promise.all(arrPromise)
-        .then((res) => {
-          res.forEach((schemas) => {
-            schemas.forEach((schema) => {
+        .then(res => {
+          res.forEach(schemas => {
+            schemas.forEach(schema => {
               temp = { ...temp, ...schema.body.properties }
             })
           })
           return temp
         })
-        .catch((err) => {
+        .catch(err => {
           throw new Error(err)
         })
     },
@@ -336,11 +332,11 @@ export default {
         collection.default_tag
       let temp = {}
       if (default_tag && default_tag.length) {
-        await this.getTaglist(default_tag).then((res) => {
+        await this.getTaglist(default_tag).then(res => {
           temp = res
         })
       } else if (tags && tags.length) {
-        await this.getTaglist(tags).then((res) => {
+        await this.getTaglist(tags).then(res => {
           temp = res
         })
       } else if (
@@ -351,20 +347,18 @@ export default {
         Object.assign(temp, collection.schema.body.properties)
       }
       this.properties = Object.freeze(temp)
-    },
+    }
   },
   mounted() {
-    apiCol
-      .byName(this.bucketName, this.dbName, this.clName)
-      .then(async (res) => {
-        Object.assign(collection, res)
-        await this.handleProperty()
-        this.listDocument()
-      })
+    apiCol.byName(this.bucketName, this.dbName, this.clName).then(async res => {
+      Object.assign(collection, res)
+      await this.handleProperty()
+      this.listDocument()
+    })
   },
   beforeDestroy() {
     this.conditionReset()
-  },
+  }
 }
 </script>
 <style lang="less" scoped>

@@ -1,63 +1,24 @@
 <template>
-  <el-dialog
-    :visible.sync="dialogVisible"
-    :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal"
-  >
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <el-form ref="form" :model="replica" label-position="top">
       <el-form-item label="主集合数据库名称">
-        <el-select
-          v-model="replica.primary.db"
-          placeholder="请选择主集合数据库"
-          @change="getCollection('primary', replica.primary.db)"
-        >
-          <el-option
-            v-for="db in dbs"
-            :key="db._id"
-            :label="db.title"
-            :value="db.name"
-          >
-          </el-option>
+        <el-select v-model="replica.primary.db" placeholder="请选择主集合数据库" @change="getCollection('primary', replica.primary.db)">
+          <el-option v-for="db in dbs" :key="db.name" :label="db.label" :value="db.name"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="主集合名称">
         <el-select v-model="replica.primary.cl" placeholder="请选择主集合名称">
-          <el-option
-            v-for="cl in primarycls"
-            :key="cl._id"
-            :label="cl.title"
-            :value="cl.name"
-          >
-          </el-option>
+          <el-option v-for="cl in primarycls" :key="cl.name" :label="cl.label" :value="cl.name"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="从集合数据库名称">
-        <el-select
-          v-model="replica.secondary.db"
-          placeholder="请选择从集合数据库"
-          @change="getCollection('secondary', replica.secondary.db)"
-        >
-          <el-option
-            v-for="db in dbs"
-            :key="db._id"
-            :label="db.title"
-            :value="db.name"
-          >
-          </el-option>
+        <el-select v-model="replica.secondary.db" placeholder="请选择从集合数据库" @change="getCollection('secondary', replica.secondary.db)">
+          <el-option v-for="db in dbs" :key="db.name" :label="db.label" :value="db.name"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="从集合名称">
-        <el-select
-          v-model="replica.secondary.cl"
-          placeholder="请选择从集合名称"
-        >
-          <el-option
-            v-for="cl in secondcls"
-            :key="cl._id"
-            :label="cl.title"
-            :value="cl.name"
-          >
-          </el-option>
+        <el-select v-model="replica.secondary.cl" placeholder="请选择从集合名称">
+          <el-option v-for="cl in secondcls" :key="cl.name" :label="cl.label" :value="cl.name"></el-option>
         </el-select>
       </el-form-item>
     </el-form>
@@ -94,44 +55,52 @@ export default {
     }
   },
   mounted() {
-    apiDb.list(this.bucketName).then(dbs => (this.dbs = dbs))
+    apiDb.list(this.bucketName).then(dbs => {
+      this.dbs = dbs.map(db => {
+        return { name: db.name, label: `${db.title} (${db.name})` }
+      })
+    })
   },
   methods: {
-    getCollection(type, dbSysName) {
-      apiCl.list(this.bucketName, dbSysName).then(collections => {
+    getCollection(type, dbName) {
+      apiCl.list(this.bucketName, dbName).then(cls => {
         if (type === 'primary') {
-          this.primarycls = collections.filter(
-            collection => !collection.usage && collection.usage !== 1
-          )
+          this.primarycls = cls
+            .filter(cl => !cl.usage && cl.usage !== 1)
+            .map(cl => {
+              return { name: cl.name, label: `${cl.title} (${cl.name})` }
+            })
         } else {
-          this.secondcls = collections.filter(
-            collection => collection.usage && collection.usage === 1
-          )
+          this.secondcls = cls
+            .filter(cl => cl.usage && cl.usage === 1)
+            .map(cl => {
+              return { name: cl.name, label: `${cl.title} (${cl.name})` }
+            })
         }
       })
     },
     onSubmit() {
       apiReplica.create(this.bucketName, this.replica).then(() => {
-        const { name: pdname, title: pdtitle } = this.dbs.find(
+        const { name: pdname, label: pdlabel } = this.dbs.find(
           db => db.name === this.replica.primary.db
         )
-        const { name: sdname, title: sdtitle } = this.dbs.find(
+        const { name: sdname, label: sdlabel } = this.dbs.find(
           db => db.name === this.replica.secondary.db
         )
-        const { name: pcname, title: pctitle } = this.primarycls.find(
+        const { name: pcname, label: pclabel } = this.primarycls.find(
           primarycl => primarycl.name === this.replica.primary.cl
         )
-        const { name: scname, title: sctitle } = this.secondcls.find(
+        const { name: scname, label: sclabel } = this.secondcls.find(
           secondcl => secondcl.name === this.replica.secondary.cl
         )
         let result = {
           primary: {
-            db: { name: pdname, title: pdtitle },
-            cl: { name: pcname, title: pctitle }
+            db: { name: pdname, label: pdlabel },
+            cl: { name: pcname, label: pclabel }
           },
           secondary: {
-            db: { name: sdname, title: sdtitle },
-            cl: { name: scname, title: sctitle }
+            db: { name: sdname, label: scname },
+            cl: { name: sdlabel, label: sclabel }
           }
         }
         this.$emit('submit', result)

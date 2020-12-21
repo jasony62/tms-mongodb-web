@@ -5,6 +5,7 @@ import createCollection from './collection'
 import createDoc from './document'
 import createTag from './tag'
 import createPlugin from './plugin'
+import createReplica from './replica'
 
 function init(options) {
   const api = {
@@ -15,6 +16,7 @@ function init(options) {
     doc: createDoc(options.tmsAxios.api),
     tag: createTag(options.tmsAxios.api),
     plugin: createPlugin(options.tmsAxios.api),
+    replica: createReplica(options.tmsAxios.api)
   }
   return {
     api,
