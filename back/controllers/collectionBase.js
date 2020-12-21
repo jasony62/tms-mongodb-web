@@ -55,11 +55,11 @@ class CollectionBase extends Base {
       let re = new RegExp(keyword)
       query['$or'] = [
         { name: { $regex: re, $options: 'i' } },
-        { title: { $regex: re, $options: 'i' } },
+        { title: { $regex: re, $options: 'i' } }
       ]
     }
     const options = {
-      projection: { type: 0 },
+      projection: { type: 0 }
     }
     let { skip, limit } = this.clHelper.requestPage()
     // 添加分页条件
@@ -140,15 +140,24 @@ class CollectionBase extends Base {
     let modelCl = new ModelCl()
 
     // 格式化集合名
-    // let newClName
-    if (info.name && info.name !== clName) {
-      let newClName = modelCl.checkClName(info.name)
+    let newClName
+    if (info.name !== undefined && info.name !== existCl.name) {
+      newClName = modelCl.checkClName(info.name)
       if (newClName[0] === false) return new ResultFault(newClName[1])
       // 查询是否已存在同名集合
       let existTmwCl = await modelCl.byName(this.reqDb, info.name)
       if (existTmwCl)
         return new ResultFault(
           `数据库[name=${this.reqDb.name}]中，已存在同名集合[name=${info.name}]`
+        )
+    }
+
+    // 查询是否已存在同名集合
+    if (newClName) {
+      let otherCl = await modelCl.byName(this.reqDb, newClName)
+      if (otherCl)
+        return new ResultFault(
+          `数据库[name=${this.reqDb.name}]中，已存在同名集合[name=${newClName}]`
         )
     }
 

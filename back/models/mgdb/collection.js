@@ -1,5 +1,6 @@
 const ObjectId = require('mongodb').ObjectId
 const Base = require('./base')
+const { unescape } = require('mongo-escape')
 
 class Collection extends Base {
   /**
@@ -123,6 +124,33 @@ class Collection extends Base {
     const cl = await clMongoObj.findOne(query)
 
     return cl
+  }
+  /**
+   * 检查是否符合集合中指定的删除约束条件
+   * @param {object} tmwCl - 指定的集合管理对象
+   * @param {object} query - 指定的删除条件
+   * @param {object} sysCl - 系统集合
+   *
+   * @throws 如果不满足删除条件，抛出异常说明原因
+   *
+   * @return {boolean} 返回ture，通过检查
+   */
+  async checkRemoveConstraint(tmwCl, query, sysCl) {
+    if (tmwCl.custom && tmwCl.custom.docRemoveConstraint) {
+      let { docRemoveConstraint } = tmwCl.custom
+      if (typeof docRemoveConstraint === 'object') {
+        docRemoveConstraint = unescape(docRemoveConstraint)
+        /**检查是否符合用户指定的文档删除规则 */
+        let count1 = await sysCl.countDocuments(query)
+        let count2 = await sysCl.countDocuments(
+          Object.assign({}, query, docRemoveConstraint)
+        )
+        if (count1 !== count2)
+          throw Error('要删除的文档不符合在集合上指定删除限制规则')
+      }
+    }
+
+    return true
   }
 }
 

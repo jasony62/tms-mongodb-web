@@ -1,7 +1,23 @@
 <template>
-  <tms-frame class="tmw-document" :display="{ header: false, footer: false, right: true }" :leftWidth="'20%'">
+  <tms-frame class="tmw-document" :display="frameDisplay" :leftWidth="'20%'">
+    <template v-slot:left>
+      <el-card class="box-card" shadow="never">
+        <div slot="header" class="clearfix">
+          <tms-flex direction="row-reverse">
+            <el-button @click="resetSelectedGroupNode" type="text">清除选择</el-button>
+          </tms-flex>
+        </div>
+        <el-tree ref="groupNodeTree" :highlight-current="true" :data="groupData" default-expand-all node-key="id" :props="defaultProps" @node-click="selectGroupNode">
+          <span class="custom-tree-node" slot-scope="{ node, data }">
+            <span>{{ node.label }}
+              <el-badge v-if="data.count" class="mark" type="primary" :value="data.count" />
+            </span>
+          </span>
+        </el-tree>
+      </el-card>
+    </template>
     <template v-slot:center>
-      <el-table id="tables" :data="documents" stripe ref="multipleTable" :max-height="tableHeight" @selection-change="handleSelectDocument">
+      <el-table id="table" :data="documents" stripe ref="documentsTable" :max-height="tableHeight" @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55"></el-table-column>
         <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
           <template slot="header">
@@ -52,10 +68,10 @@
             <span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="操作" width="150" v-if="documents.length">
+        <el-table-column fixed="right" label="操作" width="150" v-if="hasTableDocOperations">
           <template slot-scope="scope">
-            <el-button size="mini" @click="editDocument(scope.row)">修改</el-button>
-            <el-button size="mini" @click="removeDocument(scope.row)">删除</el-button>
+            <el-button v-if="docOperations.edit" size="mini" @click="editDocument(scope.row)">修改</el-button>
+            <el-button v-if="docOperations.remove" size="mini" @click="removeDocument(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -68,12 +84,12 @@
     <template v-slot:right>
       <tms-flex direction="column" align-items="flex-start">
         <div>
-          <el-button @click="createDocument">添加数据</el-button>
+          <el-button v-if="docOperations.create" @click="createDocument">添加数据</el-button>
         </div>
         <el-upload action="#" :show-file-list="false" :http-request="importDocument">
           <el-button>导入数据</el-button>
         </el-upload>
-        <el-dropdown @command="batchEditDocument">
+        <el-dropdown v-if="docOperations.editMany" @command="editManyDocument">
           <el-button>批量修改<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -81,7 +97,7 @@
             <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <el-dropdown @command="batchRemoveDocument" placement="bottom-start">
+        <el-dropdown v-if="docOperations.removeMany" @command="removeManyDocument" placement="bottom-start">
           <el-button>批量删除<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -97,7 +113,7 @@
             <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <el-dropdown @command="batchMoveDocument">
+        <el-dropdown v-if="docOperations.transferMany" @command="transferManyDocument">
           <el-button>批量迁移<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -151,12 +167,14 @@ import {
   DropdownMenu,
   DropdownItem,
   MessageBox,
+  Tree,
+  Badge,
 } from 'element-ui'
 
 import DocEditor from './DocEditor.vue'
 import SelectCondition from './SelectCondition.vue'
 import ColumnValueEditor from '../../ue_mongo/src/components/ColumnValueEditor.vue'
-import { createAndMount as createAndMountSelectColl } from './plugins/DialogSelectCollection.vue'
+import { createAndMount as createAndMountSelectColl } from './widgets/DialogSelectCollection.vue'
 import createDbApi from '../../ue_mongo/src/apis/database'
 import createClApi from '../../ue_mongo/src/apis/collection'
 import createDocApi from '../../ue_mongo/src/apis/document'
@@ -177,6 +195,8 @@ const componentOptions = {
     'el-dropdown': Dropdown,
     'el-dropdown-menu': DropdownMenu,
     'el-dropdown-item': DropdownItem,
+    'el-tree': Tree,
+    'el-badge': Badge,
   },
   props: {
     bucketName: String,
@@ -189,6 +209,20 @@ const componentOptions = {
   },
   data() {
     return {
+      frameDisplay: {
+        header: false,
+        footer: false,
+        right: true,
+        left: false,
+      },
+      docOperations: {
+        create: true,
+        edit: true,
+        remove: true,
+        editMany: true,
+        removeMany: true,
+        transferMany: true,
+      },
       tableHeight: 0,
       moveCheckList: [],
       filter: {},
@@ -197,16 +231,24 @@ const componentOptions = {
         size: 100,
         total: 0,
       },
-      multipleDocuments: [],
+      selectedDocuments: [],
       properties: {},
       dialogPage: {
         at: 1,
         size: 100,
       },
       pluginData: [],
+      groupData: [],
+      defaultProps: {
+        children: 'children',
+        label: 'value',
+      },
     }
   },
   computed: {
+    hasTableDocOperations() {
+      return this.docOperations.edit || this.docOperations.remove
+    },
     documents() {
       return store.state.documents
     },
@@ -220,7 +262,7 @@ const componentOptions = {
       return Object.keys(this.filter).length ? this.page.total : 0
     },
     totalByChecked() {
-      return this.multipleDocuments.length
+      return this.selectedDocuments.length
     },
     computedPluginData() {
       const currentAuth = this.getCurrentAuth() || '*'
@@ -341,7 +383,7 @@ const componentOptions = {
           let objPro = this.properties
           if (isCheckBtn) store.commit('conditionDelBtn', { columnName })
           Object.keys(objPro).map((ele, index) => {
-            const attrs = document.querySelectorAll('#tables thead img')[index]
+            const attrs = document.querySelectorAll('#table thead img')[index]
             if (ele === columnName) {
               if (isClear) {
                 attrs.src = require('../assets/icon_filter.png')
@@ -378,11 +420,28 @@ const componentOptions = {
           this.listDocument()
         })
     },
-    handleSelectDocument(rows) {
-      this.multipleDocuments = rows
+    selectGroupNode(data) {
+      let groupBy = collection.custom.docFilters[0].data
+      let parents = []
+      for (let p = data; p; p = p.parent) parents.unshift(p.value)
+      let filter = parents.reduce((f, p, index) => {
+        f[groupBy[index]] = p
+        return f
+      }, {})
+      this.listDocument(filter)
     },
-    fnGetMultipleIds() {
-      let ids = this.multipleDocuments.map((document) => document._id)
+    resetSelectedGroupNode() {
+      let selected = this.$refs.groupNodeTree.getCurrentKey()
+      if (selected) {
+        this.$refs.groupNodeTree.setCurrentKey()
+        this.listDocument()
+      }
+    },
+    handleSelectDocument(rows) {
+      this.selectedDocuments = rows
+    },
+    fnGetSelectedIds() {
+      let ids = this.selectedDocuments.map((document) => document._id)
       return ids
     },
     createDocument() {
@@ -432,7 +491,7 @@ const componentOptions = {
           this.filter = param.filter
           break
         case 'checked':
-          param.docIds = this.fnGetMultipleIds()
+          param.docIds = this.fnGetSelectedIds()
       }
       return { param, transforms }
     },
@@ -441,11 +500,11 @@ const componentOptions = {
       this.page.at = realAt > this.page.at ? this.page.at : realAt ? realAt : 1
       this.listDocument()
       if (isMultiple) {
-        this.$refs.multipleTable.clearSelection()
-        this.multipleDocuments = []
+        this.$refs.documentsTable.clearSelection()
+        this.selectedDocuments = []
       }
     },
-    batchEditDocument(command) {
+    editManyDocument(command) {
       let { param } = this.fnSetReqParam(command),
         editor
       editor = new Vue(ColumnValueEditor)
@@ -533,7 +592,7 @@ const componentOptions = {
         aMPTotal
       )
     },
-    batchRemoveDocument(command) {
+    removeManyDocument(command) {
       let { param } = this.fnSetReqParam(command)
       MessageBox({
         title: '提示',
@@ -545,14 +604,14 @@ const componentOptions = {
           createDocApi(this.TmsAxios(this.tmsAxiosName))
             .batchRemove(this.bucketName, this.dbName, this.clName, param)
             .then((result) => {
-              Message.success({ message: '已成功删除' + result.n + '条' })
+              Message.success({ message: `已成功删除${result.deletedCount}条` })
               this.fnHandleResResult(result, true)
             })
         })
         .catch(() => {})
     },
     copyManyDocument(command) {
-      import('./plugins/DialogSelectCollection.vue').then((Module) => {
+      import('./widgets/DialogSelectCollection.vue').then((Module) => {
         let { bucketName, tmsAxiosName } = this
         let propsData = {
           bucketName,
@@ -572,7 +631,7 @@ const componentOptions = {
         })
       })
     },
-    batchMoveDocument(command) {
+    transferManyDocument(command) {
       let { param, transforms } = this.fnSetReqParam(
         command,
         this.moveCheckList
@@ -637,14 +696,20 @@ const componentOptions = {
     },
     handlePlugins(plugin, conditionType) {
       new Promise((resolve) => {
-        let { beforeComp } = plugin
-        if (beforeComp && beforeComp.name === 'DialogDocList') {
-          import('./plugins/DialogDocList.vue').then((Module) => {
+        let { beforeWidget } = plugin
+        if (beforeWidget && beforeWidget.name === 'DialogSelectDocument') {
+          import('./widgets/DialogSelectDocument.vue').then((Module) => {
             let { bucketName, dbName, clName, tmsAxiosName } = this
             new Promise((resolve) => {
-              if (beforeComp.remotePreCondition === true)
+              if (beforeWidget.remoteWidgetOptions === true)
                 return createPluginApi(this.TmsAxios(this.tmsAxiosName))
-                  .remotePreCondition(bucketName, dbName, clName, plugin.name)
+                  .remoteWidgetOptions(
+                    bucketName,
+                    dbName,
+                    clName,
+                    plugin.name,
+                    this.filter
+                  )
                   .then((result) => {
                     resolve(result)
                   })
@@ -672,6 +737,37 @@ const componentOptions = {
               })
             })
           })
+        } else if (beforeWidget && beforeWidget.name === 'DialogSchemaForm') {
+          import('./widgets/DialogSchemaForm.vue').then((Module) => {
+            let { bucketName, dbName, clName, tmsAxiosName } = this
+            new Promise((resolve) => {
+              if (beforeWidget.remoteWidgetOptions === true)
+                return createPluginApi(this.TmsAxios(this.tmsAxiosName))
+                  .remoteWidgetOptions(
+                    bucketName,
+                    dbName,
+                    clName,
+                    plugin.name,
+                    this.filter
+                  )
+                  .then((result) => {
+                    resolve(result)
+                  })
+              else return {}
+            }).then((preCondition) => {
+              let propsData = {}
+              if (preCondition && typeof preCondition === 'object') {
+                let { schema } = preCondition
+                propsData.schema = schema
+              }
+              const vm = Module.createAndMount(Vue, propsData, {
+                createDocApi,
+              })
+              vm.$on('confirm', (result) => {
+                resolve(result)
+              })
+            })
+          })
         } else resolve()
       }).then((beforeResult) => {
         let postBody = conditionType
@@ -679,7 +775,7 @@ const componentOptions = {
           : null
         if (beforeResult) {
           if (!postBody) postBody = {}
-          postBody.related = beforeResult
+          postBody.widget = beforeResult
         }
         let queryParams = {
           db: this.dbName, // 参数名改为db
@@ -688,10 +784,75 @@ const componentOptions = {
           // name: plugin.name,
           // type: plugin.type, // 这个参数应该去掉，插件自己知道自己的类型
         }
-        createPluginApi(this.TmsAxios(this.tmsAxiosName)).handlePlugin(
-          postBody,
-          queryParams
-        )
+        createPluginApi(this.TmsAxios(this.tmsAxiosName))
+          .execute(queryParams, postBody)
+          .then((result) => {
+            if (typeof result === 'string') {
+              Message.success({
+                message: result,
+                showClose: true,
+              })
+            } else if (
+              result &&
+              typeof result === 'object' &&
+              result.type === 'documents'
+            ) {
+              /**返回操作结果——数据 */
+              let nInserted = 0,
+                nModified = 0,
+                nRemoved = 0
+              let { inserted, modified, removed } = result
+              /**在当前文档列表中移除删除的记录 */
+              if (Array.isArray(removed) && (nRemoved = removed.length)) {
+                let documents = this.documents.filter(
+                  (doc) => !removed.includes(doc._id)
+                )
+                store.commit('documents', { documents })
+              }
+              /**在当前文档列表中更新修改的记录 */
+              if (Array.isArray(modified) && (nModified = modified.length)) {
+                let map = modified.reduce((m, doc) => {
+                  if (doc._id && typeof doc._id === 'string') m[doc._id] = doc
+                  return m
+                }, {})
+                this.documents.forEach((doc) => {
+                  let newDoc = map[doc._id]
+                  if (newDoc) Object.assign(doc, newDoc)
+                  store.commit('updateDocument', { document: doc })
+                })
+              }
+              /**在当前文档列表中添加插入的记录 */
+              if (Array.isArray(inserted) && (nInserted = inserted.length)) {
+                inserted.forEach((newDoc) => {
+                  if (newDoc._id && typeof newDoc._id === 'string')
+                    this.documents.unshift(newDoc)
+                })
+              }
+            } else if (
+              result &&
+              typeof result === 'object' &&
+              result.type === 'numbers'
+            ) {
+              /**返回操作结果——数量 */
+              let { nInserted, nModified, nRemoved } = result
+              let message = `插件[${plugin.title}]执行完毕，添加[${
+                parseInt(nInserted) || 0
+              }]条，修改[${parseInt(nModified) || 0}]条，删除[${
+                parseInt(nRemoved) || 0
+              }]条记录。`
+              MessageBox.confirm(message, '提示', {
+                confirmButtonText: '关闭',
+                cancelButtonText: '刷新数据',
+              }).catch(() => {
+                this.listDocument()
+              })
+            } else {
+              Message.success({
+                message: `插件[${plugin.title}]执行完毕。`,
+                showClose: true,
+              })
+            }
+          })
       })
     },
     handleSize(val) {
@@ -703,17 +864,17 @@ const componentOptions = {
       this.page.at = val
       this.listDocument()
     },
-    listDocument() {
+    listDocument(filter2) {
       const rule = this.handleCondition()
-      this.filter = rule.filter
       const { orderBy, filter } = rule
+      this.filter = Object.assign({}, filter, filter2)
       createDocApi(this.TmsAxios(this.tmsAxiosName))
         .list(
           this.bucketName,
           this.dbName,
           this.clName,
           this.page,
-          filter,
+          this.filter,
           orderBy
         )
         .then((result) => {
@@ -722,7 +883,21 @@ const componentOptions = {
           this.page.total = result.total
         })
     },
-    getTaglist(data) {
+    groupDocument() {
+      const groupBy = collection.custom.docFilters[0].data
+      createDocApi(this.TmsAxios(this.tmsAxiosName))
+        .group(this.bucketName, this.dbName, this.clName, groupBy)
+        .then((groups) => {
+          const travel = (n, p) => {
+            if (n.children && n.children.length) {
+              n.children.forEach((c) => travel(c, n))
+            } else n.parent = p
+          }
+          groups.forEach((g) => travel(g))
+          this.groupData = groups
+        })
+    },
+    getSchemasByTags(data) {
       let temp = {}
       const arrPromise = data.map((item, index) =>
         createSchemaApi(this.TmsAxios(this.tmsAxiosName)).listByTag(
@@ -730,18 +905,14 @@ const componentOptions = {
           data[index]
         )
       )
-      return Promise.all(arrPromise)
-        .then((res) => {
-          res.forEach((schemas) => {
-            schemas.forEach((schema) => {
-              temp = { ...temp, ...schema.body.properties }
-            })
+      return Promise.all(arrPromise).then((res) => {
+        res.forEach((schemas) => {
+          schemas.forEach((schema) => {
+            temp = { ...temp, ...schema.body.properties }
           })
-          return temp
         })
-        .catch((err) => {
-          throw new Error(err)
-        })
+        return temp
+      })
     },
     async handleProperty() {
       let tags =
@@ -751,32 +922,51 @@ const componentOptions = {
         (process.env.VUE_APP_DEFAULT_TAG &&
           process.env.VUE_APP_DEFAULT_TAG.split(',')) ||
         collection.default_tag
-      let temp = {}
 
+      let temp = {}
       if (default_tag && default_tag.length) {
-        await this.getTaglist(default_tag).then((res) => (temp = res))
+        await this.getSchemasByTags(default_tag).then((res) => (temp = res))
       } else if (tags && tags.length) {
-        await this.getTaglist(tags).then((res) => (temp = res))
+        await this.getSchemasByTags(tags).then((res) => (temp = res))
       } else if (
         collection.schema &&
         collection.schema.body &&
         collection.schema.body.properties
       ) {
         Object.assign(temp, collection.schema.body.properties)
-      } else {
-        temp._id = { title: 'id' }
       }
+      if (Object.keys(temp).length === 0) temp._id = { title: 'id' }
       this.properties = Object.freeze(temp)
     },
   },
   mounted() {
     Promise.all([
       this.$apis.collection.byName(this.bucketName, this.dbName, this.clName),
-      this.$apis.plugin.getPlugins(),
+      this.$apis.plugin.getPlugins(this.bucketName, this.dbName, this.clName),
     ]).then(async (res) => {
       Object.assign(collection, res[0])
       this.pluginData = res[1]
       await this.handleProperty()
+      /**集合定制功能设置 */
+      const { custom } = collection
+      if (custom) {
+        const { docOperations: docOps, docFilters } = custom
+        /**支持的文档操作 */
+        if (docOps && typeof docOps === 'object') {
+          const { docOperations } = this
+          if (docOps.create === false) docOperations.create = false
+          if (docOps.edit === false) docOperations.edit = false
+          if (docOps.remove === false) docOperations.remove = false
+          if (docOps.editMany === false) docOperations.editMany = false
+          if (docOps.removeMany === false) docOperations.removeMany = false
+          if (docOps.transferMany === false) docOperations.transferMany = false
+        }
+        /**文档筛选 */
+        if (docFilters && docFilters.length) {
+          this.frameDisplay.left = true
+          this.groupDocument()
+        }
+      }
       this.listDocument()
     })
   },

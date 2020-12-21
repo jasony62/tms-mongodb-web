@@ -1,17 +1,22 @@
 const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/plugins'
 export default function create(tmsAxios) {
   return {
-    getPlugins() {
+    getPlugins(bucket, db, cl) {
       //return tmsAxios.get(`${base}/pluginDocument`).then(rst => rst.data.result)
       return tmsAxios
-        .get(`${base}/list?scope=document`)
+        .get(`${base}/list?scope=document`, { params: { bucket, db, cl } })
         .then(rst => rst.data.result)
     },
-    handlePlugin(...args) {
+    /**
+     * 执行插件处理功能
+     * @param {object} params - http请求查询参数
+     * @param {object} body - http请求消息体
+     */
+    execute(params, body) {
       return (
         tmsAxios
           // .post(`${base}/commonExecute`, args[0], { params: args[1] })
-          .post(`${base}/execute`, args[0], { params: args[1] })
+          .post(`${base}/execute`, body, { params })
           .then(rst => rst.data.result)
       )
     },
@@ -21,12 +26,17 @@ export default function create(tmsAxios) {
      * @param {string} db - 数据名称
      * @param {string} cl - 集合名称
      * @param {string} plugin - 插件名称
+     * @param {object} filter - 筛选条件
      */
-    remotePreCondition(bucket, db, cl, plugin) {
+    remoteWidgetOptions(bucket, db, cl, plugin, filter) {
       return tmsAxios
-        .get(`${base}/remotePreCondition`, {
-          params: { bucket, db, cl, plugin }
-        })
+        .post(
+          `${base}/remoteWidgetOptions`,
+          { filter },
+          {
+            params: { bucket, db, cl, plugin }
+          }
+        )
         .then(rst => rst.data.result)
     }
   }
