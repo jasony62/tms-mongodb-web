@@ -136,16 +136,15 @@ class Collection extends Base {
    * @return {boolean} 返回ture，通过检查
    */
   async checkRemoveConstraint(tmwCl, query, sysCl) {
-    if (tmwCl.custom && tmwCl.custom.removeConstraint) {
-      let { removeConstraint } = tmwCl.custom
-      if (typeof removeConstraint === 'object') {
-        removeConstraint = unescape(removeConstraint)
+    if (tmwCl.custom && tmwCl.custom.docRemoveConstraint) {
+      let { docRemoveConstraint } = tmwCl.custom
+      if (typeof docRemoveConstraint === 'object') {
+        docRemoveConstraint = unescape(docRemoveConstraint)
         /**检查是否符合用户指定的文档删除规则 */
         let count1 = await sysCl.countDocuments(query)
         let count2 = await sysCl.countDocuments(
-          Object.assign({}, query, removeConstraint)
+          Object.assign({}, query, docRemoveConstraint)
         )
-        console.log('ccc', count1, count2)
         if (count1 !== count2)
           throw Error('要删除的文档不符合在集合上指定删除限制规则')
       }

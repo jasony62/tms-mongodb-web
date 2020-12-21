@@ -421,7 +421,7 @@ const componentOptions = {
         })
     },
     selectGroupNode(data) {
-      let groupBy = collection.custom.filters[0].data
+      let groupBy = collection.custom.docFilters[0].data
       let parents = []
       for (let p = data; p; p = p.parent) parents.unshift(p.value)
       let filter = parents.reduce((f, p, index) => {
@@ -884,7 +884,7 @@ const componentOptions = {
         })
     },
     groupDocument() {
-      const groupBy = collection.custom.filters[0].data
+      const groupBy = collection.custom.docFilters[0].data
       createDocApi(this.TmsAxios(this.tmsAxiosName))
         .group(this.bucketName, this.dbName, this.clName, groupBy)
         .then((groups) => {
@@ -950,20 +950,19 @@ const componentOptions = {
       /**集合定制功能设置 */
       const { custom } = collection
       if (custom) {
-        const { operations, filters } = custom
+        const { docOperations: docOps, docFilters } = custom
         /**支持的文档操作 */
-        if (operations && typeof operations === 'object') {
+        if (docOps && typeof docOps === 'object') {
           const { docOperations } = this
-          if (operations.create === false) docOperations.create = false
-          if (operations.edit === false) docOperations.edit = false
-          if (operations.remove === false) docOperations.remove = false
-          if (operations.editMany === false) docOperations.editMany = false
-          if (operations.removeMany === false) docOperations.removeMany = false
-          if (operations.transferMany === false)
-            docOperations.transferMany = false
+          if (docOps.create === false) docOperations.create = false
+          if (docOps.edit === false) docOperations.edit = false
+          if (docOps.remove === false) docOperations.remove = false
+          if (docOps.editMany === false) docOperations.editMany = false
+          if (docOps.removeMany === false) docOperations.removeMany = false
+          if (docOps.transferMany === false) docOperations.transferMany = false
         }
         /**文档筛选 */
-        if (filters && filters.length) {
+        if (docFilters && docFilters.length) {
           this.frameDisplay.left = true
           this.groupDocument()
         }
