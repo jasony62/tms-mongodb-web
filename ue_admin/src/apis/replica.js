@@ -3,8 +3,8 @@ import { TmsAxios } from 'tms-vue'
 const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/admin/replica'
 
 export default {
-  list(bucket, proto) {
-    const params = { bucket }
+  list(bucket, { keyword, page, size } = {}, proto) {
+    const params = { bucket, keyword, page, size }
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/list`, proto, { params })
       .then(rst => rst.data.result)

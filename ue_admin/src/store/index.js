@@ -4,6 +4,10 @@ import Vuex from 'vuex'
 Vue.use(Vuex)
 
 import apis from '../apis'
+import { startBatch } from 'tms-vue'
+
+// 查找条件下拉框分页包含记录数
+let SELECT_PAGE_SIZE = 20
 
 export default new Vuex.Store({
   state: {
@@ -144,11 +148,19 @@ export default new Vuex.Store({
       })
     },
     listDatabase({ commit }, payload) {
-      const { bucket } = payload
-      return apis.db.list(bucket).then(dbs => {
-        commit({ type: 'dbs', dbs })
-        return { dbs }
-      })
+      const { bucket, keyword } = payload
+      return startBatch(
+        function(keyword, batchArg) {
+          return apis.db.list(bucket, { keyword, ...batchArg }).then(result => {
+            commit({ type: 'dbs', dbs: result.databases })
+            return result
+          })
+        },
+        [keyword],
+        {
+          size: SELECT_PAGE_SIZE
+        }
+      )
     },
     listSchema({ commit }, payload) {
       const { bucket, scope } = payload
@@ -158,11 +170,21 @@ export default new Vuex.Store({
       })
     },
     listCollection({ commit }, payload) {
-      const { bucket, db } = payload
-      return apis.collection.list(bucket, db).then(collections => {
-        commit({ type: 'collections', collections })
-        return { collections }
-      })
+      const { bucket, db, keyword } = payload
+      return startBatch(
+        function(keyword, batchArg) {
+          return apis.collection
+            .list(bucket, db, { keyword, ...batchArg })
+            .then(result => {
+              commit({ type: 'collections', collections: result.collections })
+              return result
+            })
+        },
+        [keyword],
+        {
+          size: SELECT_PAGE_SIZE
+        }
+      )
     },
     listDocument({ commit }, payload) {
       const { bucket, db, cl, orderBy, filter, page } = payload
@@ -216,24 +238,34 @@ export default new Vuex.Store({
       })
     },
     listReplica({ commit }, payload) {
-      const { bucket } = payload
-      return apis.replica.list(bucket).then(replicas => {
-        replicas = replicas.map(result => {
-          let {
-            primary: { db: pdb, cl: pcl },
-            secondary: { db: sdb, cl: scl }
-          } = result
-          ;[pdb, pcl, sdb, scl].forEach(item => {
-            item.label = `${item.title} (${item.name})`
-          })
-          return {
-            primary: { db: pdb, cl: pcl },
-            secondary: { db: sdb, cl: scl }
-          }
-        })
-        commit({ type: 'replicas', replicas })
-        return { replicas }
-      })
+      const { bucket, keyword } = payload
+      return startBatch(
+        function(keyword, batchArg) {
+          return apis.replica
+            .list(bucket, { keyword, ...batchArg })
+            .then(result => {
+              result.replicas = result.replicas.map(result => {
+                let {
+                  primary: { db: pdb, cl: pcl },
+                  secondary: { db: sdb, cl: scl }
+                } = result
+                ;[pdb, pcl, sdb, scl].forEach(item => {
+                  item.label = `${item.title} (${item.name})`
+                })
+                return {
+                  primary: { db: pdb, cl: pcl },
+                  secondary: { db: sdb, cl: scl }
+                }
+              })
+              commit({ type: 'replicas', replicas: result.replicas })
+              return result
+            })
+        },
+        [keyword],
+        {
+          size: SELECT_PAGE_SIZE
+        }
+      )
     },
     removeReplica({ commit }, payload) {
       const { bucket, params } = payload
@@ -250,8 +282,18 @@ export default new Vuex.Store({
       const { bucket, params } = payload
       let result = { success: [], error: [] }
       for (const param of params) {
+        let transfer = {
+          primary: {
+            db: param.primary.db.name,
+            cl: param.primary.cl.name
+          },
+          secondary: {
+            db: param.secondary.db.name,
+            cl: param.secondary.cl.name
+          }
+        }
         apis.replica
-          .synchronize(bucket, param)
+          .synchronize(bucket, transfer)
           .then(() => {
             result.success.push(param)
           })

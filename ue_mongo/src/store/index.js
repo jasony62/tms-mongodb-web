@@ -1,7 +1,10 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import { startBatch } from 'tms-vue'
 
 Vue.use(Vuex)
+
+let SELECT_PAGE_SIZE = 1
 
 export default new Vuex.Store({
   state: {
@@ -104,22 +107,47 @@ export default new Vuex.Store({
       })
     },
     listDatabase({ commit }, payload) {
-      const { bucket } = payload
-      return new Promise(resolve => {
-        Vue.$apis.api.db.list(bucket).then(dbs => {
-          commit({ type: 'dbs', dbs })
-          resolve({ dbs })
-        })
-      })
+      const { bucket, keyword } = payload
+      return startBatch(
+        function(keyword, batchArg) {
+          return Vue.$apis.api.db
+            .list(bucket, { keyword, ...batchArg })
+            .then(result => {
+              commit({ type: 'dbs', dbs: result.databases })
+              return result
+            })
+        },
+        [keyword],
+        {
+          size: SELECT_PAGE_SIZE
+        }
+      )
     },
+    // listCollection({ commit }, payload) {
+    //   const { bucket, db } = payload
+    //   return new Promise(resolve => {
+    //     Vue.$apis.api.collection.list(bucket, db).then(collections => {
+    //       commit({ type: 'collections', collections })
+    //       resolve({ collections })
+    //     })
+    //   })
+    // },
     listCollection({ commit }, payload) {
-      const { bucket, db } = payload
-      return new Promise(resolve => {
-        Vue.$apis.api.collection.list(bucket, db).then(collections => {
-          commit({ type: 'collections', collections })
-          resolve({ collections })
-        })
-      })
+      const { bucket, db, keyword } = payload
+      return startBatch(
+        function(keyword, batchArg) {
+          return Vue.$apis.api.collection
+            .list(bucket, db, { keyword, ...batchArg })
+            .then(result => {
+              commit({ type: 'collections', collections: result.collections })
+              return result
+            })
+        },
+        [keyword],
+        {
+          size: SELECT_PAGE_SIZE
+        }
+      )
     },
     removeDatabase({ commit }, payload) {
       const { bucket, db } = payload

@@ -54,7 +54,18 @@ class ReplicaBase extends Base {
       query['secondary.cl'] = secCl.sysname
     }
 
-    const maps = await this.clReplicaMap.find(query).toArray()
+    const options = {
+      projection: { type: 0 },
+      sort: { top: -1 }
+    }
+    let { skip, limit } = this.replicaHelper.requestPage()
+    // 添加分页条件
+    if (typeof skip === 'number') {
+      options.skip = skip
+      options.limit = limit
+    }
+
+    const maps = await this.clReplicaMap.find(query, options).toArray()
     for (let i = 0, map; i < maps.length; i++) {
       map = maps[i]
       let { _id, primary, secondary } = map
@@ -87,6 +98,11 @@ class ReplicaBase extends Base {
         secondary.cl = { name: secCl.name, title: secCl.title }
       }
       delete map._id
+    }
+
+    if (typeof skip === 'number') {
+      let total = await this.clReplicaMap.countDocuments(query)
+      return new ResultData({ replicas: maps, total })
     }
 
     return new ResultData(maps)
