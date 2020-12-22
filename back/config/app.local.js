@@ -23,7 +23,7 @@ module.exports = {
     },
     //
     client: {
-      accounts: process.env.TMS_APP_AUTH_CLIENT_CODE ? JSON.parse(process.env.TMS_APP_AUTH_CLIENT_CODE) : [{ id: 1, username: 'admin', password: 'nlpt@189', }]
+      accounts: process.env.TMS_APP_AUTH_CLIENT_ACCOUNTS ? JSON.parse(process.env.TMS_APP_AUTH_CLIENT_ACCOUNTS) : [{ id: 1, username: 'admin', password: 'nlpt@189', }]
     },
     // redis: {
     //   prefix: process.env.TMS_REDIS_PREFIX,
