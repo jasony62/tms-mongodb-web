@@ -31,7 +31,7 @@
         </el-table>
         <tms-flex class="tmw-pagination">
           <span class="tmw-pagination__text">已选中 {{criteria.multipleDb.length}} 条数据</span>
-          <el-pagination layout="total, prev, pager, next" background :current-page="criteria.dbBatch.page" :total="criteria.dbBatch.total" :page-size="criteria.dbBatch.size" @current-change="changeDbPage">
+          <el-pagination layout="total, sizes, prev, pager, next" background :total="criteria.dbBatch.total" :page-sizes="[10, 25, 50, 100]" :current-page="criteria.dbBatch.page" :page-size="criteria.dbBatch.size" @current-change="changeDbPage" @size-change="changeDbSize">
           </el-pagination>
         </tms-flex>
       </tms-flex>
@@ -92,7 +92,7 @@
         </el-table>
         <tms-flex class="tmw-pagination">
           <span class="tmw-pagination__text">已选中 {{criteria.multipleReplica.length}} 条数据</span>
-          <el-pagination layout="total, prev, pager, next" background :current-page="criteria.replicaBatch.page" :total="criteria.replicaBatch.total" :page-size="criteria.replicaBatch.size" @current-change="changeReplicaPage">
+          <el-pagination layout="total, sizes, prev, pager, next" background :total="criteria.replicaBatch.total" :page-sizes="[10, 25, 50, 100]" :current-page="criteria.replicaBatch.page" :page-size="criteria.replicaBatch.size" @current-change="changeReplicaPage" @size-change="changeReplicaSize">
           </el-pagination>
         </tms-flex>
       </tms-flex>
@@ -123,6 +123,10 @@ import DbEditor from '../components/DbEditor.vue'
 import SchemaEditor from '../components/SchemaEditor.vue'
 import TagEditor from '../components/TagEditor.vue'
 import ReplicaEditor from '../components/ReplicaEditor.vue'
+
+// 查找条件下拉框分页包含记录数
+let LIST_DB_PAGE_SIZE = 100
+let LIST_RP_PAGE_SIZE = 100
 
 export default {
   name: 'Home',
@@ -192,15 +196,24 @@ export default {
       })
     },
     listDbByKw(keyword) {
+      console.log(1)
+
       this.listDatabase({
         bucket: this.bucketName,
-        keyword: keyword
+        keyword: keyword,
+        size: LIST_DB_PAGE_SIZE
       }).then(batch => {
         this.criteria.dbBatch = batch
       })
     },
     changeDbPage(page) {
+      console.log('page', 2)
+
       this.criteria.dbBatch.goto(page)
+    },
+    changeDbSize(size) {
+      LIST_DB_PAGE_SIZE = size
+      this.listDbByKw(null)
     },
     changeDbSelect(value) {
       this.criteria.multipleDb = value
@@ -276,13 +289,18 @@ export default {
     listRpByKw(keyword) {
       this.listReplica({
         bucket: this.bucketName,
-        keyword: keyword
+        keyword: keyword,
+        size: LIST_RP_PAGE_SIZE
       }).then(batch => {
         this.criteria.replicaBatch = batch
       })
     },
     changeReplicaPage(page) {
       this.criteria.replicaBatch.goto(page)
+    },
+    changeReplicaSize(size) {
+      LIST_RP_PAGE_SIZE = size
+      this.listRpByKw(null)
     },
     changeReplicaSelect(value) {
       this.criteria.multipleReplica = value

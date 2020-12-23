@@ -24,7 +24,7 @@
         </el-table>
         <tms-flex class="tmw-pagination">
           <span class="tmw-pagination__text">已选中 {{multipleDb.length}} 条数据</span>
-          <el-pagination layout="total, prev, pager, next" background :current-page="dbBatch.page" :total="dbBatch.total" :page-size="dbBatch.size" @current-change="changeDbPage">
+          <el-pagination layout="total, sizes, prev, pager, next" background :total="dbBatch.total" :page-sizes="[10, 25, 50, 100]" :current-page="dbBatch.page" :page-size="dbBatch.size" @current-change="changeDbPage" @size-change="changeDbSize">
           </el-pagination>
         </tms-flex>
       </tms-flex>
@@ -58,6 +58,9 @@ Vue.use(Form)
 
 import DbEditor from '../components/DbEditor.vue'
 import createDbApi from '../apis/database'
+
+// 查找条件下拉框分页包含记录数
+let LIST_PAGE_SIZE = 100
 
 export default {
   name: 'Home',
@@ -125,13 +128,21 @@ export default {
     },
     listDbByKw(keyword) {
       store
-        .dispatch('listDatabase', { bucket: this.bucketName, keyword: keyword })
+        .dispatch('listDatabase', {
+          bucket: this.bucketName,
+          keyword: keyword,
+          size: LIST_PAGE_SIZE
+        })
         .then(batch => {
           this.dbBatch = batch
         })
     },
     changeDbPage(page) {
       this.dbBatch.goto(page)
+    },
+    changeDbSize(size) {
+      LIST_PAGE_SIZE = size
+      this.listDbByKw(null)
     },
     changeDbSelect(val) {
       this.multipleDb = val

@@ -4,8 +4,6 @@ import { startBatch } from 'tms-vue'
 
 Vue.use(Vuex)
 
-let SELECT_PAGE_SIZE = 1
-
 export default new Vuex.Store({
   state: {
     buckets: [],
@@ -107,7 +105,7 @@ export default new Vuex.Store({
       })
     },
     listDatabase({ commit }, payload) {
-      const { bucket, keyword } = payload
+      const { bucket, size, keyword } = payload
       return startBatch(
         function(keyword, batchArg) {
           return Vue.$apis.api.db
@@ -119,21 +117,12 @@ export default new Vuex.Store({
         },
         [keyword],
         {
-          size: SELECT_PAGE_SIZE
+          size: size
         }
       )
     },
-    // listCollection({ commit }, payload) {
-    //   const { bucket, db } = payload
-    //   return new Promise(resolve => {
-    //     Vue.$apis.api.collection.list(bucket, db).then(collections => {
-    //       commit({ type: 'collections', collections })
-    //       resolve({ collections })
-    //     })
-    //   })
-    // },
     listCollection({ commit }, payload) {
-      const { bucket, db, keyword } = payload
+      const { bucket, db, size, keyword } = payload
       return startBatch(
         function(keyword, batchArg) {
           return Vue.$apis.api.collection
@@ -145,7 +134,7 @@ export default new Vuex.Store({
         },
         [keyword],
         {
-          size: SELECT_PAGE_SIZE
+          size: size
         }
       )
     },

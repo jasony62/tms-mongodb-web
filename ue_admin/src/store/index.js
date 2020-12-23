@@ -6,9 +6,6 @@ Vue.use(Vuex)
 import apis from '../apis'
 import { startBatch } from 'tms-vue'
 
-// 查找条件下拉框分页包含记录数
-let SELECT_PAGE_SIZE = 20
-
 export default new Vuex.Store({
   state: {
     buckets: [],
@@ -148,7 +145,7 @@ export default new Vuex.Store({
       })
     },
     listDatabase({ commit }, payload) {
-      const { bucket, keyword } = payload
+      const { bucket, keyword, size } = payload
       return startBatch(
         function(keyword, batchArg) {
           return apis.db.list(bucket, { keyword, ...batchArg }).then(result => {
@@ -158,7 +155,7 @@ export default new Vuex.Store({
         },
         [keyword],
         {
-          size: SELECT_PAGE_SIZE
+          size: size
         }
       )
     },
@@ -170,7 +167,7 @@ export default new Vuex.Store({
       })
     },
     listCollection({ commit }, payload) {
-      const { bucket, db, keyword } = payload
+      const { bucket, db, size, keyword } = payload
       return startBatch(
         function(keyword, batchArg) {
           return apis.collection
@@ -182,7 +179,7 @@ export default new Vuex.Store({
         },
         [keyword],
         {
-          size: SELECT_PAGE_SIZE
+          size: size
         }
       )
     },
@@ -238,7 +235,7 @@ export default new Vuex.Store({
       })
     },
     listReplica({ commit }, payload) {
-      const { bucket, keyword } = payload
+      const { bucket, size, keyword } = payload
       return startBatch(
         function(keyword, batchArg) {
           return apis.replica
@@ -263,7 +260,7 @@ export default new Vuex.Store({
         },
         [keyword],
         {
-          size: SELECT_PAGE_SIZE
+          size: size
         }
       )
     },

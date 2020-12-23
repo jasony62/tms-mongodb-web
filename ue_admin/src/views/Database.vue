@@ -31,7 +31,7 @@
         </el-table>
         <tms-flex class="tmw-pagination">
           <span class="tmw-pagination__text">已选中 {{multipleCl.length}} 条数据</span>
-          <el-pagination layout="total, prev, pager, next" background :current-page="clBatch.page" :total="clBatch.total" :page-size="clBatch.size" @current-change="changeClPage">
+          <el-pagination layout="total, sizes, prev, pager, next" background :total="clBatch.total" :page-sizes="[50,100,150,200]" :current-page="clBatch.page" :page-size="clBatch.size" @current-change="changeClPage" @size-change="changeClSize">
           </el-pagination>
         </tms-flex>
       </tms-flex>
@@ -50,6 +50,9 @@ import { Frame } from 'tms-vue-ui'
 Vue.use(Frame)
 
 import CollectionEditor from '../components/CollectionEditor.vue'
+
+// 查找条件下拉框分页包含记录数
+let LIST_PAGE_SIZE = 100
 
 export default {
   name: 'Database',
@@ -101,13 +104,18 @@ export default {
       this.listCollection({
         bucket: this.bucketName,
         db: this.dbName,
-        keyword: keyword
+        keyword: keyword,
+        size: LIST_PAGE_SIZE
       }).then(batch => {
         this.clBatch = batch
       })
     },
     changeClPage(page) {
       this.clBatch.goto(page)
+    },
+    changeClSize(size) {
+      LIST_PAGE_SIZE = size
+      this.listClByKw(null)
     },
     changeClSelect(value) {
       this.multipleCl = value
