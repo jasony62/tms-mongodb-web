@@ -1,6 +1,10 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <el-form ref="form" :model="collection" label-position="top">
+    <el-tabs v-model="activeTab" type="card">
+      <el-tab-pane label="基本信息" name="first"></el-tab-pane>
+      <el-tab-pane label="设置" name="second"></el-tab-pane>
+    </el-tabs>
+    <el-form ref="form" :model="collection" label-position="top" v-show="activeTab==='first'">
       <el-form-item label="集合名称（英文）">
         <el-input v-model="collection.name"></el-input>
       </el-form-item>
@@ -31,6 +35,16 @@
         <el-input type="textarea" v-model="collection.description"></el-input>
       </el-form-item>
     </el-form>
+    <el-form ref="form" :model="collection.custom" label-position="top" v-show="activeTab==='second'">
+      <el-form-item label="文档操作">
+        <el-checkbox v-model="collection.custom.docOperations.create">添加数据</el-checkbox>
+        <el-checkbox v-model="collection.custom.docOperations.edit">修改</el-checkbox>
+        <el-checkbox v-model="collection.custom.docOperations.remove">删除</el-checkbox>
+        <el-checkbox v-model="collection.custom.docOperations.editMany">批量修改</el-checkbox>
+        <el-checkbox v-model="collection.custom.docOperations.removeMany">批量删除</el-checkbox>
+        <el-checkbox v-model="collection.custom.docOperations.transferMany">批量迁移</el-checkbox>
+      </el-form-item>
+    </el-form>
     <div slot="footer" class="dialog-footer">
       <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button @click="dialogVisible = false">取消</el-button>
@@ -57,13 +71,24 @@ export default {
           description: '',
           schema_id: '',
           tags: [],
-          default_tag: []
+          default_tag: [],
+          custom: {
+            docOperations: {
+              create: true,
+              edit: true,
+              remove: true,
+              editMany: true,
+              removeMany: true,
+              transferMany: true
+            }
+          }
         }
       }
     }
   },
   data() {
     return {
+      activeTab: 'first',
       mode: '',
       destroyOnClose: true,
       closeOnClickModal: false,
