@@ -196,8 +196,6 @@ export default {
       })
     },
     listDbByKw(keyword) {
-      console.log(1)
-
       this.listDatabase({
         bucket: this.bucketName,
         keyword: keyword,
@@ -207,8 +205,6 @@ export default {
       })
     },
     changeDbPage(page) {
-      console.log('page', 2)
-
       this.criteria.dbBatch.goto(page)
     },
     changeDbSize(size) {

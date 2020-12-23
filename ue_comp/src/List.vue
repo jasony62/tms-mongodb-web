@@ -683,9 +683,7 @@ const componentOptions = {
         .export(this.bucketName, this.dbName, this.clName, param)
         .then(result => {
           const access_token = sessionStorage.getItem('access_token')
-          window.open(
-            `${process.env.VUE_APP_BACK_API_FS}${result}?access_token=${access_token}`
-          )
+          window.open(`${result}?access_token=${access_token}`)
         })
     },
     handleDownload(file) {
