@@ -181,6 +181,7 @@ import createDocApi from '../../ue_mongo/src/apis/document'
 import createSchemaApi from '../../ue_mongo/src/apis/schema'
 import createPluginApi from '../../ue_mongo/src/apis/plugin'
 
+const { VUE_APP_SCHEMA_TAGS, VUE_APP_SCHEMA_DEFAULT_TAGS } = process.env
 const collection = {}
 
 const componentOptions = {
@@ -911,7 +912,6 @@ const componentOptions = {
       })
     },
     async handleProperty() {
-      const { VUE_APP_SCHEMA_TAGS, VUE_APP_SCHEMA_DEFAULT_TAGS } = process.env
       let tags = VUE_APP_SCHEMA_TAGS
         ? VUE_APP_SCHEMA_TAGS.split(',')
         : collection.schema_tags

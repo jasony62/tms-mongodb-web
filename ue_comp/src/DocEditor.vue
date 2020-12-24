@@ -13,6 +13,12 @@ import utils from '../../ue_mongo/src/tms/utils'
 import createDocApi from '../../ue_mongo/src/apis/document'
 import createSchemaApi from '../../ue_mongo/src/apis/schema'
 
+const {
+  VUE_APP_SCHEMA_TAGS,
+  VUE_APP_FRONT_DOCEDITOR_ADD,
+  VUE_APP_FRONT_DOCEDITOR_MODIFY
+} = process.env
+
 export default {
   name: 'DocEditor',
   components: { TmsElJsonDoc },
@@ -103,7 +109,6 @@ export default {
       }
     },
     async handleProperty() {
-      const { VUE_APP_SCHEMA_TAGS } = process.env
       let tags = VUE_APP_SCHEMA_TAGS
         ? VUE_APP_SCHEMA_TAGS.split(',')
         : this.collection.schema_tags
@@ -136,17 +141,14 @@ export default {
       this.bucketName = bucketName
       this.dbName = dbName
       this.collection = collection
-      if (process.env.VUE_APP_FRONT_DOCEDITOR_ADD) {
-        let str = process.env.VUE_APP_FRONT_DOCEDITOR_ADD.replace(/\s/g, '')
+      if (VUE_APP_FRONT_DOCEDITOR_ADD) {
+        let str = VUE_APP_FRONT_DOCEDITOR_ADD.replace(/\s/g, '')
         this.plugins = str.split(',')
       }
       await this.handleProperty()
       if (doc && doc._id) {
-        if (process.env.VUE_APP_FRONT_DOCEDITOR_MODIFY) {
-          let str = process.env.VUE_APP_FRONT_DOCEDITOR_MODIFY.replace(
-            /\s/g,
-            ''
-          )
+        if (VUE_APP_FRONT_DOCEDITOR_MODIFY) {
+          let str = VUE_APP_FRONT_DOCEDITOR_MODIFY.replace(/\s/g, '')
           this.plugins = str.split(',')
         }
         this.document = JSON.parse(
