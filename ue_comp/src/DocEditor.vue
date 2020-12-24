@@ -1,18 +1,6 @@
 <template>
-  <el-dialog
-    :visible.sync="dialogVisible"
-    :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal"
-  >
-    <tms-el-json-doc
-      :is-submit="isSubmit"
-      :schema="body"
-      :doc="document"
-      v-on:submit="onJsonDocSubmit"
-      :on-file-submit="handleFileSubmit"
-      :on-axios="handleAxios"
-      :on-file-download="handleDownload"
-    ></tms-el-json-doc>
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
+    <tms-el-json-doc :is-submit="isSubmit" :schema="body" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit" :on-axios="handleAxios" :on-file-download="handleDownload"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
@@ -24,6 +12,12 @@ import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
 import utils from '../../ue_mongo/src/tms/utils'
 import createDocApi from '../../ue_mongo/src/apis/document'
 import createSchemaApi from '../../ue_mongo/src/apis/schema'
+
+const {
+  VUE_APP_SCHEMA_TAGS,
+  VUE_APP_FRONT_DOCEDITOR_ADD,
+  VUE_APP_FRONT_DOCEDITOR_MODIFY
+} = process.env
 
 export default {
   name: 'DocEditor',
@@ -51,9 +45,7 @@ export default {
     },
     handleDownload(name, url) {
       const access_token = sessionStorage.getItem('access_token')
-      window.open(
-        `${process.env.VUE_APP_BACK_API_FS}${url}?access_token=${access_token}`
-      )
+      window.open(`${url}?access_token=${access_token}`)
     },
     handleFileSubmit(ref, files) {
       let result = {}
@@ -117,10 +109,11 @@ export default {
       }
     },
     async handleProperty() {
-      let tags =
-        (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) ||
-        this.collection.tags
+      let tags = VUE_APP_SCHEMA_TAGS
+        ? VUE_APP_SCHEMA_TAGS.split(',')
+        : this.collection.schema_tags
       let body = {}
+
       if (tags && tags.length) {
         for (let i = 0; i < tags.length; i++) {
           let schemas = await createSchemaApi(
@@ -148,17 +141,14 @@ export default {
       this.bucketName = bucketName
       this.dbName = dbName
       this.collection = collection
-      if (process.env.VUE_APP_FRONT_DOCEDITOR_ADD) {
-        let str = process.env.VUE_APP_FRONT_DOCEDITOR_ADD.replace(/\s/g, '')
+      if (VUE_APP_FRONT_DOCEDITOR_ADD) {
+        let str = VUE_APP_FRONT_DOCEDITOR_ADD.replace(/\s/g, '')
         this.plugins = str.split(',')
       }
       await this.handleProperty()
       if (doc && doc._id) {
-        if (process.env.VUE_APP_FRONT_DOCEDITOR_MODIFY) {
-          let str = process.env.VUE_APP_FRONT_DOCEDITOR_MODIFY.replace(
-            /\s/g,
-            ''
-          )
+        if (VUE_APP_FRONT_DOCEDITOR_MODIFY) {
+          let str = VUE_APP_FRONT_DOCEDITOR_MODIFY.replace(/\s/g, '')
           this.plugins = str.split(',')
         }
         this.document = JSON.parse(

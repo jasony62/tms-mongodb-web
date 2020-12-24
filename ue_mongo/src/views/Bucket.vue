@@ -6,10 +6,7 @@
       <el-table :data="buckets" stripe style="width: 100%" class="tms-table">
         <el-table-column label="空间" width="180">
           <template slot-scope="scope">
-            <router-link :to="{
-                name: 'home',
-                params: { bucketName: scope.row.name }
-              }">{{ scope.row.name }}</router-link>
+            <router-link :to="{name: 'home', params: { bucketName: scope.row.name }}">{{ scope.row.name }}</router-link>
           </template>
         </el-table-column>
         <el-table-column prop="title" label="名称" width="180"></el-table-column>

@@ -10,13 +10,68 @@ import {
   TmsIgnorableError,
   TmsLockPromise
 } from 'tms-vue'
-import ElementUI from 'element-ui'
-import { Message } from 'element-ui'
-import 'element-ui/lib/theme-chalk/index.css'
+import {
+  Pagination,
+  Dialog,
+  Dropdown,
+  DropdownMenu,
+  DropdownItem,
+  Input,
+  RadioGroup,
+  RadioButton,
+  Select,
+  Option,
+  Button,
+  Table,
+  TableColumn,
+  Breadcrumb,
+  BreadcrumbItem,
+  Form,
+  FormItem,
+  Tabs,
+  TabPane,
+  Tag,
+  Tree,
+  Card,
+  Message,
+  MessageBox,
+  Switch,
+  InputNumber,
+  Upload,
+  Alert,
+  Image
+} from 'element-ui'
 import './assets/css/common.less'
-Vue.use(ElementUI)
 
-Vue.use(TmsAxiosPlugin).use(TmsErrorPlugin)
+Vue.use(TmsAxiosPlugin)
+  .use(TmsErrorPlugin)
+  .use(Pagination)
+  .use(Dialog)
+  .use(Dropdown)
+  .use(DropdownMenu)
+  .use(DropdownItem)
+  .use(Input)
+  .use(RadioGroup)
+  .use(RadioButton)
+  .use(Select)
+  .use(Option)
+  .use(Button)
+  .use(Table)
+  .use(TableColumn)
+  .use(Breadcrumb)
+  .use(BreadcrumbItem)
+  .use(Form)
+  .use(FormItem)
+  .use(Tabs)
+  .use(TabPane)
+  .use(Tag)
+  .use(Tree)
+  .use(Card)
+  .use(Switch)
+  .use(InputNumber)
+  .use(Upload)
+  .use(Alert)
+  .use(Image)
 
 const { fnGetCaptcha, fnGetToken } = apiLogin
 const schema = [
@@ -124,14 +179,14 @@ function mountCustomMethod() {
       return Promise.reject()
     }
   ) {
-    this.$confirm(`此操作将永久删除该【${msg}】, 是否继续?`, '提示', {
+    MessageBox.confirm(`此操作将永久删除该【${msg}】, 是否继续?`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
       .then(() => {
         successCB().then(() => {
-          this.$message({
+          Message({
             message: '删除成功!',
             type: 'success',
             showClose: true
@@ -139,7 +194,7 @@ function mountCustomMethod() {
         })
       })
       .catch(() => {
-        this.$message({ message: '已取消删除', type: 'info', showClose: true })
+        Message({ message: '已取消删除', type: 'info', showClose: true })
       })
   }
 }

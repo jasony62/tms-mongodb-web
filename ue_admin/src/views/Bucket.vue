@@ -9,10 +9,7 @@
       <el-table :data="buckets" stripe style="width: 100%">
         <el-table-column label="ID" width="180">
           <template slot-scope="scope">
-            <router-link :to="{
-                name: 'home',
-                params: { bucketName: scope.row.name }
-              }">{{ scope.row.name }}</router-link>
+            <router-link :to="{name: 'home', params: { bucketName: scope.row.name }}">{{ scope.row.name }}</router-link>
           </template>
         </el-table-column>
         <el-table-column prop="title" label="名称" width="180"></el-table-column>
@@ -41,7 +38,7 @@ import BucketEditor from '../components/BucketEditor.vue'
 export default {
   name: 'Bucket',
   computed: {
-    ...mapState(['buckets']),
+    ...mapState(['buckets'])
   },
   data() {
     return {}
@@ -51,7 +48,7 @@ export default {
     ...mapActions(['listBucket', 'removeBucket']),
     createBucket() {
       let editor = new Vue(BucketEditor)
-      editor.open('create').then((bucket) => {
+      editor.open('create').then(bucket => {
         this.appendBucket({ bucket })
       })
     },
@@ -59,9 +56,9 @@ export default {
       let editor = new Vue(BucketEditor)
       editor
         .open('update', {
-          ...bucket,
+          ...bucket
         })
-        .then((newBucket) => {
+        .then(newBucket => {
           this.updateBucket({ bucket: newBucket, index })
         })
     },
@@ -69,10 +66,10 @@ export default {
       this.$customeConfirm('【存储空间】', () => {
         return this.removeBucket({ bucket })
       })
-    },
+    }
   },
   mounted() {
     this.listBucket()
-  },
+  }
 }
 </script>

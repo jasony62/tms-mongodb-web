@@ -1,10 +1,18 @@
 <template>
-  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <el-tabs v-model="activeTab" type="card" @tab-click="onTabClick">
+  <el-dialog
+    :visible.sync="dialogVisible"
+    :destroy-on-close="destroyOnClose"
+    :close-on-click-modal="closeOnClickModal"
+  >
+    <el-tabs v-model="activeTab" type="card">
       <el-tab-pane label="基本信息" name="first"></el-tab-pane>
       <el-tab-pane label="列定义" name="second"></el-tab-pane>
     </el-tabs>
-    <el-form v-show="activeTab === 'first'" :model="schema" label-position="top">
+    <el-form
+      v-show="activeTab === 'first'"
+      :model="schema"
+      label-position="top"
+    >
       <el-form-item label="显示名（中文）">
         <el-input v-model="schema.title"></el-input>
       </el-form-item>
@@ -12,12 +20,28 @@
         <el-input type="textarea" v-model="schema.description"></el-input>
       </el-form-item>
       <el-form-item label="标签">
-        <el-select v-model="schema.tags" multiple clearable placeholder="请选择">
-          <el-option v-for="tag in tags " :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
+        <el-select
+          v-model="schema.tags"
+          multiple
+          clearable
+          placeholder="请选择"
+        >
+          <el-option
+            v-for="tag in tags"
+            :key="tag._id"
+            :label="tag.name"
+            :value="tag.name"
+          ></el-option>
         </el-select>
       </el-form-item>
     </el-form>
-    <tms-json-schema v-show="activeTab === 'second'" :schema="schema.body" :extendSchema="extendSchema" :on-upload="onUploadFile" class="schema-editor">
+    <tms-json-schema
+      v-show="activeTab === 'second'"
+      :schema="schema.body"
+      :extendSchema="extendSchema"
+      :on-upload="onUploadFile"
+      class="schema-editor"
+    >
       <template v-slot:extKeywords="props">
         <el-form-item label="不可修改">
           <el-switch v-model="props.schema.readonly"></el-switch>
@@ -44,10 +68,10 @@ export default {
     bucketName: { type: String },
     schema: {
       type: Object,
-      default: function () {
+      default: function() {
         return { title: '', description: '', scope: '', tags: [], body: {} }
-      },
-    },
+      }
+    }
   },
   data() {
     return {
@@ -57,11 +81,11 @@ export default {
       closeOnClickModal: false,
       extendSchema: (vm, schema) => {
         vm.$set(schema, 'readonly', schema.readonly || false)
-      },
+      }
     }
   },
   mounted() {
-    apiTag.list(this.bucketName).then((tags) => {
+    apiTag.list(this.bucketName).then(tags => {
       this.tags = tags
     })
   },
@@ -72,25 +96,24 @@ export default {
       const config = { 'Content-Type': 'multipart/form-data' }
       return apiDoc
         .upload({ bucket: this.bucketName }, fileData, config)
-        .then((uploadUrl) => {
+        .then(uploadUrl => {
           return { name: file.name, url: uploadUrl }
         })
-        .catch((error) => {
+        .catch(error => {
           throw error
         })
     },
-    onTabClick() {},
     onSubmit() {
       if (this.schema._id) {
         apiSchema
           .update(this.bucketName, this.schema, this.schema)
-          .then((newSchema) =>
+          .then(newSchema =>
             this.$emit('submit', { ...newSchema, _id: this.schema._id })
           )
       } else {
         apiSchema
           .create(this.bucketName, this.schema)
-          .then((newSchema) => this.$emit('submit', newSchema))
+          .then(newSchema => this.$emit('submit', newSchema))
       }
     },
     open(schema, bucketName) {
@@ -98,13 +121,13 @@ export default {
       Object.assign(this.schema, schema)
       this.$mount()
       document.body.appendChild(this.$el)
-      return new Promise((resolve) => {
-        this.$on('submit', (schema) => {
+      return new Promise(resolve => {
+        this.$on('submit', schema => {
           this.dialogVisible = false
           resolve(schema)
         })
       })
-    },
-  },
+    }
+  }
 }
 </script>

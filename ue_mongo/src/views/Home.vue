@@ -2,24 +2,32 @@
   <tms-frame id="tmw-database" :display="{ header: true, footer: true, right: true }" :leftWidth="'20%'">
     <template v-slot:header></template>
     <template v-slot:center>
-      <el-table :data="dbs" stripe style="width: 100%" class="tms-table">
-        <el-table-column label="数据库" width="180">
-          <template slot-scope="scope">
-            <router-link :to="{ name: 'database', params: { dbName: scope.row.name } }">{{ scope.row.name }}</router-link>
-          </template>
-        </el-table-column>
-        <el-table-column prop="title" label="名称" width="180"></el-table-column>
-        <el-table-column prop="description" label="说明"></el-table-column>
-        <el-table-column fixed="right" label="操作" width="250">
-          <template slot-scope="scope">
-            <el-button v-if="!scope.row.top || scope.row.top == 0" @click="topDb(scope.row, 'up')" size="mini" type="text">置顶</el-button>
-            <el-button v-if="scope.row.top == 10000" disabled size="mini" type="text">已置顶</el-button>
-            <el-button v-if="scope.row.top == 10000" @click="topDb(scope.row, 'down')" size="mini" type="text">取消置顶</el-button>
-            <el-button size="mini" @click="editDb(scope.row)" type="text">修改</el-button>
-            <el-button size="mini" @click="removeDb(scope.row)" type="text" v-if="false">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <tms-flex direction="column">
+        <el-table :data="dbs" stripe style="width: 100%" class="tms-table" @selection-change="changeDbSelect" :max-height="dymaicHeight">
+          <el-table-column type="selection" width="55"></el-table-column>
+          <el-table-column label="数据库" width="180">
+            <template slot-scope="scope">
+              <router-link :to="{ name: 'database', params: { dbName: scope.row.name } }">{{ scope.row.name }}</router-link>
+            </template>
+          </el-table-column>
+          <el-table-column prop="title" label="名称" width="180"></el-table-column>
+          <el-table-column prop="description" label="说明"></el-table-column>
+          <el-table-column fixed="right" label="操作" width="250">
+            <template slot-scope="scope">
+              <el-button v-if="!scope.row.top || scope.row.top == 0" @click="topDb(scope.row, 'up')" size="mini" type="text">置顶</el-button>
+              <el-button v-if="scope.row.top == 10000" disabled size="mini" type="text">已置顶</el-button>
+              <el-button v-if="scope.row.top == 10000" @click="topDb(scope.row, 'down')" size="mini" type="text">取消置顶</el-button>
+              <el-button size="mini" @click="editDb(scope.row)" type="text">修改</el-button>
+              <el-button size="mini" @click="removeDb(scope.row)" type="text" v-if="false">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <tms-flex class="tmw-pagination">
+          <span class="tmw-pagination__text">已选中 {{multipleDb.length}} 条数据</span>
+          <el-pagination layout="total, sizes, prev, pager, next" background :total="dbBatch.total" :page-sizes="[10, 25, 50, 100]" :current-page="dbBatch.page" :page-size="dbBatch.size" @current-change="changeDbPage" @size-change="changeDbSize">
+          </el-pagination>
+        </tms-flex>
+      </tms-flex>
     </template>
     <template v-slot:right>
       <el-button @click="createDb">添加数据库</el-button>
@@ -30,6 +38,7 @@
 <script>
 import Vue from 'vue'
 import store from '@/store'
+import { Batch } from 'tms-vue'
 import { Frame, Flex } from 'tms-vue-ui'
 Vue.use(Frame).use(Flex)
 import {
@@ -50,6 +59,9 @@ Vue.use(Form)
 import DbEditor from '../components/DbEditor.vue'
 import createDbApi from '../apis/database'
 
+// 查找条件下拉框分页包含记录数
+let LIST_PAGE_SIZE = 100
+
 export default {
   name: 'Home',
   props: {
@@ -58,6 +70,15 @@ export default {
       type: String,
       default: 'mongodb-api'
     }
+  },
+  data() {
+    return {
+      multipleDb: [],
+      dbBatch: new Batch()
+    }
+  },
+  created() {
+    this.dymaicHeight = window.innerHeight * 0.8
   },
   computed: {
     dbs() {
@@ -104,10 +125,31 @@ export default {
         .then(() => {
           this.listDatabase()
         })
+    },
+    listDbByKw(keyword) {
+      store
+        .dispatch('listDatabase', {
+          bucket: this.bucketName,
+          keyword: keyword,
+          size: LIST_PAGE_SIZE
+        })
+        .then(batch => {
+          this.dbBatch = batch
+        })
+    },
+    changeDbPage(page) {
+      this.dbBatch.goto(page)
+    },
+    changeDbSize(size) {
+      LIST_PAGE_SIZE = size
+      this.listDbByKw(null)
+    },
+    changeDbSelect(val) {
+      this.multipleDb = val
     }
   },
   mounted() {
-    this.listDatabase()
+    this.listDbByKw(null)
   }
 }
 </script>
