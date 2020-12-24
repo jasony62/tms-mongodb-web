@@ -171,7 +171,7 @@ export default {
       'removeDb',
       'listSchema',
       'removeSchema',
-      'listTag',
+      'listTags',
       'removeTag',
       'listReplica',
       'removeReplica',
@@ -323,6 +323,7 @@ export default {
     this.listSchema({ bucket: this.bucketName, scope: 'document' })
     this.listSchema({ bucket: this.bucketName, scope: 'db' })
     this.listSchema({ bucket: this.bucketName, scope: 'collection' })
+    this.listTags({ bucket: this.bucketName })
     this.listRpByKw(null)
   }
 }

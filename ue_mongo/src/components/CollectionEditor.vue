@@ -8,20 +8,30 @@
         <el-input v-model="collection.title"></el-input>
       </el-form-item>
       <el-form-item label="集合文档内容定义（默认）">
-        <el-select placeholder="请选择定义的名称" v-model="collection.schema_id" clearable filterable>
+        <el-select v-model="collection.schema_id" placeholder="请选择定义名称" clearable filterable>
           <el-option v-for="item in schemas" :key="item._id" :label="item.title" :value="item._id"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="集合文档内容定义（定制）">
-        <el-select v-model="collection.tags" clearable multiple placeholder="请选择定义的标签">
+        <el-select v-model="collection.schema_tags" clearable multiple placeholder="请选择定义标签">
           <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name">
           </el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="默认展示（定制）">
-        <el-select v-model="collection.default_tag" clearable multiple placeholder="请选择定义的标签">
+        <el-select v-model="collection.schema_default_tags" clearable multiple placeholder="请选择定义标签">
           <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name">
           </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="集合标签">
+        <el-select v-model="collection.tags" clearable multiple placeholder="请选择集合标签">
+          <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="集合用途">
+        <el-select v-model="collection.usage" clearable placeholder="请选择集合用途">
+          <el-option label="普通集合" :value="0"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="集合扩展属性（选填）">
@@ -44,6 +54,7 @@
 </template>
 <script>
 import Vue from 'vue'
+import { Flex } from 'tms-vue-ui'
 import {
   Dialog,
   Form,
@@ -52,8 +63,9 @@ import {
   Select,
   Option,
   Button,
-  Message,
+  Message
 } from 'element-ui'
+Vue.use(Flex)
 Vue.use(Dialog)
   .use(Form)
   .use(FormItem)
@@ -66,6 +78,9 @@ import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
 import createCollectionApi from '../apis/collection'
 import createSchemaApi from '../apis/schema'
 import createTagApi from '../apis/tag'
+import createDbApi from '../apis/database'
+
+let oldClName = ''
 
 export default {
   name: 'CollectionEditor',
@@ -76,54 +91,56 @@ export default {
     dbName: { type: String },
     collection: {
       type: Object,
-      default: function () {
+      default: function() {
         return {
           name: '',
           title: '',
           description: '',
           schema_id: '',
+          schema_tags: [],
+          schema_default_tags: [],
           tags: [],
-          default_tag: [],
-          extensionInfo: { schemaId: '', info: {} },
+          usage: '',
+          extensionInfo: { schemaId: '', info: {} }
         }
-      },
-    },
+      }
+    }
   },
   components: { TmsElJsonDoc },
   data() {
     return {
+      activeTab: 'first',
       mode: '',
-      clName: '',
       destroyOnClose: true,
       closeOnClickModal: false,
       schemas: [],
-      extensions: [],
-      extendSchema: {},
       tags: [],
+      extensions: [],
+      extendSchema: {}
     }
   },
   mounted() {
     createSchemaApi(this.TmsAxios(this.tmsAxiosName))
       .list(this.bucketName, 'document')
-      .then((schemas) => {
+      .then(schemas => {
         this.schemas = schemas
       })
     createSchemaApi(this.TmsAxios(this.tmsAxiosName))
       .list(this.bucketName, 'collection')
-      .then((extensions) => {
+      .then(extensions => {
         this.extensions = extensions
         this.handleExtendId(this.collection.extensionInfo.schemaId, true)
       })
     createTagApi(this.TmsAxios(this.tmsAxiosName))
       .list(this.bucketName)
-      .then((tags) => {
+      .then(tags => {
         this.tags = tags
       })
   },
   methods: {
     handleExtendId(id, init) {
       this.extendSchema = {}
-      this.extensions.find((item) => {
+      this.extensions.find(item => {
         if (item._id == id) {
           this.$nextTick(() => {
             this.extendSchema = item.body
@@ -138,16 +155,16 @@ export default {
       if (this.mode === 'create')
         createCollectionApi(this.TmsAxios(this.tmsAxiosName))
           .create(this.bucketName, this.dbName, this.collection)
-          .then((newCollection) => this.$emit('submit', newCollection))
+          .then(newCollection => this.$emit('submit', newCollection))
       else if (this.mode === 'update')
         createCollectionApi(this.TmsAxios(this.tmsAxiosName))
-          .update(this.bucketName, this.dbName, this.clName, this.collection)
-          .then((newCollection) => this.$emit('submit', newCollection))
+          .update(this.bucketName, this.dbName, oldClName, this.collection)
+          .then(newCollection => this.$emit('submit', newCollection))
     },
     onSubmit() {
       if (this.$refs.attrForm) {
         const tmsAttrForm = this.$refs.attrForm.$refs.TmsJsonDoc
-        tmsAttrForm.form().validate((valid) => {
+        tmsAttrForm.form().validate(valid => {
           valid ? this.fnSubmit() : Message.error({ message: '请填写必填字段' })
         })
         return false
@@ -160,20 +177,20 @@ export default {
       this.bucketName = bucketName
       this.dbName = dbName
       if (mode === 'update') {
-        this.clName = collection.name
+        oldClName = collection.name
         this.collection = JSON.parse(
           JSON.stringify(Object.assign(this.collection, collection))
         )
       }
       this.$mount()
       document.body.appendChild(this.$el)
-      return new Promise((resolve) => {
-        this.$on('submit', (newCollection) => {
+      return new Promise(resolve => {
+        this.$on('submit', newCollection => {
           this.dialogVisible = false
           resolve(newCollection)
         })
       })
-    },
-  },
+    }
+  }
 }
 </script>

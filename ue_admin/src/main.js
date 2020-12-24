@@ -35,7 +35,11 @@ import {
   Card,
   Message,
   MessageBox,
-  Switch
+  Switch,
+  InputNumber,
+  Upload,
+  Alert,
+  Image
 } from 'element-ui'
 import './assets/css/common.less'
 
@@ -64,6 +68,10 @@ Vue.use(TmsAxiosPlugin)
   .use(Tree)
   .use(Card)
   .use(Switch)
+  .use(InputNumber)
+  .use(Upload)
+  .use(Alert)
+  .use(Image)
 
 const { fnGetCaptcha, fnGetToken } = apiLogin
 const schema = [

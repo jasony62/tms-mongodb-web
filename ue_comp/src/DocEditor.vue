@@ -1,18 +1,6 @@
 <template>
-  <el-dialog
-    :visible.sync="dialogVisible"
-    :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal"
-  >
-    <tms-el-json-doc
-      :is-submit="isSubmit"
-      :schema="body"
-      :doc="document"
-      v-on:submit="onJsonDocSubmit"
-      :on-file-submit="handleFileSubmit"
-      :on-axios="handleAxios"
-      :on-file-download="handleDownload"
-    ></tms-el-json-doc>
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
+    <tms-el-json-doc :is-submit="isSubmit" :schema="body" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit" :on-axios="handleAxios" :on-file-download="handleDownload"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
@@ -51,9 +39,7 @@ export default {
     },
     handleDownload(name, url) {
       const access_token = sessionStorage.getItem('access_token')
-      window.open(
-        `${process.env.VUE_APP_BACK_API_FS}${url}?access_token=${access_token}`
-      )
+      window.open(`${url}?access_token=${access_token}`)
     },
     handleFileSubmit(ref, files) {
       let result = {}
@@ -117,10 +103,12 @@ export default {
       }
     },
     async handleProperty() {
-      let tags =
-        (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) ||
-        this.collection.tags
+      const { VUE_APP_SCHEMA_TAGS } = process.env
+      let tags = VUE_APP_SCHEMA_TAGS
+        ? VUE_APP_SCHEMA_TAGS.split(',')
+        : this.collection.schema_tags
       let body = {}
+
       if (tags && tags.length) {
         for (let i = 0; i < tags.length; i++) {
           let schemas = await createSchemaApi(

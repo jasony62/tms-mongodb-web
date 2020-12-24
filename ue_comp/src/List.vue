@@ -688,9 +688,7 @@ const componentOptions = {
     },
     handleDownload(file) {
       const access_token = sessionStorage.getItem('access_token')
-      window.open(
-        `${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`
-      )
+      window.open(`${file.url}?access_token=${access_token}`)
     },
     handlePlugins(plugin, conditionType) {
       new Promise(resolve => {
@@ -913,26 +911,32 @@ const componentOptions = {
       })
     },
     async handleProperty() {
-      let tags =
-        (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) ||
-        collection.tags
-      let default_tag =
-        (process.env.VUE_APP_DEFAULT_TAG &&
-          process.env.VUE_APP_DEFAULT_TAG.split(',')) ||
-        collection.default_tag
-
+      const { VUE_APP_SCHEMA_TAGS, VUE_APP_SCHEMA_DEFAULT_TAGS } = process.env
+      let tags = VUE_APP_SCHEMA_TAGS
+        ? VUE_APP_SCHEMA_TAGS.split(',')
+        : collection.schema_tags
+      let default_tags = VUE_APP_SCHEMA_DEFAULT_TAGS
+        ? VUE_APP_SCHEMA_DEFAULT_TAGS.split(',')
+        : collection.schema_default_tags
+      let {
+        schema: {
+          body: { properties }
+        }
+      } = collection
       let temp = {}
-      if (default_tag && default_tag.length) {
-        await this.getSchemasByTags(default_tag).then(res => (temp = res))
+
+      if (default_tags && default_tags.length) {
+        await this.getSchemasByTags(default_tags).then(res => (temp = res))
       } else if (tags && tags.length) {
         await this.getSchemasByTags(tags).then(res => (temp = res))
       } else if (
-        collection.schema &&
-        collection.schema.body &&
-        collection.schema.body.properties
+        properties &&
+        Object.prototype.toString.call(properties).toLowerCase() ==
+          '[object object]'
       ) {
         Object.assign(temp, collection.schema.body.properties)
       }
+
       if (Object.keys(temp).length === 0) temp._id = { title: 'id' }
       this.properties = Object.freeze(temp)
     }

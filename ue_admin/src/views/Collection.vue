@@ -291,9 +291,7 @@ export default {
     },
     handleDownload(file) {
       const access_token = sessionStorage.getItem('access_token')
-      window.open(
-        `${process.env.VUE_APP_BACK_API_FS}${file.url}?access_token=${access_token}`
-      )
+      window.open(`${file.url}?access_token=${access_token}`)
     },
     handleSize(val) {
       this.page.size = val
@@ -323,16 +321,22 @@ export default {
         })
     },
     async handleProperty() {
-      let tags =
-        (process.env.VUE_APP_TAGS && process.env.VUE_APP_TAGS.split(',')) ||
-        collection.tags
-      let default_tag =
-        (process.env.VUE_APP_DEFAULT_TAG &&
-          process.env.VUE_APP_DEFAULT_TAG.split(',')) ||
-        collection.default_tag
+      const { VUE_APP_SCHEMA_TAGS, VUE_APP_SCHEMA_DEFAULT_TAGS } = process.env
+      let tags = VUE_APP_SCHEMA_TAGS
+        ? VUE_APP_SCHEMA_TAGS.split(',')
+        : collection.schema_tags
+      let default_tags = VUE_APP_SCHEMA_DEFAULT_TAGS
+        ? VUE_APP_SCHEMA_DEFAULT_TAGS.split(',')
+        : collection.schema_default_tags
+      let {
+        schema: {
+          body: { properties }
+        }
+      } = collection
       let temp = {}
-      if (default_tag && default_tag.length) {
-        await this.getTaglist(default_tag).then(res => {
+
+      if (default_tags && default_tags.length) {
+        await this.getTaglist(default_tags).then(res => {
           temp = res
         })
       } else if (tags && tags.length) {
@@ -340,12 +344,13 @@ export default {
           temp = res
         })
       } else if (
-        collection.schema &&
-        collection.schema.body &&
-        collection.schema.body.properties
+        properties &&
+        Object.prototype.toString.call(properties).toLowerCase() ==
+          '[object object]'
       ) {
         Object.assign(temp, collection.schema.body.properties)
       }
+
       this.properties = Object.freeze(temp)
     }
   },

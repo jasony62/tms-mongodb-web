@@ -220,7 +220,7 @@ export default new Vuex.Store({
         return { collection }
       })
     },
-    listTag({ commit }, payload) {
+    listTags({ commit }, payload) {
       const { bucket } = payload
       return apis.tag.list(bucket).then(tags => {
         commit({ type: 'tags', tags })
