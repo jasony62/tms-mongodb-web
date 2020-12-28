@@ -54,9 +54,9 @@ class PluginHttpSendDocs extends PluginHttpSend {
     let docs
 
     const modelDoc = new ModelDoc(ctrl.bucket)
-    const { ids, filter } = ctrl.request.body
-    if (ids && Array.isArray(ids) && ids.length > 0) {
-      let [success, docsOrCause] = await modelDoc.byIds(tmwCl, ids)
+    const { docIds, filter } = ctrl.request.body
+    if (docIds && Array.isArray(docIds) && docIds.length > 0) {
+      let [success, docsOrCause] = await modelDoc.byIds(tmwCl, docIds)
       if (success === true) docs = docsOrCause
       else return [false, docsOrCause]
     } else {
