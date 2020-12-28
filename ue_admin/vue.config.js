@@ -7,7 +7,6 @@ const devServer = {
   proxy: {}
 }
 
-// 代理api请求
 devServer.proxy[`${process.env.VUE_APP_BACK_AUTH_BASE}`] = {
   target: process.env.VUE_APP_BACK_AUTH_SERVER
 }

@@ -30,7 +30,7 @@ class DocBase extends Base {
     return this.docHelper
       .findSysColl(existCl)
       .insertOne(doc)
-      .then(async (r) => {
+      .then(async r => {
         await this.modelDoc.dataActionLog(
           r.ops,
           '创建',
@@ -90,6 +90,7 @@ class DocBase extends Base {
         existCl.name,
         '',
         '',
+        '',
         JSON.stringify(existDoc)
       )
     }
@@ -136,19 +137,19 @@ class DocBase extends Base {
       return new ResultFault('参数[groupBy]包含的列名称类型错误，不是字符串')
 
     let cl = this.docHelper.findSysColl(existCl)
-    let query = filter ? this.modelDoc.assembleQuery(filter) : {}
+    let query = filter ? this.assembleQuery(filter) : {}
     let pipeline = [
       {
-        $match: query,
+        $match: query
       },
       {
         $group: {
           _id: groupId,
           count: {
-            $sum: 1,
-          },
-        },
-      },
+            $sum: 1
+          }
+        }
+      }
     ]
 
     let { skip, limit } = this.docHelper.requestPage()
@@ -215,7 +216,7 @@ class DocBase extends Base {
     const { query, operation, errCause } = this.docHelper.getRequestBatchQuery()
     if (errCause) return new ResultFault(errCause)
 
-    let total = await this.modelDoc.count(existCl, query)
+    let total = await this.count(existCl, query)
     if (total === 0)
       return new ResultFault('没有符合条件的数据，未执行删除操作')
 
@@ -233,7 +234,7 @@ class DocBase extends Base {
 
     return this.modelDoc
       .removeMany(existCl, query)
-      .then((deletedCount) => new ResultData({ total, deletedCount }))
+      .then(deletedCount => new ResultData({ total, deletedCount }))
   }
   /**
    * 批量修改数据
@@ -270,7 +271,7 @@ class DocBase extends Base {
 
     return this.modelDoc
       .updateMany(existCl, query, updated)
-      .then((modifiedCount) => {
+      .then(modifiedCount => {
         return new ResultData({ total, modifiedCount })
       })
   }
@@ -316,28 +317,28 @@ class DocBase extends Base {
     }
     let group = [
       {
-        $match: find,
+        $match: find
       },
       {
         $group: {
           _id: '$' + column,
           num_tutorial: {
-            $sum: 1,
-          },
-        },
+            $sum: 1
+          }
+        }
       },
       {
         $sort: {
-          _id: 1,
-        },
-      },
+          _id: 1
+        }
+      }
     ]
     if (page && page > 0 && size && size > 0) {
       let skip = {
-        $skip: (parseInt(page) - 1) * parseInt(size),
+        $skip: (parseInt(page) - 1) * parseInt(size)
       }
       let limit = {
-        $limit: parseInt(size),
+        $limit: parseInt(size)
       }
       group.push(skip)
       group.push(limit)
@@ -346,9 +347,9 @@ class DocBase extends Base {
     return cl
       .aggregate(group)
       .toArray()
-      .then((arr) => {
+      .then(arr => {
         let data = []
-        arr.forEach((a) => {
+        arr.forEach(a => {
           let d = {}
           d.title = a._id
           d.sum = a.num_tutorial
@@ -368,14 +369,14 @@ class DocBase extends Base {
     if (!Array.isArray(docIds) || docIds.length === 0)
       return new ResultFault('没有要查询的数据')
 
-    const docIds2 = docIds.map((id) => new ObjectId(id))
+    const docIds2 = docIds.map(id => new ObjectId(id))
     const find = { _id: { $in: docIds2 } }
 
     return this.docHelper
       .findSysColl(existCl)
       .find(find)
       .toArray()
-      .then(async (docs) => {
+      .then(async docs => {
         await this.modelDoc.getDocCompleteStatus(existCl, docs)
         return docs
       })
