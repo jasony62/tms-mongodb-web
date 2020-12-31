@@ -114,7 +114,7 @@ export default {
   },
   computed: {
     collections() {
-      return this.$store.state.collections
+      return store.state.collections
     }
   },
   methods: {
@@ -123,10 +123,11 @@ export default {
       editor
         .open('create', this.tmsAxiosName, this.bucketName, this.dbName)
         .then(newCollection => {
-          this.$store.commit({
+          store.commit({
             type: 'appendCollection',
             collection: newCollection
           })
+          this.listClByKw(null)
         })
     },
     editCollection(collection) {
@@ -143,7 +144,7 @@ export default {
           Object.keys(newCollection).forEach(k => {
             Vue.set(collection, k, newCollection[k])
           })
-          this.$store.commit({
+          store.commit({
             type: 'updateCollection',
             collection
           })
@@ -155,6 +156,7 @@ export default {
         db: this.dbName,
         collection
       })
+      this.listClByKw(null)
     },
     relatedCollection(collection) {
       let editor = new Vue(ReplicaEditor)

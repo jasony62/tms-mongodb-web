@@ -240,6 +240,7 @@ export default {
       const editor = new Vue(DbEditor)
       editor.open('create', this.bucketName).then(newDb => {
         this.appendDatabase({ db: newDb })
+        this.listDbByKw(null)
       })
     },
     editDb(db, index) {
@@ -249,9 +250,13 @@ export default {
       })
     },
     handleDb(db) {
-      this.$customeConfirm('数据库', () => {
-        return this.removeDb({ bucket: this.bucketName, db })
-      })
+      this.$customeConfirm(
+        '数据库',
+        () => {
+          return this.removeDb({ bucket: this.bucketName, db })
+        },
+        this.listDbByKw
+      )
     },
     listDbByKw(keyword) {
       this.listDatabase({

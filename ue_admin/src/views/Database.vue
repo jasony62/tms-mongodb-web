@@ -98,6 +98,7 @@ export default {
         .open('create', this.bucketName, this.dbName)
         .then(newCollection => {
           this.appendCollection({ collection: newCollection })
+          this.listClByKw(null)
         })
     },
     editCollection(collection, index) {
@@ -112,13 +113,17 @@ export default {
         })
     },
     handleCollection(collection) {
-      this.$customeConfirm('集合', () => {
-        return this.removeCollection({
-          bucket: this.bucketName,
-          db: this.dbName,
-          collection
-        })
-      })
+      this.$customeConfirm(
+        '集合',
+        () => {
+          return this.removeCollection({
+            bucket: this.bucketName,
+            db: this.dbName,
+            collection
+          })
+        },
+        this.listClByKw
+      )
     },
     listClByKw(keyword) {
       this.listCollection({

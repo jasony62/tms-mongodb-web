@@ -113,18 +113,19 @@ export default {
   },
   computed: {
     dbs() {
-      return this.$store.state.dbs
+      return store.state.dbs
     }
   },
   methods: {
     createDb() {
       const editor = new Vue(DbEditor)
       editor.open('create', this.tmsAxiosName, this.bucketName).then(newDb => {
-        this.$store.commit({
+        store.commit({
           type: 'appendDatabase',
           db: newDb,
           bucket: this.bucketName
         })
+        this.listDbByKw(null)
       })
     },
     editDb(db) {
@@ -136,7 +137,7 @@ export default {
           Object.keys(newDb).forEach(k => {
             Vue.set(db, k, newDb[k])
           })
-          this.$store.commit({
+          store.commit({
             type: 'updateDatabase',
             db: newDb,
             index,
@@ -146,6 +147,7 @@ export default {
     },
     removeDb(db) {
       store.dispatch('removeDatabase', { db, bucket: this.bucketName })
+      this.listDbByKw(null)
     },
     topDb(db, type) {
       createDbApi(this.TmsAxios(this.tmsAxiosName))
