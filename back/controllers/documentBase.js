@@ -137,7 +137,7 @@ class DocBase extends Base {
       return new ResultFault('参数[groupBy]包含的列名称类型错误，不是字符串')
 
     let cl = this.docHelper.findSysColl(existCl)
-    let query = filter ? this.assembleQuery(filter) : {}
+    let query = filter ? this.modelDoc.assembleQuery(filter) : {}
     let pipeline = [
       {
         $match: query
