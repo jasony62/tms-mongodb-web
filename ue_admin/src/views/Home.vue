@@ -174,8 +174,8 @@ import Vue from 'vue'
 import { mapState, mapMutations, mapActions } from 'vuex'
 import { Batch } from 'tms-vue'
 import { Frame, Flex } from 'tms-vue-ui'
-import { Message } from 'element-ui'
 Vue.use(Frame).use(Flex)
+import { Message } from 'element-ui'
 
 import DbEditor from '../components/DbEditor.vue'
 import SchemaEditor from '../components/SchemaEditor.vue'

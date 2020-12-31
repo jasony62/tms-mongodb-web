@@ -18,6 +18,27 @@
     height: 100% !important;
   }
 }
+
+// 右侧按钮
+.tms-frame__main__right__button {
+  .el-button + .el-button {
+    margin-left: 0;
+  }
+  overflow-y: auto;
+  height: calc(100vh - 64px);
+}
+
+// 批量修改
+.input-with-select {
+  .el-input-group__prepend {
+    background-color: #fff;
+    .el-select {
+      > .el-input {
+        width: 130px;
+      }
+    }
+  }
+}
 .tmw-tags {
   display: flex;
   flex-wrap: wrap;

@@ -19,7 +19,7 @@ class Document extends DocBase {
     const existCl = await this.docHelper.findRequestCl()
     const {
       checkRepeatColumns = '',
-      keepFirstRepeatData = false,
+      keepFirstRepeatData = false
     } = this.request.query
 
     const { UploadPlain } = require('tms-koa/lib/model/fs/upload')
@@ -65,7 +65,7 @@ class Document extends DocBase {
     let query
     if (docIds && docIds.length > 0) {
       // 按选中修改
-      let docIds2 = docIds.map((id) => new ObjectId(id))
+      let docIds2 = docIds.map(id => new ObjectId(id))
       query = { _id: { $in: docIds2 } }
     } else if (filter && typeof filter === 'object') {
       // 按条件修改
@@ -111,20 +111,22 @@ class Document extends DocBase {
    * @alreadyMoveTotal 已经迁移的个数
    * @alreadyMovePassTotal 已经迁移成功的个数
    */
-  async move() {
+  async move(oldDb, oldCl, newDb, newCl, docIds) {
+    if (!oldDb || !oldCl || !newDb || !newCl || !docIds) {
+      oldDb = this.request.query.oldDb
+      oldCl = this.request.query.oldCl
+      newDb = this.request.query.newDb
+      newCl = this.request.query.newCl
+      docIds = this.request.body.docIds
+    }
     let {
-      oldDb,
-      oldCl,
-      newDb,
-      newCl,
-      transforms,
       execNum = 100,
       planTotal = 0,
       alreadyMoveTotal = 0,
-      alreadyMovePassTotal = 0,
+      alreadyMovePassTotal = 0
     } = this.request.query
 
-    let { docIds, filter } = this.request.body
+    let { filter } = this.request.body
 
     if (!oldDb || !oldCl || !newDb || !newCl) {
       return new ResultFault('参数不完整')
@@ -150,18 +152,17 @@ class Document extends DocBase {
         query = modelDoc.assembleQuery(filter)
       }
       let cl = this.docHelper.findSysColl(oldExistCl)
-      oldDocus = await cl.find(query).limit(parseInt(execNum)).toArray()
+      oldDocus = await cl
+        .find(query)
+        .limit(parseInt(execNum))
+        .toArray()
       total = await cl.find(query).count()
     }
-
-    let options = {}
-    options.transforms = transforms
 
     let rst = await this.docHelper.cutDocs(
       oldExistCl,
       newExistCl,
       docIds2,
-      options,
       oldDocus
     )
     if (rst[0] === false) return new ResultFault(rst[1])
@@ -179,7 +180,7 @@ class Document extends DocBase {
       alreadyMoveTotal,
       alreadyMovePassTotal,
       alreadyMoveFailTotal,
-      spareTotal,
+      spareTotal
     }
 
     return new ResultData(data)

@@ -216,7 +216,7 @@ class DocBase extends Base {
     const { query, operation, errCause } = this.docHelper.getRequestBatchQuery()
     if (errCause) return new ResultFault(errCause)
 
-    let total = await this.count(existCl, query)
+    let total = await this.modelDoc.count(existCl, query)
     if (total === 0)
       return new ResultFault('没有符合条件的数据，未执行删除操作')
 

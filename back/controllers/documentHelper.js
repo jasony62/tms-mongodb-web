@@ -259,13 +259,7 @@ class DocumentHelper extends Helper {
   /**
    *  剪切数据到指定集合中
    */
-  async cutDocs(
-    oldExistCl,
-    newExistCl,
-    docIds = null,
-    options = {},
-    oldDocus = null
-  ) {
+  async cutDocs(oldExistCl, newExistCl, docIds = null, oldDocus = null) {
     //获取指定集合的列
     const collModel = new ModelColl()
     let newClSchema = await collModel.getSchemaByCollection(newExistCl)
