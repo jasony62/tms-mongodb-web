@@ -1,61 +1,17 @@
 <template>
-  <el-dialog
-    :visible.sync="dialogVisible"
-    :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal"
-  >
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <tms-flex direction="column" :elastic-items="[1]" style="height:100%">
       <tms-flex v-if="usage!==1">
-        <el-select
-          v-model="criteria.database"
-          placeholder="选择数据库"
-          clearable
-          filterable
-          remote
-          :remote-method="listDbByKw"
-          :loading="criteria.databaseLoading"
-          style="width:240px"
-        >
-          <el-option
-            v-for="item in criteria.databases"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          ></el-option>
+        <el-select v-model="criteria.database" placeholder="选择数据库" clearable filterable remote :remote-method="listDbByKw" :loading="criteria.databaseLoading" style="width:240px">
+          <el-option v-for="item in criteria.databases" :key="item.value" :label="item.label" :value="item.value"></el-option>
           <el-option :disabled="true" value v-if="criteria.dbBatch.pages>1">
-            <el-pagination
-              :current-page="criteria.dbBatch.page"
-              :total="criteria.dbBatch.total"
-              :page-size="criteria.dbBatch.size"
-              layout="prev, next"
-              @current-change="changeDbPage"
-            ></el-pagination>
+            <el-pagination :current-page="criteria.dbBatch.page" :total="criteria.dbBatch.total" :page-size="criteria.dbBatch.size" layout="prev, next" @current-change="changeDbPage"></el-pagination>
           </el-option>
         </el-select>
-        <el-select
-          v-model="criteria.collection"
-          placeholder="请选择集合"
-          clearable
-          filterable
-          remote
-          :remote-method="listClByKw"
-          :loading="criteria.collectionLoading"
-          style="width:240px"
-        >
-          <el-option
-            v-for="item in criteria.collections"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          ></el-option>
+        <el-select v-model="criteria.collection" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw" :loading="criteria.collectionLoading" style="width:240px">
+          <el-option v-for="item in criteria.collections" :key="item.value" :label="item.label" :value="item.value"></el-option>
           <el-option :disabled="true" value v-if="criteria.clBatch.pages>1">
-            <el-pagination
-              :current-page="criteria.clBatch.page"
-              :total="criteria.clBatch.total"
-              :page-size="criteria.clBatch.size"
-              layout="prev, next"
-              @current-change="changeClPage"
-            ></el-pagination>
+            <el-pagination :current-page="criteria.clBatch.page" :total="criteria.clBatch.total" :page-size="criteria.clBatch.size" layout="prev, next" @current-change="changeClPage"></el-pagination>
           </el-option>
         </el-select>
         <el-button @click="createReclia">关联</el-button>
@@ -68,25 +24,12 @@
           <el-table-column prop="secondary.cl.label" label="从集合名称"></el-table-column>
           <el-table-column fixed="right" label="操作" width="120">
             <template slot-scope="scope">
-              <el-button
-                type="text"
-                size="mini"
-                @click="syncReplica(scope.row)"
-                :disabled="usage===1"
-              >同步</el-button>
+              <el-button type="text" size="mini" @click="syncReplica(scope.row)" :disabled="usage===1">同步</el-button>
               <el-button type="text" size="mini" @click="removeReplica(scope.row)" v-if="false">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
-        <el-pagination
-          :current-page="docBatch.page"
-          :page-sizes="[50, 100, 200]"
-          :page-size="docBatch.size"
-          layout="total, sizes, prev, pager, next"
-          :total="docBatch.total"
-          @current-change="changeDocPage"
-          @size-change="changeDocSize"
-        ></el-pagination>
+        <el-pagination :current-page="docBatch.page" :page-sizes="[50, 100, 200]" :page-size="docBatch.size" layout="total, sizes, prev, pager, next" :total="docBatch.total" @current-change="changeDocPage" @size-change="changeDocSize"></el-pagination>
       </tms-flex>
     </tms-flex>
   </el-dialog>
@@ -220,19 +163,27 @@ export default {
       return createRpApi(this.TmsAxios(this.tmsAxiosName))
         .list(this.bucketName, batchArg, proto)
         .then(result => {
-          this.replicas = result.replicas.map(result => {
-            let {
-              primary: { db: pdb, cl: pcl },
-              secondary: { db: sdb, cl: scl }
-            } = result
-            ;[pdb, pcl, sdb, scl].forEach(item => {
-              item.label = `${item.title} (${item.name})`
+          this.replicas = result.replicas
+            .filter(result => {
+              let {
+                primary: { db: pdb, cl: pcl },
+                secondary: { db: sdb, cl: scl }
+              } = result
+              return pdb.title && pcl.title && sdb.title && scl.title
             })
-            return {
-              primary: { db: pdb, cl: pcl },
-              secondary: { db: sdb, cl: scl }
-            }
-          })
+            .map(result => {
+              let {
+                primary: { db: pdb, cl: pcl },
+                secondary: { db: sdb, cl: scl }
+              } = result
+              ;[pdb, pcl, sdb, scl].forEach(item => {
+                item.label = `${item.title} (${item.name})`
+              })
+              return {
+                primary: { db: pdb, cl: pcl },
+                secondary: { db: sdb, cl: scl }
+              }
+            })
           this.docBatch.total = result.total
           return result
         })

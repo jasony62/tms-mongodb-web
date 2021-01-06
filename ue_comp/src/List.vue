@@ -7,15 +7,7 @@
             <el-button @click="resetSelectedGroupNode" type="text">清除选择</el-button>
           </tms-flex>
         </div>
-        <el-tree
-          ref="groupNodeTree"
-          :highlight-current="true"
-          :data="groupData"
-          default-expand-all
-          node-key="id"
-          :props="defaultProps"
-          @node-click="selectGroupNode"
-        >
+        <el-tree ref="groupNodeTree" :highlight-current="true" :data="groupData" default-expand-all node-key="id" :props="defaultProps" @node-click="selectGroupNode">
           <span class="custom-tree-node" slot-scope="{ node, data }">
             <span>
               {{ node.label }}
@@ -26,25 +18,14 @@
       </el-card>
     </template>
     <template v-slot:center>
-      <el-table
-        id="table"
-        :data="documents"
-        stripe
-        ref="documentsTable"
-        :max-height="tableHeight"
-        @selection-change="handleSelectDocument"
-      >
+      <el-table id="table" :data="documents" stripe ref="documentsTable" :max-height="tableHeight" @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55"></el-table-column>
         <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
           <template slot="header">
             <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
             <i v-if="s.required" style="color:red">*</i>
             <span>{{s.title}}</span>
-            <img
-              src="../assets/icon_filter.png"
-              class="icon_filter"
-              @click="handleFilterByColumn(s, k)"
-            />
+            <img src="../assets/icon_filter.png" class="icon_filter" @click="handleFilterByColumn(s, k)" />
           </template>
           <template slot-scope="scope">
             <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
@@ -59,9 +40,7 @@
                 <span v-for="(g, i) in s.enumGroups" :key="i">
                   <span v-if="scope.row[g.assocEnum.property]===g.assocEnum.value">
                     <span v-for="(e, v) in s.enum" :key="v">
-                      <span
-                        v-if="e.group===g.id && scope.row[k] && scope.row[k].length && scope.row[k].includes(e.value)"
-                      >{{e.label}}&nbsp;</span>
+                      <span v-if="e.group===g.id && scope.row[k] && scope.row[k].length && scope.row[k].includes(e.value)">{{e.label}}&nbsp;</span>
                     </span>
                   </span>
                 </span>
@@ -100,16 +79,7 @@
       </el-table>
       <tms-flex class="tmw-pagination">
         <div class="tmw-pagination__text">已选中 {{totalByChecked}} 条数据</div>
-        <el-pagination
-          background
-          @size-change="handleSize"
-          @current-change="handleCurrentPage"
-          :current-page.sync="page.at"
-          :page-sizes="[10, 25, 50, 100]"
-          :page-size="page.size"
-          layout="total, sizes, prev, pager, next"
-          :total="page.total"
-        ></el-pagination>
+        <el-pagination background @size-change="handleSize" @current-change="handleCurrentPage" :current-page.sync="page.at" :page-sizes="[10, 25, 50, 100]" :page-size="page.size" layout="total, sizes, prev, pager, next" :total="page.total"></el-pagination>
       </tms-flex>
     </template>
     <template v-slot:right>
@@ -121,106 +91,58 @@
           <el-button>导入数据</el-button>
         </el-upload>
         <el-dropdown v-if="docOperations.editMany" @command="editManyDocument">
-          <el-button>
-            批量修改
-            <i class="el-icon-arrow-down el-icon--right"></i>
-          </el-button>
+          <el-button>批量修改<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
             <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
-            <el-dropdown-item
-              command="checked"
-              :disabled="totalByChecked==0"
-            >按选中({{totalByChecked}})</el-dropdown-item>
+            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <el-dropdown
-          v-if="docOperations.removeMany"
-          @command="removeManyDocument"
-          placement="bottom-start"
-        >
-          <el-button>
-            批量删除
-            <i class="el-icon-arrow-down el-icon--right"></i>
+        <el-dropdown v-if="docOperations.removeMany" @command="removeManyDocument" placement="bottom-start">
+          <el-button>批量删除<i class="el-icon-arrow-down el-icon--right"></i>
           </el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
             <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
-            <el-dropdown-item
-              command="checked"
-              :disabled="totalByChecked==0"
-            >按选中({{totalByChecked}})</el-dropdown-item>
+            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
         <el-dropdown @command="copyManyDocument" placement="bottom-start">
-          <el-button>
-            批量复制
-            <i class="el-icon-arrow-down el-icon--right"></i>
-          </el-button>
+          <el-button>批量复制<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
             <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
-            <el-dropdown-item
-              command="checked"
-              :disabled="totalByChecked==0"
-            >按选中({{totalByChecked}})</el-dropdown-item>
+            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
         <el-dropdown v-if="docOperations.transferMany" @command="transferManyDocument">
-          <el-button>
-            批量迁移
-            <i class="el-icon-arrow-down el-icon--right"></i>
-          </el-button>
+          <el-button>批量迁移<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
             <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
-            <el-dropdown-item
-              command="checked"
-              :disabled="totalByChecked==0"
-            >按选中({{totalByChecked}})</el-dropdown-item>
+            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
         <el-dropdown @command="exportDocument">
-          <el-button>
-            导出数据
-            <i class="el-icon-arrow-down el-icon--right"></i>
-          </el-button>
+          <el-button>导出数据<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
             <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
-            <el-dropdown-item
-              command="checked"
-              :disabled="totalByChecked==0"
-            >按选中({{totalByChecked}})</el-dropdown-item>
+            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
         <div v-for="p in computedPluginData" :key="p.name">
           <el-dropdown>
-            <el-button type="success" plain>
-              {{p.title}}
-              <i class="el-icon-arrow-down el-icon--right"></i>
-            </el-button>
+            <el-button type="success" plain>{{p.title}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
-                <el-button
-                  type="text"
-                  @click="handlePlugins(p, 'all')"
-                  :disabled="totalByAll==0"
-                >按全部({{totalByAll}})</el-button>
+                <el-button type="text" @click="handlePlugins(p, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button
-                  type="text"
-                  @click="handlePlugins(p, 'filter')"
-                  :disabled="totalByFilter==0"
-                >按筛选({{totalByFilter}})</el-button>
+                <el-button type="text" @click="handlePlugins(p, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button
-                  type="text"
-                  @click="handlePlugins(p, 'checked')"
-                  :disabled="totalByChecked==0"
-                >按选中({{totalByChecked}})</el-button>
+                <el-button type="text" @click="handlePlugins(p, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -305,7 +227,6 @@ const componentOptions = {
         transferMany: true
       },
       tableHeight: 0,
-      moveCheckList: [],
       filter: {},
       page: {
         at: 1,
@@ -346,14 +267,8 @@ const componentOptions = {
       return this.selectedDocuments.length
     },
     computedPluginData() {
-      const currentAuth = this.getCurrentAuth() || '*'
       const data = this.pluginData
       if (!this.pluginData.length) return []
-      // return data.filter(
-      //   (item) =>
-      //     item.auth &&
-      //     (item.auth.includes('*') || item.auth.includes(currentAuth))
-      // )
       return data
     }
   },
@@ -361,9 +276,6 @@ const componentOptions = {
     this.tableHeight = window.innerHeight * 0.8
   },
   methods: {
-    getCurrentAuth() {
-      return '*'
-    },
     conditionReset() {
       return store.commit('conditionReset')
     },
@@ -558,10 +470,8 @@ const componentOptions = {
         })
         .catch(() => {})
     },
-    fnSetReqParam(command, checkList) {
-      let param, transforms
-      param = {}
-      transforms = checkList && checkList.join(',')
+    fnSetReqParam(command) {
+      let param = {}
       switch (command) {
         case 'all':
           param.filter = 'ALL'
@@ -573,7 +483,7 @@ const componentOptions = {
         case 'checked':
           param.docIds = this.fnGetSelectedIds()
       }
-      return { param, transforms }
+      return { param }
     },
     fnHandleResResult(result, isMultiple) {
       const realAt = Math.ceil((this.page.total - result.n) / this.page.size)
@@ -593,31 +503,17 @@ const componentOptions = {
         createDocApi(this.TmsAxios(this.tmsAxiosName))
           .batchUpdate(this.bucketName, this.dbName, collection.name, param)
           .then(result => {
-            Message.success({ message: '已成功修改' + result.modifiedCount + '条' })
+            Message.success({
+              message: '已成功修改' + result.modifiedCount + '条'
+            })
             this.listDocument()
           })
       })
     },
-    fnMoveDocument(
-      dbName,
-      clName,
-      transforms,
-      param,
-      pTotal,
-      aMTotal,
-      aMPTotal
-    ) {
+    fnMoveDocument(dbName, clName, param, pTotal, aMTotal, aMPTotal) {
       let msg = Message.info({ message: '开始迁移数据...', duration: 0 }),
         _this = this
-      async function fnmove(
-        dbName,
-        clName,
-        transforms,
-        param,
-        pTotal,
-        aMTotal,
-        aMPTotal
-      ) {
+      async function fnmove(dbName, clName, param, pTotal, aMTotal, aMPTotal) {
         let result = await createDocApi(_this.TmsAxios(_this.tmsAxiosName))
           .move(
             _this.bucketName,
@@ -625,7 +521,6 @@ const componentOptions = {
             _this.clName,
             dbName,
             clName,
-            transforms,
             param,
             pTotal,
             aMTotal,
@@ -654,7 +549,6 @@ const componentOptions = {
           return fnmove(
             dbName,
             clName,
-            transforms,
             param,
             planTotal,
             alreadyMoveTotal,
@@ -662,15 +556,7 @@ const componentOptions = {
           )
         }
       }
-      return fnmove(
-        dbName,
-        clName,
-        transforms,
-        param,
-        pTotal,
-        aMTotal,
-        aMPTotal
-      )
+      return fnmove(dbName, clName, param, pTotal, aMTotal, aMPTotal)
     },
     removeManyDocument(command) {
       let { param } = this.fnSetReqParam(command)
@@ -712,10 +598,7 @@ const componentOptions = {
       })
     },
     transferManyDocument(command) {
-      let { param, transforms } = this.fnSetReqParam(
-        command,
-        this.moveCheckList
-      )
+      let { param } = this.fnSetReqParam(command)
 
       let { bucketName, tmsAxiosName } = this
       let propsData = {
@@ -728,18 +611,14 @@ const componentOptions = {
       })
       vm.$on('confirm', ({ db: dbName, cl: clName }) => {
         if (command === 'checked') {
-          this.fnMoveDocument(dbName, clName, transforms, param, 0, 0, 0).then(
-            result => {
-              this.fnHandleResResult({ n: result.alreadyMovePassTotal }, true)
-            }
-          )
+          this.fnMoveDocument(dbName, clName, param, 0, 0, 0).then(result => {
+            this.fnHandleResResult({ n: result.alreadyMovePassTotal }, true)
+          })
         } else {
-          this.fnMoveDocument(dbName, clName, transforms, param, 0, 0, 0).then(
-            () => {
-              this.page.at = 1
-              this.listDocument()
-            }
-          )
+          this.fnMoveDocument(dbName, clName, param, 0, 0, 0).then(() => {
+            this.page.at = 1
+            this.listDocument()
+          })
         }
       })
     },
