@@ -36,7 +36,7 @@ class CollectionBase extends Base {
     if (existCl.schema_id) {
       await this.clMongoObj
         .findOne({ type: 'schema', _id: new ObjectId(existCl.schema_id) })
-        .then((schema) => {
+        .then(schema => {
           existCl.schema = schema
           delete existCl.schema_id
           return existCl
@@ -55,11 +55,11 @@ class CollectionBase extends Base {
       let re = new RegExp(keyword)
       query['$or'] = [
         { name: { $regex: re, $options: 'i' } },
-        { title: { $regex: re, $options: 'i' } },
+        { title: { $regex: re, $options: 'i' } }
       ]
     }
     const options = {
-      projection: { type: 0 },
+      projection: { type: 0 }
     }
     let { skip, limit } = this.clHelper.requestPage()
     // 添加分页条件
@@ -127,7 +127,7 @@ class CollectionBase extends Base {
     return mgdb
       .createCollection(info.sysname)
       .then(() => this.clMongoObj.insertOne(info))
-      .then((result) => new ResultData(result.ops[0]))
+      .then(result => new ResultData(result.ops[0]))
   }
   /**
    * 更新集合对象信息
@@ -136,6 +136,7 @@ class CollectionBase extends Base {
     const existCl = await this.clHelper.findRequestCl()
 
     let info = this.request.body
+    let { cl: clName } = this.request.query
     let modelCl = new ModelCl()
 
     // 格式化集合名
@@ -143,6 +144,12 @@ class CollectionBase extends Base {
     if (info.name !== undefined && info.name !== existCl.name) {
       newClName = modelCl.checkClName(info.name)
       if (newClName[0] === false) return new ResultFault(newClName[1])
+      // 查询是否已存在同名集合
+      let existTmwCl = await modelCl.byName(this.reqDb, info.name)
+      if (existTmwCl)
+        return new ResultFault(
+          `数据库[name=${this.reqDb.name}]中，已存在同名集合[name=${info.name}]`
+        )
     }
 
     // 查询是否已存在同名集合
@@ -167,8 +174,8 @@ class CollectionBase extends Base {
 
     const rst = await this.clMongoObj
       .updateOne({ _id: existCl._id }, { $set: updatedInfo })
-      .then((rst) => [true, rst.result])
-      .catch((err) => [false, err.message])
+      .then(rst => [true, rst.result])
+      .catch(err => [false, err.message])
 
     if (rst[0] === false) return new ResultFault(rst[1])
 
@@ -202,7 +209,7 @@ class CollectionBase extends Base {
       .deleteOne({ _id: existCl._id })
       .then(() => client.db(this.reqDb.sysname).dropCollection(existCl.sysname))
       .then(() => new ResultData('ok'))
-      .catch((err) => new ResultFault(err.message))
+      .catch(err => new ResultFault(err.message))
   }
 }
 

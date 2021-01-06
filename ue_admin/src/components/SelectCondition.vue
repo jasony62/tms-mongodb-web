@@ -139,9 +139,12 @@ export default {
       this.condition.multipleSelection = this.condition.selectResult
     },
     handleInputChange(val) {
-      this.condition.rule.filter = {...this.conditions.filter, ...this.condition.rule.filter}
+      this.condition.rule.filter = {
+        ...this.conditions.filter,
+        ...this.condition.rule.filter
+      }
       this.condition.rule.orderBy = this.conditions.orderBy
-      if (!this.condition.rule.filter[this.columnName]){
+      if (!this.condition.rule.filter[this.columnName]) {
         this.condition.rule.filter[this.columnName] = {}
       }
       this.condition.rule.filter[this.columnName].keyword = val
@@ -152,28 +155,32 @@ export default {
     },
     updateByColumn(isLoadMore) {
       this.listByColumn(
-        this.columnName, 
-        {...this.conditions.filter, ...this.condition.rule.filter}, 
-        JSON.stringify(this.condition.rule.orderBy) === '{}' ? this.conditions.orderBy : this.condition.rule.orderBy, 
-        this.page.at, 
+        this.columnName,
+        { ...this.conditions.filter, ...this.condition.rule.filter },
+        JSON.stringify(this.condition.rule.orderBy) === '{}'
+          ? this.conditions.orderBy
+          : this.condition.rule.orderBy,
+        this.page.at,
         this.page.size
-      )
-        .then(matchRes => {
-          if (isLoadMore) {
-            this.condition.selectResult.push(...matchRes)
-            const message = matchRes.length > 0 ? `成功加载${matchRes.length}条数据` : '全部数据加载完毕'
-            Message({ message, type: 'success', customClass: 'mzindex' })
-            if (matchRes.length) {
-              matchRes.forEach(ele => {
-                this.$refs.multipleTable.toggleRowSelection(ele, true)
-              })
-              this.condition.multipleSelection = this.condition.selectResult
-            }
-          } else {
-            this.condition.selectResult = matchRes
-            this.handleMultipleTable()
+      ).then(matchRes => {
+        if (isLoadMore) {
+          this.condition.selectResult.push(...matchRes)
+          const message =
+            matchRes.length > 0
+              ? `成功加载${matchRes.length}条数据`
+              : '全部数据加载完毕'
+          Message({ message, type: 'success', customClass: 'mzindex' })
+          if (matchRes.length) {
+            matchRes.forEach(ele => {
+              this.$refs.multipleTable.toggleRowSelection(ele, true)
+            })
+            this.condition.multipleSelection = this.condition.selectResult
           }
-        })
+        } else {
+          this.condition.selectResult = matchRes
+          this.handleMultipleTable()
+        }
+      })
     },
     handleSelectChange(val) {
       this.condition.rule.filter[this.columnName].feature = val
@@ -184,7 +191,7 @@ export default {
       } else if (type === 'desc') {
         this.condition.isCheckBtn = [true, false]
       }
-      
+
       this.condition.rule.orderBy[this.columnName] = type
       this.$emit('submit', { rule: this.condition.rule, isCheckBtn: true })
     },
@@ -209,7 +216,7 @@ export default {
       this.conditions = conditions
       this.listByColumn = listByColumn
       this.currentPro = currentPro
-      if (!this.condition.rule.filter[this.columnName]){
+      if (!this.condition.rule.filter[this.columnName]) {
         this.condition.rule.filter[this.columnName] = {}
       }
       this.$mount()

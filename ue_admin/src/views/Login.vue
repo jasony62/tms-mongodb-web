@@ -1,9 +1,15 @@
 <template>
   <div class="login">
-    <tms-login :on-success="fnOnSuccess" :on-fail="fnOnFail" class="admin"></tms-login>
+    <tms-login
+      :on-success="fnOnSuccess"
+      :on-fail="fnOnFail"
+      class="admin"
+    ></tms-login>
   </div>
 </template>
 <script>
+import { Message } from 'element-ui'
+
 export default {
   methods: {
     fnOnSuccess(token) {
@@ -17,7 +23,7 @@ export default {
       }
     },
     fnOnFail(rsl) {
-      this.$message({
+      Message({
         message: rsl.msg || '登录失败',
         type: 'error',
         showClose: true

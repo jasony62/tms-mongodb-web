@@ -1,6 +1,10 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <el-form ref="form" :model="collection" label-position="top">
+    <el-tabs v-model="activeTab" type="card">
+      <el-tab-pane label="基本信息" name="first"></el-tab-pane>
+      <el-tab-pane label="设置" name="second"></el-tab-pane>
+    </el-tabs>
+    <el-form ref="form" :model="collection" label-position="top" v-show="activeTab==='first'">
       <el-form-item label="集合名称（英文）">
         <el-input v-model="collection.name"></el-input>
       </el-form-item>
@@ -8,25 +12,43 @@
         <el-input v-model="collection.title"></el-input>
       </el-form-item>
       <el-form-item label="集合文档内容定义（默认）">
-        <el-select v-model="collection.schema_id" clearable placeholder="请选择定义的名称">
-          <el-option v-for="item in schemas" :key="item._id" :label="item.title" :value="item._id">
-          </el-option>
+        <el-select v-model="collection.schema_id" clearable placeholder="请选择定义名称">
+          <el-option v-for="item in schemas" :key="item._id" :label="item.title" :value="item._id"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="集合文档内容定义（定制）">
-        <el-select v-model="collection.tags" clearable multiple placeholder="请选择定义的标签">
-          <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name">
-          </el-option>
+        <el-select v-model="collection.schema_tags" clearable multiple placeholder="请选择定义标签">
+          <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="默认展示（定制）">
-        <el-select v-model="collection.default_tag" clearable multiple placeholder="请选择定义的标签">
-          <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name">
-          </el-option>
+        <el-select v-model="collection.schema_default_tags" clearable multiple placeholder="请选择定义标签">
+          <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="集合标签">
+        <el-select v-model="collection.tags" clearable multiple placeholder="请选择集合标签">
+          <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="集合用途">
+        <el-select v-model="collection.usage" clearable placeholder="请选择集合用途">
+          <el-option label="普通集合" :value="0"></el-option>
+          <el-option label="从集合" :value="1"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="说明">
         <el-input type="textarea" v-model="collection.description"></el-input>
+      </el-form-item>
+    </el-form>
+    <el-form ref="form" :model="collection.custom" label-position="top" v-show="activeTab==='second'">
+      <el-form-item label="文档操作">
+        <el-checkbox v-model="collection.custom.docOperations.create">添加数据</el-checkbox>
+        <el-checkbox v-model="collection.custom.docOperations.edit">修改</el-checkbox>
+        <el-checkbox v-model="collection.custom.docOperations.remove">删除</el-checkbox>
+        <el-checkbox v-model="collection.custom.docOperations.editMany">批量修改</el-checkbox>
+        <el-checkbox v-model="collection.custom.docOperations.removeMany">批量删除</el-checkbox>
+        <el-checkbox v-model="collection.custom.docOperations.transferMany">批量迁移</el-checkbox>
       </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">
@@ -49,12 +71,32 @@ export default {
     collection: {
       type: Object,
       default: function() {
-        return { name: '', title: '', description: '', schema_id: '', tags: [], default_tag: [] }
+        return {
+          name: '',
+          title: '',
+          description: '',
+          schema_id: '',
+          schema_tags: [],
+          schema_default_tags: [],
+          tags: [],
+          usage: '',
+          custom: {
+            docOperations: {
+              create: true,
+              edit: true,
+              remove: true,
+              editMany: true,
+              removeMany: true,
+              transferMany: true
+            }
+          }
+        }
       }
     }
   },
   data() {
     return {
+      activeTab: 'first',
       mode: '',
       destroyOnClose: true,
       closeOnClickModal: false,

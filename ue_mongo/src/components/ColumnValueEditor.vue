@@ -25,13 +25,18 @@
 <script>
 import Vue from 'vue'
 import { Dialog, Input, Select, Option, Button, Tag, Message } from 'element-ui'
-Vue.use(Dialog).use(Input).use(Select).use(Option).use(Button).use(Tag)
+Vue.use(Dialog)
+  .use(Input)
+  .use(Select)
+  .use(Option)
+  .use(Button)
+  .use(Tag)
 import utils from '../tms/utils'
 
 export default {
   name: 'ColumnValueEditor',
   props: {
-    dialogVisible: { default: true },
+    dialogVisible: { default: true }
   },
   data() {
     return {
@@ -42,7 +47,7 @@ export default {
       input: '',
       column: {},
       tags: [],
-      plugins: [],
+      plugins: []
     }
   },
   methods: {
@@ -57,12 +62,12 @@ export default {
       }
       this.$set(this.column, this.select, this.input.replace(/^\s+|\s+$/g, ''))
       if (this.tags.length) {
-        this.tags.forEach((tag) => {
+        this.tags.forEach(tag => {
           if (tag && tag.id === this.select) {
             tag.value = this.input
           }
         })
-        if (this.tags.every((ele) => ele.id !== this.select)) {
+        if (this.tags.every(ele => ele.id !== this.select)) {
           this.addColumn()
         }
       } else {
@@ -73,7 +78,7 @@ export default {
       this.tags.push({
         id: this.select,
         label: this.collection.schema.body.properties[this.select].title,
-        value: this.input,
+        value: this.input
       })
       this.select = ''
       this.input = ''
@@ -94,7 +99,7 @@ export default {
       let validate = true
       if (this.plugins.length) {
         validate = this.plugins
-          .map((item) => {
+          .map(item => {
             const result = utils[item](this.collection.schema.body, this.column)
             if (result.msg === 'success') {
               this.column = result.data
@@ -103,7 +108,7 @@ export default {
               return false
             }
           })
-          .every((ele) => ele === true)
+          .every(ele => ele === true)
       }
       if (validate) {
         const properties = this.collection.schema.body.properties
@@ -112,14 +117,14 @@ export default {
             properties[key].type === 'string' &&
             properties[key].hasOwnProperty('enum')
           ) {
-            let values = properties[key].enum.map((item) => item.label)
+            let values = properties[key].enum.map(item => item.label)
             if (val !== '' && !values.includes(val)) {
               Message.info({
-                message: '请输入“' + properties[key].title + '”列正确的选值',
+                message: '请输入“' + properties[key].title + '”列正确的选值'
               })
               return false
             }
-            properties[key].enum.forEach((item) => {
+            properties[key].enum.forEach(item => {
               if (item.label == val) this.column[key] = item.value
             })
           }
@@ -133,7 +138,7 @@ export default {
       )
       if (!this.collection.schema) {
         this.collection.schema = {
-          body: { properties: { _id: { title: 'id' } } },
+          body: { properties: { _id: { title: 'id' } } }
         }
       }
       if (process.env.VUE_APP_FRONT_BATCHEDITOR) {
@@ -156,13 +161,13 @@ export default {
       )
       this.$mount()
       document.body.appendChild(this.$el)
-      return new Promise((resolve) => {
-        this.$on('submit', (column) => {
+      return new Promise(resolve => {
+        this.$on('submit', column => {
           this.dialogVisible = false
           resolve(column)
         })
       })
-    },
-  },
+    }
+  }
 }
 </script>

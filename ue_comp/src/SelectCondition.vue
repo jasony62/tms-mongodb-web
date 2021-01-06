@@ -7,8 +7,7 @@
       </el-form-item>
       <el-form-item label="筛选器" style="font-weight: bold;">
         <el-select v-model="condition.selectValue" clearable placeholder="请选择文本筛选规则" @change="handleSelectChange">
-          <el-option v-for="item in condition.selectRules" :key="item.value" :label="item.label" :value="item.value">
-          </el-option>
+          <el-option v-for="item in condition.selectRules" :key="item.value" :label="item.label" :value="item.value"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item>

@@ -4,6 +4,7 @@ import Vuex from 'vuex'
 Vue.use(Vuex)
 
 import apis from '../apis'
+import { startBatch } from 'tms-vue'
 
 export default new Vuex.Store({
   state: {
@@ -15,7 +16,8 @@ export default new Vuex.Store({
     collections: [],
     tags: [],
     documents: [],
-    conditions: []
+    conditions: [],
+    replicas: []
   },
   mutations: {
     buckets(state, payload) {
@@ -77,7 +79,7 @@ export default new Vuex.Store({
     documents(state, payload) {
       state.documents = payload.documents
     },
-    updateDocument() { },
+    updateDocument() {},
     conditionAddColumn(state, payload) {
       const { condition } = payload
       const index = state.conditions.findIndex(
@@ -86,7 +88,9 @@ export default new Vuex.Store({
       if (index !== -1) {
         state.conditions.splice(index, 1)
       }
-      condition.rule.filter = { [condition.columnName]: condition.rule.filter[condition.columnName] }
+      condition.rule.filter = {
+        [condition.columnName]: condition.rule.filter[condition.columnName]
+      }
       state.conditions.push(condition)
     },
     conditionDelBtn(state, payload) {
@@ -123,6 +127,15 @@ export default new Vuex.Store({
     removeTag(state, payload) {
       state.tags.splice(state.tags.indexOf(payload.tag), 1)
     },
+    replicas(state, payload) {
+      state.replicas = payload.replicas
+    },
+    appendReplica(state, payload) {
+      state.replicas.push(payload.replica)
+    },
+    removeReplica(state, payload) {
+      state.replicas.splice(state.replicas.indexOf(payload.params), 1)
+    }
   },
   actions: {
     listBucket({ commit }) {
@@ -132,11 +145,19 @@ export default new Vuex.Store({
       })
     },
     listDatabase({ commit }, payload) {
-      const { bucket } = payload
-      return apis.db.list(bucket).then(dbs => {
-        commit({ type: 'dbs', dbs })
-        return { dbs }
-      })
+      const { bucket, keyword, size } = payload
+      return startBatch(
+        function(keyword, batchArg) {
+          return apis.db.list(bucket, { keyword, ...batchArg }).then(result => {
+            commit({ type: 'dbs', dbs: result.databases })
+            return result
+          })
+        },
+        [keyword],
+        {
+          size: size
+        }
+      )
     },
     listSchema({ commit }, payload) {
       const { bucket, scope } = payload
@@ -146,11 +167,21 @@ export default new Vuex.Store({
       })
     },
     listCollection({ commit }, payload) {
-      const { bucket, db } = payload
-      return apis.collection.list(bucket, db).then(collections => {
-        commit({ type: 'collections', collections })
-        return { collections }
-      })
+      const { bucket, db, size, keyword } = payload
+      return startBatch(
+        function(keyword, batchArg) {
+          return apis.collection
+            .list(bucket, db, { keyword, ...batchArg })
+            .then(result => {
+              commit({ type: 'collections', collections: result.collections })
+              return result
+            })
+        },
+        [keyword],
+        {
+          size: size
+        }
+      )
     },
     listDocument({ commit }, payload) {
       const { bucket, db, cl, orderBy, filter, page } = payload
@@ -189,7 +220,7 @@ export default new Vuex.Store({
         return { collection }
       })
     },
-    listTag({ commit }, payload) {
+    listTags({ commit }, payload) {
       const { bucket } = payload
       return apis.tag.list(bucket).then(tags => {
         commit({ type: 'tags', tags })
@@ -203,6 +234,72 @@ export default new Vuex.Store({
         return { tag }
       })
     },
+    listReplica({ commit }, payload) {
+      const { bucket, size, keyword } = payload
+      return startBatch(
+        function(keyword, batchArg) {
+          return apis.replica
+            .list(bucket, { keyword, ...batchArg })
+            .then(result => {
+              result.replicas = result.replicas.map(result => {
+                let {
+                  primary: { db: pdb, cl: pcl },
+                  secondary: { db: sdb, cl: scl }
+                } = result
+                ;[pdb, pcl, sdb, scl].forEach(item => {
+                  item.label = `${item.title} (${item.name})`
+                })
+                return {
+                  primary: { db: pdb, cl: pcl },
+                  secondary: { db: sdb, cl: scl }
+                }
+              })
+              commit({ type: 'replicas', replicas: result.replicas })
+              return result
+            })
+        },
+        [keyword],
+        {
+          size: size
+        }
+      )
+    },
+    removeReplica({ commit }, payload) {
+      const { bucket, params } = payload
+      return apis.replica.remove(bucket, params).then(() => {
+        commit({ type: 'removeReplica', params })
+        return { params }
+      })
+    },
+    syncReplica({}, payload) {
+      const { bucket, params } = payload
+      return apis.replica.synchronize(bucket, params)
+    },
+    synchronizeAll({}, payload) {
+      const { bucket, params } = payload
+      let result = { success: [], error: [] }
+      for (const param of params) {
+        let transfer = {
+          primary: {
+            db: param.primary.db.name,
+            cl: param.primary.cl.name
+          },
+          secondary: {
+            db: param.secondary.db.name,
+            cl: param.secondary.cl.name
+          }
+        }
+        apis.replica
+          .synchronize(bucket, transfer)
+          .then(() => {
+            result.success.push(param)
+          })
+          .catch(() => {
+            result.error.push(param)
+          })
+      }
+      return result
+    }
   },
   modules: {}
 })

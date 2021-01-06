@@ -48,7 +48,7 @@ import {
   Select,
   Option,
   Pagination,
-  Button,
+  Button
 } from 'element-ui'
 
 Vue.use(Flex)
@@ -76,7 +76,7 @@ const componentOptions = {
     fixedDocumentFilter: Object,
     fixedDocumentOrderby: Object,
     tmsAxiosName: String,
-    dialogVisible: { type: Boolean, default: true },
+    dialogVisible: { type: Boolean, default: true }
   },
   data() {
     return {
@@ -84,7 +84,7 @@ const componentOptions = {
       closeOnClickModal: false,
       docs: [],
       collection: {
-        schema: { body: { properties: { _id: { title: 'id' } } } },
+        schema: { body: { properties: { _id: { title: 'id' } } } }
       },
       docBatch: new Batch(this.batchDocument),
       criteria: {
@@ -94,15 +94,15 @@ const componentOptions = {
         database: '',
         collections: [],
         collection: '',
-        clBatch: new Batch(),
+        clBatch: new Batch()
       },
-      selectedDocuments: [],
+      selectedDocuments: []
     }
   },
   methods: {
     listDbByKw(keyword) {
       this.criteria.dbBatch = startBatch(this.batchDatabase, [keyword], {
-        size: SELECT_PAGE_SIZE,
+        size: SELECT_PAGE_SIZE
       })
     },
     changeDbPage(page) {
@@ -113,11 +113,11 @@ const componentOptions = {
       return fnCreateDbApi(this.TmsAxios(this.tmsAxiosName))
         .list(this.bucketName, {
           keyword,
-          ...batchArg,
+          ...batchArg
         })
-        .then((result) => {
+        .then(result => {
           this.criteria.databaseLoading = false
-          this.criteria.databases = result.databases.map((db) => {
+          this.criteria.databases = result.databases.map(db => {
             return { value: db.name, label: `${db.title} (${db.name})` }
           })
           return result
@@ -125,7 +125,7 @@ const componentOptions = {
     },
     listClByKw(keyword) {
       this.criteria.clBatch = startBatch(this.batchCollection, [keyword], {
-        size: SELECT_PAGE_SIZE,
+        size: SELECT_PAGE_SIZE
       })
     },
     batchCollection(keyword, batchArg) {
@@ -134,10 +134,10 @@ const componentOptions = {
         return fnCreateClApi(this.TmsAxios(this.tmsAxiosName))
           .list(this.bucketName, this.criteria.database, {
             keyword,
-            ...batchArg,
+            ...batchArg
           })
-          .then((result) => {
-            this.criteria.collections = result.collections.map((cl) => {
+          .then(result => {
+            this.criteria.collections = result.collections.map(cl => {
               return { value: cl.name, label: `${cl.title} (${cl.name})` }
             })
             this.criteria.collectionLoading = false
@@ -154,7 +154,7 @@ const componentOptions = {
     },
     listDocument() {
       this.docBatch = startBatch(this.batchDocument, [], {
-        size: this.docBatch.size,
+        size: this.docBatch.size
       })
     },
     batchDocument(batchArg) {
@@ -167,7 +167,7 @@ const componentOptions = {
           this.fixedDocumentFilter,
           this.fixedDocumentOrderby
         )
-        .then((result) => {
+        .then(result => {
           this.docs = result.docs
           return result
         })
@@ -183,22 +183,22 @@ const componentOptions = {
       this.selectedDocuments = rows
     },
     confirm() {
-      let docIds = this.selectedDocuments.map((doc) => doc._id)
+      let docIds = this.selectedDocuments.map(doc => doc._id)
       this.$emit('confirm', {
         db: this.criteria.database,
         cl: this.criteria.collection,
-        docIds,
+        docIds
       })
       this.$destroy()
-    },
+    }
   },
   watch: {
-    'criteria.database': function () {
+    'criteria.database': function() {
       this.criteria.collection = null
       this.criteria.clBatch = startBatch(this.batchCollection, [null], {
-        size: SELECT_PAGE_SIZE,
+        size: SELECT_PAGE_SIZE
       })
-    },
+    }
   },
   mounted() {
     document.body.appendChild(this.$el)
@@ -209,13 +209,13 @@ const componentOptions = {
       if (this.fixedClName) criteria.collection = this.fixedClName
     } else {
       criteria.dbBatch = startBatch(this.batchDatabase, [null], {
-        size: SELECT_PAGE_SIZE,
+        size: SELECT_PAGE_SIZE
       })
     }
   },
   beforeDestroy() {
     document.body.removeChild(this.$el)
-  },
+  }
 }
 export default componentOptions
 /**
@@ -233,7 +233,7 @@ export function createAndMount(Vue, propsData, apiCreators) {
 
   const CompClass = Vue.extend(componentOptions)
   return new CompClass({
-    propsData,
+    propsData
   }).$mount()
 }
 </script>

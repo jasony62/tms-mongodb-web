@@ -1,12 +1,12 @@
 import { TmsAxios } from 'tms-vue'
 
-const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/admin/db'
+const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/admin/replica'
 
 export default {
-  list(bucket, { keyword, page, size } = {}) {
+  list(bucket, { keyword, page, size } = {}, proto) {
     const params = { bucket, keyword, page, size }
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/list`, { params })
+      .post(`${base}/list`, proto, { params })
       .then(rst => rst.data.result)
   },
   create(bucket, proto) {
@@ -15,16 +15,16 @@ export default {
       .post(`${base}/create`, proto, { params })
       .then(rst => rst.data.result)
   },
-  update(bucket, dbName, updated) {
-    const params = { bucket, db: dbName }
+  remove(bucket, proto) {
+    const params = { bucket }
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/update`, updated, { params })
+      .post(`${base}/remove`, proto, { params })
       .then(rst => rst.data.result)
   },
-  remove(bucket, db) {
-    const params = { bucket, db: db.name }
+  synchronize(bucket, proto) {
+    const params = { bucket }
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/remove`, { params })
+      .post(`${base}/synchronize`, proto, { params })
       .then(rst => rst.data.result)
   }
 }

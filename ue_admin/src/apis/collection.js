@@ -13,8 +13,8 @@ export default {
    *
    * @param {*} dbName
    */
-  list(bucket, dbName) {
-    const params = { bucket, db: dbName }
+  list(bucket, dbName, { keyword, page, size } = {}) {
+    const params = { bucket, db: dbName, keyword, page, size }
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/list`, { params })
       .then(rst => rst.data.result)

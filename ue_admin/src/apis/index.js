@@ -5,6 +5,7 @@ import collection from './collection'
 import doc from './document'
 import invite from './invite'
 import tag from './tag'
+import replica from './replica'
 
 export { bucket, db, schema, collection, doc, invite, tag }
 export default {
@@ -14,5 +15,6 @@ export default {
   collection,
   doc,
   invite,
-  tag
+  tag,
+  replica
 }

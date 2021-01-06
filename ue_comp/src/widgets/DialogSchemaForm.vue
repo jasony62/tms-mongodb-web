@@ -16,17 +16,17 @@ const ComponentOptions = {
   components: {
     'el-dialog': Dialog,
     'el-button': Button,
-    'tms-el-json-doc': TmsElJsonDoc,
+    'tms-el-json-doc': TmsElJsonDoc
   },
   props: {
-    schema: Object,
+    schema: Object
   },
   data() {
     return {
       dialogVisible: true,
       destroyOnClose: true,
       closeOnClickModal: false,
-      formData: {},
+      formData: {}
     }
   },
   methods: {
@@ -39,17 +39,15 @@ const ComponentOptions = {
       /**需要访问控制 */
       if (process.env.VUE_APP_BACK_AUTH_BASE) {
         const accessToken = sessionStorage.getItem('access_token')
-        window.open(
-          `${process.env.VUE_APP_BACK_API_FS}${url}?access_token=${accessToken}`
-        )
+        window.open(`${url}?access_token=${accessToken}`)
       } else {
-        window.open(`${process.env.VUE_APP_BACK_API_FS}${url}`)
+        window.open(`${url}`)
       }
     },
     /**提交表单前，先上传表单中文件 */
     handleFileSubmit(schemaKey, files) {
       let result = {}
-      let promises = files.map((file) => {
+      let promises = files.map(file => {
         if (file.hasOwnProperty('url')) {
           return { name: file.name, url: file.url }
         }
@@ -58,11 +56,11 @@ const ComponentOptions = {
         const config = { 'Content-Type': 'multipart/form-data' }
         return fnCreateDocApi(this.TmsAxios(this.tmsAxiosName))
           .upload({ bucket: this.bucketName }, fileData, config)
-          .then((path) => {
+          .then(path => {
             return Promise.resolve({ url: path, name: file.name })
           })
       })
-      return Promise.all(promises).then((files) => {
+      return Promise.all(promises).then(files => {
         result[schemaKey] = files
         return Promise.resolve(result)
       })
@@ -71,14 +69,14 @@ const ComponentOptions = {
     onJsonDocSubmit() {
       this.$emit('confirm', this.formData)
       this.$destroy()
-    },
+    }
   },
   mounted() {
     document.body.appendChild(this.$el)
   },
   beforeDestroy() {
     document.body.removeChild(this.$el)
-  },
+  }
 }
 export default ComponentOptions
 /**
@@ -92,7 +90,7 @@ export function createAndMount(Vue, propsData, apiCreators) {
 
   const CompClass = Vue.extend(ComponentOptions)
   return new CompClass({
-    propsData,
+    propsData
   }).$mount()
 }
 </script>
