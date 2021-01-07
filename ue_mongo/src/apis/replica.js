@@ -2,8 +2,8 @@ const base = (process.env.VUE_APP_BACK_API_BASE || '') + '/mongo/replica'
 
 export default function create(tmsAxios) {
   return {
-    list(bucket, proto) {
-      const params = { bucket }
+    list(bucket, { page, size } = {}, proto) {
+      const params = { bucket, page, size }
       return tmsAxios
         .post(`${base}/list`, proto, { params })
         .then(rst => rst.data.result)

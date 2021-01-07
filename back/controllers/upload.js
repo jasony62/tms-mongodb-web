@@ -1,4 +1,3 @@
-const { ResultData, ResultFault } = require('tms-koa')
 const { UploadCtrl } = require('tms-koa/lib/controller/fs')
 
 class Upload extends UploadCtrl {

@@ -241,19 +241,27 @@ export default new Vuex.Store({
           return apis.replica
             .list(bucket, { keyword, ...batchArg })
             .then(result => {
-              result.replicas = result.replicas.map(result => {
-                let {
-                  primary: { db: pdb, cl: pcl },
-                  secondary: { db: sdb, cl: scl }
-                } = result
-                ;[pdb, pcl, sdb, scl].forEach(item => {
-                  item.label = `${item.title} (${item.name})`
+              result.replicas = result.replicas
+                .filter(result => {
+                  let {
+                    primary: { db: pdb, cl: pcl },
+                    secondary: { db: sdb, cl: scl }
+                  } = result
+                  return pdb.title && pcl.title && sdb.title && scl.title
                 })
-                return {
-                  primary: { db: pdb, cl: pcl },
-                  secondary: { db: sdb, cl: scl }
-                }
-              })
+                .map(result => {
+                  let {
+                    primary: { db: pdb, cl: pcl },
+                    secondary: { db: sdb, cl: scl }
+                  } = result
+                  ;[pdb, pcl, sdb, scl].forEach(item => {
+                    item.label = `${item.title} (${item.name})`
+                  })
+                  return {
+                    primary: { db: pdb, cl: pcl },
+                    secondary: { db: sdb, cl: scl }
+                  }
+                })
               commit({ type: 'replicas', replicas: result.replicas })
               return result
             })

@@ -8,7 +8,7 @@ const { TmsKoa, loadConfig } = require('tms-koa')
 const tmsKoa = new TmsKoa()
 
 function loadPlugins() {
-  let config = loadConfig('plugin2')
+  let config = loadConfig('plugin')
   PluginContext.init(config)
 }
 let Replica_Child_Process // 执行集合复制的子进程
@@ -31,7 +31,7 @@ function afterInit(context) {
     const cp = require('child_process')
     Replica_Child_Process = cp.spawn('node', ['./replica/watch.js'], {
       detached: true,
-      stdio: 'ignore',
+      stdio: 'ignore'
     })
     Replica_Child_Process.unref()
   }
