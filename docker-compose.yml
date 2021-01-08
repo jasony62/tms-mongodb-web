@@ -2,13 +2,13 @@ version: '3.7'
 services:
   mongodb:
     build: ./mongodb
-    image: tms-mongodb/mongo:latest
-    container_name: tms-mongodb-mongo
+    image: 192.168.253.28/tms-mongodb/db:latest
+    container_name: tms-db
 
   back:
     build: ./back
-    image: tms-mongodb/back:latest
-    container_name: tms-mongodb-back
+    image: 192.168.253.28/tms-mongodb/back:latest
+    container_name: tms-back
     # environment:
     #   默认
     #   - NODE_ENV=production
@@ -52,7 +52,7 @@ services:
         'node',
         'server',
       ]
-  ue_admin:
+  admin:
     build:
       context: ./ue_admin
       args:
@@ -65,12 +65,12 @@ services:
         vue_app_back_api_fs: /fs
         vue_app_front_doceditor_add: ''
         vue_app_front_doceditor_modify: ''
-    image: tms-mongodb/ue-admin:latest
-    container_name: tms-mongodb-ue_admin
+    image: 192.168.253.28/tms-mongodb/admin:latest
+    container_name: tms-admin
     environment:
       - NGINX_WEB_BASE_URL=/admin
 
-  ue_mongo:
+  mongo:
     build:
       context: ./ue_mongo
       args:
@@ -84,7 +84,7 @@ services:
         vue_app_front_doceditor_add: ''
         vue_app_front_doceditor_modify: ''
         vue_app_front_batcheditor: ''
-    image: tms-mongodb/ue-mongo:latest
-    container_name: tms-mongodb-ue_mongo
+    image: 192.168.253.28/tms-mongodb/mongo:latest
+    container_name: tms-mongo
     environment:
       - NGINX_WEB_BASE_URL=/mongo
