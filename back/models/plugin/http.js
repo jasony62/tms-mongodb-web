@@ -44,6 +44,22 @@ class PluginHttpSendDocs extends PluginHttpSend {
     super(...args)
   }
   /**
+   * 根据请求中的条件获得要发送的文档定义
+   * @param {object} ctrl
+   * @param {object} tmwCl
+   *
+   * @returns {object} schemas
+   */
+  async findRequestSchema(ctrl, tmwCl) {
+    let schemas
+
+    const modelCl = new ModelCol(ctrl.bucket)
+    schemas = await modelCl.getSchemaByCollection(tmwCl)
+    if (!schemas) return new ResultFault('指定的集合没有指定集合列')
+
+    return schemas
+  }
+  /**
    * 根据请求中的条件获得要发送的文档
    * @param {object} ctrl
    * @param {object} tmwCl
@@ -54,13 +70,19 @@ class PluginHttpSendDocs extends PluginHttpSend {
     let docs
 
     const modelDoc = new ModelDoc(ctrl.bucket)
-    const { ids, filter } = ctrl.request.body
-    if (ids && Array.isArray(ids) && ids.length > 0) {
-      let [success, docsOrCause] = await modelDoc.byIds(tmwCl, ids)
+    const { docIds, filter } = ctrl.request.body
+    if (docIds && Array.isArray(docIds) && docIds.length > 0) {
+      let [success, docsOrCause] = await modelDoc.byIds(tmwCl, docIds)
       if (success === true) docs = docsOrCause
       else return [false, docsOrCause]
     } else {
-      let [success, docsOrCause] = await modelDoc.list(tmwCl, { filter })
+      let query
+      if (typeof filter === 'string' && /all/i.test(filter)) {
+        query = {}
+      } else if (typeof filter === 'object' && Object.keys(filter).length) {
+        query = filter
+      }
+      let [success, docsOrCause] = await modelDoc.list(tmwCl, { query })
       if (success === true) docs = docsOrCause.docs
       else return [false, docsOrCause]
     }
@@ -74,16 +96,16 @@ class PluginHttpSendDocs extends PluginHttpSend {
    *
    * @requires {any} axios响应对象中的data对象
    */
-  httpSend(ctrl, tmwCl) {
+  async httpSend(ctrl, tmwCl) {
     let { getConfig, axiosInstance } = this
 
     let url = this.getUrl(ctrl, tmwCl)
     let config =
       getConfig && typeof getConfig === 'function' ? getConfig(ctrl, tmwCl) : {}
 
-    logger.debug(`插件[name=${this.name}]向发送[${url}]发送数据`)
+    logger.debug(`插件[name=${this.name}]向[${url}]接口发送数据`)
     if (this.method === 'post') {
-      let body = this.getBody(ctrl, tmwCl)
+      let body = await this.getBody(ctrl, tmwCl)
       return axiosInstance.post(url, body, config).then(({ data }) => data)
     } else if (this.method === 'get') {
       return axiosInstance.get(url, config).then(({ data }) => data)

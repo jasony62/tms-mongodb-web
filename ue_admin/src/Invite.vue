@@ -3,8 +3,7 @@
     <el-row>
       <el-col :span="8" :offset="8">
         <el-card class="box-card">
-          <el-input placeholder="请输入用户昵称" v-model="nickname">
-          </el-input>
+          <el-input placeholder="请输入用户昵称" v-model="nickname"></el-input>
           <el-input placeholder="请输入邀请码" v-model="inviteCode" style="margin-top: 20px">
             <span slot="append" @click="acceptInvite">进入</span>
           </el-input>
@@ -15,16 +14,6 @@
 </template>
 <script>
 import Vue from 'vue'
-import {
-  Input,
-  Col,
-  Row,
-  Card,
-} from 'element-ui'
-Vue.use(Input)
-  .use(Col)
-  .use(Row)
-  .use(Card)
 import apiInvite from './apis/invite'
 export default {
   name: 'Invite',
@@ -42,7 +31,7 @@ export default {
       })
     },
     getUrlParams() {
-      let str = location.href 
+      let str = location.href
       const num = str.indexOf('?')
       str = str.substr(num + 1)
       let arr = str.split('&')

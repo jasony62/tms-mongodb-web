@@ -1,5 +1,9 @@
 <template>
-  <tms-frame class="tmw-collection" :display="{ header: true, footer: true, right: true }" :leftWidth="'20%'">
+  <tms-frame
+    class="tmw-collection"
+    :display="{ header: true, footer: true, right: true }"
+    :leftWidth="'20%'"
+  >
     <template v-slot:header>
       <el-breadcrumb separator-class="el-icon-arrow-right">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
@@ -8,19 +12,27 @@
       </el-breadcrumb>
     </template>
     <template v-slot:center>
-      <el-table id="tables" class="table-fixed" :data="documents" stripe style="width: 100%" :max-height="tableHeight">
+      <el-table
+        id="tables"
+        class="table-fixed"
+        :data="documents"
+        stripe
+        style="width: 100%"
+        :max-height="tableHeight"
+      >
         <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
           <template slot="header">
             <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
             <i v-if="s.required" style="color:red">*</i>
-            <span> {{ s.title }} </span>
+            <span>{{ s.title }}</span>
             <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)" />
           </template>
           <template slot-scope="scope">
             <span v-if="s.type === 'boolean'">{{scope.row[k] ? '是' : '否'}}</span>
             <span v-else-if="s.type === 'array' && s.items && s.items.format === 'file'">
               <span v-for="(i, v) in scope.row[k]" :key="v">
-                <a href="#" @click="handleDownload(i)">{{ i.name }}</a><br />
+                <a href="#" @click="handleDownload(i)">{{ i.name }}</a>
+                <br />
               </span>
             </span>
             <span v-else-if="s.type === 'array' && s.enum && s.enum.length">
@@ -28,12 +40,14 @@
                 <span v-for="(g, i) in s.enumGroups" :key="i">
                   <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value">
                     <span v-for="(e, v) in s.enum" :key="v">
-                      <span v-if="
+                      <span
+                        v-if="
                           e.group === g.id &&
                             scope.row[k] &&
                             scope.row[k].length &&
                             scope.row[k].includes(e.value)
-                        ">{{ e.label }}&nbsp;</span>
+                        "
+                      >{{ e.label }}&nbsp;</span>
                     </span>
                   </span>
                 </span>
@@ -70,8 +84,17 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination style="float: right" background @size-change="handleSize" @current-change="handleCurrentPage" :current-page.sync="page.at" :page-sizes="[10, 25, 50, 100]" :page-size="page.size" layout="total, sizes, prev, pager, next" :total="page.total">
-      </el-pagination>
+      <el-pagination
+        style="float: right"
+        background
+        @size-change="handleSize"
+        @current-change="handleCurrentPage"
+        :current-page.sync="page.at"
+        :page-sizes="[10, 25, 50, 100]"
+        :page-size="page.size"
+        layout="total, sizes, prev, pager, next"
+        :total="page.total"
+      ></el-pagination>
     </template>
     <template v-slot:right>
       <el-button @click="createDocument">添加文档</el-button>
@@ -257,12 +280,9 @@ export default {
     },
     editDocument(doc) {
       let editor = new Vue(DocEditor)
-      editor
-        .open(this.bucketName, this.dbName, collection, doc)
-        .then(newDoc => {
-          Object.assign(doc, newDoc)
-          this.updateDocument({ document: newDoc })
-        })
+      editor.open(this.bucketName, this.dbName, collection, doc).then(() => {
+        this.listDocument()
+      })
     },
     handleDocument(document) {
       this.$customeConfirm('数据', () => {

@@ -8,7 +8,7 @@ class Helper {
     this.ctrl = ctrl
   }
   /**
-   * 存储管理对象的结合
+   * 存储管理对象的集合
    */
   get clMongoObj() {
     const client = this.ctrl.mongoClient
@@ -56,8 +56,11 @@ class Helper {
    *
    * @returns {object} 集合
    */
-  async findRequestCl(bThrowNotFound = true) {
-    const { db: dbName, cl: clName } = this.ctrl.request.query
+  async findRequestCl(bThrowNotFound = true, dbName = null, clName = null) {
+    if (!dbName || !clName) {
+      dbName = this.ctrl.request.query.db
+      clName = this.ctrl.request.query.cl
+    }
     const modelCl = new ModelColl(this.ctrl.bucket)
     const cl = await modelCl.byName(dbName, clName)
 

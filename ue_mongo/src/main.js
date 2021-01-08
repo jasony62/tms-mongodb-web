@@ -3,7 +3,6 @@ import App from './App.vue'
 import NoBucket from './NoBucket.vue'
 import router from './router'
 import store from './store'
-import '@/assets/css/common.less'
 import { Message } from 'element-ui'
 import { Login } from 'tms-vue-ui'
 import ApiPlugin from './apis'
@@ -15,6 +14,7 @@ import {
   TmsIgnorableError,
   TmsLockPromise
 } from 'tms-vue'
+import '@/assets/css/common.less'
 
 Vue.config.productionTip = false
 

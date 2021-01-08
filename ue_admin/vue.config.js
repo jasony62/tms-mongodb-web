@@ -7,21 +7,14 @@ const devServer = {
   proxy: {}
 }
 
-// 代理api请求
-devServer.proxy[`${process.env.VUE_APP_BACK_API_BASE}`] = {
-  target: process.env.VUE_APP_BACK_API_SERVER
+devServer.proxy[`${process.env.VUE_APP_BACK_AUTH_BASE}`] = {
+  target: process.env.VUE_APP_BACK_AUTH_SERVER
 }
-devServer.proxy[`${process.env.VUE_APP_BACK_API_BASE}/admin`] = {
+devServer.proxy[`${process.env.VUE_APP_BACK_API_BASE}`] = {
   target: process.env.VUE_APP_BACK_API_SERVER
 }
 devServer.proxy[`${process.env.VUE_APP_BACK_API_FS}`] = {
   target: process.env.VUE_APP_BACK_API_SERVER
-}
-// 代理auth请求
-if (process.env.VUE_APP_BACK_AUTH_SERVER) {
-  devServer.proxy[`${process.env.VUE_APP_BACK_AUTH_BASE}`] = {
-    target: process.env.VUE_APP_BACK_AUTH_SERVER
-  }
 }
 
 module.exports = {
