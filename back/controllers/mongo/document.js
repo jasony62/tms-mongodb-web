@@ -111,33 +111,26 @@ class Document extends DocBase {
    * @alreadyMoveTotal 已经迁移的个数
    * @alreadyMovePassTotal 已经迁移成功的个数
    */
-  async move(oldDb, oldCl, newDb, newCl, docIds) {
-    if (!oldDb || !oldCl || !newDb || !newCl || !docIds) {
-      oldDb = this.request.query.oldDb
-      oldCl = this.request.query.oldCl
-      newDb = this.request.query.newDb
-      newCl = this.request.query.newCl
-      docIds = this.request.body.docIds
-    }
+  async move() {
     let {
+      oldDb,
+      oldCl,
+      newDb,
+      newCl,
       execNum = 100,
       planTotal = 0,
       alreadyMoveTotal = 0,
       alreadyMovePassTotal = 0
     } = this.request.query
 
-    let { filter } = this.request.body
+    let { docIds, filter } = this.request.body
 
-    if (!oldDb || !oldCl || !newDb || !newCl) {
-      return new ResultFault('参数不完整')
-    }
     if (!filter && (!Array.isArray(docIds) || docIds.length == 0)) {
       return new ResultFault('没有要移动的数据')
     }
 
     let modelCl = new ModelColl()
     const oldExistCl = await modelCl.byName(oldDb, oldCl)
-    const newExistCl = await modelCl.byName(newDb, newCl)
 
     let modelDoc = new ModelDoc(this.bucket)
 
@@ -160,8 +153,10 @@ class Document extends DocBase {
     }
 
     let rst = await this.docHelper.cutDocs(
-      oldExistCl,
-      newExistCl,
+      oldDb,
+      oldCl,
+      newDb,
+      newCl,
       docIds2,
       oldDocus
     )

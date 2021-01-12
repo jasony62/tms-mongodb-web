@@ -1,4 +1,6 @@
 const Helper = require('./helper')
+const ModelCl = require('../models/mgdb/collection')
+const { nanoid } = require('nanoid')
 
 /** 数据库控制器辅助类 */
 class CollectionHelper extends Helper {
@@ -21,8 +23,62 @@ class CollectionHelper extends Helper {
     return clDb
       .rename(newName)
       .then(() => this.clMongoObj.updateOne(query, { $set: { name: newName } }))
-      .then((rst) => [true, rst.result])
-      .catch((err) => [false, err.message])
+      .then(rst => [true, rst.result])
+      .catch(err => [false, err.message])
+  }
+  /**
+   * 创建集合
+   */
+  async createCl(existDb, info) {
+    info.type = 'collection'
+    info.database = existDb.name
+
+    info.db = { sysname: existDb.sysname, name: existDb.name }
+    if (this.bucket) info.bucket = this.bucket.name
+
+    let modelCl = new ModelCl()
+
+    // 检查指定的集合名
+    let [passed, nameOrCause] = modelCl.checkClName(info.name)
+    if (passed === false) return [false, nameOrCause]
+    info.name = nameOrCause
+
+    // 查询是否已存在同名集合
+    let existTmwCl = await modelCl.byName(existDb, info.name)
+    if (existTmwCl)
+      return [
+        false,
+        `数据库[name=${existDb.name}]中，已存在同名集合[name=${info.name}]`
+      ]
+
+    // 检查是否指定了用途
+    let { usage } = info
+    if (usage !== undefined) {
+      if (![0, 1].includes(parseInt(usage)))
+        return [false, `指定了不支持的集合用途值[usage=${usage}]`]
+      info.usage = parseInt(usage)
+    }
+
+    // 生成数据库系统名
+    let existSysCl, sysname
+    for (let tries = 0; tries <= 2; tries++) {
+      sysname = nanoid(10)
+      existSysCl = await modelCl.bySysname(existDb, sysname)
+      if (!existSysCl) break
+    }
+    if (existSysCl) return [false, '无法生成唯一的集合系统名称']
+
+    info.sysname = sysname
+
+    /**在系统中创建集合后记录集合对象信息 */
+    const client = this.ctrl.mongoClient
+    const mgdb = client.db(existDb.sysname)
+
+    return mgdb
+      .createCollection(info.sysname)
+      .then(() => this.clMongoObj.insertOne(info))
+      .then(result => [true, result.ops[0]])
+      .catch(err => [false, err.message])
   }
 }
 

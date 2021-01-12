@@ -259,15 +259,29 @@ class DocumentHelper extends Helper {
   /**
    *  剪切数据到指定集合中
    */
-  async cutDocs(oldExistCl, newExistCl, docIds = null, oldDocus = null) {
+  async cutDocs(
+    oldDbName,
+    oldClName,
+    newDbName,
+    newClName,
+    docIds = null,
+    oldDocus = null
+  ) {
+    if (!oldDbName || !oldClName || !newDbName || !newClName) {
+      return [false, '参数不完整']
+    }
+
+    let collModel = new ModelColl(this.bucket)
+    const oldExistCl = await collModel.byName(oldDbName, oldClName)
+    const newExistCl = await collModel.byName(newDbName, newClName)
+
     //获取指定集合的列
-    const collModel = new ModelColl()
+    let modelDoc = new ModelDoc(this.bucket)
     let newClSchema = await collModel.getSchemaByCollection(newExistCl)
     if (!newClSchema) return [false, '指定的集合未指定集合列定义']
 
     // 查询获取旧数据
     let fields = {}
-    const modelDoc = new ModelDoc()
     if (!oldDocus || oldDocus.length === 0) {
       if (!docIds || docIds.length === 0) return [false, '没有要移动的数据']
       oldDocus = await modelDoc.getDocumentByIds(oldExistCl, docIds, fields)
