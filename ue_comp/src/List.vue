@@ -723,6 +723,35 @@ const componentOptions = {
               })
             })
           })
+        } else if (
+          beforeWidget &&
+          beforeWidget.name === 'DialogSelectCollection'
+        ) {
+          let { bucketName, tmsAxiosName } = this
+          let propsData = { bucketName, tmsAxiosName }
+
+          const vm = createAndMountSelectColl(Vue, propsData, {
+            createDbApi,
+            createClApi
+          })
+          vm.$on('confirm', ({ db: dbName, cl: clName }) =>
+            resolve({ db: dbName, cl: clName })
+          )
+        } else if (beforeWidget && beforeWidget.name === 'DialogMessagebox') {
+          if (beforeWidget.preCondition) {
+            let { msgbox, confirm, cancel } = beforeWidget.preCondition
+            let { confirmMsg, confirmText, cancelText } = msgbox
+            MessageBox.confirm(confirmMsg, '提示', {
+              distinguishCancelAndClose: true,
+              confirmButtonText: confirmText || '确定',
+              cancelButtonText: cancelText || '取消'
+            })
+              .then(() => resolve(confirm))
+              .catch(action => {
+                if (action === 'close') return {}
+                resolve(cancel)
+              })
+          } else return {}
         } else resolve()
       }).then(beforeResult => {
         let postBody = conditionType
