@@ -31,7 +31,9 @@ class DbBase extends Base {
       let re = new RegExp(keyword)
       query['$or'] = [
         { name: { $regex: re, $options: 'i' } },
-        { title: { $regex: re, $options: 'i' } }
+        { title: { $regex: re, $options: 'i' } },
+        { description: { $regex: re, $options: 'i' } },
+        { tag: { $regex: re, $options: 'i' } }
       ]
     }
     const options = {
