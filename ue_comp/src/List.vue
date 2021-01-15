@@ -723,6 +723,35 @@ const componentOptions = {
               })
             })
           })
+        } else if (
+          beforeWidget &&
+          beforeWidget.name === 'DialogSelectCollection'
+        ) {
+          let { bucketName, tmsAxiosName } = this
+          let propsData = { bucketName, tmsAxiosName }
+
+          const vm = createAndMountSelectColl(Vue, propsData, {
+            createDbApi,
+            createClApi
+          })
+          vm.$on('confirm', ({ db: dbName, cl: clName }) =>
+            resolve({ db: dbName, cl: clName })
+          )
+        } else if (beforeWidget && beforeWidget.name === 'DialogMessagebox') {
+          if (beforeWidget.preCondition) {
+            let { msgbox, confirm, cancel } = beforeWidget.preCondition
+            let { confirmMsg, confirmText, cancelText } = msgbox
+            MessageBox.confirm(confirmMsg, '提示', {
+              distinguishCancelAndClose: true,
+              confirmButtonText: confirmText || '确定',
+              cancelButtonText: cancelText || '取消'
+            })
+              .then(() => resolve(confirm))
+              .catch(action => {
+                if (action === 'close') return {}
+                resolve(cancel)
+              })
+          } else return {}
         } else resolve()
       }).then(beforeResult => {
         let postBody = conditionType
@@ -783,6 +812,12 @@ const componentOptions = {
                     this.documents.unshift(newDoc)
                 })
               }
+              let msg = `插件[${plugin.title}]执行完毕，添加[${parseInt(
+                nInserted
+              ) || 0}]条，修改[${parseInt(nModified) || 0}]条，删除[${parseInt(
+                nRemoved
+              ) || 0}]条记录。`
+              Message.success({ message: msg })
             } else if (
               result &&
               typeof result === 'object' &&

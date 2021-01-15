@@ -79,7 +79,10 @@ export default new Vuex.Store({
     documents(state, payload) {
       state.documents = payload.documents
     },
-    updateDocument() {},
+    updateDocument(state, payload) {
+      const { index, document } = payload
+      state.documents.splice(index, 1, document)
+    },
     conditionAddColumn(state, payload) {
       const { condition } = payload
       const index = state.conditions.findIndex(

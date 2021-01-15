@@ -1,9 +1,5 @@
 <template>
-  <el-dialog
-    :visible.sync="dialogVisible"
-    :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal"
-  >
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <el-form ref="form" :model="collection" label-position="top">
       <el-form-item label="集合名称（英文）">
         <el-input v-model="collection.name"></el-input>
@@ -22,12 +18,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="默认展示（定制）">
-        <el-select
-          v-model="collection.schema_default_tags"
-          clearable
-          multiple
-          placeholder="请选择定义标签"
-        >
+        <el-select v-model="collection.schema_default_tags" clearable multiple placeholder="请选择定义标签">
           <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
         </el-select>
       </el-form-item>
@@ -43,28 +34,12 @@
         </el-select>
       </el-form-item>
       <el-form-item label="集合扩展属性（选填）">
-        <el-select
-          placeholder="请选择"
-          v-model="collection.extensionInfo.schemaId"
-          clearable
-          filterable
-          @change="handleExtendId(collection.extensionInfo.schemaId, false)"
-        >
-          <el-option
-            v-for="item in extensions"
-            :key="item._id"
-            :label="item.title"
-            :value="item._id"
-          ></el-option>
+        <el-select placeholder="请选择" v-model="collection.extensionInfo.schemaId" clearable filterable @change="handleExtendId(collection.extensionInfo.schemaId, false)">
+          <el-option v-for="item in extensions" :key="item._id" :label="item.title" :value="item._id"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="扩展属性详情（选填）" v-if="JSON.stringify(extendSchema)!=='{}'">
-        <tms-el-json-doc
-          class="tmw-attr-form"
-          ref="attrForm"
-          :schema="extendSchema"
-          :doc="collection.extensionInfo.info"
-        ></tms-el-json-doc>
+        <tms-el-json-doc class="tmw-attr-form" ref="attrForm" :schema="extendSchema" :doc="collection.extensionInfo.info"></tms-el-json-doc>
       </el-form-item>
       <el-form-item label="说明">
         <el-input type="textarea" v-model="collection.description"></el-input>
@@ -163,6 +138,7 @@ export default {
   },
   methods: {
     handleExtendId(id, init) {
+      if (!id) this.collection.extensionInfo.info = {}
       this.extendSchema = {}
       this.extensions.find(item => {
         if (item._id == id) {

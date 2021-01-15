@@ -33,7 +33,6 @@ import Vue from 'vue'
 import { Batch, startBatch } from 'tms-vue'
 import { Flex } from 'tms-vue-ui'
 import { Dialog, Select, Option, Button, Pagination } from 'element-ui'
-import { db } from '../../../ue_admin/src/apis'
 
 Vue.use(Flex)
 Vue.use(Dialog).use(Select).use(Option).use(Button).use(Pagination)

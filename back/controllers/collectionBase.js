@@ -1,10 +1,8 @@
-const _ = require('lodash')
 const { ResultData, ResultFault } = require('tms-koa')
 const Base = require('./base')
 const CollectionHelper = require('./collectionHelper')
 const ObjectId = require('mongodb').ObjectId
 const ModelCl = require('../models/mgdb/collection')
-const { nanoid } = require('nanoid')
 
 /**
  * 集合控制器基类
@@ -82,52 +80,15 @@ class CollectionBase extends Base {
    */
   async create() {
     const info = this.request.body
-    info.type = 'collection'
-    info.database = this.reqDb.name
-    info.db = { sysname: this.reqDb.sysname, name: this.reqDb.name }
-    if (this.bucket) info.bucket = this.bucket.name
+    const existDb = this.reqDb
 
-    let modelCl = new ModelCl()
+    let [flag, result] = await this.clHelper.createCl(existDb, info)
 
-    // 检查指定的集合名
-    let [passed, nameOrCause] = modelCl.checkClName(info.name)
-    if (passed === false) return new ResultFault(nameOrCause)
-    info.name = nameOrCause
-
-    // 查询是否已存在同名集合
-    let existTmwCl = await modelCl.byName(this.reqDb, info.name)
-    if (existTmwCl)
-      return new ResultFault(
-        `数据库[name=${this.reqDb.name}]中，已存在同名集合[name=${info.name}]`
-      )
-
-    // 检查是否指定了用途
-    let { usage } = info
-    if (usage !== undefined) {
-      if (![0, 1].includes(parseInt(usage)))
-        return new ResultFault(`指定了不支持的集合用途值[usage=${usage}]`)
-      info.usage = parseInt(usage)
+    if (!flag) {
+      return new ResultFault(result)
     }
 
-    // 生成数据库系统名
-    let existSysCl, sysname
-    for (let tries = 0; tries <= 2; tries++) {
-      sysname = nanoid(10)
-      existSysCl = await modelCl.bySysname(this.reqDb, sysname)
-      if (!existSysCl) break
-    }
-    if (existSysCl) return new ResultFault('无法生成唯一的集合系统名称')
-
-    info.sysname = sysname
-
-    /**在系统中创建集合后记录集合对象信息 */
-    const client = this.mongoClient
-    const mgdb = client.db(this.reqDb.sysname)
-
-    return mgdb
-      .createCollection(info.sysname)
-      .then(() => this.clMongoObj.insertOne(info))
-      .then(result => new ResultData(result.ops[0]))
+    return new ResultData(result)
   }
   /**
    * 更新集合对象信息
