@@ -56,8 +56,9 @@ class ReplicaMap {
     if (replacedCount) {
       limit = limit === undefined ? 10 : parseInt(limit)
       // 同步数据
-      for (let remainder = replacedCount; remainder; ) {
-        let docs = await priSysCl.find({}, { limit }).toArray()
+      let skip = 0
+      for (let remainder = replacedCount; remainder;) {
+        let docs = await priSysCl.find({}, { skip, limit }).toArray()
         for (let i = 0, l = docs.length; i < l; i++) {
           let { _id, ...doc } = docs[i]
           doc.__pri = {
@@ -69,6 +70,7 @@ class ReplicaMap {
           await secSysCl.replaceOne({ '__pri.id': _id }, doc, { upsert: true })
         }
         remainder -= docs.length
+        skip += docs.length
       }
     }
     // 清除删除的数据
