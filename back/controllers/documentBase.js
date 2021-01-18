@@ -253,14 +253,9 @@ class DocBase extends Base {
     if (total === 0)
       return new ResultFault('没有符合条件的数据，未执行更新操作')
 
-    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
-      this.modelDoc.dataActionLog(
-        {},
-        `${operation}修改`,
-        existCl.db.name,
-        existCl.name
-      )
-    }
+    //更新前的数据记录
+    let sysCl = this.docHelper.findSysColl(existCl)
+    let updateBeforeDocs = await sysCl.find(query).toArray()
 
     let updated = {}
     for (let key in columns) {
@@ -271,7 +266,22 @@ class DocBase extends Base {
 
     return this.modelDoc
       .updateMany(existCl, query, updated)
-      .then(modifiedCount => {
+      .then(async modifiedCount => {
+        if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
+          // 记录操作日志
+          updateBeforeDocs.forEach(async doc => {
+            let afterDoc = await sysCl.findOne({ _id: doc._id })
+            this.modelDoc.dataActionLog(
+              afterDoc,
+              `${operation}修改`,
+              existCl.db.name,
+              existCl.name,
+              '',
+              '',
+              JSON.stringify(doc)
+            )
+          })
+        }
         return new ResultData({ total, modifiedCount })
       })
   }
@@ -296,9 +306,21 @@ class DocBase extends Base {
     if (total === 0)
       return new ResultFault('没有符合条件的数据，未执行复制操作')
 
-    return this.modelDoc
-      .copyMany(existCl, query, targetCl)
-      .then(() => new ResultData(total))
+    return this.modelDoc.copyMany(existCl, query, targetCl).then(async () => {
+      let existSysCl = this.docHelper.findSysColl(existCl)
+      let copyedDocs = await existSysCl.find(query).toArray()
+      if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
+        this.modelDoc.dataActionLog(
+          copyedDocs,
+          `${operation}复制`,
+          existCl.db.name,
+          existCl.name,
+          targetCl.db.name,
+          targetCl.name
+        )
+      }
+      return new ResultData(total)
+    })
   }
   /**
    *  根据某一列的值分组
