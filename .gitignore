@@ -2,7 +2,6 @@
 /mongodb/data
 /mongodb-*
 
-.env.local
 *.override.yml
 
 /tests/
