@@ -70,10 +70,11 @@
             <span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="操作" width="150" v-if="hasTableDocOperations">
+        <el-table-column fixed="right" label="操作" v-if="hasTableDocOperations">
           <template slot-scope="scope">
             <el-button v-if="docOperations.edit" size="mini" @click="editDocument(scope.row)">修改</el-button>
             <el-button v-if="docOperations.remove" size="mini" @click="removeDocument(scope.row)">删除</el-button>
+            <el-button v-for="p in computedPlugins" :key="p.name" size="mini" @click="handlePlugins(p, scope.row)">{{p.title}}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -132,7 +133,8 @@
           </el-dropdown-menu>
         </el-dropdown>
         <div v-for="p in computedPluginData" :key="p.name">
-          <el-dropdown v-if="p.batch">
+          <el-button v-if="p.transData==='noting'" type="success" plain @click="handlePlugins(p)">{{p.title}}</el-button>
+          <el-dropdown v-else>
             <el-button type="success" plain>{{p.title}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
@@ -146,7 +148,6 @@
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
-          <el-button v-else type="success" plain @click="handlePlugins(p)">{{p.title}}</el-button>
         </div>
       </tms-flex>
     </template>
@@ -270,10 +271,17 @@ const componentOptions = {
     totalByChecked() {
       return this.selectedDocuments.length
     },
-    computedPluginData() {
-      const data = this.pluginData
+    computedPlugins() {
       if (!this.pluginData.length) return []
-      return data
+      return this.pluginData.filter(
+        item => item.transData && item.transData === 'one'
+      )
+    },
+    computedPluginData() {
+      if (!this.pluginData.length) return []
+      return this.pluginData.filter(
+        item => !item.transData || item.transData !== 'one'
+      )
     }
   },
   created() {
@@ -654,201 +662,205 @@ const componentOptions = {
       window.open(`${file.url}?access_token=${access_token}`)
     },
     handlePlugins(plugin, conditionType) {
-      new Promise(resolve => {
-        let { beforeWidget } = plugin
-        if (beforeWidget && beforeWidget.name === 'DialogSelectDocument') {
-          import('./widgets/DialogSelectDocument.vue').then(Module => {
-            let { bucketName, dbName, clName, tmsAxiosName } = this
-            new Promise(resolve => {
-              if (beforeWidget.remoteWidgetOptions === true)
-                return createPluginApi(this.TmsAxios(this.tmsAxiosName))
-                  .remoteWidgetOptions(
-                    bucketName,
-                    dbName,
-                    clName,
-                    plugin.name,
-                    this.filter
-                  )
-                  .then(result => {
-                    resolve(result)
-                  })
-              else return {}
-            }).then(preCondition => {
-              let propsData = {
-                bucketName,
-                tmsAxiosName
-              }
-              // 插件设置的固定条件
-              if (preCondition && typeof preCondition === 'object') {
-                let { db, cl, filter, orderby } = preCondition
-                propsData.fixedDbName = db
-                propsData.fixedClName = cl
-                propsData.fixedDocumentFilter = filter
-                propsData.fixedDocumentOrderby = orderby
-              }
-              const vm = Module.createAndMount(Vue, propsData, {
-                createDbApi,
-                createClApi,
-                createDocApi
-              })
-              vm.$on('confirm', result => {
-                resolve(result)
-              })
-            })
-          })
-        } else if (beforeWidget && beforeWidget.name === 'DialogSchemaForm') {
-          import('./widgets/DialogSchemaForm.vue').then(Module => {
-            let { bucketName, dbName, clName, tmsAxiosName } = this
-            new Promise(resolve => {
-              if (beforeWidget.remoteWidgetOptions === true)
-                return createPluginApi(this.TmsAxios(this.tmsAxiosName))
-                  .remoteWidgetOptions(
-                    bucketName,
-                    dbName,
-                    clName,
-                    plugin.name,
-                    this.filter
-                  )
-                  .then(result => {
-                    resolve(result)
-                  })
-              else return {}
-            }).then(preCondition => {
-              let propsData = {}
-              if (preCondition && typeof preCondition === 'object') {
-                let { schema } = preCondition
-                propsData.schema = schema
-                propsData.tmsAxiosName = this.tmsAxiosName
-              }
-              const vm = Module.createAndMount(Vue, propsData, {
-                createDocApi
-              })
-              vm.$on('confirm', result => {
-                resolve(result)
+      plugin.position &&
+        new Promise(resolve => {
+          let { beforeWidget } = plugin
+          if (beforeWidget && beforeWidget.name === 'DialogSelectDocument') {
+            import('./widgets/DialogSelectDocument.vue').then(Module => {
+              let { bucketName, dbName, clName, tmsAxiosName } = this
+              new Promise(resolve => {
+                if (beforeWidget.remoteWidgetOptions === true)
+                  return createPluginApi(this.TmsAxios(this.tmsAxiosName))
+                    .remoteWidgetOptions(
+                      bucketName,
+                      dbName,
+                      clName,
+                      plugin.name,
+                      this.filter
+                    )
+                    .then(result => {
+                      resolve(result)
+                    })
+                else return {}
+              }).then(preCondition => {
+                let propsData = {
+                  bucketName,
+                  tmsAxiosName
+                }
+                // 插件设置的固定条件
+                if (preCondition && typeof preCondition === 'object') {
+                  let { db, cl, filter, orderby } = preCondition
+                  propsData.fixedDbName = db
+                  propsData.fixedClName = cl
+                  propsData.fixedDocumentFilter = filter
+                  propsData.fixedDocumentOrderby = orderby
+                }
+                const vm = Module.createAndMount(Vue, propsData, {
+                  createDbApi,
+                  createClApi,
+                  createDocApi
+                })
+                vm.$on('confirm', result => {
+                  resolve(result)
+                })
               })
             })
-          })
-        } else if (
-          beforeWidget &&
-          beforeWidget.name === 'DialogSelectCollection'
-        ) {
-          let { bucketName, tmsAxiosName } = this
-          let propsData = { bucketName, tmsAxiosName }
+          } else if (beforeWidget && beforeWidget.name === 'DialogSchemaForm') {
+            import('./widgets/DialogSchemaForm.vue').then(Module => {
+              let { bucketName, dbName, clName, tmsAxiosName } = this
+              new Promise(resolve => {
+                if (beforeWidget.remoteWidgetOptions === true)
+                  return createPluginApi(this.TmsAxios(this.tmsAxiosName))
+                    .remoteWidgetOptions(
+                      bucketName,
+                      dbName,
+                      clName,
+                      plugin.name,
+                      this.filter
+                    )
+                    .then(result => {
+                      resolve(result)
+                    })
+                else return {}
+              }).then(preCondition => {
+                let propsData = {}
+                if (preCondition && typeof preCondition === 'object') {
+                  let { schema } = preCondition
+                  propsData.schema = schema
+                  propsData.tmsAxiosName = this.tmsAxiosName
+                }
+                const vm = Module.createAndMount(Vue, propsData, {
+                  createDocApi
+                })
+                vm.$on('confirm', result => {
+                  resolve(result)
+                })
+              })
+            })
+          } else if (
+            beforeWidget &&
+            beforeWidget.name === 'DialogSelectCollection'
+          ) {
+            let { bucketName, tmsAxiosName } = this
+            let propsData = { bucketName, tmsAxiosName }
 
-          const vm = createAndMountSelectColl(Vue, propsData, {
-            createDbApi,
-            createClApi
-          })
-          vm.$on('confirm', ({ db: dbName, cl: clName }) =>
-            resolve({ db: dbName, cl: clName })
-          )
-        } else if (beforeWidget && beforeWidget.name === 'DialogMessagebox') {
-          if (beforeWidget.preCondition) {
-            let { msgbox, confirm, cancel } = beforeWidget.preCondition
-            let { confirmMsg, confirmText, cancelText } = msgbox
-            MessageBox.confirm(confirmMsg, '提示', {
-              distinguishCancelAndClose: true,
-              confirmButtonText: confirmText || '确定',
-              cancelButtonText: cancelText || '取消'
+            const vm = createAndMountSelectColl(Vue, propsData, {
+              createDbApi,
+              createClApi
             })
-              .then(() => resolve(confirm))
-              .catch(action => {
-                if (action === 'close') return {}
-                resolve(cancel)
+            vm.$on('confirm', ({ db: dbName, cl: clName }) =>
+              resolve({ db: dbName, cl: clName })
+            )
+          } else if (beforeWidget && beforeWidget.name === 'DialogMessagebox') {
+            if (beforeWidget.preCondition) {
+              let { msgbox, confirm, cancel } = beforeWidget.preCondition
+              let { confirmMsg, confirmText, cancelText } = msgbox
+              MessageBox.confirm(confirmMsg, '提示', {
+                distinguishCancelAndClose: true,
+                confirmButtonText: confirmText || '确定',
+                cancelButtonText: cancelText || '取消'
               })
-          } else return {}
-        } else resolve()
-      }).then(beforeResult => {
-        let postBody = conditionType
-          ? this.fnSetReqParam(conditionType).param
-          : null
-        if (beforeResult) {
-          if (!postBody) postBody = {}
-          postBody.widget = beforeResult
-        }
-        let queryParams = {
-          db: this.dbName, // 参数名改为db
-          cl: this.clName, // 参数名改为cl
-          plugin: plugin.name
-          // name: plugin.name,
-          // type: plugin.type, // 这个参数应该去掉，插件自己知道自己的类型
-        }
-        createPluginApi(this.TmsAxios(this.tmsAxiosName))
-          .execute(queryParams, postBody)
-          .then(result => {
-            if (typeof result === 'string') {
-              Message.success({
-                message: result,
-                showClose: true
-              })
-            } else if (
-              result &&
-              typeof result === 'object' &&
-              result.type === 'documents'
-            ) {
-              /**返回操作结果——数据 */
-              let nInserted = 0,
-                nModified = 0,
-                nRemoved = 0
-              let { inserted, modified, removed } = result
-              /**在当前文档列表中移除删除的记录 */
-              if (Array.isArray(removed) && (nRemoved = removed.length)) {
-                let documents = this.documents.filter(
-                  doc => !removed.includes(doc._id)
-                )
-                store.commit('documents', { documents })
-              }
-              /**在当前文档列表中更新修改的记录 */
-              if (Array.isArray(modified) && (nModified = modified.length)) {
-                let map = modified.reduce((m, doc) => {
-                  if (doc._id && typeof doc._id === 'string') m[doc._id] = doc
-                  return m
-                }, {})
-                this.documents.forEach(doc => {
-                  let newDoc = map[doc._id]
-                  if (newDoc) Object.assign(doc, newDoc)
-                  store.commit('updateDocument', { document: doc })
+                .then(() => resolve(confirm))
+                .catch(action => {
+                  if (action === 'close') return {}
+                  resolve(cancel)
+                })
+            } else return {}
+          } else resolve()
+        }).then(beforeResult => {
+          let postBody
+          if (plugin.transData && plugin.transData === 'one') {
+            postBody = { docIds: [conditionType._id] }
+          } else {
+            postBody = conditionType
+              ? this.fnSetReqParam(conditionType).param
+              : null
+          }
+          if (beforeResult) {
+            if (!postBody) postBody = {}
+            postBody.widget = beforeResult
+          }
+          let queryParams = {
+            db: this.dbName, // 参数名改为db
+            cl: this.clName, // 参数名改为cl
+            plugin: plugin.name
+            // name: plugin.name,
+            // type: plugin.type, // 这个参数应该去掉，插件自己知道自己的类型
+          }
+          createPluginApi(this.TmsAxios(this.tmsAxiosName))
+            .execute(queryParams, postBody)
+            .then(result => {
+              if (typeof result === 'string') {
+                Message.success({
+                  message: result,
+                  showClose: true
+                })
+              } else if (
+                result &&
+                typeof result === 'object' &&
+                result.type === 'documents'
+              ) {
+                /**返回操作结果——数据 */
+                let nInserted = 0,
+                  nModified = 0,
+                  nRemoved = 0
+                let { inserted, modified, removed } = result
+                /**在当前文档列表中移除删除的记录 */
+                if (Array.isArray(removed) && (nRemoved = removed.length)) {
+                  let documents = this.documents.filter(
+                    doc => !removed.includes(doc._id)
+                  )
+                  store.commit('documents', { documents })
+                }
+                /**在当前文档列表中更新修改的记录 */
+                if (Array.isArray(modified) && (nModified = modified.length)) {
+                  let map = modified.reduce((m, doc) => {
+                    if (doc._id && typeof doc._id === 'string') m[doc._id] = doc
+                    return m
+                  }, {})
+                  this.documents.forEach(doc => {
+                    let newDoc = map[doc._id]
+                    if (newDoc) Object.assign(doc, newDoc)
+                    store.commit('updateDocument', { document: doc })
+                  })
+                }
+                /**在当前文档列表中添加插入的记录 */
+                if (Array.isArray(inserted) && (nInserted = inserted.length)) {
+                  inserted.forEach(newDoc => {
+                    if (newDoc._id && typeof newDoc._id === 'string')
+                      this.documents.unshift(newDoc)
+                  })
+                }
+                let msg = `插件[${plugin.title}]执行完毕，添加[${parseInt(
+                  nInserted
+                ) || 0}]条，修改[${parseInt(nModified) ||
+                  0}]条，删除[${parseInt(nRemoved) || 0}]条记录。`
+                Message.success({ message: msg })
+              } else if (
+                result &&
+                typeof result === 'object' &&
+                result.type === 'numbers'
+              ) {
+                /**返回操作结果——数量 */
+                let { nInserted, nModified, nRemoved } = result
+                let message = `插件[${plugin.title}]执行完毕，添加[${parseInt(
+                  nInserted
+                ) || 0}]条，修改[${parseInt(nModified) ||
+                  0}]条，删除[${parseInt(nRemoved) || 0}]条记录。`
+                MessageBox.confirm(message, '提示', {
+                  confirmButtonText: '关闭',
+                  cancelButtonText: '刷新数据'
+                }).catch(() => {
+                  this.listDocument()
+                })
+              } else {
+                Message.success({
+                  message: `插件[${plugin.title}]执行完毕。`,
+                  showClose: true
                 })
               }
-              /**在当前文档列表中添加插入的记录 */
-              if (Array.isArray(inserted) && (nInserted = inserted.length)) {
-                inserted.forEach(newDoc => {
-                  if (newDoc._id && typeof newDoc._id === 'string')
-                    this.documents.unshift(newDoc)
-                })
-              }
-              let msg = `插件[${plugin.title}]执行完毕，添加[${parseInt(
-                nInserted
-              ) || 0}]条，修改[${parseInt(nModified) || 0}]条，删除[${parseInt(
-                nRemoved
-              ) || 0}]条记录。`
-              Message.success({ message: msg })
-            } else if (
-              result &&
-              typeof result === 'object' &&
-              result.type === 'numbers'
-            ) {
-              /**返回操作结果——数量 */
-              let { nInserted, nModified, nRemoved } = result
-              let message = `插件[${plugin.title}]执行完毕，添加[${parseInt(
-                nInserted
-              ) || 0}]条，修改[${parseInt(nModified) || 0}]条，删除[${parseInt(
-                nRemoved
-              ) || 0}]条记录。`
-              MessageBox.confirm(message, '提示', {
-                confirmButtonText: '关闭',
-                cancelButtonText: '刷新数据'
-              }).catch(() => {
-                this.listDocument()
-              })
-            } else {
-              Message.success({
-                message: `插件[${plugin.title}]执行完毕。`,
-                showClose: true
-              })
-            }
-          })
-      })
+            })
+        })
     },
     handleSize(val) {
       this.page.size = val
