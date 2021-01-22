@@ -132,7 +132,7 @@
           </el-dropdown-menu>
         </el-dropdown>
         <div v-for="p in computedPluginData" :key="p.name">
-          <el-dropdown>
+          <el-dropdown v-if="p.batch">
             <el-button type="success" plain>{{p.title}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
@@ -146,6 +146,7 @@
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
+          <el-button v-else type="success" plain @click="handlePlugins(p)">{{p.title}}</el-button>
         </div>
       </tms-flex>
     </template>

@@ -16,7 +16,7 @@ class PluginBase {
    * 检查插件合规性，是否包含了必须的属性和方法
    */
   validate() {
-    let pRequiredProps = RequiredProps.map((prop) => {
+    let pRequiredProps = RequiredProps.map(prop => {
       return new Promise((resolve, reject) => {
         if (typeof this[prop] !== 'string' || !this[prop]) {
           reject(`插件文件[${this.file}]不可以，属性[${prop}]为空`)
@@ -51,6 +51,7 @@ class PluginBase {
       everyTags,
       someTags,
       beforeWidget,
+      batch
     } = this
     return {
       name,
@@ -61,6 +62,7 @@ class PluginBase {
       everyTags,
       someTags,
       beforeWidget,
+      batch
     }
   }
 }
