@@ -9,6 +9,3 @@
 /patch/
 
 /back/config/*.local.js
-
-Dockerfile-uesale
-/ue_sale/
