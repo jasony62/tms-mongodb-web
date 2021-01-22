@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :visible.sync="dialogVisible" :show-close="false" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <tms-el-json-doc :schema="schema" :doc="formData" :on-axios="onAxios" :on-file-download="onFileDownload" :on-file-submit="handleFileSubmit" @submit="onJsonDocSubmit"></tms-el-json-doc>
   </el-dialog>
 </template>
@@ -97,9 +97,6 @@ export function createAndMount(Vue, propsData, apiCreators) {
 .el-dialog__wrapper {
   /deep/ .el-dialog {
     width: 60%;
-  }
-  /deep/ .el-dialog__header {
-    display: none;
   }
   /deep/ .el-dialog__body {
     height: 60vh;
