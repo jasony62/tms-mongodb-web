@@ -6,10 +6,14 @@
     line-height: 40px;
   }
 }
+
+// 表格左侧宽度自适应
 .tms-frame__main__center {
   width: calc(75% - 16px);
   background-color: rgb(240, 243, 246) !important;
 }
+
+// 表格样式高度塌陷
 .tms-table {
   /deep/ .el-table__fixed-right {
     height: 100% !important;
@@ -19,13 +23,25 @@
   }
 }
 
-// 右侧按钮
-.tms-frame__main__right__button {
-  .el-button + .el-button {
-    margin-left: 0;
+// 分页器
+.tmw-pagination {
+  margin-top: 5px;
+  display: flex;
+  justify-content: space-between;
+  > .tmw-pagination__text {
+    padding-left: 5px;
+    font-size: 13px;
+    height: 28px;
+    line-height: 28px;
+    vertical-align: top;
+    color: #606266;
+    letter-spacing: 3px;
   }
-  overflow-y: auto;
-  height: calc(100vh - 64px);
+}
+
+// message提示自定义类名
+.mzindex {
+  z-index: 9999 !important;
 }
 
 // 批量修改
@@ -60,21 +76,4 @@
   .el-form-item:last-child {
     display: none;
   }
-}
-.tmw-pagination {
-  margin-top: 5px;
-  display: flex;
-  justify-content: space-between;
-  > .tmw-pagination__text {
-    padding-left: 5px;
-    font-size: 13px;
-    height: 28px;
-    line-height: 28px;
-    vertical-align: top;
-    color: #606266;
-    letter-spacing: 3px;
-  }
-}
-.mzindex {
-  z-index: 9999 !important;
 }
