@@ -70,10 +70,11 @@
             <span v-else>{{ scope.row[k] }}</span>
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="操作" width="150" v-if="hasTableDocOperations">
+        <el-table-column fixed="right" width="210" label="操作" v-if="hasTableDocOperations">
           <template slot-scope="scope">
             <el-button v-if="docOperations.edit" size="mini" @click="editDocument(scope.row)">修改</el-button>
             <el-button v-if="docOperations.remove" size="mini" @click="removeDocument(scope.row)">删除</el-button>
+            <el-button type="success" plain v-for="p in computedPlugins" :key="p.name" size="mini" @click="handlePlugins(p, scope.row)">{{p.title}}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -87,7 +88,7 @@
         <div>
           <el-button v-if="docOperations.create" @click="createDocument">添加数据</el-button>
         </div>
-        <el-upload action="#" :show-file-list="false" :http-request="importDocument">
+        <el-upload v-if="docOperations.import" action="#" :show-file-list="false" :http-request="importDocument">
           <el-button>导入数据</el-button>
         </el-upload>
         <el-dropdown v-if="docOperations.editMany" @command="editManyDocument">
@@ -107,7 +108,7 @@
             <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <el-dropdown @command="copyManyDocument" placement="bottom-start">
+        <el-dropdown v-if="docOperations.copyMany" @command="copyManyDocument" placement="bottom-start">
           <el-button>批量复制<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -123,7 +124,7 @@
             <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <el-dropdown @command="exportDocument">
+        <el-dropdown v-if="docOperations.export" @command="exportDocument">
           <el-button>导出数据<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -132,7 +133,8 @@
           </el-dropdown-menu>
         </el-dropdown>
         <div v-for="p in computedPluginData" :key="p.name">
-          <el-dropdown>
+          <el-button v-if="p.transData==='noting'" type="success" plain @click="handlePlugins(p)">{{p.title}}</el-button>
+          <el-dropdown v-else>
             <el-button type="success" plain>{{p.title}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
@@ -224,7 +226,10 @@ const componentOptions = {
         remove: true,
         editMany: true,
         removeMany: true,
-        transferMany: true
+        transferMany: true,
+        import: true,
+        export: true,
+        copyMany: true
       },
       tableHeight: 0,
       filter: {},
@@ -266,10 +271,17 @@ const componentOptions = {
     totalByChecked() {
       return this.selectedDocuments.length
     },
-    computedPluginData() {
-      const data = this.pluginData
+    computedPlugins() {
       if (!this.pluginData.length) return []
-      return data
+      return this.pluginData.filter(
+        item => item.transData && item.transData === 'one'
+      )
+    },
+    computedPluginData() {
+      if (!this.pluginData.length) return []
+      return this.pluginData.filter(
+        item => !item.transData || item.transData !== 'one'
+      )
     }
   },
   created() {
@@ -714,6 +726,7 @@ const componentOptions = {
               if (preCondition && typeof preCondition === 'object') {
                 let { schema } = preCondition
                 propsData.schema = schema
+                propsData.tmsAxiosName = this.tmsAxiosName
               }
               const vm = Module.createAndMount(Vue, propsData, {
                 createDocApi
@@ -754,9 +767,14 @@ const componentOptions = {
           } else return {}
         } else resolve()
       }).then(beforeResult => {
-        let postBody = conditionType
-          ? this.fnSetReqParam(conditionType).param
-          : null
+        let postBody
+        if (plugin.transData && plugin.transData === 'one') {
+          postBody = { docIds: [conditionType._id] }
+        } else {
+          postBody = conditionType
+            ? this.fnSetReqParam(conditionType).param
+            : null
+        }
         if (beforeResult) {
           if (!postBody) postBody = {}
           postBody.widget = beforeResult
@@ -936,8 +954,16 @@ const componentOptions = {
   },
   mounted() {
     Promise.all([
-      this.$apis.collection.byName(this.bucketName, this.dbName, this.clName),
-      this.$apis.plugin.getPlugins(this.bucketName, this.dbName, this.clName)
+      createClApi(this.TmsAxios(this.tmsAxiosName)).byName(
+        this.bucketName,
+        this.dbName,
+        this.clName
+      ),
+      createPluginApi(this.TmsAxios(this.tmsAxiosName)).getPlugins(
+        this.bucketName,
+        this.dbName,
+        this.clName
+      )
     ]).then(async res => {
       Object.assign(collection, res[0])
       this.pluginData = res[1]
@@ -955,6 +981,9 @@ const componentOptions = {
           if (docOps.editMany === false) docOperations.editMany = false
           if (docOps.removeMany === false) docOperations.removeMany = false
           if (docOps.transferMany === false) docOperations.transferMany = false
+          if (docOps.import === false) docOperations.import = false
+          if (docOps.export === false) docOperations.export = false
+          if (docOps.copyMany === false) docOperations.copyMany = false
         }
         /**文档筛选 */
         if (docFilters && docFilters.length) {
@@ -962,6 +991,7 @@ const componentOptions = {
           this.groupDocument()
         }
       }
+      this.conditionReset()
       this.listDocument()
     })
   },
@@ -997,6 +1027,9 @@ export function createAndMount(Vue, propsData, id) {
     height: 15px;
     vertical-align: middle;
     cursor: pointer;
+  }
+  .el-button + .el-button {
+    margin-left: 2px;
   }
 }
 </style>

@@ -49,6 +49,9 @@
         <el-checkbox v-model="collection.custom.docOperations.editMany">批量修改</el-checkbox>
         <el-checkbox v-model="collection.custom.docOperations.removeMany">批量删除</el-checkbox>
         <el-checkbox v-model="collection.custom.docOperations.transferMany">批量迁移</el-checkbox>
+        <el-checkbox v-model="collection.custom.docOperations.import">导入数据</el-checkbox>
+        <el-checkbox v-model="collection.custom.docOperations.export">导出数据</el-checkbox>
+        <el-checkbox v-model="collection.custom.docOperations.copyMany">批量复制</el-checkbox>
       </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">
@@ -87,7 +90,10 @@ export default {
               remove: true,
               editMany: true,
               removeMany: true,
-              transferMany: true
+              transferMany: true,
+              import: true,
+              export: true,
+              copyMany: true
             }
           }
         }

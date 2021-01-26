@@ -7,5 +7,4 @@
 /tests/
 /patch/
 
-Dockerfile-uesale
-/ue_sale/
+/back/config/*.local.js
