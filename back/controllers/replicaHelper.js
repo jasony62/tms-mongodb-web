@@ -52,7 +52,7 @@ class ReplicaHelper extends Helper {
     const modelRM = new ModelReplicaMap(this.ctrl.mongoClient)
     let [passed, cause] = modelRM.check({
       primary,
-      secondary,
+      secondary
     })
     if (passed === false) return [false, cause]
 
@@ -66,47 +66,72 @@ class ReplicaHelper extends Helper {
     if (!priCl)
       return [
         false,
-        `指定的主集合[primary.db=${primary.db}][primary.cl=${primary.cl}]不存在`,
+        `指定的主集合[primary.db=${primary.db}][primary.cl=${primary.cl}]不存在`
       ]
     if (priCl.usage === 1)
       return [
         false,
-        `指定的主集合[primary.db=${primary.db}][primary.cl=${primary.cl}]的用途[usage=1]不能是从集合`,
+        `指定的主集合[primary.db=${primary.db}][primary.cl=${primary.cl}]的用途[usage=1]不能是从集合`
       ]
 
     const secDb = await modelDb.byName(secondary.db)
     if (!secDb)
       return [
         false,
-        `指定的从集合所属数据库[secondary.db=${secondary.db}]不存在`,
+        `指定的从集合所属数据库[secondary.db=${secondary.db}]不存在`
       ]
     const secCl = await modelCl.byName(secDb, secondary.cl)
     if (!secCl)
       return [
         false,
-        `指定的从集合[secondary.db=${secondary.db}][secondary.cl=${secondary.cl}]不存在`,
+        `指定的从集合[secondary.db=${secondary.db}][secondary.cl=${secondary.cl}]不存在`
       ]
     if (secCl.usage !== 1)
       return [
         false,
-        `指定的从集合[secondary.db=${secondary.db}][secondary.cl=${secondary.cl}]的用途[usage=${secCl.usage}]必须等于1`,
+        `指定的从集合[secondary.db=${secondary.db}][secondary.cl=${secondary.cl}]的用途[usage=${secCl.usage}]必须等于1`
       ]
 
     const beforeMap = await this.clReplicaMap.findOne({
       'primary.db': priDb.sysname,
       'primary.cl': priCl.sysname,
       'secondary.db': secDb.sysname,
-      'secondary.cl': secCl.sysname,
+      'secondary.cl': secCl.sysname
     })
 
     if (existent === true && !beforeMap) {
       return [
         false,
-        `集合复制关系[primary.db=${primary.db}][primary.cl=${primary.cl}][secondary.db=${secondary.db}][secondary.cl=${secondary.cl}]已经存在`,
+        `集合复制关系[primary.db=${primary.db}][primary.cl=${primary.cl}][secondary.db=${secondary.db}][secondary.cl=${secondary.cl}]已经存在`
       ]
     }
 
     return [true, beforeMap, { db: priDb, cl: priCl }, { db: secDb, cl: secCl }]
+  }
+  /**根据集合查询映射关系 */
+  async byId(collection) {
+    const {
+      usage,
+      sysname: clSysname,
+      db: { sysname: dbSysname }
+    } = collection
+    let query = {}
+
+    if (![0, 1].includes(parseInt(usage)))
+      return [false, `指定了不支持的集合用途值[usage=${usage}]`]
+    if (usage == 1) {
+      query['secondary.db'] = dbSysname
+      query['secondary.cl'] = clSysname
+    } else {
+      query['primary.db'] = dbSysname
+      query['primary.cl'] = clSysname
+    }
+
+    const existMap = await this.clReplicaMap.findOne(query)
+
+    if (!existMap) return [false, existMap]
+
+    return [true, existMap]
   }
 }
 

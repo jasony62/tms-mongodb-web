@@ -1,6 +1,7 @@
 const { ResultData, ResultFault } = require('tms-koa')
 const Base = require('./base')
 const CollectionHelper = require('./collectionHelper')
+const ReplicaHelper = require('./replicaHelper')
 const ObjectId = require('mongodb').ObjectId
 const ModelCl = require('../models/mgdb/collection')
 
@@ -12,6 +13,7 @@ class CollectionBase extends Base {
   constructor(...args) {
     super(...args)
     this.clHelper = new CollectionHelper(this)
+    this.rpHelper = new ReplicaHelper(this)
   }
   /** 执行每个方法前执行 */
   async tmsBeforeEach() {
@@ -163,6 +165,11 @@ class CollectionBase extends Base {
       (db.sysname === 'tms_admin' && clName === 'replica_map')
     )
       return new ResultFault(`系统自带集合[${clName}]，不能删除`)
+
+    if (usage !== undefined) {
+      const [flag] = await this.rpHelper.byId(existCl)
+      if (flag) return new ResultFault(`该集合存在关联关系不允许删除`)
+    }
 
     const client = this.mongoClient
 
