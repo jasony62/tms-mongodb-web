@@ -41,6 +41,13 @@ services:
     #   - TMW_REQUIRE_BUCKET=
     #   插件发送配置地址
     #   - TMS_PLUGINS_SEND_IP=
+    # 复制集：开启实时复制
+    #    - TMW_REALTIME_REPLICA=true
+    #    - TMW_REPLICA_SET_NAME=tmw-rA_s
+    #    - TMW_MONGODB_S_PORT=27018
+    #    - TMW_MONGODB_A_PORT=27019
+    #    - TMS_MONGODB_S_HOST=""
+    #    - TMS_MONGODB_A_HOST=""
     command:
       [
         'sh',
