@@ -795,6 +795,7 @@ const componentOptions = {
                 message: result,
                 showClose: true
               })
+              this.listDocument()
             } else if (
               result &&
               typeof result === 'object' &&
@@ -861,6 +862,7 @@ const componentOptions = {
                 message: `插件[${plugin.title}]执行完毕。`,
                 showClose: true
               })
+              this.listDocument()
             }
           })
       })

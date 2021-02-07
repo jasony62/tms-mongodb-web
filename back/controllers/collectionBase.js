@@ -150,7 +150,7 @@ class CollectionBase extends Base {
   async remove() {
     const existCl = await this.clHelper.findRequestCl()
 
-    let { db, name: clName } = existCl
+    let { db, name: clName, usage } = existCl
 
     // 如果是系统自带集合不能删除
     if (
