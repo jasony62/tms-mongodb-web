@@ -145,11 +145,13 @@ class Document extends Base {
 
     let bulkOp = targetSysCl.initializeUnorderedBulkOp()
     copyedDocs.forEach(doc => {
+      let newDoc = JSON.parse(JSON.stringify(doc))
+      newDoc = this.beforeProcessByInAndUp(newDoc, 'insert')
       bulkOp
-        .find({ _id: doc._id })
+        .find({ _id: newDoc._id })
         .upsert()
         .updateOne({
-          $setOnInsert: doc
+          $setOnInsert: newDoc
         })
     })
 
