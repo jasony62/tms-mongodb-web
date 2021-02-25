@@ -636,13 +636,23 @@ const componentOptions = {
     },
     importDocument(data) {
       let formData = new FormData()
-      const msg = Message.info({ message: '正在导入数据...', duration: 0 })
+      let msg = Message({
+        type: 'info',
+        message: '正在导入数据...',
+        duration: 0
+      })
       formData.append('file', data.file)
       createDocApi(this.TmsAxios(this.tmsAxiosName))
         .import(this.bucketName, this.dbName, this.clName, formData)
-        .then(() => {
+        .then(result => {
+          if (result.importAll) {
+            msg.type = 'success'
+            setTimeout(() => msg.close(), 1000)
+          } else {
+            msg.showClose = true
+          }
+          msg.message = result.message
           this.listDocument()
-          setTimeout(() => msg.close(), 1000)
         })
         .catch(() => {
           setTimeout(() => msg.close(), 1000)

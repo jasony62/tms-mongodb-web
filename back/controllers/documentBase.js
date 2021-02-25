@@ -1,6 +1,7 @@
 const { ResultData, ResultFault } = require('tms-koa')
 const Base = require('./base')
 const DocumentHelper = require('./documentHelper')
+const unrepeat = require('./unrepeat')
 const ModelDoc = require('../models/mgdb/document')
 const ModelCl = require('../models/mgdb/collection')
 const ObjectId = require('mongodb').ObjectId
@@ -23,6 +24,29 @@ class DocBase extends Base {
 
     const { name: clName } = existCl
     let doc = this.request.body
+
+    // 去重校验
+    const { operateRules } = existCl
+    if (operateRules && operateRules.scope && operateRules.scope.unrepeat) {
+      const {
+        database: { name: dbName },
+        collection: { name: clName },
+        primaryKeys,
+        insert
+      } = operateRules.unrepeat
+      const curDoc = [doc]
+      const curConfig = {
+        config: {
+          columns: primaryKeys,
+          db: dbName,
+          cl: clName,
+          insert: insert
+        }
+      }
+      const repeated = await unrepeat(this, curDoc, curConfig)
+      if (repeated.length === 0)
+        return new ResultFault('添加失败,当前数据已存在')
+    }
 
     // 加工数据
     this.modelDoc.beforeProcessByInAndUp(doc, 'insert')

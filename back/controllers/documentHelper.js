@@ -1,4 +1,5 @@
-const { unrepeatByArray } = require('../tms/utilities')
+const unrepeat = require('./unrepeat')
+const _ = require('lodash')
 const log4js = require('log4js')
 const logger = log4js.getLogger('tms-mongodb-web')
 const ObjectId = require('mongodb').ObjectId
@@ -49,12 +50,10 @@ class DocumentHelper extends Helper {
   }
   /**
    *  提取excel数据到集合中
-   *  unrepeat 是否对数据去重
+   *  noRepeatconfig 数据去重配置
    */
-  async importToColl(existCl, filename, options = {}) {
+  async importToColl(existCl, filename, noRepeatconfig) {
     if (!fs.existsSync(filename)) return [false, '指定的文件不存在']
-    let unrepeat = options.unrepeat ? options.unrepeat : false
-
     const xlsx = require('tms-koa/node_modules/xlsx')
     const wb = xlsx.readFile(filename)
     const firstSheetName = wb.SheetNames[0]
@@ -63,9 +62,7 @@ class DocumentHelper extends Helper {
 
     let collModel = new ModelColl()
     let columns = await collModel.getSchemaByCollection(existCl)
-    if (!columns) {
-      return [false, '指定的集合没有指定集合列']
-    }
+    if (!columns) return [false, '指定的集合没有指定集合列']
     let jsonFinishRows = rowsJson.map(row => {
       let newRow = {}
       for (const k in columns) {
@@ -113,13 +110,22 @@ class DocumentHelper extends Helper {
       return newRow
     })
 
-    // 去重
-    if (unrepeat && unrepeat.columns && unrepeat.columns.length > 0) {
-      jsonFinishRows = unrepeatByArray(
-        jsonFinishRows,
-        unrepeat.columns,
-        unrepeat.keepFirstRepeatData
-      )
+    // 比对去重
+    let failDatas = []
+    let failMsg = ''
+    if (noRepeatconfig) {
+      const newDocs = await unrepeat(this.ctrl, jsonFinishRows, noRepeatconfig)
+      if (newDocs.length === 0) return [false, `导入失败,当前数据已存在`]
+
+      failDatas = _.difference(jsonFinishRows, newDocs)
+      if (failDatas.length) {
+        failDatas.forEach(data => {
+          noRepeatconfig.config.columns.forEach(key => {
+            failMsg += data[key] + ','
+          })
+        })
+      }
+      jsonFinishRows = newDocs
     }
 
     this.transformsCol('toValue', jsonFinishRows, columns)
@@ -137,7 +143,14 @@ class DocumentHelper extends Helper {
               existCl.name
             )
           }
-          return [true, jsonFinishRows]
+          return [
+            true,
+            {
+              successNum: jsonFinishRows.length,
+              failNum: failDatas.length,
+              failMsg
+            }
+          ]
         })
     } catch (err) {
       logger.warn('Document.insertMany', err)
@@ -153,8 +166,6 @@ class DocumentHelper extends Helper {
    */
   transformsCol(model, data, columns) {
     let sourceData = JSON.parse(JSON.stringify(data))
-    logger.info('data数据源', sourceData)
-
     const gets = model === 'toLabel' ? 'value' : 'label'
     const sets = model === 'toLabel' ? 'label' : 'value'
 

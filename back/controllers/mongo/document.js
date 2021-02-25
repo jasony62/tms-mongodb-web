@@ -17,11 +17,6 @@ class Document extends DocBase {
       return new ResultFault('没有上传文件')
     }
     const existCl = await this.docHelper.findRequestCl()
-    const {
-      checkRepeatColumns = '',
-      keepFirstRepeatData = false
-    } = this.request.query
-
     const { UploadPlain } = require('tms-koa/lib/model/fs/upload')
     const { LocalFS } = require('tms-koa/lib/model/fs/local')
     const { FsContext } = require('tms-koa').Context
@@ -37,19 +32,47 @@ class Document extends DocBase {
     } catch (e) {
       return new ResultFault(e.message)
     }
-    let options = {}
-    if (checkRepeatColumns) {
-      options.unrepeat = {}
-      options.unrepeat.columns = checkRepeatColumns.split(',')
-      options.unrepeat.keepFirstRepeatData = keepFirstRepeatData
-        ? keepFirstRepeatData
-        : false
+    // 去重校验
+    const { operateRules } = existCl
+    let noRepeatConfig = null
+    if (operateRules && operateRules.scope && operateRules.scope.unrepeat) {
+      const {
+        database: { name: dbName },
+        collection: { name: clName },
+        primaryKeys,
+        insert
+      } = operateRules.unrepeat
+      noRepeatConfig = {
+        config: {
+          columns: primaryKeys,
+          db: dbName,
+          cl: clName,
+          insert: insert
+        }
+      }
     }
 
-    let rst = await this.docHelper.importToColl(existCl, filepath, options)
+    let rst = await this.docHelper.importToColl(
+      existCl,
+      filepath,
+      noRepeatConfig
+    )
 
     if (rst[0] === true) {
-      return new ResultData('ok')
+      const { successNum, failNum, failMsg } = rst[1]
+      let result = null
+      if (!failNum) {
+        result = {
+          importAll: true,
+          message: `导入成功`
+        }
+      } else {
+        result = {
+          importAll: false,
+          message: `导入成功${successNum}条,失败${failNum}条,原因:${failMsg}已存在或重复`
+        }
+      }
+      return new ResultData(result)
     } else {
       return new ResultFault(rst[1])
     }
