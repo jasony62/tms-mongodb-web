@@ -71,7 +71,6 @@ class DocumentHelper extends Helper {
         if (typeof rDByTitle === 'number') {
           newRow[k] = String(rDByTitle)
         } else if (typeof rDByTitle === 'undefined') {
-          logger.info(column.title, column.default)
           // 单选
           if (
             column.type === 'string' &&
@@ -110,26 +109,31 @@ class DocumentHelper extends Helper {
       return newRow
     })
 
-    // 比对去重
-    let failDatas = []
-    let failMsg = ''
-    if (noRepeatconfig) {
-      const newDocs = await unrepeat(this.ctrl, jsonFinishRows, noRepeatconfig)
-      if (newDocs.length === 0) return [false, `导入失败,当前数据已存在`]
-
-      failDatas = _.difference(jsonFinishRows, newDocs)
-      if (failDatas.length) {
-        failDatas.forEach(data => {
-          noRepeatconfig.config.columns.forEach(key => {
-            failMsg += data[key] + ','
-          })
-        })
-      }
-      jsonFinishRows = newDocs
-    }
-
-    this.transformsCol('toValue', jsonFinishRows, columns)
     try {
+      this.transformsCol('toValue', jsonFinishRows, columns)
+
+      // 比对去重
+      let failDatas = []
+      let failMsg = ''
+      if (noRepeatconfig) {
+        const newDocs = await unrepeat(
+          this.ctrl,
+          jsonFinishRows,
+          noRepeatconfig
+        )
+        if (newDocs.length === 0) return [false, `导入失败,当前数据已存在`]
+
+        failDatas = _.difference(jsonFinishRows, newDocs)
+        if (failDatas.length) {
+          failDatas.forEach(data => {
+            noRepeatconfig.config.columns.forEach(key => {
+              failMsg += data[key] + ','
+            })
+          })
+        }
+        jsonFinishRows = newDocs
+      }
+
       return this.findSysColl(existCl)
         .insertMany(jsonFinishRows)
         .then(async () => {
@@ -153,8 +157,8 @@ class DocumentHelper extends Helper {
           ]
         })
     } catch (err) {
-      logger.warn('Document.insertMany', err)
-      return [false, err.message]
+      logger.error('提取excel数据到集合中', err)
+      return [false, err]
     }
   }
   /**

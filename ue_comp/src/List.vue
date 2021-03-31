@@ -99,7 +99,7 @@
             <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <el-dropdown v-if="docOperations.removeMany" @command="removeManyDocument" placement="bottom-start">
+        <el-dropdown v-if="docOperations.removeMany" @command="removeManyDocument">
           <el-button>批量删除<i class="el-icon-arrow-down el-icon--right"></i>
           </el-button>
           <el-dropdown-menu slot="dropdown">
@@ -108,7 +108,7 @@
             <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <el-dropdown v-if="docOperations.copyMany" @command="copyManyDocument" placement="bottom-start">
+        <el-dropdown v-if="docOperations.copyMany" @command="copyManyDocument">
           <el-button>批量复制<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
@@ -660,6 +660,7 @@ const componentOptions = {
     },
     exportDocument(command) {
       let { param } = this.fnSetReqParam(command)
+      Object.assign(param, { columns: this.properties })
       createDocApi(this.TmsAxios(this.tmsAxiosName))
         .export(this.bucketName, this.dbName, this.clName, param)
         .then(result => {

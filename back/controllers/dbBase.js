@@ -28,6 +28,12 @@ class DbBase extends Base {
     if (this.bucket) query.bucket = this.bucket.name
     const { keyword } = this.request.query
     if (keyword) {
+      if (/\(/.test(keyword)) {
+        keyword = keyword.replace(/\(/g, '\\(')
+      }
+      if (/\)/.test(keyword)) {
+        keyword = keyword.replace(/\)/g, '\\)')
+      }
       let re = new RegExp(keyword)
       query['$or'] = [
         { name: { $regex: re, $options: 'i' } },

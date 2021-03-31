@@ -276,6 +276,21 @@ export default {
       this.criteria.clBatch.goto(page)
     },
     onSubmit() {
+      let {
+        collection: {
+          operateRules: {
+            scope: { unrepeat },
+            unrepeat: { database, collection, primaryKeys }
+          }
+        }
+      } = this
+      if (unrepeat) {
+        if (!database.label || !collection.label || !primaryKeys.length) {
+          return Message.error('请选择去重时的比对库或表或列')
+        }
+        database.label && delete database.label
+        collection.label && delete collection.label
+      }
       if (this.mode === 'create')
         apiCollection
           .create(this.bucketName, this.dbName, this.collection)

@@ -39,12 +39,13 @@ class Document extends Base {
     let mongoClient = await this.mongoClient()
     let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
     const modelCl = new ModelColl(this.bucket)
+    let removeQuery, removeSysCl
 
     if (existCl.usage !== 1) {
       /**主集合删除文档 */
-      let removeQuery = { _id: ObjectId(id) }
+      removeSysCl = sysCl
+      removeQuery = { _id: ObjectId(id) }
       await modelCl.checkRemoveConstraint(existCl, removeQuery, sysCl)
-      return sysCl.deleteOne(removeQuery).then(({ result }) => result.n === 1)
     } else {
       /**检查要删除的文档是否存在 */
       let doc = await sysCl.findOne({ _id: ObjectId(id) })
@@ -54,11 +55,28 @@ class Document extends Base {
       let { __pri } = doc
       let priCl = mongoClient.db(__pri.db).collection(__pri.cl)
       let existPriCl = await modelCl.bySysname({ sysname: __pri.db }, __pri.cl)
-      let removeQuery = { _id: __pri.id }
+      removeQuery = { _id: __pri.id }
       await modelCl.checkRemoveConstraint(existPriCl, removeQuery, priCl)
-
-      return priCl.deleteOne(removeQuery).then(({ result }) => result.n === 1)
+      removeSysCl = priCl
     }
+
+    const [flag, { dbName, clName, keys, insert }] = this.findUnRepeatRule(
+      existCl
+    )
+    if (flag && insert) {
+      const { targetSysCl, targetQuery } = await this.getUnRepeatSQ(
+        removeSysCl,
+        removeQuery,
+        dbName,
+        clName,
+        keys
+      )
+      targetSysCl.deleteMany(targetQuery)
+    }
+
+    return removeSysCl
+      .deleteOne(removeQuery)
+      .then(({ result }) => result.n === 1)
   }
   /**
    * 按条件批量删除文档
@@ -78,6 +96,19 @@ class Document extends Base {
     const modelCl = new ModelColl(this.bucket)
 
     if (existCl.usage !== 1) {
+      const [flag, { dbName, clName, keys, insert }] = this.findUnRepeatRule(
+        existCl
+      )
+      if (flag && insert) {
+        const { targetSysCl, targetQuery } = await this.getUnRepeatSQ(
+          sysCl,
+          query,
+          dbName,
+          clName,
+          keys
+        )
+        targetSysCl.deleteMany(targetQuery)
+      }
       await modelCl.checkRemoveConstraint(existCl, query, sysCl)
       return sysCl.deleteMany(query).then(({ deletedCount }) => deletedCount)
     } else {
@@ -99,6 +130,19 @@ class Document extends Base {
         let [db, cl] = dbDotCl.split('.')
         let sysCl = mongoClient.db(db).collection(cl)
         let tmwCl = await modelCl.bySysname({ sysname: db }, cl)
+        const [flag, { dbName, clName, keys, insert }] = this.findUnRepeatRule(
+          tmwCl
+        )
+        if (flag && insert) {
+          const { targetSysCl, targetQuery } = await this.getUnRepeatSQ(
+            sysCl,
+            { _id: { $in: ids } },
+            dbName,
+            clName,
+            keys
+          )
+          targetSysCl.deleteMany(targetQuery)
+        }
         await modelCl.checkRemoveConstraint(tmwCl, { _id: { $in: ids } }, sysCl)
       }
 
@@ -466,6 +510,47 @@ class Document extends Base {
       .toArray()
       .then(rst => [true, rst])
       .catch(err => [false, err.toString()])
+  }
+  /**
+   * 检查集合中是否有去重规则
+   * @param {object} existCl - 文档所在集合
+   *
+   */
+  findUnRepeatRule(existCl) {
+    const { operateRules } = existCl
+    if (operateRules && operateRules.scope && operateRules.scope.unrepeat) {
+      const {
+        database: { name: dbName },
+        collection: { name: clName },
+        primaryKeys: keys,
+        insert
+      } = operateRules.unrepeat
+      return [true, { dbName, clName, keys, insert }]
+    } else {
+      return [false, null]
+    }
+  }
+  /**
+   * 获得去重规则系统对象和条件
+   * @param {object} existSysCl - 删除操作文档所在集合
+   * @param {object} query - 删除操作的查询条件
+   * @param {object} db - 去重规则库
+   * @param {object} cl - 去重规则表
+   * @param {arary} keys - 去重规则主键
+   *
+   */
+  async getUnRepeatSQ(existSysCl, query, db, cl, keys) {
+    let mongoClient = await this.mongoClient()
+    let targetSysCl = mongoClient.db(db).collection(cl)
+
+    const docs = await existSysCl.find(query).toArray()
+    let targetQuery = {}
+    keys.forEach(key => {
+      let result = []
+      docs.forEach(doc => result.push(doc[key]))
+      targetQuery[key] = { $in: result }
+    })
+    return { targetSysCl, targetQuery }
   }
 }
 

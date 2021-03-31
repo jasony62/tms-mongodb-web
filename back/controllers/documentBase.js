@@ -26,20 +26,17 @@ class DocBase extends Base {
     let doc = this.request.body
 
     // 去重校验
-    const { operateRules } = existCl
-    if (operateRules && operateRules.scope && operateRules.scope.unrepeat) {
-      const {
-        database: { name: dbName },
-        collection: { name: clName },
-        primaryKeys,
-        insert
-      } = operateRules.unrepeat
+    const [
+      flag,
+      { dbName, clName: collName, keys, insert }
+    ] = this.findUnRepeatRule(existCl)
+    if (flag) {
       const curDoc = [doc]
       const curConfig = {
         config: {
-          columns: primaryKeys,
+          columns: keys,
           db: dbName,
-          cl: clName,
+          cl: collName,
           insert: insert
         }
       }

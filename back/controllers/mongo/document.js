@@ -81,7 +81,7 @@ class Document extends DocBase {
    * 导出数据
    */
   async export() {
-    const { filter, docIds } = this.request.body
+    let { filter, docIds, columns } = this.request.body
 
     let modelDoc = new ModelDoc(this.bucket)
 
@@ -103,7 +103,7 @@ class Document extends DocBase {
     const existCl = await this.docHelper.findRequestCl()
     // 集合列
     let modelCl = new ModelColl(this.bucket)
-    let columns = await modelCl.getSchemaByCollection(existCl)
+    columns = columns ? columns : await modelCl.getSchemaByCollection(existCl)
     if (!columns) return new ResultFault('指定的集合没有指定集合列')
 
     const client = this.mongoClient
