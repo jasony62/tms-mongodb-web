@@ -752,16 +752,39 @@ const componentOptions = {
           beforeWidget &&
           beforeWidget.name === 'DialogSelectCollection'
         ) {
-          let { bucketName, tmsAxiosName } = this
-          let propsData = { bucketName, tmsAxiosName }
-
-          const vm = createAndMountSelectColl(Vue, propsData, {
-            createDbApi,
-            createClApi
+          let { bucketName, tmsAxiosName, dbName, clName } = this
+          new Promise(resolve => {
+            if (beforeWidget.remoteWidgetOptions === true)
+              return createPluginApi(this.TmsAxios(this.tmsAxiosName))
+                .remoteWidgetOptions(
+                  bucketName,
+                  dbName,
+                  clName,
+                  plugin.name
+                )
+                .then(result => {
+                  resolve(result)
+                })
+            else return {}
+          }).then(preCondition => {
+            let propsData = {
+              bucketName,
+              tmsAxiosName
+            }
+            // 插件设置的固定条件
+            if (preCondition && typeof preCondition === 'object') {
+              let { db, cl } = preCondition
+              propsData.fixedDbName = db
+              propsData.fixedClName = cl
+            }
+            const vm = createAndMountSelectColl(Vue, propsData, {
+              createDbApi,
+              createClApi
+            })
+            vm.$on('confirm', ({ db: dbName, cl: clName }) =>
+              resolve({ db: dbName, cl: clName })
+            )
           })
-          vm.$on('confirm', ({ db: dbName, cl: clName }) =>
-            resolve({ db: dbName, cl: clName })
-          )
         } else if (beforeWidget && beforeWidget.name === 'DialogMessagebox') {
           if (beforeWidget.preCondition) {
             let { msgbox, confirm, cancel } = beforeWidget.preCondition

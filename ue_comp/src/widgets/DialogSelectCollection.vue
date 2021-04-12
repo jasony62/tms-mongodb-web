@@ -2,7 +2,7 @@
   <el-dialog :visible.sync="dialogVisible" :show-close="false" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <tms-flex direction="column" :elastic-items="[1]" style="height:100%">
       <tms-flex>
-        <el-select v-if="!fixedDbName" v-model="criteria.database" placeholder="选择数据库" clearable filterable remote :remote-method="listDbByKw" :loading="criteria.databaseLoading" style="width:240px">
+        <el-select :disabled="fixedDbName!==''" v-model="criteria.database" placeholder="选择数据库" clearable filterable remote :remote-method="listDbByKw" :loading="criteria.databaseLoading" style="width:240px">
           <el-option v-for="item in criteria.databases" :key="item.value" :label="item.label" :value="item.value">
           </el-option>
           <el-option :disabled="true" value="" v-if="criteria.dbBatch.pages>1">
@@ -10,7 +10,7 @@
             </el-pagination>
           </el-option>
         </el-select>
-        <el-select v-if="fixedClName!==true" v-model="criteria.collection" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw" :loading="criteria.collectionLoading" style="width:240px">
+        <el-select :disabled="fixedClName!==''" v-model="criteria.collection" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw" :loading="criteria.collectionLoading" style="width:240px">
           <el-option v-for="item in criteria.collections" :key="item.value" :label="item.label" :value="item.value">
           </el-option>
           <el-option :disabled="true" value="" v-if="criteria.clBatch.pages>1">
@@ -35,7 +35,11 @@ import { Flex } from 'tms-vue-ui'
 import { Dialog, Select, Option, Button, Pagination } from 'element-ui'
 
 Vue.use(Flex)
-Vue.use(Dialog).use(Select).use(Option).use(Button).use(Pagination)
+Vue.use(Dialog)
+  .use(Select)
+  .use(Option)
+  .use(Button)
+  .use(Pagination)
 
 // 查找条件下拉框分页包含记录数
 const SELECT_PAGE_SIZE = 7
@@ -50,7 +54,7 @@ const componentOptions = {
     fixedDbName: String,
     fixedClName: String,
     tmsAxiosName: String,
-    dialogVisible: { type: Boolean, default: true },
+    dialogVisible: { type: Boolean, default: true }
   },
   data() {
     return {
@@ -63,14 +67,14 @@ const componentOptions = {
         database: '',
         collections: [],
         collection: '',
-        clBatch: new Batch(),
-      },
+        clBatch: new Batch()
+      }
     }
   },
   methods: {
     listDbByKw(keyword) {
       this.criteria.dbBatch = startBatch(this.batchDatabase, [keyword], {
-        size: SELECT_PAGE_SIZE,
+        size: SELECT_PAGE_SIZE
       })
     },
     changeDbPage(page) {
@@ -81,11 +85,11 @@ const componentOptions = {
       return fnCreateDbApi(this.TmsAxios(this.tmsAxiosName))
         .list(this.bucketName, {
           keyword,
-          ...batchArg,
+          ...batchArg
         })
-        .then((result) => {
+        .then(result => {
           this.criteria.databaseLoading = false
-          this.criteria.databases = result.databases.map((db) => {
+          this.criteria.databases = result.databases.map(db => {
             return { value: db.name, label: `${db.title} (${db.name})` }
           })
           return result
@@ -93,7 +97,7 @@ const componentOptions = {
     },
     listClByKw(keyword) {
       this.criteria.clBatch = startBatch(this.batchCollection, [keyword], {
-        size: SELECT_PAGE_SIZE,
+        size: SELECT_PAGE_SIZE
       })
     },
     batchCollection(keyword, batchArg) {
@@ -102,10 +106,10 @@ const componentOptions = {
         return fnCreateClApi(this.TmsAxios(this.tmsAxiosName))
           .list(this.bucketName, this.criteria.database, {
             keyword,
-            ...batchArg,
+            ...batchArg
           })
-          .then((result) => {
-            this.criteria.collections = result.collections.map((cl) => {
+          .then(result => {
+            this.criteria.collections = result.collections.map(cl => {
               return { value: cl.name, label: `${cl.title} (${cl.name})` }
             })
             this.criteria.collectionLoading = false
@@ -123,18 +127,19 @@ const componentOptions = {
     confirm() {
       this.$emit('confirm', {
         db: this.criteria.database,
-        cl: this.criteria.collection,
+        cl: this.criteria.collection
       })
       this.$destroy()
-    },
+    }
   },
   watch: {
-    'criteria.database': function () {
+    'criteria.database': function() {
+      if (this.fixedClName) return
       this.criteria.collection = null
       this.criteria.clBatch = startBatch(this.batchCollection, [null], {
-        size: SELECT_PAGE_SIZE,
+        size: SELECT_PAGE_SIZE
       })
-    },
+    }
   },
   mounted() {
     document.body.appendChild(this.$el)
@@ -144,13 +149,13 @@ const componentOptions = {
       if (this.fixedClName) criteria.collection = this.fixedClName
     } else {
       criteria.dbBatch = startBatch(this.batchDatabase, [null], {
-        size: SELECT_PAGE_SIZE,
+        size: SELECT_PAGE_SIZE
       })
     }
   },
   beforeDestroy() {
     document.body.removeChild(this.$el)
-  },
+  }
 }
 export default componentOptions
 /**
@@ -167,7 +172,7 @@ export function createAndMount(Vue, propsData, apiCreators) {
 
   const CompClass = Vue.extend(componentOptions)
   return new CompClass({
-    propsData,
+    propsData
   }).$mount()
 }
 </script>
