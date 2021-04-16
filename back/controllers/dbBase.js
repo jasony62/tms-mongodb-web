@@ -44,7 +44,7 @@ class DbBase extends Base {
     }
     const options = {
       projection: { type: 0 },
-      sort: { top: -1 }
+      sort: { top: -1, _id: -1 }
     }
     let { skip, limit } = this.dbHelper.requestPage()
     // 添加分页条件
