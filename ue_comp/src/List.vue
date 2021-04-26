@@ -445,10 +445,6 @@ const componentOptions = {
     handleSelectDocument(rows) {
       this.selectedDocuments = rows
     },
-    fnGetSelectedIds() {
-      let ids = this.selectedDocuments.map(document => document._id)
-      return ids
-    },
     createDocument() {
       let editor = new Vue(DocEditor)
       editor
@@ -484,16 +480,14 @@ const componentOptions = {
     },
     fnSetReqParam(command) {
       let param = {}
-      switch (command) {
-        case 'all':
-          param.filter = 'ALL'
-          break
-        case 'filter':
-          param.filter = this.handleCondition().filter
-          this.filter = param.filter
-          break
-        case 'checked':
-          param.docIds = this.fnGetSelectedIds()
+      if (command === 'all') {
+        param.filter = 'ALL'
+      } else if (command === 'filter') {
+        param.filter = this.handleCondition().filter
+        this.filter = param.filter
+      } else if (command === 'checked') {
+        let ids = this.selectedDocuments.map(document => document._id)
+        param.docIds = ids
       }
       return { param }
     },
@@ -673,6 +667,14 @@ const componentOptions = {
       window.open(`${file.url}?access_token=${access_token}`)
     },
     handlePlugins(plugin, conditionType) {
+      let postBody
+      if (plugin.transData && plugin.transData === 'one') {
+        postBody = { docIds: [conditionType._id] }
+      } else {
+        postBody = conditionType
+          ? this.fnSetReqParam(conditionType).param
+          : null
+      }
       new Promise(resolve => {
         let { beforeWidget } = plugin
         if (beforeWidget && beforeWidget.name === 'DialogSelectDocument') {
@@ -686,7 +688,7 @@ const componentOptions = {
                     dbName,
                     clName,
                     plugin.name,
-                    this.filter
+                    postBody
                   )
                   .then(result => {
                     resolve(result)
@@ -727,7 +729,7 @@ const componentOptions = {
                     dbName,
                     clName,
                     plugin.name,
-                    this.filter
+                    postBody
                   )
                   .then(result => {
                     resolve(result)
@@ -756,12 +758,7 @@ const componentOptions = {
           new Promise(resolve => {
             if (beforeWidget.remoteWidgetOptions === true)
               return createPluginApi(this.TmsAxios(this.tmsAxiosName))
-                .remoteWidgetOptions(
-                  bucketName,
-                  dbName,
-                  clName,
-                  plugin.name
-                )
+                .remoteWidgetOptions(bucketName, dbName, clName, plugin.name)
                 .then(result => {
                   resolve(result)
                 })
@@ -802,14 +799,6 @@ const componentOptions = {
           } else return {}
         } else resolve()
       }).then(beforeResult => {
-        let postBody
-        if (plugin.transData && plugin.transData === 'one') {
-          postBody = { docIds: [conditionType._id] }
-        } else {
-          postBody = conditionType
-            ? this.fnSetReqParam(conditionType).param
-            : null
-        }
         if (beforeResult) {
           if (!postBody) postBody = {}
           postBody.widget = beforeResult

@@ -28,11 +28,11 @@ export default function create(tmsAxios) {
      * @param {string} plugin - 插件名称
      * @param {object} filter - 筛选条件
      */
-    remoteWidgetOptions(bucket, db, cl, plugin, filter) {
+    remoteWidgetOptions(bucket, db, cl, plugin, criteria = {}) {
       return tmsAxios
         .post(
           `${base}/remoteWidgetOptions`,
-          { filter },
+          { filter: criteria },
           {
             params: { bucket, db, cl, plugin }
           }

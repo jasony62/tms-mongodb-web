@@ -126,7 +126,12 @@ class Plugin extends Base {
         `插件[plugin=${plugin.name}]没有定义[remoteWidgetOptions]方法`
       )
 
-    const condition = await plugin.remoteWidgetOptions(bucket, db, cl)
+    const condition = await plugin.remoteWidgetOptions(
+      bucket,
+      db,
+      cl,
+      this.request.body
+    )
 
     return new ResultData(condition)
   }
