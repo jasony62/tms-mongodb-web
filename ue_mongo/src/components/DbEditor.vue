@@ -27,12 +27,21 @@
 </template>
 <script>
 import Vue from 'vue'
-import { Dialog, Form, FormItem, Input, Select, Option, Button, Message } from 'element-ui'
+import {
+  Dialog,
+  Form,
+  FormItem,
+  Input,
+  Select,
+  Option,
+  Button,
+  Message
+} from 'element-ui'
 Vue.use(Dialog)
   .use(Form)
   .use(FormItem)
-	.use(Input)
-	.use(Select)
+  .use(Input)
+  .use(Select)
   .use(Option)
   .use(Button)
 
@@ -43,8 +52,8 @@ import createSchemaApi from '../apis/schema'
 export default {
   name: 'DbEditor',
   props: {
-		dialogVisible: { default: true },
-		tmsAxiosName: { type: String },
+    dialogVisible: { default: true },
+    tmsAxiosName: { type: String },
     bucketName: { type: String },
     database: {
       type: Object,
@@ -64,57 +73,61 @@ export default {
       mode: '',
       destroyOnClose: true,
       closeOnClickModal: false,
-			extensions: [],
-			extendSchema: {}
+      extensions: [],
+      extendSchema: {}
     }
   },
   mounted() {
-		createSchemaApi(this.TmsAxios(this.tmsAxiosName))
-			.list(this.bucketName, 'db').then(extensions => {
-				this.extensions = extensions
-				this.handleExtendId(this.database.extensionInfo.schemaId, true)
-			})
+    createSchemaApi(this.TmsAxios(this.tmsAxiosName))
+      .list(this.bucketName, 'db')
+      .then(extensions => {
+        this.extensions = extensions
+        this.handleExtendId(this.database.extensionInfo.schemaId, true)
+      })
   },
   methods: {
-		handleExtendId(id, init) {
-			this.extendSchema = {}
-			this.extensions.find(item => {
-				if (item._id==id) {
-					this.$nextTick(() => {
-						this.extendSchema = item.body
-						if (!init) {
-							this.database.extensionInfo.info = {}
-						}
-					})
-				}
-			})
-		},
-		fnSubmit() {
-			if (this.mode === 'update') {
+    handleExtendId(id, init) {
+      this.extendSchema = {}
+      this.extensions.find(item => {
+        if (item._id == id) {
+          this.$nextTick(() => {
+            this.extendSchema = item.body
+            if (!init) {
+              this.database.extensionInfo.info = {}
+            }
+          })
+        }
+      })
+    },
+    fnSubmit() {
+      if (this.mode === 'update') {
         createDbApi(this.TmsAxios(this.tmsAxiosName))
-          .update(this.bucketName, this.database.name, this.database)
+          .update(this.bucketName, this.database)
           .then(newDb => this.$emit('submit', newDb))
       } else if (this.mode === 'create') {
         createDbApi(this.TmsAxios(this.tmsAxiosName))
           .create(this.bucketName, this.database)
           .then(newDb => this.$emit('submit', newDb))
       }
-		},
+    },
     onSubmit() {
-			if (this.$refs.attrForm) {
-				const tmsAttrForm = this.$refs.attrForm.$refs.TmsJsonDoc
-				tmsAttrForm.form().validate(valid => {
-					valid ? this.fnSubmit() : Message.error({message: '请填写必填字段'})
-				})
-				return false;
-			}
-			this.fnSubmit()
+      if (this.$refs.attrForm) {
+        const tmsAttrForm = this.$refs.attrForm.$refs.TmsJsonDoc
+        tmsAttrForm.form().validate(valid => {
+          valid ? this.fnSubmit() : Message.error({ message: '请填写必填字段' })
+        })
+        return false
+      }
+      this.fnSubmit()
     },
     open(mode, tmsAxiosName, bucketName, db) {
-			this.mode = mode
-			this.tmsAxiosName = tmsAxiosName
-			this.bucketName = bucketName
-      if (mode === 'update') this.database = JSON.parse(JSON.stringify(Object.assign(this.database, db)))
+      this.mode = mode
+      this.tmsAxiosName = tmsAxiosName
+      this.bucketName = bucketName
+      if (mode === 'update')
+        this.database = JSON.parse(
+          JSON.stringify(Object.assign(this.database, db))
+        )
       this.$mount()
       document.body.appendChild(this.$el)
       return new Promise(resolve => {

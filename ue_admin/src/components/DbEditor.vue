@@ -1,9 +1,5 @@
 <template>
-  <el-dialog
-    :visible.sync="dialogVisible"
-    :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal"
-  >
+  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <el-form ref="form" :model="database" label-position="top">
       <el-form-item label="数据库名称（英文）">
         <el-input v-model="database.name"></el-input>
@@ -53,7 +49,7 @@ export default {
       }
       if (this.mode === 'update') {
         apiDb
-          .update(this.bucketName, this.oldDbName, this.database)
+          .update(this.bucketName, this.database)
           .then(newDb => this.$emit('submit', newDb))
       } else if (this.mode === 'create') {
         apiDb

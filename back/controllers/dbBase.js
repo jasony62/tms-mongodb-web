@@ -83,10 +83,7 @@ class DbBase extends Base {
    * 更新数据库对象信息
    */
   async update() {
-    const beforeDb = await this.dbHelper.findRequestDb()
-
     let info = this.request.body
-    let params = this.request.query
 
     // 检查数据库名
     let modelDb = new ModelDb()
@@ -99,18 +96,18 @@ class DbBase extends Base {
     }
 
     //修改集合查询
-    const queryList = { database: params.db, type: 'collection' }
+    const queryList = { 'db.sysname': info.sysname, type: 'collection' }
 
     // 修改集合值
-    const updateList = { database: info.name }
+    const updateList = { database: info.name, 'db.name': info.name }
 
     const rst = await this.clMongoObj.updateMany(queryList, {
       $set: updateList
     })
 
-    let { _id, bucket, ...updatedInfo } = info
+    let { _id, bucket, sysname, ...updatedInfo } = info
 
-    const query = { _id: ObjectId(beforeDb._id) }
+    const query = { _id: ObjectId(_id) }
 
     return this.clMongoObj
       .updateOne(query, { $set: updatedInfo })
