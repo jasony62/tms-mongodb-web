@@ -14,7 +14,7 @@ class DocBase extends Base {
   constructor(...args) {
     super(...args)
     this.docHelper = new DocumentHelper(this)
-    this.modelDoc = new ModelDoc(this.bucket)
+    this.modelDoc = new ModelDoc(this.bucket, this.client)
   }
   /**
    * 指定数据库指定集合下新建文档

@@ -53,6 +53,7 @@ class DocumentHelper extends Helper {
    *  noRepeatconfig 数据去重配置
    */
   async importToColl(existCl, filename, noRepeatconfig) {
+    const modelDoc = new ModelDoc(this.ctrl.buckent, this.ctrl.client)
     if (!fs.existsSync(filename)) return [false, '指定的文件不存在']
     const xlsx = require('tms-koa/node_modules/xlsx')
     const wb = xlsx.readFile(filename)
@@ -139,7 +140,6 @@ class DocumentHelper extends Helper {
         .then(async () => {
           if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
             // 记录日志
-            const modelDoc = new ModelDoc()
             await modelDoc.dataActionLog(
               jsonFinishRows,
               '导入',
@@ -286,12 +286,12 @@ class DocumentHelper extends Helper {
       return [false, '参数不完整']
     }
 
-    let collModel = new ModelColl(this.bucket)
+    let collModel = new ModelColl(this.ctrl.bucket)
     const oldExistCl = await collModel.byName(oldDbName, oldClName)
     const newExistCl = await collModel.byName(newDbName, newClName)
 
     //获取指定集合的列
-    let modelDoc = new ModelDoc(this.bucket)
+    let modelDoc = new ModelDoc(this.ctrl.bucket, this.ctrl.client)
     let newClSchema = await collModel.getSchemaByCollection(newExistCl)
     if (!newClSchema) return [false, '指定的集合未指定集合列定义']
 

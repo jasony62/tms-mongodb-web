@@ -103,6 +103,11 @@ class PluginHttpSendDocs extends PluginHttpSend {
     let config =
       getConfig && typeof getConfig === 'function' ? getConfig(ctrl, tmwCl) : {}
 
+    config = Object.assign(config, {
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity
+    })
+
     logger.debug(`插件[name=${this.name}]向[${url}]接口发送数据`)
     if (this.method === 'post') {
       let body = await this.getBody(ctrl, tmwCl)

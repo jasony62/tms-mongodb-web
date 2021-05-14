@@ -440,6 +440,11 @@ class Document extends Base {
       data.operate_after_clname = operate_after_clname
       data.operate_time = current
       data.operate_type = operate_type
+      if (this.client && this.client.data) {
+        data.operate_account =
+          this.client.data.account || this.client.data['cust_id']
+        data.operate_nickname = this.client.data.nickname
+      }
       // 旧数据
       if (operate_before_data) {
         if (

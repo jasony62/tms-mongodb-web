@@ -8,14 +8,15 @@ class Base {
    *
    * @param {object} bucket - 用户存储空间
    */
-  constructor(bucket) {
+  constructor(bucket, client) {
     this.bucket = bucket
+    this.client = client
   }
   /**
    * 组装 查询条件
    */
   assembleQuery(filter, like = true) {
-    const fnKwRe = (keyword) => {
+    const fnKwRe = keyword => {
       let kws = keyword.split(/,|，/)
       return kws.length === 1 ? keyword : '(' + kws.join('|') + ')'
     }

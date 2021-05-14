@@ -155,7 +155,7 @@ class Document extends DocBase {
     let modelCl = new ModelColl()
     const oldExistCl = await modelCl.byName(oldDb, oldCl)
 
-    let modelDoc = new ModelDoc(this.bucket)
+    let modelDoc = new ModelDoc(this.bucket, this.client)
 
     let docIds2, oldDocus, total
     if (docIds) {
