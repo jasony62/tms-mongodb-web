@@ -48,6 +48,8 @@ services:
     #    - TMW_MONGODB_A_PORT=27019
     #    - TMS_MONGODB_S_HOST=""
     #    - TMS_MONGODB_A_HOST=""
+    # redis增加密码
+    #    - TMS_REDIS_PWD=''
     command:
       [
         'sh',
