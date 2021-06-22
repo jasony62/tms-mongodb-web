@@ -1704,8 +1704,8 @@ async-each@^1.0.1:
 
 async-limiter@~1.0.0:
   version "1.0.1"
-  resolved "https://registry.npm.taobao.org/async-limiter/download/async-limiter-1.0.1.tgz#dd379e94f0db8310b08291f9d64c3209766617fd"
-  integrity sha1-3TeelPDbgxCwgpH51kwyCXZmF/0=
+  resolved "https://registry.yarnpkg.com/async-limiter/-/async-limiter-1.0.1.tgz#dd379e94f0db8310b08291f9d64c3209766617fd"
+  integrity sha512-csOlWGAcRFJaI6m+F2WKdnMKr4HhdhFVBk0H/QbJFMCr+uO2kwohwXQPxw/9OCxp05r5ghVBFSyioixx3gfkNQ==
 
 async-validator@~1.8.1:
   version "1.8.5"
@@ -8116,20 +8116,20 @@ tmp@^0.0.33:
   dependencies:
     os-tmpdir "~1.0.2"
 
-tms-vue-ui@^0.0.44:
-  version "0.0.44"
-  resolved "https://registry.yarnpkg.com/tms-vue-ui/-/tms-vue-ui-0.0.44.tgz#b50379e61830b6fbfeaff61f5adac4561ea47a97"
-  integrity sha512-BhcHGh59ufiRBNcD07UDlptjdAamyC8z2kOxNhhCByznv0+RTWenSKRr5iLIlbAN+e4WHX6LomZAuOHPdnXL0w==
+tms-vue-ui@^0.0.48:
+  version "0.0.48"
+  resolved "https://registry.yarnpkg.com/tms-vue-ui/-/tms-vue-ui-0.0.48.tgz#059bf28181084dbbb7ef4efdc5b2adb565e77bb9"
+  integrity sha512-bFON5jBsdQBztC1QjMhYz6FxKUTW9JGk5JEeVaStWkV177OILy47Thku00S3yADbjA7/twrpbF1+pPRcPiFi5Q==
   dependencies:
     element-ui "^2.12.0"
     lodash "^4.17.15"
     vant "^2.2.11"
     vue-router "^3.1.5"
 
-tms-vue@^0.0.9:
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/tms-vue/-/tms-vue-0.0.9.tgz#803ac153e4cbdb55f90d8124df27ec31b0a45c98"
-  integrity sha512-VCDRNXZkbq/BWTTyhMxuebTG4YGslkSK1oxnInxXHBozKht7CwxLGmlcCnby7c1yU1W/8jJIAhL9MqCOOnDMjg==
+tms-vue@^0.0.13:
+  version "0.0.13"
+  resolved "https://registry.yarnpkg.com/tms-vue/-/tms-vue-0.0.13.tgz#31965b015e463666e74aa50ceeef973c5e221d29"
+  integrity sha512-NfjCmc3D/WxLW+JH8HADKrHGPxLRRdS+bbKxHbKbhU61Ipa8SBySSrhKFtRewSEhu6iIgp9ha5r/crVT2fjWHQ==
   dependencies:
     axios "^0.19.0"
 
@@ -8887,9 +8887,9 @@ write@1.0.3:
     mkdirp "^0.5.1"
 
 ws@^6.0.0, ws@^6.2.1:
-  version "6.2.1"
-  resolved "https://registry.npm.taobao.org/ws/download/ws-6.2.1.tgz?cache=0&sync_timestamp=1571495118606&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fws%2Fdownload%2Fws-6.2.1.tgz#442fdf0a47ed64f59b6a5d8ff130f4748ed524fb"
-  integrity sha1-RC/fCkftZPWbal2P8TD0dI7VJPs=
+  version "6.2.2"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-6.2.2.tgz#dd5cdbd57a9979916097652d78f1cc5faea0c32e"
+  integrity sha512-zmhltoSR8u1cnDsD43TX59mzoMZsLKqUweyYBAIvTngR3shc0W6aOZylZmq/7hqyVxPdi+5Ud2QInblgyE72fw==
   dependencies:
     async-limiter "~1.0.0"
 
