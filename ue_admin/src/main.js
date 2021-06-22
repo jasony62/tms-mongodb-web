@@ -40,6 +40,7 @@ import {
   Image,
   Row,
   Col,
+  Icon,
   Message,
   MessageBox
 } from 'element-ui'
@@ -76,6 +77,7 @@ Vue.use(TmsAxiosPlugin)
   .use(Image)
   .use(Row)
   .use(Col)
+  .use(Icon)
 
 const { fnGetCaptcha, fnGetToken } = apiLogin
 const schema = [

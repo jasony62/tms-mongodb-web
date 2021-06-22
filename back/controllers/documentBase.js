@@ -90,7 +90,6 @@ class DocBase extends Base {
         existCl.name,
         '',
         '',
-        '',
         JSON.stringify(existDoc)
       )
     }

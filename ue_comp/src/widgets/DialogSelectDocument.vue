@@ -20,8 +20,8 @@
         </el-select>
         <el-button @click="listDocument">查找</el-button>
       </tms-flex>
-      <el-table :data="docs" stripe style="width:100%" height="1" @selection-change="selectDocument">
-        <el-table-column fixed="left" type="selection" width="48"></el-table-column>
+      <el-table :data="docs" stripe style="width:100%" height="1" @selection-change="selectDocument" row-key="_id">
+        <el-table-column fixed="left" type="selection" width="48" :reserve-selection="true"></el-table-column>
         <el-table-column v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k" :label="s.title"></el-table-column>
       </el-table>
     </tms-flex>
@@ -77,6 +77,7 @@ const componentOptions = {
     fixedDocumentFilter: Object,
     fixedDocumentOrderby: Object,
     tmsAxiosName: String,
+    fixedSchema: Object,
     dialogVisible: { type: Boolean, default: true }
   },
   data() {
@@ -154,15 +155,17 @@ const componentOptions = {
       this.criteria.clBatch.goto(page)
     },
     listDocument() {
-      fnCreateClApi(this.TmsAxios(this.tmsAxiosName))
-        .byName(
-          this.bucketName,
-          this.criteria.database,
-          this.criteria.collection
-        )
-        .then(cl => {
-          Object.assign(this.collection.schema.body, cl.schema.body)
-        })
+      if (Object.assign(this.fixedSchema).length === 0) {
+        fnCreateClApi(this.TmsAxios(this.tmsAxiosName))
+          .byName(
+            this.bucketName,
+            this.criteria.database,
+            this.criteria.collection
+          )
+          .then(cl => {
+            Object.assign(this.collection.schema.body, cl.schema.body)
+          })
+      }
       this.docBatch = startBatch(this.batchDocument, [], {
         size: this.docBatch.size
       })
@@ -219,6 +222,12 @@ const componentOptions = {
       criteria.database = this.fixedDbName
       if (this.fixedClName) {
         criteria.collection = this.fixedClName
+        if (this.fixedSchema) {
+          Object.assign(
+            this.collection.schema.body,
+            this.fixedSchema.schema.body
+          )
+        }
         this.listDocument()
       }
     } else {

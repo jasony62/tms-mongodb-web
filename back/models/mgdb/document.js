@@ -144,14 +144,26 @@ class Document extends Base {
       .collection(targetCl.sysname)
 
     let bulkOp = targetSysCl.initializeUnorderedBulkOp()
-    copyedDocs.forEach(doc => {
-      bulkOp
-        .find({ _id: doc._id })
-        .upsert()
-        .updateOne({
-          $setOnInsert: doc
-        })
-    })
+    for (let doc of copyedDocs) {
+      let { _id, ...info } = doc
+      typeof info[TMWCONFIG['TMS_APP_DEFAULT_CREATETIME']] !== 'undefined' &&
+        delete info[TMWCONFIG['TMS_APP_DEFAULT_UPDATETIME']]
+      typeof info[TMWCONFIG['TMS_APP_DEFAULT_UPDATETIME']] !== 'undefined' &&
+        delete info[TMWCONFIG['TMS_APP_DEFAULT_CREATETIME']]
+      let isExistDoc = await targetSysCl.findOne({ _id: doc._id })
+      if (isExistDoc) {
+        this.beforeProcessByInAndUp(info, 'update')
+        bulkOp.find({ _id: doc._id }).updateOne({ $set: info })
+      } else {
+        this.beforeProcessByInAndUp(info, 'insert')
+        bulkOp
+          .find({ _id: doc._id })
+          .upsert()
+          .updateOne({
+            $setOnInsert: info
+          })
+      }
+    }
 
     return bulkOp.execute().then(({ nUpserted, nMatched, nModified }) => {
       return { nUpserted, nMatched, nModified }

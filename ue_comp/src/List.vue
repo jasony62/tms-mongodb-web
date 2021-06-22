@@ -133,7 +133,7 @@
           </el-dropdown-menu>
         </el-dropdown>
         <div v-for="p in computedPluginData" :key="p.name">
-          <el-button v-if="p.transData==='noting'" type="success" plain @click="handlePlugins(p)">{{p.title}}</el-button>
+          <el-button v-if="p.transData==='nothing'" type="success" plain @click="handlePlugins(p)">{{p.title}}</el-button>
           <el-dropdown v-else>
             <el-button type="success" plain>{{p.title}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
@@ -688,11 +688,12 @@ const componentOptions = {
               }
               // 插件设置的固定条件
               if (preCondition && typeof preCondition === 'object') {
-                let { db, cl, filter, orderby } = preCondition
+                let { db, cl, filter, orderby, schema } = preCondition
                 propsData.fixedDbName = db
                 propsData.fixedClName = cl
                 propsData.fixedDocumentFilter = filter
                 propsData.fixedDocumentOrderby = orderby
+                propsData.fixedSchema = schema
               }
               const vm = Module.createAndMount(Vue, propsData, {
                 createDbApi,
@@ -726,7 +727,7 @@ const componentOptions = {
               if (preCondition && typeof preCondition === 'object') {
                 let { schema } = preCondition
                 propsData.schema = schema
-                propsData.tmsAxiosName = this.tmsAxiosName
+                propsData.tmsAxiosName = tmsAxiosName
               }
               const vm = Module.createAndMount(Vue, propsData, {
                 createDocApi
@@ -794,6 +795,7 @@ const componentOptions = {
                 message: result,
                 showClose: true
               })
+              this.listDocument()
             } else if (
               result &&
               typeof result === 'object' &&
@@ -850,7 +852,8 @@ const componentOptions = {
               ) || 0}]条记录。`
               MessageBox.confirm(message, '提示', {
                 confirmButtonText: '关闭',
-                cancelButtonText: '刷新数据'
+                cancelButtonText: '刷新数据',
+                showClose: false
               }).catch(() => {
                 this.listDocument()
               })
@@ -859,6 +862,7 @@ const componentOptions = {
                 message: `插件[${plugin.title}]执行完毕。`,
                 showClose: true
               })
+              this.listDocument()
             }
           })
       })

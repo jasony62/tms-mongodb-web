@@ -13,7 +13,6 @@
   </div>
 </template>
 <script>
-import Vue from 'vue'
 import apiInvite from './apis/invite'
 export default {
   name: 'Invite',
