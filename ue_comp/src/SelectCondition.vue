@@ -245,6 +245,7 @@ export default {
         this.$on('submit', selectCondition => {
           const { rule, isClear, isCheckBtn } = selectCondition
           this.dialogVisible = false
+          document.body.removeChild(this.$el)
           resolve({
             rule,
             condition: { ...this.condition, columnName: columnName },

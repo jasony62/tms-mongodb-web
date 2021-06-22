@@ -51,7 +51,7 @@ async function syncAll() {
   return syncCount
 }
 
-syncAll().then((syncCount) => {
+syncAll().then(syncCount => {
   logger.info('退出')
   process.send({ syncCount })
   process.exit(0)

@@ -68,7 +68,10 @@ class CollectionBase extends Base {
       options.limit = limit
     }
 
-    const tmwCls = await this.clMongoObj.find(query, options).toArray()
+    const tmwCls = await this.clMongoObj
+      .find(query, options)
+      .sort({ _id: -1 })
+      .toArray()
 
     if (typeof skip === 'number') {
       let total = await this.clMongoObj.countDocuments(query)

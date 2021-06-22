@@ -126,7 +126,12 @@ class Plugin extends Base {
         `插件[plugin=${plugin.name}]没有定义[remoteWidgetOptions]方法`
       )
 
-    const condition = await plugin.remoteWidgetOptions(bucket, db, cl)
+    const condition = await plugin.remoteWidgetOptions(
+      bucket,
+      db,
+      cl,
+      this.request.body
+    )
 
     return new ResultData(condition)
   }
@@ -199,9 +204,17 @@ class Plugin extends Base {
     const plugin = ins.byName(pluginName)
     if (!plugin) return new ResultFault(`未找到指定插件[plugin=${pluginName}]`)
 
-    if (plugin.scope === 'document') {
-      const existCl = await this.pluginHelper.findRequestCl()
-      const result = await plugin.execute(this, existCl)
+    if (plugin.scope) {
+      let arg
+      switch (plugin.scope) {
+        case 'collection':
+          arg = await this.pluginHelper.findRequestDb()
+          break
+        case 'document':
+          arg = await this.pluginHelper.findRequestCl()
+          break
+      }
+      const result = await plugin.execute(this, arg)
       return new ResultData(result)
     }
 

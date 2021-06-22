@@ -18,7 +18,7 @@
             </el-pagination>
           </el-option>
         </el-select>
-        <el-button @click="listDocument">查找</el-button>
+        <el-button v-if="!fixedDbName&&!fixedClName" @click="listDocument">查找</el-button>
       </tms-flex>
       <el-table :data="docs" stripe style="width:100%" height="1" @selection-change="selectDocument" row-key="_id">
         <el-table-column fixed="left" type="selection" width="48" :reserve-selection="true"></el-table-column>
@@ -77,7 +77,7 @@ const componentOptions = {
     fixedDocumentFilter: Object,
     fixedDocumentOrderby: Object,
     tmsAxiosName: String,
-    fixedSchema: Object,
+    fixedSchema: { type: Object, default: { filter: {}, orderBy: {} } },
     dialogVisible: { type: Boolean, default: true }
   },
   data() {

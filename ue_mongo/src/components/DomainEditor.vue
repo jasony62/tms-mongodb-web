@@ -22,7 +22,12 @@
 <script>
 import Vue from 'vue'
 import { Dialog, Form, FormItem, Select, Option, Button } from 'element-ui'
-Vue.use(Dialog).use(Form).use(FormItem).use(Select).use(Option).use(Button)
+Vue.use(Dialog)
+  .use(Form)
+  .use(FormItem)
+  .use(Select)
+  .use(Option)
+  .use(Button)
 
 import createDbApi from '../apis/database'
 import createCollectionApi from '../apis/collection'
@@ -32,7 +37,7 @@ export default {
   props: {
     dialogVisible: { default: true },
     tmsAxiosName: { type: String },
-    bucketName: { type: String },
+    bucketName: { type: String }
   },
   data() {
     return {
@@ -42,14 +47,14 @@ export default {
       cls: [],
       form: {
         dbName: '',
-        clName: '',
-      },
+        clName: ''
+      }
     }
   },
   mounted() {
     createDbApi(this.TmsAxios(this.tmsAxiosName))
       .list(this.bucketName)
-      .then((dbs) => {
+      .then(dbs => {
         this.dbs = dbs
       })
   },
@@ -57,7 +62,7 @@ export default {
     changeDdName() {
       createCollectionApi(this.TmsAxios(this.tmsAxiosName))
         .list(this.bucketName, this.form.dbName)
-        .then((cls) => {
+        .then(cls => {
           this.cls = cls
         })
     },
@@ -70,13 +75,13 @@ export default {
       this.title = config.title ? config.title : ''
       this.$mount()
       document.body.appendChild(this.$el)
-      return new Promise((resolve) => {
-        this.$on('submit', (formData) => {
+      return new Promise(resolve => {
+        this.$on('submit', formData => {
           this.dialogVisible = false
           resolve(formData)
         })
       })
-    },
-  },
+    }
+  }
 }
 </script>

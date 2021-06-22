@@ -1,4 +1,4 @@
-const { ResultData, ResultFault, ResultObjectNotFound } = require('tms-koa')
+const { ResultData, ResultFault } = require('tms-koa')
 const DocBase = require('../documentBase')
 const _ = require('lodash')
 const ObjectId = require('mongodb').ObjectId
@@ -17,11 +17,6 @@ class Document extends DocBase {
       return new ResultFault('没有上传文件')
     }
     const existCl = await this.docHelper.findRequestCl()
-    const {
-      checkRepeatColumns = '',
-      keepFirstRepeatData = false
-    } = this.request.query
-
     const { UploadPlain } = require('tms-koa/lib/model/fs/upload')
     const { LocalFS } = require('tms-koa/lib/model/fs/local')
     const { FsContext } = require('tms-koa').Context
@@ -37,28 +32,51 @@ class Document extends DocBase {
     } catch (e) {
       return new ResultFault(e.message)
     }
-    let options = {}
-    if (checkRepeatColumns) {
-      options.unrepeat = {}
-      options.unrepeat.columns = checkRepeatColumns.split(',')
-      options.unrepeat.keepFirstRepeatData = keepFirstRepeatData
-        ? keepFirstRepeatData
-        : false
+    // 去重校验
+    const { operateRules } = existCl
+    let noRepeatConfig = null
+    if (operateRules && operateRules.scope && operateRules.scope.unrepeat) {
+      const {
+        database: { name: dbName },
+        collection: { name: clName },
+        primaryKeys,
+        insert
+      } = operateRules.unrepeat
+      noRepeatConfig = {
+        config: {
+          columns: primaryKeys,
+          db: dbName,
+          cl: clName,
+          insert: insert
+        }
+      }
     }
 
-    let rst = await this.docHelper.importToColl(existCl, filepath, options)
+    let rst = await this.docHelper.importToColl(
+      existCl,
+      filepath,
+      noRepeatConfig
+    )
 
+    let result = null
     if (rst[0] === true) {
-      return new ResultData('ok')
+      result = {
+        importAll: true,
+        message: `导入成功`
+      }
     } else {
-      return new ResultFault(rst[1])
+      result = {
+        importAll: false,
+        message: `导入失败,${rst[1]}`
+      }
     }
+    return new ResultData(result)
   }
   /**
    * 导出数据
    */
   async export() {
-    const { filter, docIds } = this.request.body
+    let { filter, docIds, columns } = this.request.body
 
     let modelDoc = new ModelDoc(this.bucket)
 
@@ -80,7 +98,7 @@ class Document extends DocBase {
     const existCl = await this.docHelper.findRequestCl()
     // 集合列
     let modelCl = new ModelColl(this.bucket)
-    let columns = await modelCl.getSchemaByCollection(existCl)
+    columns = columns ? columns : await modelCl.getSchemaByCollection(existCl)
     if (!columns) return new ResultFault('指定的集合没有指定集合列')
 
     const client = this.mongoClient
@@ -132,7 +150,7 @@ class Document extends DocBase {
     let modelCl = new ModelColl()
     const oldExistCl = await modelCl.byName(oldDb, oldCl)
 
-    let modelDoc = new ModelDoc(this.bucket)
+    let modelDoc = new ModelDoc(this.bucket, this.client)
 
     let docIds2, oldDocus, total
     if (docIds) {

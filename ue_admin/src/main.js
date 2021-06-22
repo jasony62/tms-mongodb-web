@@ -46,9 +46,8 @@ import {
 } from 'element-ui'
 import './assets/css/common.less'
 
-Vue.use(TmsAxiosPlugin)
-  .use(TmsErrorPlugin)
-  .use(Pagination)
+Vue.use(TmsAxiosPlugin).use(TmsErrorPlugin)
+Vue.use(Pagination)
   .use(Dialog)
   .use(Dropdown)
   .use(DropdownMenu)

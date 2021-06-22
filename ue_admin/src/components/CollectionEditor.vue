@@ -53,6 +53,32 @@
         <el-checkbox v-model="collection.custom.docOperations.export">导出数据</el-checkbox>
         <el-checkbox v-model="collection.custom.docOperations.copyMany">批量复制</el-checkbox>
       </el-form-item>
+      <el-form-item label="文档操作规则">
+        <el-checkbox v-model="collection.operateRules.scope.unrepeat">添加/导入数据时去重</el-checkbox>
+      </el-form-item>
+      <el-form-item label="设置去重规则" v-if="collection.operateRules.scope.unrepeat===true" class="tmw-formItem__flex">
+        <el-select v-model="collection.operateRules.unrepeat.database" value-key="sysname" @clear="listDbByKw" @change="changeDb" placeholder="请选择数据库" clearable filterable remote :remote-method="listDbByKw" :loading="criteria.databaseLoading">
+          <el-option v-for="item in criteria.databases" :key="item._id" :label="item.label" :value="item"></el-option>
+          <el-option :disabled="true" value="" v-if="criteria.dbBatch.pages>1">
+            <el-pagination :current-page="criteria.dbBatch.page" :total="criteria.dbBatch.total" :page-size="criteria.dbBatch.size" layout="prev, next" @current-change="changeDbPage">
+            </el-pagination>
+          </el-option>
+        </el-select>
+        <el-select v-model="collection.operateRules.unrepeat.collection" value-key="sysname" @clear="listClByKw" @change="changeCl" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw" :loading="criteria.collectionLoading">
+          <el-option v-for="item in criteria.collections" :key="item._id" :label="item.label" :value="item"></el-option>
+          <el-option :disabled="true" value="" v-if="criteria.clBatch.pages>1">
+            <el-pagination :current-page="criteria.clBatch.page" :total="criteria.clBatch.total" :page-size="criteria.clBatch.size" layout="prev, next" @current-change="changeClPage">
+            </el-pagination>
+          </el-option>
+        </el-select>
+        <el-select v-model="collection.operateRules.unrepeat.primaryKeys" placeholder="请选择列" filterable multiple>
+          <el-option v-for="item in criteria.properties" :key="item.value" :label="item.label" :value="item.value"></el-option>
+        </el-select>
+        <el-select v-model="collection.operateRules.unrepeat.insert" placeholder="是否插入当前表" v-if="collection.operateRules.unrepeat.collection.sysname!==collection.sysname">
+          <el-option label="是" :value="true"></el-option>
+          <el-option label="否" :value="false"></el-option>
+        </el-select>
+      </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">
       <el-button type="primary" @click="onSubmit">提交</el-button>
@@ -61,9 +87,14 @@
   </el-dialog>
 </template>
 <script>
+import { Batch, startBatch } from 'tms-vue'
+import apiDb from '../apis/database'
 import apiCollection from '../apis/collection'
 import apiSchema from '../apis/schema'
 import apiTag from '../apis/tag'
+
+// 查找条件下拉框分页包含记录数
+const SELECT_PAGE_SIZE = 7
 
 export default {
   name: 'CollectionEditor',
@@ -95,6 +126,17 @@ export default {
               export: true,
               copyMany: true
             }
+          },
+          operateRules: {
+            scope: {
+              unrepeat: false
+            },
+            unrepeat: {
+              database: {},
+              collection: {},
+              primaryKeys: [],
+              insert: false
+            }
           }
         }
       }
@@ -107,7 +149,16 @@ export default {
       destroyOnClose: true,
       closeOnClickModal: false,
       schemas: [],
-      tags: []
+      tags: [],
+      criteria: {
+        databaseLoading: false,
+        databases: [],
+        dbBatch: new Batch(),
+        collectionLoading: false,
+        collections: [],
+        clBatch: new Batch(),
+        properties: {}
+      }
     }
   },
   mounted() {
@@ -117,9 +168,129 @@ export default {
     apiTag.list(this.bucketName).then(tags => {
       this.tags = tags
     })
+    let {
+      collection: {
+        operateRules: {
+          unrepeat: { database, collection, primaryKeys }
+        }
+      }
+    } = this
+    const dbKey = database.name ? database.name : null
+    this.listDbByKw(database.name)
+
+    if (database.name) {
+      const clKey = collection.name ? collection.name : null
+      this.listClByKw(clKey)
+    }
+    if (database.name && collection.name) {
+      this.listProperties()
+    }
   },
   methods: {
+    changeDb() {
+      this.collection.operateRules.unrepeat.collection = {}
+      this.criteria.clBatch = startBatch(this.batchCollection, [null], {
+        size: SELECT_PAGE_SIZE
+      })
+      this.changeCl()
+    },
+    changeCl() {
+      let { primaryKeys, collection } = this.collection.operateRules.unrepeat
+      primaryKeys.splice(0, primaryKeys.length)
+      if (collection && collection.sysname) {
+        this.listProperties()
+      }
+    },
+    listProperties() {
+      let { database, collection } = this.collection.operateRules.unrepeat
+      apiCollection
+        .byName(this.bucketName, database.name, collection.name)
+        .then(result => {
+          this.criteria.properties = Object.entries(
+            result.schema.body.properties
+          ).map(([key, value]) => {
+            return { value: key, label: `${value.title} (${key})` }
+          })
+        })
+    },
+    listDbByKw(keyword) {
+      this.criteria.dbBatch = startBatch(this.batchDatabase, [keyword], {
+        size: SELECT_PAGE_SIZE
+      })
+    },
+    changeDbPage(page) {
+      this.criteria.dbBatch.goto(page)
+    },
+    batchDatabase(keyword, batchArg) {
+      this.criteria.databaseLoading = true
+      return apiDb
+        .list(this.bucketName, {
+          keyword,
+          ...batchArg
+        })
+        .then(result => {
+          this.criteria.databaseLoading = false
+          this.criteria.databases = result.databases.map(db => {
+            return {
+              name: db.name,
+              sysname: db.sysname,
+              label: `${db.title} (${db.name})`
+            }
+          })
+          return result
+        })
+    },
+    listClByKw(keyword) {
+      this.criteria.clBatch = startBatch(this.batchCollection, [keyword], {
+        size: SELECT_PAGE_SIZE
+      })
+    },
+    batchCollection(keyword, batchArg) {
+      this.criteria.collectionLoading = true
+      let { database } = this.collection.operateRules.unrepeat
+
+      if (database.name) {
+        return apiCollection
+          .list(this.bucketName, database.name, {
+            keyword,
+            ...batchArg
+          })
+          .then(result => {
+            this.criteria.collections = result.collections.map(cl => {
+              return {
+                name: cl.name,
+                sysname: cl.sysname,
+                label: `${cl.title} (${cl.name})`
+              }
+            })
+            this.criteria.collectionLoading = false
+            return result
+          })
+      } else {
+        this.criteria.collections = []
+        this.criteria.collectionLoading = false
+        return Promise.resolve({ total: 0 })
+      }
+    },
+    changeClPage(page) {
+      this.criteria.clBatch.goto(page)
+    },
     onSubmit() {
+      let {
+        collection: {
+          operateRules: {
+            scope: { unrepeat },
+            unrepeat: { database, collection, primaryKeys }
+          }
+        }
+      } = this
+      if (unrepeat) {
+        if (!database.label || !collection.label || !primaryKeys.length) {
+          return Message.error('请选择去重时的比对库或表或列')
+        }
+        database.label && delete database.label
+        collection.label && delete collection.label
+      }
       if (this.mode === 'create')
         apiCollection
           .create(this.bucketName, this.dbName, this.collection)
@@ -138,7 +309,11 @@ export default {
       this.mode = mode
       this.bucketName = bucketName
       this.dbName = dbName
-      if (mode === 'update') Object.assign(this.collection, collection)
+      if (mode === 'update') {
+        this.collection = JSON.parse(
+          JSON.stringify(Object.assign(this.collection, collection))
+        )
+      }
       this.$mount()
       document.body.appendChild(this.$el)
       return new Promise(resolve => {
