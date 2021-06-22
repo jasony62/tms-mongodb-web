@@ -4932,9 +4932,9 @@ hoopy@^0.1.4:
   integrity sha1-YJIH1mEQADOpqUAq096mdzgcGx0=
 
 hosted-git-info@^2.1.4:
-  version "2.8.5"
-  resolved "https://registry.npm.taobao.org/hosted-git-info/download/hosted-git-info-2.8.5.tgz?cache=0&sync_timestamp=1570493570687&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fhosted-git-info%2Fdownload%2Fhosted-git-info-2.8.5.tgz#759cfcf2c4d156ade59b0b2dfabddc42a6b9c70c"
-  integrity sha1-dZz88sTRVq3lmwst+r3cQqa5xww=
+  version "2.8.9"
+  resolved "https://registry.yarnpkg.com/hosted-git-info/-/hosted-git-info-2.8.9.tgz#dffc0bf9a21c02209090f2aa69429e1414daf3f9"
+  integrity sha512-mxIDAb9Lsm6DoOJ7xH+5+X4y1LU/4Hi50L9C5sIswK3JzULS4bwk1FvjdBgvYR4bzT4tuUQiC15FE2f5HbLvYw==
 
 hpack.js@^2.1.6:
   version "2.1.6"
@@ -9515,20 +9515,20 @@ tmpl@1.0.x:
   resolved "https://registry.npm.taobao.org/tmpl/download/tmpl-1.0.4.tgz#23640dd7b42d00433911140820e5cf440e521dd1"
   integrity sha1-I2QN17QtAEM5ERQIIOXPRA5SHdE=
 
-tms-vue-ui@^0.0.44:
-  version "0.0.44"
-  resolved "https://registry.yarnpkg.com/tms-vue-ui/-/tms-vue-ui-0.0.44.tgz#b50379e61830b6fbfeaff61f5adac4561ea47a97"
-  integrity sha512-BhcHGh59ufiRBNcD07UDlptjdAamyC8z2kOxNhhCByznv0+RTWenSKRr5iLIlbAN+e4WHX6LomZAuOHPdnXL0w==
+tms-vue-ui@^0.0.48:
+  version "0.0.48"
+  resolved "https://registry.yarnpkg.com/tms-vue-ui/-/tms-vue-ui-0.0.48.tgz#059bf28181084dbbb7ef4efdc5b2adb565e77bb9"
+  integrity sha512-bFON5jBsdQBztC1QjMhYz6FxKUTW9JGk5JEeVaStWkV177OILy47Thku00S3yADbjA7/twrpbF1+pPRcPiFi5Q==
   dependencies:
     element-ui "^2.12.0"
     lodash "^4.17.15"
     vant "^2.2.11"
     vue-router "^3.1.5"
 
-tms-vue@^0.0.9:
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/tms-vue/-/tms-vue-0.0.9.tgz#803ac153e4cbdb55f90d8124df27ec31b0a45c98"
-  integrity sha512-VCDRNXZkbq/BWTTyhMxuebTG4YGslkSK1oxnInxXHBozKht7CwxLGmlcCnby7c1yU1W/8jJIAhL9MqCOOnDMjg==
+tms-vue@^0.0.13:
+  version "0.0.13"
+  resolved "https://registry.yarnpkg.com/tms-vue/-/tms-vue-0.0.13.tgz#31965b015e463666e74aa50ceeef973c5e221d29"
+  integrity sha512-NfjCmc3D/WxLW+JH8HADKrHGPxLRRdS+bbKxHbKbhU61Ipa8SBySSrhKFtRewSEhu6iIgp9ha5r/crVT2fjWHQ==
   dependencies:
     axios "^0.19.0"
 
