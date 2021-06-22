@@ -57,7 +57,7 @@ class ReplicaMap {
       limit = limit === undefined ? 10 : parseInt(limit)
       // 同步数据
       let skip = 0
-      for (let remainder = replacedCount; remainder;) {
+      for (let remainder = replacedCount; remainder; ) {
         let docs = await priSysCl.find({}, { skip, limit }).toArray()
         for (let i = 0, l = docs.length; i < l; i++) {
           let { _id, ...doc } = docs[i]
@@ -65,7 +65,7 @@ class ReplicaMap {
             db: pri.db,
             cl: pri.cl,
             id: _id,
-            time: syncAt,
+            time: syncAt
           }
           await secSysCl.replaceOne({ '__pri.id': _id }, doc, { upsert: true })
         }
@@ -78,7 +78,7 @@ class ReplicaMap {
       .deleteMany({
         '__pri.db': pri.db,
         '__pri.cl': pri.cl,
-        '__pri.time': { $not: { $eq: syncAt } },
+        '__pri.time': { $not: { $eq: syncAt } }
       })
       .then(({ deletedCount }) => deletedCount)
 

@@ -5,6 +5,7 @@ const axios = require('axios')
 const { PluginBase } = require('./base')
 
 const ModelDoc = require('../mgdb/document')
+const ModelCol = require('../mgdb/collection')
 
 /**
  * 发送数据插件

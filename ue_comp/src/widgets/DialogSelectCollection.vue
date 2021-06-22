@@ -2,7 +2,7 @@
   <el-dialog :visible.sync="dialogVisible" :show-close="false" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <tms-flex direction="column" :elastic-items="[1]" style="height:100%">
       <tms-flex>
-        <el-select :disabled="fixedDbName!==''" v-model="criteria.database" placeholder="选择数据库" clearable filterable remote :remote-method="listDbByKw" :loading="criteria.databaseLoading" style="width:240px">
+        <el-select :disabled="!!fixedDbName" v-model="criteria.database" placeholder="选择数据库" clearable filterable remote :remote-method="listDbByKw" :loading="criteria.databaseLoading" style="width:240px">
           <el-option v-for="item in criteria.databases" :key="item.value" :label="item.label" :value="item.value">
           </el-option>
           <el-option :disabled="true" value="" v-if="criteria.dbBatch.pages>1">
@@ -10,7 +10,7 @@
             </el-pagination>
           </el-option>
         </el-select>
-        <el-select :disabled="fixedClName!==''" v-model="criteria.collection" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw" :loading="criteria.collectionLoading" style="width:240px">
+        <el-select :disabled="!!fixedClName" v-model="criteria.collection" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw" :loading="criteria.collectionLoading" style="width:240px">
           <el-option v-for="item in criteria.collections" :key="item.value" :label="item.label" :value="item.value">
           </el-option>
           <el-option :disabled="true" value="" v-if="criteria.clBatch.pages>1">
@@ -67,7 +67,8 @@ const componentOptions = {
         database: '',
         collections: [],
         collection: '',
-        clBatch: new Batch()
+        clBatch: new Batch(),
+        collectionLoading: false
       }
     }
   },
@@ -125,9 +126,17 @@ const componentOptions = {
       this.criteria.clBatch.goto(page)
     },
     confirm() {
+      const { criteria } = this
+      let { database, collection } = criteria
+      if (this.fixedDbName && this.fixedClName) {
+        let dbcode = database.indexOf('cust_')
+        database = database.substring(dbcode, database.length - 1)
+        let clcode = collection.indexOf('order_')
+        collection = collection.substring(clcode, collection.length - 1)
+      }
       this.$emit('confirm', {
-        db: this.criteria.database,
-        cl: this.criteria.collection
+        db: database,
+        cl: collection
       })
       this.$destroy()
     }

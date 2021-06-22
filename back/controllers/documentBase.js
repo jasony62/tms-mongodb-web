@@ -4,6 +4,8 @@ const DocumentHelper = require('./documentHelper')
 const unrepeat = require('./unrepeat')
 const ModelDoc = require('../models/mgdb/document')
 const ModelCl = require('../models/mgdb/collection')
+const ModelSchema = require('../models/mgdb/schema')
+
 const ObjectId = require('mongodb').ObjectId
 const _ = require('lodash')
 const APPCONTEXT = require('tms-koa').Context.AppContext
@@ -22,15 +24,13 @@ class DocBase extends Base {
   async create() {
     const existCl = await this.docHelper.findRequestCl()
 
-    const { name: clName } = existCl
+    const { name: clName, extensionInfo } = existCl
     let doc = this.request.body
 
     // 去重校验
-    const [
-      flag,
-      { dbName, clName: collName, keys, insert }
-    ] = this.findUnRepeatRule(existCl)
-    if (flag) {
+    const result = this.modelDoc.findUnRepeatRule(existCl)
+    if (result[0]) {
+      const { dbName, clName: collName, keys, insert } = result[1]
       const curDoc = [doc]
       const curConfig = {
         config: {
@@ -43,6 +43,17 @@ class DocBase extends Base {
       const repeated = await unrepeat(this, curDoc, curConfig)
       if (repeated.length === 0)
         return new ResultFault('添加失败,当前数据已存在')
+    }
+    // 补充公共属性
+    if (extensionInfo) {
+      const { info, schemaId } = extensionInfo
+      if (schemaId) {
+        const modelSchema = new ModelSchema(this.bucket)
+        const publicSchema = await modelSchema.bySchemaId(schemaId)
+        Object.keys(publicSchema).forEach(schema => {
+          doc[schema] = info[schema] ? info[schema] : ''
+        })
+      }
     }
 
     // 加工数据
@@ -97,25 +108,29 @@ class DocBase extends Base {
     let existDoc = await this.modelDoc.byId(existCl, id)
     if (!existDoc) return new ResultFault('要更新的文档不存在')
 
-    let updated = this.request.body
-    updated = _.omit(updated, ['_id', 'bucket'])
+    let newDoc = this.request.body
     // 加工数据
-    this.modelDoc.beforeProcessByInAndUp(updated, 'update')
+    this.modelDoc.beforeProcessByInAndUp(newDoc, 'update')
+
+    let updated = _.omit(newDoc, ['_id', 'bucket'])
+    const isOk = await this.modelDoc.update(existCl, id, updated)
+
+    if (!isOk) return new ResultFault('要更新的文档不存在')
 
     // 日志
     if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
-      await this.modelDoc.dataActionLog(
-        updated,
+      let beforeDoc = {}
+      beforeDoc[existDoc._id] = existDoc
+      this.modelDoc.dataActionLog(
+        newDoc,
         '修改',
         existCl.db.name,
         existCl.name,
         '',
         '',
-        JSON.stringify(existDoc)
+        beforeDoc
       )
     }
-
-    const isOk = await this.modelDoc.update(existCl, id, updated)
 
     return new ResultData(isOk)
   }
@@ -272,7 +287,6 @@ class DocBase extends Base {
     let total = await this.modelDoc.count(existCl, query)
     if (total === 0)
       return new ResultFault('没有符合条件的数据，未执行更新操作')
-
     //更新前的数据记录
     let sysCl = this.docHelper.findSysColl(existCl)
     let updateBeforeDocs = await sysCl.find(query).toArray()
@@ -290,15 +304,17 @@ class DocBase extends Base {
         if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
           // 记录操作日志
           updateBeforeDocs.forEach(async doc => {
-            let afterDoc = await sysCl.findOne({ _id: doc._id })
-            this.modelDoc.dataActionLog(
+            let afterDoc = Object.assign(doc, updated)
+            let beforeDoc = {}
+            beforeDoc[doc._id] = doc
+            await this.modelDoc.dataActionLog(
               afterDoc,
               `${operation}修改`,
               existCl.db.name,
               existCl.name,
               '',
               '',
-              JSON.stringify(doc)
+              beforeDoc
             )
           })
         }

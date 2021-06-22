@@ -60,15 +60,14 @@ class Document extends Base {
       removeSysCl = priCl
     }
 
-    const [flag, { dbName, clName, keys, insert }] = this.findUnRepeatRule(
-      existCl
-    )
-    if (flag && insert) {
+    const result = this.findUnRepeatRule(existCl)
+    if (result[0] && result[1].insert) {
+      const { dbSysName, clSysName, keys } = result[1]
       const { targetSysCl, targetQuery } = await this.getUnRepeatSQ(
         removeSysCl,
         removeQuery,
-        dbName,
-        clName,
+        dbSysName,
+        clSysName,
         keys
       )
       targetSysCl.deleteMany(targetQuery)
@@ -96,15 +95,14 @@ class Document extends Base {
     const modelCl = new ModelColl(this.bucket)
 
     if (existCl.usage !== 1) {
-      const [flag, { dbName, clName, keys, insert }] = this.findUnRepeatRule(
-        existCl
-      )
-      if (flag && insert) {
+      const result = this.findUnRepeatRule(existCl)
+      if (result[0] && result[1].insert) {
+        const { dbSysName, clSysName, keys } = result[1]
         const { targetSysCl, targetQuery } = await this.getUnRepeatSQ(
           sysCl,
           query,
-          dbName,
-          clName,
+          dbSysName,
+          clSysName,
           keys
         )
         targetSysCl.deleteMany(targetQuery)
@@ -130,15 +128,15 @@ class Document extends Base {
         let [db, cl] = dbDotCl.split('.')
         let sysCl = mongoClient.db(db).collection(cl)
         let tmwCl = await modelCl.bySysname({ sysname: db }, cl)
-        const [flag, { dbName, clName, keys, insert }] = this.findUnRepeatRule(
-          tmwCl
-        )
-        if (flag && insert) {
+        const result = this.findUnRepeatRule(tmwCl)
+
+        if (result[0].flag && insert) {
+          const { dbSysName, clSysName, keys, insert } = result[1]
           const { targetSysCl, targetQuery } = await this.getUnRepeatSQ(
             sysCl,
             { _id: { $in: ids } },
-            dbName,
-            clName,
+            dbSysName,
+            clSysName,
             keys
           )
           targetSysCl.deleteMany(targetQuery)
@@ -226,8 +224,8 @@ class Document extends Base {
    */
   async update(existCl, id, updated) {
     let mongoClient = await this.mongoClient()
+    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
     if (existCl.usage !== 1) {
-      let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
       return sysCl
         .updateOne(
           {
@@ -237,12 +235,17 @@ class Document extends Base {
         )
         .then(({ modifiedCount }) => modifiedCount === 1)
     } else {
-      let doc = await existCl.findOne({ _id: ObjectId(id) })
-      if (!doc) return false
-      let { __pri } = doc
+      let __pri
+      if (updated.__pri) {
+        __pri = updated.__pri
+      } else {
+        let doc = await sysCl.findOne({ _id: ObjectId(id) })
+        if (!doc) return false
+        __pri = doc.__pri
+      }
       let priCl = mongoClient.db(__pri.db).collection(__pri.cl)
       return priCl
-        .updateOne({ _id: __pri.id }, { $set: updated })
+        .updateOne({ _id: ObjectId(__pri.id) }, { $set: updated })
         .then(({ modifiedCount }) => modifiedCount === 1)
     }
   }
@@ -340,7 +343,7 @@ class Document extends Base {
       .sort(sort)
       .toArray()
       .then(async docs => {
-        await this.getDocCompleteStatus(existCl, docs)
+        //await this.getDocCompleteStatus(existCl, docs)
         return docs
       })
 
@@ -397,7 +400,8 @@ class Document extends Base {
     clname,
     operate_after_dbname = '',
     operate_after_clname = '',
-    operate_before_data = ''
+    operate_before_data = '',
+    client_info = null
   ) {
     if (!operate_type || !dbname || !clname) return false
     if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG !== 'Y') return true
@@ -440,10 +444,17 @@ class Document extends Base {
       data.operate_after_clname = operate_after_clname
       data.operate_time = current
       data.operate_type = operate_type
+      /*本地客户端时读取用户信息*/
       if (this.client && this.client.data) {
         data.operate_account =
           this.client.data.account || this.client.data['cust_id']
         data.operate_nickname = this.client.data.nickname
+      }
+      /*第三方调用时读取用户信息*/
+      if (client_info) {
+        data.operate_account =
+          client_info.operate_account || client_info['cust_id']
+        data.operate_nickname = client_info.operate_nickname
       }
       // 旧数据
       if (operate_before_data) {
@@ -451,9 +462,7 @@ class Document extends Base {
           typeof operate_before_data === 'object' &&
           operate_before_data[data.operate_id]
         ) {
-          data.operate_before_data = JSON.stringify(
-            operate_before_data[data.operate_id]
-          )
+          data.operate_before_data = operate_before_data[data.operate_id]
         } else if (typeof operate_before_data === 'string') {
           data.operate_before_data = operate_before_data
         }
@@ -523,16 +532,31 @@ class Document extends Base {
    */
   findUnRepeatRule(existCl) {
     const { operateRules } = existCl
-    if (operateRules && operateRules.scope && operateRules.scope.unrepeat) {
+    if (
+      operateRules &&
+      operateRules.scope &&
+      operateRules.unrepeat &&
+      operateRules.unrepeat.database.sysname
+    ) {
       const {
-        database: { name: dbName },
-        collection: { name: clName },
+        database: { sysname: dbSysName, name: dbName },
+        collection: { sysname: clSysName, name: clName },
         primaryKeys: keys,
         insert
       } = operateRules.unrepeat
-      return [true, { dbName, clName, keys, insert }]
+      return [true, { dbSysName, dbName, clSysName, clName, keys, insert }]
     } else {
-      return [false, null]
+      return [
+        false,
+        {
+          dbSysName: null,
+          dbName: null,
+          clSysName: null,
+          clName: null,
+          keys: null,
+          insert: false
+        }
+      ]
     }
   }
   /**

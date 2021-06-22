@@ -33,12 +33,12 @@
           <el-option label="从集合" :value="1" disabled></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="集合扩展属性（选填）">
-        <el-select placeholder="请选择" v-model="collection.extensionInfo.schemaId" clearable filterable @change="handleExtendId(collection.extensionInfo.schemaId, false)">
+      <el-form-item label="集合公共属性定义">
+        <el-select placeholder="请选择定义名称" v-model="collection.extensionInfo.schemaId" clearable filterable @change="handleExtendId(collection.extensionInfo.schemaId, false)">
           <el-option v-for="item in extensions" :key="item._id" :label="item.title" :value="item._id"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="扩展属性详情（选填）" v-if="JSON.stringify(extendSchema)!=='{}'">
+      <el-form-item label="集合公共属性详情" v-if="JSON.stringify(extendSchema)!=='{}'">
         <tms-el-json-doc class="tmw-attr-form" ref="attrForm" :schema="extendSchema" :doc="collection.extensionInfo.info"></tms-el-json-doc>
       </el-form-item>
       <el-form-item label="说明">
@@ -99,7 +99,7 @@ export default {
           schema_tags: [],
           schema_default_tags: [],
           tags: [],
-          usage: '',
+          usage: 0,
           extensionInfo: { schemaId: '', info: {} }
         }
       }

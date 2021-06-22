@@ -1,4 +1,4 @@
-const { ResultData, ResultFault, ResultObjectNotFound } = require('tms-koa')
+const { ResultData, ResultFault } = require('tms-koa')
 const DocBase = require('../documentBase')
 const _ = require('lodash')
 const ObjectId = require('mongodb').ObjectId
@@ -58,24 +58,19 @@ class Document extends DocBase {
       noRepeatConfig
     )
 
+    let result = null
     if (rst[0] === true) {
-      const { successNum, failNum, failMsg } = rst[1]
-      let result = null
-      if (!failNum) {
-        result = {
-          importAll: true,
-          message: `导入成功`
-        }
-      } else {
-        result = {
-          importAll: false,
-          message: `导入成功${successNum}条,失败${failNum}条,原因:${failMsg}已存在或重复`
-        }
+      result = {
+        importAll: true,
+        message: `导入成功`
       }
-      return new ResultData(result)
     } else {
-      return new ResultFault(rst[1])
+      result = {
+        importAll: false,
+        message: `导入失败,${rst[1]}`
+      }
     }
+    return new ResultData(result)
   }
   /**
    * 导出数据
