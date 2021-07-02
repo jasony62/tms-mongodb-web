@@ -1,9 +1,5 @@
 <template>
-  <tms-frame
-    class="tmw-collection"
-    :display="{ header: true, footer: true, right: true }"
-    :leftWidth="'20%'"
-  >
+  <tms-frame class="tmw-collection" :display="{ header: true, footer: true, right: true }" :leftWidth="'20%'">
     <template v-slot:header>
       <el-breadcrumb separator-class="el-icon-arrow-right">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
@@ -12,14 +8,7 @@
       </el-breadcrumb>
     </template>
     <template v-slot:center>
-      <el-table
-        id="tables"
-        class="table-fixed"
-        :data="documents"
-        stripe
-        style="width: 100%"
-        :max-height="tableHeight"
-      >
+      <el-table id="tables" class="table-fixed" :data="documents" stripe style="width: 100%" :max-height="tableHeight">
         <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
           <template slot="header">
             <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
@@ -40,14 +29,12 @@
                 <span v-for="(g, i) in s.enumGroups" :key="i">
                   <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value">
                     <span v-for="(e, v) in s.enum" :key="v">
-                      <span
-                        v-if="
+                      <span v-if="
                           e.group === g.id &&
                             scope.row[k] &&
                             scope.row[k].length &&
                             scope.row[k].includes(e.value)
-                        "
-                      >{{ e.label }}&nbsp;</span>
+                        ">{{ e.label }}&nbsp;</span>
                     </span>
                   </span>
                 </span>
@@ -84,17 +71,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination
-        style="float: right"
-        background
-        @size-change="handleSize"
-        @current-change="handleCurrentPage"
-        :current-page.sync="page.at"
-        :page-sizes="[10, 25, 50, 100]"
-        :page-size="page.size"
-        layout="total, sizes, prev, pager, next"
-        :total="page.total"
-      ></el-pagination>
+      <el-pagination style="float: right" background @size-change="handleSize" @current-change="handleCurrentPage" :current-page.sync="page.at" :page-sizes="[10, 25, 50, 100]" :page-size="page.size" layout="total, sizes, prev, pager, next" :total="page.total"></el-pagination>
     </template>
     <template v-slot:right>
       <el-button @click="createDocument">添加文档</el-button>
@@ -378,6 +355,7 @@ export default {
     apiCol.byName(this.bucketName, this.dbName, this.clName).then(async res => {
       Object.assign(collection, res)
       await this.handleProperty()
+      this.conditionReset()
       this.listDocument()
     })
   },

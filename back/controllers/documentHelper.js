@@ -1,4 +1,5 @@
-const { unrepeatByArray } = require('../tms/utilities')
+const unrepeat = require('./unrepeat')
+const _ = require('lodash')
 const log4js = require('log4js')
 const logger = log4js.getLogger('tms-mongodb-web')
 const ObjectId = require('mongodb').ObjectId
@@ -6,6 +7,7 @@ const fs = require('fs')
 
 const ModelColl = require('../models/mgdb/collection')
 const ModelDoc = require('../models/mgdb/document')
+const ModelSchema = require('../models/mgdb/schema')
 
 const APPCONTEXT = require('tms-koa').Context.AppContext
 const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
@@ -49,22 +51,33 @@ class DocumentHelper extends Helper {
   }
   /**
    *  提取excel数据到集合中
-   *  unrepeat 是否对数据去重
+   *  noRepeatconfig 数据去重配置
    */
-  async importToColl(existCl, filename, options = {}) {
-    if (!fs.existsSync(filename)) return [false, '指定的文件不存在']
-    let unrepeat = options.unrepeat ? options.unrepeat : false
-
-    const xlsx = require('tms-koa/node_modules/xlsx')
-    const wb = xlsx.readFile(filename)
-    const firstSheetName = wb.SheetNames[0]
-    const sh = wb.Sheets[firstSheetName]
-    const rowsJson = xlsx.utils.sheet_to_json(sh)
-
+  async importToColl(existCl, filename, noRepeatconfig, rowsJson = []) {
+    const modelDoc = new ModelDoc(this.ctrl.bucket, this.ctrl.client)
+    if (!rowsJson.length) {
+      if (!fs.existsSync(filename)) return [false, '指定的文件不存在']
+      const xlsx = require('tms-koa/node_modules/xlsx')
+      const wb = xlsx.readFile(filename)
+      const firstSheetName = wb.SheetNames[0]
+      const sh = wb.Sheets[firstSheetName]
+      rowsJson = xlsx.utils.sheet_to_json(sh)
+    }
     let collModel = new ModelColl()
     let columns = await collModel.getSchemaByCollection(existCl)
-    if (!columns) {
-      return [false, '指定的集合没有指定集合列']
+    if (!columns) return [false, '指定的集合没有指定集合列']
+
+    let publicDoc = {}
+    const { extensionInfo } = existCl
+    if (extensionInfo) {
+      const { info, schemaId } = extensionInfo
+      if (schemaId) {
+        const modelSchema = new ModelSchema(this.ctrl.bucket)
+        const publicSchema = await modelSchema.bySchemaId(schemaId)
+        Object.keys(publicSchema).forEach(schema => {
+          publicDoc[schema] = info[schema] ? info[schema] : ''
+        })
+      }
     }
     let jsonFinishRows = rowsJson.map(row => {
       let newRow = {}
@@ -74,7 +87,6 @@ class DocumentHelper extends Helper {
         if (typeof rDByTitle === 'number') {
           newRow[k] = String(rDByTitle)
         } else if (typeof rDByTitle === 'undefined') {
-          logger.info(column.title, column.default)
           // 单选
           if (
             column.type === 'string' &&
@@ -113,35 +125,62 @@ class DocumentHelper extends Helper {
       return newRow
     })
 
-    // 去重
-    if (unrepeat && unrepeat.columns && unrepeat.columns.length > 0) {
-      jsonFinishRows = unrepeatByArray(
-        jsonFinishRows,
-        unrepeat.columns,
-        unrepeat.keepFirstRepeatData
-      )
-    }
-
-    this.transformsCol('toValue', jsonFinishRows, columns)
     try {
+      this.transformsCol('toValue', jsonFinishRows, columns)
+      function getFailMsg(config, rows) {
+        let msg = ''
+        rows.forEach(data => {
+          config.config.columns.forEach(key => {
+            msg += data[key] + ','
+          })
+        })
+        msg = msg.substr(0, msg.length - 1)
+        return msg
+      }
+
+      // 比对去重
+      let failDatas = []
+      if (noRepeatconfig) {
+        const newDocs = await unrepeat(
+          this.ctrl,
+          jsonFinishRows,
+          noRepeatconfig
+        )
+        if (newDocs.length === 0) return [false, `已全部存在或重复`]
+
+        failDatas = _.difference(jsonFinishRows, newDocs)
+        jsonFinishRows = newDocs
+      }
+
+      // 补充公共属性
+      if (publicDoc) {
+        jsonFinishRows = jsonFinishRows.map(item =>
+          Object.assign(item, publicDoc)
+        )
+      }
+
       return this.findSysColl(existCl)
         .insertMany(jsonFinishRows)
-        .then(async () => {
+        .then(() => {
           if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
             // 记录日志
-            const modelDoc = new ModelDoc()
-            await modelDoc.dataActionLog(
+            modelDoc.dataActionLog(
               jsonFinishRows,
               '导入',
               existCl.db.name,
               existCl.name
             )
           }
-          return [true, jsonFinishRows]
+          if (failDatas.length) {
+            let failMsg = getFailMsg(noRepeatconfig, failDatas)
+            return [false, `${failMsg}已存在或重复`]
+          } else {
+            return [true, '导入成功']
+          }
         })
     } catch (err) {
-      logger.warn('Document.insertMany', err)
-      return [false, err.message]
+      logger.error('提取excel数据到集合中', err)
+      return [false, err]
     }
   }
   /**
@@ -153,8 +192,6 @@ class DocumentHelper extends Helper {
    */
   transformsCol(model, data, columns) {
     let sourceData = JSON.parse(JSON.stringify(data))
-    logger.info('data数据源', sourceData)
-
     const gets = model === 'toLabel' ? 'value' : 'label'
     const sets = model === 'toLabel' ? 'label' : 'value'
 
@@ -259,22 +296,51 @@ class DocumentHelper extends Helper {
   /**
    *  剪切数据到指定集合中
    */
-  async cutDocs(oldExistCl, newExistCl, docIds = null, oldDocus = null) {
+  async cutDocs(
+    oldDbName,
+    oldClName,
+    newDbName,
+    newClName,
+    docIds = null,
+    oldDocus = null,
+    client_info
+  ) {
+    if (!oldDbName || !oldClName || !newDbName || !newClName) {
+      return [false, '参数不完整']
+    }
+
+    let collModel = new ModelColl(this.ctrl.bucket)
+    const oldExistCl = await collModel.byName(oldDbName, oldClName)
+    const newExistCl = await collModel.byName(newDbName, newClName)
+
     //获取指定集合的列
-    const collModel = new ModelColl()
+    const modelDoc = new ModelDoc(this.ctrl.bucket, this.ctrl.client)
+    const modelSchema = new ModelSchema(this.ctrl.bucket)
+
+    //获取新集合列定义
     let newClSchema = await collModel.getSchemaByCollection(newExistCl)
     if (!newClSchema) return [false, '指定的集合未指定集合列定义']
+    //获取新集合公共属性
+    let publicDoc = {}
+    let { extensionInfo } = newExistCl
+    if (extensionInfo) {
+      const { info, schemaId } = extensionInfo
+      if (schemaId) {
+        const publicSchema = await modelSchema.bySchemaId(schemaId)
+        Object.keys(publicSchema).forEach(schema => {
+          publicDoc[schema] = info[schema] ? info[schema] : ''
+        })
+      }
+    }
 
     // 查询获取旧数据
     let fields = {}
-    const modelDoc = new ModelDoc()
     if (!oldDocus || oldDocus.length === 0) {
       if (!docIds || docIds.length === 0) return [false, '没有要移动的数据']
       oldDocus = await modelDoc.getDocumentByIds(oldExistCl, docIds, fields)
       if (oldDocus[0] === false) return [false, oldDocus[1]]
       oldDocus = oldDocus[1]
     }
-
     // 插入到指定集合中,补充没有的数据
     let newDocs = oldDocus.map(doc => {
       let newd = {
@@ -304,6 +370,8 @@ class DocumentHelper extends Helper {
       delete nd._id
       // 加工数据
       modelDoc.beforeProcessByInAndUp(nd, 'insert')
+
+      if (publicDoc) Object.assign(nd, publicDoc)
 
       return nd
     })
@@ -373,7 +441,8 @@ class DocumentHelper extends Helper {
         oldExistCl.name,
         newExistCl.db.name,
         newExistCl.name,
-        moveOldDatas
+        moveOldDatas,
+        client_info
       )
     }
 

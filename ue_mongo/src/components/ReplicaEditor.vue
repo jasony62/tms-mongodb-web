@@ -259,7 +259,7 @@ export default {
   mounted() {
     this.docBatch.size = LIST_PAGE_SIZE
     let { criteria, replicas } = this
-    this.listClByKw(null)
+    this.listDbByKw(null)
     this.listDocByKw()
   },
   beforeDestroy() {

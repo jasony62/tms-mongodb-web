@@ -40,14 +40,14 @@ import {
   Image,
   Row,
   Col,
+  Icon,
   Message,
   MessageBox
 } from 'element-ui'
 import './assets/css/common.less'
 
-Vue.use(TmsAxiosPlugin)
-  .use(TmsErrorPlugin)
-  .use(Pagination)
+Vue.use(TmsAxiosPlugin).use(TmsErrorPlugin)
+Vue.use(Pagination)
   .use(Dialog)
   .use(Dropdown)
   .use(DropdownMenu)
@@ -76,6 +76,7 @@ Vue.use(TmsAxiosPlugin)
   .use(Image)
   .use(Row)
   .use(Col)
+  .use(Icon)
 
 const { fnGetCaptcha, fnGetToken } = apiLogin
 const schema = [

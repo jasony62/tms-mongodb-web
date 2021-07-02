@@ -10,7 +10,7 @@
             </el-pagination>
           </el-option>
         </el-select>
-        <el-select v-if="fixedClName!==true" v-model="criteria.collection" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw" :loading="criteria.collectionLoading" style="width:240px">
+        <el-select v-if="!fixedClName" v-model="criteria.collection" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw" :loading="criteria.collectionLoading" style="width:240px">
           <el-option v-for="item in criteria.collections" :key="item.value" :label="item.label" :value="item.value">
           </el-option>
           <el-option :disabled="true" value="" v-if="criteria.clBatch.pages>1">
@@ -18,15 +18,16 @@
             </el-pagination>
           </el-option>
         </el-select>
-        <el-button @click="listDocument">查找</el-button>
+        <el-button v-if="!fixedDbName&&!fixedClName" @click="listDocument">查找</el-button>
       </tms-flex>
-      <el-table :data="docs" stripe style="width:100%" height="1" @selection-change="selectDocument">
-        <el-table-column fixed="left" type="selection" width="48"></el-table-column>
+      <el-table :data="docs" stripe style="width:100%" height="1" @selection-change="selectDocument" row-key="_id">
+        <el-table-column fixed="left" type="selection" width="48" :reserve-selection="true"></el-table-column>
         <el-table-column v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k" :label="s.title"></el-table-column>
       </el-table>
     </tms-flex>
     <div slot="footer">
       <tms-flex style="width:100%" :elastic-items="[1]">
+        <div style="font-weight: 400;font-size: 14px;color: #606266;">已选中 {{selectedDocuments.length}} 条数据</div>
         <el-pagination :current-page="docBatch.page" :page-sizes="[50, 100, 200]" :page-size="docBatch.size" layout="total, sizes, prev, pager, next" :total="docBatch.total" @current-change="changeDocPage" @size-change="changeDocSize">
         </el-pagination>
         <div>
@@ -76,6 +77,7 @@ const componentOptions = {
     fixedDocumentFilter: Object,
     fixedDocumentOrderby: Object,
     tmsAxiosName: String,
+    fixedSchema: { type: Object, default: { filter: {}, orderBy: {} } },
     dialogVisible: { type: Boolean, default: true }
   },
   data() {
@@ -153,6 +155,17 @@ const componentOptions = {
       this.criteria.clBatch.goto(page)
     },
     listDocument() {
+      if (Object.assign(this.fixedSchema).length === 0) {
+        fnCreateClApi(this.TmsAxios(this.tmsAxiosName))
+          .byName(
+            this.bucketName,
+            this.criteria.database,
+            this.criteria.collection
+          )
+          .then(cl => {
+            Object.assign(this.collection.schema.body, cl.schema.body)
+          })
+      }
       this.docBatch = startBatch(this.batchDocument, [], {
         size: this.docBatch.size
       })
@@ -194,6 +207,7 @@ const componentOptions = {
   },
   watch: {
     'criteria.database': function() {
+      if (this.fixedClName) return
       this.criteria.collection = null
       this.criteria.clBatch = startBatch(this.batchCollection, [null], {
         size: SELECT_PAGE_SIZE
@@ -206,7 +220,16 @@ const componentOptions = {
     let { criteria } = this
     if (this.fixedDbName) {
       criteria.database = this.fixedDbName
-      if (this.fixedClName) criteria.collection = this.fixedClName
+      if (this.fixedClName) {
+        criteria.collection = this.fixedClName
+        if (this.fixedSchema) {
+          Object.assign(
+            this.collection.schema.body,
+            this.fixedSchema.schema.body
+          )
+        }
+        this.listDocument()
+      }
     } else {
       criteria.dbBatch = startBatch(this.batchDatabase, [null], {
         size: SELECT_PAGE_SIZE

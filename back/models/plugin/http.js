@@ -5,6 +5,7 @@ const axios = require('axios')
 const { PluginBase } = require('./base')
 
 const ModelDoc = require('../mgdb/document')
+const ModelCol = require('../mgdb/collection')
 
 /**
  * 发送数据插件
@@ -82,7 +83,7 @@ class PluginHttpSendDocs extends PluginHttpSend {
       } else if (typeof filter === 'object' && Object.keys(filter).length) {
         query = filter
       }
-      let [success, docsOrCause] = await modelDoc.list(tmwCl, { query })
+      let [success, docsOrCause] = await modelDoc.list(tmwCl, { filter: query })
       if (success === true) docs = docsOrCause.docs
       else return [false, docsOrCause]
     }
@@ -102,6 +103,11 @@ class PluginHttpSendDocs extends PluginHttpSend {
     let url = this.getUrl(ctrl, tmwCl)
     let config =
       getConfig && typeof getConfig === 'function' ? getConfig(ctrl, tmwCl) : {}
+
+    config = Object.assign(config, {
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity
+    })
 
     logger.debug(`插件[name=${this.name}]向[${url}]接口发送数据`)
     if (this.method === 'post') {

@@ -56,7 +56,10 @@ export default new Vuex.Store({
     appendDocument(state, payload) {
       state.documents.push(payload.document)
     },
-    updateDocument() {},
+    updateDocument(state, payload) {
+      const { index, document } = payload
+      state.documents.splice(index, 1, document)
+    },
     removeDocument(state, payload) {
       state.documents.splice(state.documents.indexOf(payload.document), 1)
     },

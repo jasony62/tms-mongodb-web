@@ -14,8 +14,8 @@ export default function create(tmsAxios) {
         .post(`${base}/create`, proto, { params })
         .then(rst => rst.data.result)
     },
-    update(bucket, dbName, updated) {
-      const params = { bucket, db: dbName }
+    update(bucket, updated) {
+      const params = { bucket }
       return tmsAxios
         .post(`${base}/update`, updated, { params })
         .then(rst => rst.data.result)
