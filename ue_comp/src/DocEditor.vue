@@ -44,7 +44,7 @@ export default {
       return this.TmsAxios(this.tmsAxiosName)
     },
     handleDownload(name, url) {
-      const access_token = sessionStorage.getItem('access_token')
+      const access_token = this.$getToken()
       window.open(`${url}?access_token=${access_token}`)
     },
     handleFileSubmit(ref, files) {

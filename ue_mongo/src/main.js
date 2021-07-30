@@ -15,12 +15,15 @@ import {
   TmsLockPromise
 } from 'tms-vue'
 import '@/assets/css/common.less'
+import { setToken, getToken } from './global.js'
 
 Vue.config.productionTip = false
 
 Vue.use(TmsAxiosPlugin)
   .use(TmsErrorPlugin)
   .use(TmsEventPlugin)
+Vue.prototype.$setToken = setToken
+Vue.prototype.$getToken = getToken
 
 const { fnGetCaptcha, fnGetJwt } = apiLogin
 const LoginSchema = [
@@ -50,7 +53,7 @@ const LoginPromise = (function() {
         Message({ message: res.msg, type: 'error', customClass: 'mzindex' })
       })
       .then(token => {
-        sessionStorage.setItem('access_token', token)
+        setToken(token)
         return `Bearer ${token}`
       })
   })
@@ -62,7 +65,7 @@ function getAccessToken() {
     return LoginPromise.wait()
   }
 
-  let token = sessionStorage.getItem('access_token')
+  let token = getToken()
   if (!token) {
     return LoginPromise.wait()
   }
