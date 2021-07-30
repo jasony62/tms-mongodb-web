@@ -27,7 +27,7 @@ let appConfig = {
     //   prefix: process.env.TMS_REDIS_PREFIX || "tms-mongodb-web",
     //   host: process.env.TMS_REDIS_HOST || "localhost",
     //   port: parseInt(process.env.TMS_REDIS_PORT) || 6379,
-    // password: process.env.TMS_REDIS_PWD || '',
+    //   password: process.env.TMS_REDIS_PWD || '',
     //   expiresIn: parseInt(process.env.TMS_REDIS_EXPIRESIN) || 7200
     // },
     // 验证码

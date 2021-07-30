@@ -288,7 +288,7 @@ export default {
         })
     },
     handleDownload(file) {
-      const access_token = sessionStorage.getItem('access_token')
+      const access_token = this.$getToken()
       window.open(`${file.url}?access_token=${access_token}`)
     },
     handleSize(val) {

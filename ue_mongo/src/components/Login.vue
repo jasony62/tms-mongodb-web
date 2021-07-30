@@ -1,10 +1,10 @@
 <template>
-	<div class="login-frame">
-		<h3 class="login-frame__title">{{title}}</h3>
-		<div class="login">
-			<tms-login :on-success="fnSuccessToken" class="tms-login"></tms-login>
-		</div>
-	</div>
+  <div class="login-frame">
+    <h3 class="login-frame__title">{{title}}</h3>
+    <div class="login">
+      <tms-login :on-success="fnSuccessToken" class="tms-login"></tms-login>
+    </div>
+  </div>
 </template>
 <script>
 export default {
@@ -15,7 +15,7 @@ export default {
   },
   methods: {
     fnSuccessToken(newToken) {
-      window.sessionStorage.setItem('access_token', newToken)
+      this.$setToken(token)
       if (this.$tmsRouterHistory.canBack()) {
         this.$router.back()
       } else {
