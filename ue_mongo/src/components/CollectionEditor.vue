@@ -100,7 +100,20 @@ export default {
           schema_default_tags: [],
           tags: [],
           usage: 0,
-          extensionInfo: { schemaId: '', info: {} }
+          extensionInfo: { schemaId: '', info: {} },
+          custom: {
+            docOperations: {
+              create: true,
+              edit: true,
+              remove: true,
+              editMany: true,
+              removeMany: true,
+              transferMany: true,
+              import: true,
+              export: true,
+              copyMany: true
+            }
+          }
         }
       }
     }

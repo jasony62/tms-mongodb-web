@@ -15,7 +15,7 @@ export default {
   },
   methods: {
     fnSuccessToken(newToken) {
-      this.$setToken(token)
+      this.$setToken(newToken)
       if (this.$tmsRouterHistory.canBack()) {
         this.$router.back()
       } else {
