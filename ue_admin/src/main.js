@@ -45,6 +45,7 @@ import {
   MessageBox
 } from 'element-ui'
 import './assets/css/common.less'
+import { setToken, getToken } from './global.js'
 
 Vue.use(TmsAxiosPlugin).use(TmsErrorPlugin)
 Vue.use(Pagination)
@@ -77,6 +78,8 @@ Vue.use(Pagination)
   .use(Row)
   .use(Col)
   .use(Icon)
+Vue.prototype.$setToken = setToken
+Vue.prototype.$getToken = getToken
 
 const { fnGetCaptcha, fnGetToken } = apiLogin
 const schema = [
@@ -110,7 +113,7 @@ const LoginPromise = (function() {
         Message({ message: res.msg, type: 'error', customClass: 'mzindex' })
       })
       .then(token => {
-        sessionStorage.setItem('access_token', token)
+        setToken(token)
         return `Bearer ${token}`
       })
   })
@@ -122,7 +125,7 @@ function getAccessToken() {
     return LoginPromise.wait()
   }
   // 如果没有token，发起登录
-  let token = sessionStorage.getItem('access_token')
+  let token = getToken()
   if (!token) {
     return LoginPromise.wait()
   }
@@ -149,7 +152,10 @@ function onResultFault(res) {
   })
   return Promise.reject(new TmsIgnorableError(res.data))
 }
-// 处理请求过程中发生的异常
+
+/**
+ * 处理请求过程中发生的异常
+ */
 function onResponseRejected(err) {
   return Promise.reject(new TmsIgnorableError(err))
 }

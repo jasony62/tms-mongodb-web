@@ -1,10 +1,6 @@
 <template>
   <div class="login">
-    <tms-login
-      :on-success="fnOnSuccess"
-      :on-fail="fnOnFail"
-      class="admin"
-    ></tms-login>
+    <tms-login :on-success="fnOnSuccess" :on-fail="fnOnFail" class="admin"></tms-login>
   </div>
 </template>
 <script>
@@ -14,7 +10,7 @@ export default {
   methods: {
     fnOnSuccess(token) {
       if (token) {
-        sessionStorage.setItem('access_token', token)
+        this.$setToken(token)
         if (this.$tmsRouterHistory.canBack()) {
           this.$router.back()
         } else {

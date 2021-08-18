@@ -18,6 +18,7 @@ ARG vue_app_back_api_fs
 ARG vue_app_front_doceditor_add
 ARG vue_app_front_doceditor_modify
 ARG vue_app_plugin_bucket
+ARG vue_app_storetoken_way
 
 RUN echo VUE_APP_TITLE=$vue_app_title > ./ue_mongo/.env && \
   echo VUE_APP_BASE_URL=$vue_app_base_url >> ./ue_mongo/.env && \
@@ -29,7 +30,8 @@ RUN echo VUE_APP_TITLE=$vue_app_title > ./ue_mongo/.env && \
   echo VUE_APP_FRONT_DOCEDITOR_ADD=$vue_app_front_doceditor_add >> ./ue_mongo/.env && \
 	echo VUE_APP_FRONT_DOCEDITOR_MODIFY=$vue_app_front_doceditor_modify >> ./ue_mongo/.env && \ 
   echo VUE_APP_FRONT_BATCHEDITOR=$vue_app_front_batcheditor >> ./ue_mongo/.env && \
-  echo VUE_APP_PLUGIN_BUCKET=$vue_app_plugin_bucket >> ./ue_mongo/.env
+  echo VUE_APP_PLUGIN_BUCKET=$vue_app_plugin_bucket >> ./ue_mongo/.env && \
+  echo VUE_APP_STORETOKEN_WAY=$vue_app_storetoken_way >> .env
 
 
 # 安装依赖包，构建代码

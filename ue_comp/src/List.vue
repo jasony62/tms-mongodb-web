@@ -658,12 +658,12 @@ const componentOptions = {
       createDocApi(this.TmsAxios(this.tmsAxiosName))
         .export(this.bucketName, this.dbName, this.clName, param)
         .then(result => {
-          const access_token = sessionStorage.getItem('access_token')
+          const access_token = this.$getToken()
           window.open(`${result}?access_token=${access_token}`)
         })
     },
     handleDownload(file) {
-      const access_token = sessionStorage.getItem('access_token')
+      const access_token = this.$getToken()
       window.open(`${file.url}?access_token=${access_token}`)
     },
     handlePlugins(plugin, conditionType) {

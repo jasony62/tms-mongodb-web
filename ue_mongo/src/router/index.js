@@ -7,6 +7,7 @@ import Database from '../views/Database.vue'
 import Collection from '../views/Collection.vue'
 import { TmsRouterHistoryPlugin } from 'tms-vue'
 import store from '../store'
+import { getToken } from '../global'
 
 const BucketPart = /yes|true/i.test(process.env.VUE_APP_TMW_REQUIRE_BUCKET)
   ? '/b/:bucketName'
@@ -59,7 +60,7 @@ router.beforeEach((to, from, next) => {
   /**自动跳转到登录页 */
   if (process.env.VUE_APP_BACK_AUTH_BASE) {
     if (to.name !== 'login') {
-      let token = sessionStorage.getItem('access_token')
+      let token = getToken()
       if (!token) {
         Vue.TmsRouterHistory.push(to.path)
         return next({ name: 'login' })
