@@ -104,9 +104,7 @@ module.exports = {
 | VUE_APP_FRONT_DOCEDITOR_ADD      | 添加数据时，对数据进行的额外校验                                                                         |        |
 | VUE_APP_FRONT_DOCEDITOR_MODIFY   | 修改数据时，对数据进行的额外校验                                                                         |        |
 | VUE_APP_STORETOKEN_WAY           | 存储 token 的方式                                                                                        |        |
-| VUE_APP_PLUGINS_SUB              | 顶栏插件，主要用于插件放表格上方时的展示                                                                 | ''     |
-
-vue_app_plugins_sub
+| VUE_APP_PLUGINSUB_NAMES          | 顶栏插件，主要用于插件放表格上方时的展示                                                                 | ''     |
 
 # 说明文档
 

@@ -210,7 +210,7 @@ import createPluginApi from '../../ue_mongo/src/apis/plugin'
 const {
   VUE_APP_SCHEMA_TAGS,
   VUE_APP_SCHEMA_DEFAULT_TAGS,
-  VUE_APP_PLUGINS_SUB
+  VUE_APP_PLUGINSUB_NAMES
 } = process.env
 const collection = {}
 
@@ -310,8 +310,8 @@ const componentOptions = {
       )
     },
     pluginsSub() {
-      if (!process.env.VUE_APP_PLUGINS_SUB) return this.pluginsAside
-      let names = process.env.VUE_APP_PLUGINS_SUB.split(',')
+      if (!process.env.VUE_APP_PLUGINSUB_NAMES) return this.pluginsAside
+      let names = process.env.VUE_APP_PLUGINSUB_NAMES.split(',')
       let result = []
       names.forEach(name => {
         this.pluginsAside.forEach(p => {

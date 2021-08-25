@@ -18,7 +18,7 @@ ARG vue_app_back_api_fs
 ARG vue_app_front_doceditor_add
 ARG vue_app_front_doceditor_modify
 ARG vue_app_storetoken_way
-ARG vue_app_plugins_sub
+ARG vue_app_pluginsub_names
 
 RUN echo VUE_APP_TITLE=$vue_app_title > ./ue_mongo/.env && \
   echo VUE_APP_BASE_URL=$vue_app_base_url >> ./ue_mongo/.env && \
@@ -30,7 +30,7 @@ RUN echo VUE_APP_TITLE=$vue_app_title > ./ue_mongo/.env && \
   echo VUE_APP_FRONT_DOCEDITOR_ADD=$vue_app_front_doceditor_add >> ./ue_mongo/.env && \
 	echo VUE_APP_FRONT_DOCEDITOR_MODIFY=$vue_app_front_doceditor_modify >> ./ue_mongo/.env && \ 
   echo VUE_APP_FRONT_BATCHEDITOR=$vue_app_front_batcheditor >> ./ue_mongo/.env && \
-  echo VUE_APP_PLUGINS_SUB=$vue_app_plugins_sub >> ./ue_mongo/.env && \
+  echo VUE_APP_PLUGINSUB_NAMES=$vue_app_pluginsub_names >> ./ue_mongo/.env && \
   echo VUE_APP_STORETOKEN_WAY=$vue_app_storetoken_way >> .env 
 
 
