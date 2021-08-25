@@ -1,14 +1,20 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <tms-el-json-doc :schema="schema" :doc="formData" :on-axios="onAxios" :on-file-download="onFileDownload" :on-file-submit="handleFileSubmit" @submit="onJsonDocSubmit"></tms-el-json-doc>
+    <tms-el-json-doc :is-submit="isSubmit" :schema="schema" :doc="formData" :on-axios="onAxios" :on-file-download="onFileDownload" :on-file-submit="handleFileSubmit" @submit="onJsonDocSubmit"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
 import { Dialog, Button } from 'element-ui'
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
+import utils from '../../../ue_mongo/src/tms/utils'
 
 // 创建api调用对象方法
 let fnCreateDocApi
+
+const {
+  VUE_APP_FRONT_DOCEDITOR_ADD,
+  VUE_APP_FRONT_DOCEDITOR_MODIFY
+} = process.env
 
 const ComponentOptions = {
   name: 'DialogSchemaForm',
@@ -18,14 +24,16 @@ const ComponentOptions = {
     'tms-el-json-doc': TmsElJsonDoc
   },
   props: {
-    schema: Object
+    schema: Object,
+    formData: Object
   },
   data() {
     return {
       dialogVisible: true,
       destroyOnClose: true,
       closeOnClickModal: false,
-      formData: {}
+      plugins: [],
+      isSubmit: false
     }
   },
   methods: {
@@ -66,11 +74,40 @@ const ComponentOptions = {
     },
     /**提交表单 */
     onJsonDocSubmit() {
+      this.isSubmit = true
+      let validate = true
+      if (this.plugins.length) {
+        validate = this.plugins
+          .map(item => {
+            const result = utils[item](this.schema, this.formData)
+            if (result.msg === 'success') {
+              this.formData = result.data
+              return true
+            } else {
+              return false
+            }
+          })
+          .every(ele => ele === true)
+      }
+      if (!validate) {
+        this.isSubmit = false
+        return false
+      }
       this.$emit('confirm', this.formData)
       this.$destroy()
     }
   },
   mounted() {
+    if (VUE_APP_FRONT_DOCEDITOR_ADD) {
+      let str = VUE_APP_FRONT_DOCEDITOR_ADD.replace(/\s/g, '')
+      this.plugins = str.split(',')
+    }
+    if (Object.keys(this.formData).length !== 0) {
+      if (VUE_APP_FRONT_DOCEDITOR_MODIFY) {
+        let str = VUE_APP_FRONT_DOCEDITOR_MODIFY.replace(/\s/g, '')
+        this.plugins = str.split(',')
+      }
+    }
     document.body.appendChild(this.$el)
   },
   beforeDestroy() {
@@ -84,6 +121,10 @@ export default ComponentOptions
 export function createAndMount(Vue, propsData, apiCreators) {
   // 只有指定了数据库时才能指定集合
   if (!propsData.schemas && propsData.schemas) propsData.schemas = {}
+
+  if (!propsData.formData || Object.keys(propsData.formData).length === 0) {
+    propsData.formData = {}
+  }
 
   fnCreateDocApi = apiCreators.createDocApi
 

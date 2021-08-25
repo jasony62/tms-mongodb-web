@@ -777,8 +777,9 @@ const componentOptions = {
             }).then(preCondition => {
               let propsData = {}
               if (preCondition && typeof preCondition === 'object') {
-                let { schema } = preCondition
+                let { schema, formData } = preCondition
                 propsData.schema = schema
+                propsData.formData = formData
                 propsData.tmsAxiosName = tmsAxiosName
               }
               const vm = Module.createAndMount(Vue, propsData, {
