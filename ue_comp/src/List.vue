@@ -243,7 +243,7 @@ const componentOptions = {
       frameDisplay: {
         header: false,
         footer: false,
-        right: true,
+        right: false,
         left: false
       },
       docOperations: {
@@ -310,7 +310,8 @@ const componentOptions = {
       )
     },
     pluginsSub() {
-      if (!process.env.VUE_APP_PLUGINSUB_NAMES) return this.pluginsAside
+      if (!process.env.VUE_APP_PLUGINSUB_NAMES) return []
+      if (!this.pluginsAside.length) return []
       let names = process.env.VUE_APP_PLUGINSUB_NAMES.split(',')
       let result = []
       names.forEach(name => {
