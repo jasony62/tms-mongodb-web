@@ -18,6 +18,25 @@
       </el-card>
     </template>
     <template v-slot:center>
+      <div class="tmw-buttons" v-if="!frameDisplay.right" style="flex-direction:row-reverse;display:flex;margin-top:10px;margin-bottom:10px">
+        <div v-for="p in pluginsSub" :key="p.name">
+          <el-button v-if="p.transData==='nothing'" type="success" plain @click="handlePlugins(p)">{{p.title}}</el-button>
+          <el-dropdown v-else>
+            <el-button type="success" plain>{{p.title}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item>
+                <el-button type="text" @click="handlePlugins(p, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <el-button type="text" @click="handlePlugins(p, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <el-button type="text" @click="handlePlugins(p, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </div>
+      </div>
       <el-table id="table" :data="documents" stripe ref="documentsTable" :max-height="tableHeight" @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55"></el-table-column>
         <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
@@ -74,7 +93,10 @@
           <template slot-scope="scope">
             <el-button v-if="docOperations.edit" size="mini" @click="editDocument(scope.row)">修改</el-button>
             <el-button v-if="docOperations.remove" size="mini" @click="removeDocument(scope.row)">删除</el-button>
-            <el-button type="success" plain v-for="p in computedPlugins" :key="p.name" size="mini" @click="handlePlugins(p, scope.row)">{{p.title}}</el-button>
+            <div v-for="p in pluginsCenter" :key="p.name">
+              <el-button size="mini" v-if="p.visible && scope.row[p.visible.key] === p.visible.value" type="success" plain @click="handlePlugins(p, scope.row)">{{p.title}}</el-button>
+              <el-button v-if="!p.visible" size="mini" type="success" plain @click="handlePlugins(p, scope.row)">{{p.title}}</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -132,7 +154,7 @@
             <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-        <div v-for="p in computedPluginData" :key="p.name">
+        <div v-for="p in pluginsAside" :key="p.name">
           <el-button v-if="p.transData==='nothing'" type="success" plain @click="handlePlugins(p)">{{p.title}}</el-button>
           <el-dropdown v-else>
             <el-button type="success" plain>{{p.title}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
@@ -185,7 +207,11 @@ import createDocApi from '../../ue_mongo/src/apis/document'
 import createSchemaApi from '../../ue_mongo/src/apis/schema'
 import createPluginApi from '../../ue_mongo/src/apis/plugin'
 
-const { VUE_APP_SCHEMA_TAGS, VUE_APP_SCHEMA_DEFAULT_TAGS } = process.env
+const {
+  VUE_APP_SCHEMA_TAGS,
+  VUE_APP_SCHEMA_DEFAULT_TAGS,
+  VUE_APP_PLUGINSUB_NAMES
+} = process.env
 const collection = {}
 
 const componentOptions = {
@@ -217,7 +243,7 @@ const componentOptions = {
       frameDisplay: {
         header: false,
         footer: false,
-        right: true,
+        right: false,
         left: false
       },
       docOperations: {
@@ -235,16 +261,16 @@ const componentOptions = {
       filter: {},
       page: {
         at: 1,
-        size: 100,
+        size: 50,
         total: 0
       },
       selectedDocuments: [],
       properties: {},
       dialogPage: {
         at: 1,
-        size: 100
+        size: 50
       },
-      pluginData: [],
+      plugins: [],
       groupData: [],
       defaultProps: {
         children: 'children',
@@ -271,17 +297,31 @@ const componentOptions = {
     totalByChecked() {
       return this.selectedDocuments.length
     },
-    computedPlugins() {
-      if (!this.pluginData.length) return []
-      return this.pluginData.filter(
+    pluginsCenter() {
+      if (!this.plugins.length) return []
+      return this.plugins.filter(
         item => item.transData && item.transData === 'one'
       )
     },
-    computedPluginData() {
-      if (!this.pluginData.length) return []
-      return this.pluginData.filter(
+    pluginsAside() {
+      if (!this.plugins.length) return []
+      return this.plugins.filter(
         item => !item.transData || item.transData !== 'one'
       )
+    },
+    pluginsSub() {
+      if (!process.env.VUE_APP_PLUGINSUB_NAMES) return []
+      if (!this.pluginsAside.length) return []
+      let names = process.env.VUE_APP_PLUGINSUB_NAMES.split(',')
+      let result = []
+      names.forEach(name => {
+        this.pluginsAside.forEach(p => {
+          if (p.name === name) {
+            result.push(p)
+          }
+        })
+      })
+      return result
     }
   },
   created() {
@@ -738,8 +778,9 @@ const componentOptions = {
             }).then(preCondition => {
               let propsData = {}
               if (preCondition && typeof preCondition === 'object') {
-                let { schema } = preCondition
+                let { schema, formData } = preCondition
                 propsData.schema = schema
+                propsData.formData = formData
                 propsData.tmsAxiosName = tmsAxiosName
               }
               const vm = Module.createAndMount(Vue, propsData, {
@@ -993,7 +1034,7 @@ const componentOptions = {
       )
     ]).then(async res => {
       Object.assign(collection, res[0])
-      this.pluginData = res[1]
+      this.plugins = res[1]
       await this.handleProperty()
       /**集合定制功能设置 */
       const { custom } = collection

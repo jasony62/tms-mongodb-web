@@ -95,6 +95,7 @@ services:
         vue_app_front_doceditor_modify: ''
         vue_app_front_batcheditor: ''
         vue_app_storetoken_way: session
+        vue_app_pluginsub_names: ''
     image: tms-mongodb/ue-mongo:latest
     container_name: tms-mongodb-ue_mongo
     environment:

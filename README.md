@@ -42,8 +42,8 @@
 module.exports = {
   local: {
     rootDir: process.env.TMS_FINDER_FS_ROOTDIR || 'storage', // 指定保存文件的目录
-    outDir: process.env.TMS_FINDER_FS_OUTDIR || 'storage', // 系统生成文件存放目录
-  },
+    outDir: process.env.TMS_FINDER_FS_OUTDIR || 'storage' // 系统生成文件存放目录
+  }
 }
 ```
 
@@ -69,18 +69,21 @@ module.exports = {
 
 ## ue_admin
 
-| 环境变量                   | 说明 | 默认值 |
-| -------------------------- | ---- | ------ |
-| VUE_APP_TITLE              |      |        |
-| VUE_APP_BASE_URL           |      |        |
-| VUE_APP_BACK_AUTH_BASE     |      |        |
-| VUE_APP_BACK_AUTH_SERVER   |      |        |
-| VUE_APP_BACK_API_BASE      |      |        |
-| VUE_APP_BACK_API_SERVER    |      |        |
-| VUE_APP_LOGIN_KEY_USERNAME |      |        |
-| VUE_APP_LOGIN_KEY_PASSWORD |      |        |
-| VUE_APP_LOGIN_KEY_PIN      |      |        |
-| VUE_APP_TAGS               |      |        |
+| 环境变量                       | 说明                             | 默认值 |
+| ------------------------------ | -------------------------------- | ------ |
+| VUE_APP_TITLE                  | 页面标题                         | 管理端 |
+| VUE_APP_BASE_URL               | 打包基础路径                     |        |
+| VUE_APP_BACK_AUTH_BASE         | 鉴权接口前缀                     |        |
+| VUE_APP_BACK_AUTH_SERVER       | 鉴权服务器地址                   |        |
+| VUE_APP_BACK_API_BASE          | 后端接口前缀                     |        |
+| VUE_APP_BACK_API_FS            | 文件上传/下载接口前缀            |        |
+| VUE_APP_BACK_API_SERVER        | 后端服务器地址                   |        |
+| VUE_APP_LOGIN_KEY_USERNAME     | 登录用户名键                     |        |
+| VUE_APP_LOGIN_KEY_PASSWORD     | 登录密码键                       |        |
+| VUE_APP_LOGIN_KEY_PIN          | 登录验证码键                     |        |
+| VUE_APP_FRONT_DOCEDITOR_ADD    | 添加数据时，对数据进行的额外校验 |        |
+| VUE_APP_FRONT_DOCEDITOR_MODIFY | 修改数据时，对数据进行的额外校验 |        |
+| VUE_APP_STORETOKEN_WAY         | 存储 token 的方式                |        |
 
 ## ue_mongo
 
@@ -88,6 +91,20 @@ module.exports = {
 | -------------------------------- | -------------------------------------------------------------------------------------------------------- | ------ |
 | VUE_APP_TMW_REQUIRE_BUCKET       | 是否编译为多租户模式，等于`yes`或`true`（不区分大小写）时打开。详细说明参见[多租户](doc/多租户.md)。     |        |
 | VUE_APP_TMW_AGGREGATE_COLLECTION | 是否开放聚合集合功能，等于`yes`或`true`（不区分大小写）时打开。详细说明参见[聚合集合](doc/聚合集合.md)。 |        |
+| VUE_APP_TITLE                    | 页面标题                                                                                                 | 管理端 |
+| VUE_APP_BASE_URL                 | 打包基础路径                                                                                             |        |
+| VUE_APP_BACK_AUTH_BASE           | 鉴权接口前缀                                                                                             |        |
+| VUE_APP_BACK_AUTH_SERVER         | 鉴权服务器地址                                                                                           |        |
+| VUE_APP_BACK_API_BASE            | 后端接口前缀                                                                                             |        |
+| VUE_APP_BACK_API_FS              | 文件上传/下载接口前缀                                                                                    |        |
+| VUE_APP_BACK_API_SERVER          | 后端服务器地址                                                                                           |        |
+| VUE_APP_LOGIN_KEY_USERNAME       | 登录用户名键                                                                                             |        |
+| VUE_APP_LOGIN_KEY_PASSWORD       | 登录密码键                                                                                               |        |
+| VUE_APP_LOGIN_KEY_PIN            | 登录验证码键                                                                                             |        |
+| VUE_APP_FRONT_DOCEDITOR_ADD      | 添加数据时，对数据进行的额外校验                                                                         |        |
+| VUE_APP_FRONT_DOCEDITOR_MODIFY   | 修改数据时，对数据进行的额外校验                                                                         |        |
+| VUE_APP_STORETOKEN_WAY           | 存储 token 的方式                                                                                        |        |
+| VUE_APP_PLUGINSUB_NAMES          | 顶栏插件，主要用于插件放表格上方时的展示                                                                 | ''     |
 
 # 说明文档
 
