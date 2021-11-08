@@ -51,7 +51,8 @@ class PluginBase {
       everyTags,
       someTags,
       beforeWidget,
-      transData
+      transData,
+      visible
     } = this
     return {
       name,
@@ -62,7 +63,8 @@ class PluginBase {
       everyTags,
       someTags,
       beforeWidget,
-      transData
+      transData,
+      visible
     }
   }
 }

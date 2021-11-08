@@ -30,13 +30,16 @@ class CollectionHelper extends Helper {
    * 创建集合
    */
   async createCl(existDb, info) {
+    let modelCl = new ModelCl()
+
+    // 加工数据
+    modelCl.beforeProcessByInAndUp(info, 'insert')
+
     info.type = 'collection'
     info.database = existDb.name
 
     info.db = { sysname: existDb.sysname, name: existDb.name }
     if (this.bucket) info.bucket = this.bucket.name
-
-    let modelCl = new ModelCl()
 
     // 检查指定的集合名
     let [passed, nameOrCause] = modelCl.checkClName(info.name)
