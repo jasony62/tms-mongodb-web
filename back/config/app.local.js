@@ -1,4 +1,4 @@
-module.exports = {
+let app_config = {
   port: process.env.TMS_APP_PORT || 3000,
   name: process.env.TMS_APP_NAME || 'tms-oauth',
   router: {
@@ -13,7 +13,10 @@ module.exports = {
     },
   },
   auth: {
-    jwt: false,
+    jwt: process.env.TMS_APP_AUTH_TYPE === "redis" ? false : {
+      privateKey: 'tms-mongodb-web',
+      expiresIn: 3600
+    },
     // 验证码
     captcha: {
       code: process.env.TMS_APP_AUTH_CAPTCHA_CODE || "1234",
@@ -21,13 +24,6 @@ module.exports = {
     //
     client: {
       accounts: process.env.TMS_APP_AUTH_CLIENT_ACCOUNTS ? JSON.parse(process.env.TMS_APP_AUTH_CLIENT_ACCOUNTS) : [{ id: 1, username: 'admin', password: 'nlpt@189', }]
-    },
-    redis: {
-      prefix: process.env.TMS_REDIS_PREFIX,
-      host: process.env.TMS_REDIS_HOST,
-      port: parseInt(process.env.TMS_REDIS_PORT),
-      password: process.env.TMS_REDIS_PWD || "",
-      expiresIn: parseInt(process.env.TMS_REDIS_EXPIRESIN) || 7200
     },
   },
   tmwConfig: {
@@ -38,3 +34,15 @@ module.exports = {
     TMS_APP_DATA_ACTION_LOG: 'Y', // 数据操作日志， 日志会记录到tms_admin库下的 tms_app_data_action_log 集合中
   }
 }
+
+if (process.env.TMS_APP_AUTH_TYPE === "redis") {
+  app_config.auth.redis = {
+    prefix: process.env.TMS_REDIS_PREFIX,
+    host: process.env.TMS_REDIS_HOST,
+    port: parseInt(process.env.TMS_REDIS_PORT),
+    password: process.env.TMS_REDIS_PWD || "",
+    expiresIn: parseInt(process.env.TMS_REDIS_EXPIRESIN) || 7200
+  }
+}
+
+module.exports = app_config
