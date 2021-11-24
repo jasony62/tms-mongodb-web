@@ -3,7 +3,6 @@
 /mongodb-*
 
 .env.local
-docker-compose.*
 
 /tests/
 /patch/

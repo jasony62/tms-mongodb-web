@@ -1,102 +1,152 @@
 version: '3.7'
 services:
-  mongodb:
+  pmongodb:
     build: ./mongodb
-    image: 192.168.253.28/tms-mongodb/db:latest
-    container_name: tms-db
-
+    image: 192.168.253.28/stateful/mongodb:latest
+    container_name: pool-mongodb
   back:
     build: ./back
-    image: 192.168.253.28/tms-mongodb/back:latest
-    container_name: tms-back
+    image: 192.168.253.28/mg_pool/back:latest
+    container_name: pool-back
     # environment:
-    #   默认
-    #   - NODE_ENV=production
-    #   app 名称
-    #   - TMS_APP_NAME=tms-mongo-web
-    #   app 端口号
-    #   - TMS_APP_PORT=3000
-    #   导入文件存放目录
-    #   - TMS_FINDER_FS_ROOTDIR=/storage
-    #   导出文件存放目录
-    #   - TMS_FINDER_FS_OUTDIR=/storage
-    #   是否使用文件自身命名
-    #   - TMS_FINDER_FS_CUSTOMNAME=true
-    #   日志输出级别
-    #   - TMS_APP_LOG4JS_LEVEL=debug
-    #   mongodb 配置
-    #   - TMS_MONGODB_HOST=localhost
-    #   - TMS_MONGODB_PORT=27017
-    #   - TMS_MONGODB_USER=root
-    #   - TMS_MONGODB_PASSWORD=root
-    #   redis 配置
-    #   - TMS_REDIS_PREFIX=dev-op
-    #   - TMS_REDIS_HOST=localhost
-    #   - TMS_REDIS_PORT=6378
-    #   - TMS_REDIS_EXPIRESIN=7200
-    #   swagger 配置
-    #   - TMW_API_HOST=http://localhost
-    #   - TMW_API_PORT=3000
-    #   bucket
-    #   - TMW_REQUIRE_BUCKET=
-    #   插件发送配置地址
-    #   - TMS_PLUGINS_SEND_IP=
+    # app 端口
+    #    - TMS_APP_PORT=3000
+    # app 名称
+    #    - TMS_APP_NAME=dev-op
+    # 日志输出级别
+    #    - TMS_APP_LOG4JS_LEVEL=debug
+    # 文件导出
+    #    - TMS_FINDER_OUTDIR=/data/
+    # 文件导入
+    #    - TMS_FINDER_FS_ROOTDIR=/data/root
+    # 自定义名称(1210废弃)
+    #    - TMS_FINDER_FS_CUSTOMNAME=true
+    # 自定义名称(1210修改)
+    #    - TMS_FINDER_FS_CUSTOMNAME=false
+    # app auth(0107新增)
+    #    - TMS_APP_ROUTER_AUTH=/pool/auth
+    # app api(0107新增)
+    #    - TMS_APP_ROUTER_CONTROLLER=/pool/api
+    # app plugin(0107新增)
+    #    - TMS_APP_ROUTER_PLUGIN=/pool/plugin
+    # app fs(0107新增)
+    #    - TMS_APP_ROUTER_FSDOMAIN=/pool/fs
+    # 外部接口：插件receive接口白名单-it模块ip
+    #    - TRUSTIPS_PLUGINS_RECEIVE_IPS=[""](废弃0107)
+    #    - TRUSTIPS_EXTERNAL_RECEIVE_IPS=[""](新增0107)
+    # 外部接口：订单同步白名单-订单ip
+    #    - TRUSTIPS_ORDER_IPS=[""](废弃0107)
+    #    - TRUSTIPS_EXTERNAL_ORDER_IPS=[""](新增0107)
+    # mongodb配置
+    #    - TMS_MONGODB_HOST=pmongodb
+    #    - TMS_MONGODB_PORT=27017(主节点端口)
     # 复制集：开启实时复制
-    #    - TMW_REALTIME_REPLICA=true
-    #    - TMW_REPLICA_SET_NAME=tmw-rA_s
-    #    - TMW_MONGODB_S_PORT=27018
-    #    - TMW_MONGODB_A_PORT=27019
-    #    - TMS_MONGODB_S_HOST=""
-    #    - TMS_MONGODB_A_HOST=""
+    #    - TMW_REALTIME_REPLICA=true(新增0204)
+    #    - TMW_REPLICA_SET_NAME=tmw-rA_s(复制集名称0204新)
+    #    - TMW_MONGODB_S_PORT=27018(从节点端口0204新)
+    #    - TMW_MONGODB_A_PORT=27019(仲裁节点端口0204新)
+    #    - TMS_MONGODB_S_HOST=""(从节点主机0204新)
+    #    - TMS_MONGODB_A_HOST=""(仲裁节点主机0204新)
+    # 调用订单的回调接口(0401新增)
+    #    - TMW_API_ORDER_ADDTELLIST=http://192.168.102.41:3000/order/api/plugins/receive/receive?module=it&async=Y
+    # 订单号码清单文件路径的前缀(0401新增)
+    #    - TMW_API_ORDER_ADDTELLIST_GETFILE=http://192.168.102.41:3000
+    # 订单号码清单信任ip(0401新增)
+    #    - TRUSTIPS_EXTERNAL_ORDERFILE_IPS=["192.168.20.248", "192.168.52.101"]
     # redis增加密码
     #    - TMS_REDIS_PWD=''
+    # 增加定时脚本任务(0722新增)
+    #    - TMW_SCHEDULE_ENABLE=true
+    #    - TMW_SCHEDULE_RULE=0 0 2 * * *
     command:
       [
         'sh',
         './wait-for.sh',
-        'mongodb:27017',
+        'pmongodb:27017',
         '-t',
         '300',
         '--',
         'node',
-        'server',
+        'server'
       ]
-  admin:
+  ue_admin:
     build:
-      context: ./ue_admin
+      context: .
+      dockerfile: Dockerfile-ueadmin
       args:
         vue_app_login_key_username: username
         vue_app_login_key_password: password
         vue_app_login_key_pin: pin
-        vue_app_base_url: /admin
-        vue_app_back_auth_base: /auth
-        vue_app_back_api_base: /api
-        vue_app_back_api_fs: /fs
+        vue_app_base_url: /pool/admin
+        vue_app_back_auth_base: /pool/auth
+        vue_app_back_api_base: /pool/api
+        vue_app_back_api_fs: '/pool/fs'
+        vue_app_back_auth_server: http://192.168.20.71:3330
         vue_app_front_doceditor_add: ''
         vue_app_front_doceditor_modify: ''
-        vue_app_storetoken_way: session
-    image: 192.168.253.28/tms-mongodb/admin:latest
-    container_name: tms-admin
+        vue_app_storetoken_way: cookie
+    image: 192.168.253.28/mg_pool/admin:latest
+    container_name: pool-admin
     environment:
-      - NGINX_WEB_BASE_URL=/admin
-
-  mongo:
+      - NGINX_WEB_BASE_URL=/pool/admin
+  ue_mongo:
     build:
-      context: ./ue_mongo
+      context: .
+      dockerfile: Dockerfile-uemongo
       args:
         vue_app_login_key_username: username
         vue_app_login_key_password: password
         vue_app_login_key_pin: pin
-        vue_app_base_url: /mongo
-        vue_app_back_auth_base: /auth
-        vue_app_back_api_base: /api
-        vue_app_back_api_fs: /fs
+        vue_app_base_url: /pool/mongo
+        vue_app_back_auth_base: /pool/auth
+        vue_app_back_api_base: /pool/api
+        vue_app_back_api_fs: '/pool/fs'
         vue_app_front_doceditor_add: ''
         vue_app_front_doceditor_modify: ''
         vue_app_front_batcheditor: ''
-        vue_app_storetoken_way: session
-        vue_app_pluginsub_names: ''
-    image: tms-mongodb/ue-mongo:latest
-    container_name: tms-mongodb-ue_mongo
+        vue_app_back_auth_server: http://192.168.20.71:3330
+        vue_app_storetoken_way: cookie
+    image: 192.168.253.28/mg_pool/mongo:latest
+    container_name: pool-mongo
     environment:
-      - NGINX_WEB_BASE_URL=/mongo
+      - NGINX_WEB_BASE_URL=/pool/mongo
+  ue_sale:
+    build:
+      context: .
+      dockerfile: Dockerfile-uesale
+      args:
+        vue_app_base_url: /pool/sale
+        vue_app_back_auth_base: /pool/auth
+        vue_app_back_api_base: /pool/api
+        vue_app_back_api_fs: /pool/fs
+        vue_app_back_api_plugin: /pool/plugin
+        vue_app_user_role: sale
+        vue_app_schema_tags: manager_editor
+        vue_app_schema_default_tags: manager_list
+        vue_app_front_framedisplay: '{header: false,footer: false,right: false,left: false}'
+        vue_app_front_docoperates: '{create: false,edit: false,remove: false,editMany:
+          false,removeMany: false,transferMany: false,import: false,export:
+          true,copyMany: false}'
+        vue_app_storetoken_way: session
+    image: 192.168.253.28/mg_pool/sale:latest
+    container_name: pool-sale
+  ue_promanage:
+    build:
+      context: .
+      dockerfile: Dockerfile-uepromanage
+      args:
+        vue_app_base_url: /pool/promanage
+        vue_app_back_auth_base: /pool/auth
+        vue_app_back_api_base: /pool/api
+        vue_app_back_api_fs: /pool/fs
+        vue_app_back_api_plugin: /pool/plugin
+        vue_app_user_role: promanage
+        vue_app_schema_tags: promanage_edit
+        vue_app_schema_default_tags: promanage_list
+        vue_app_front_framedisplay: '{header: false,footer: false,right: false,left: false}'
+        vue_app_front_docoperates: '{create: false,edit: false,remove: false,editMany:
+          false,removeMany: false,transferMany: false,import: false,export:
+          true,copyMany: false}'
+        vue_app_storetoken_way: session
+    image: 192.168.253.28/mg_pool/promanage:latest
+    container_name: pool-promanage

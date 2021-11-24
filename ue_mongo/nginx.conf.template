@@ -29,6 +29,14 @@ http {
         listen       80;
         server_name  localhost;
 
+        location $NGINX_WEB_AUTH_URL {
+            proxy_pass $NGINX_WEB_BACK_SERVER$NGINX_WEB_AUTH_URL;
+        }
+        
+        location $NGINX_WEB_API_URL {
+            proxy_pass $NGINX_WEB_BACK_SERVER$NGINX_WEB_API_URL;
+        }
+
         location $NGINX_WEB_BASE_URL {
             root   /usr/share/nginx/html;
             try_files $uri $uri/ $NGINX_WEB_BASE_URL/index.html;
