@@ -304,7 +304,7 @@ class DocBase extends Base {
         if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
           // 记录操作日志
           updateBeforeDocs.forEach(async doc => {
-            let afterDoc = Object.assign(doc, updated)
+            let afterDoc = Object.assign({}, doc, updated)
             let beforeDoc = {}
             beforeDoc[doc._id] = doc
             await this.modelDoc.dataActionLog(
