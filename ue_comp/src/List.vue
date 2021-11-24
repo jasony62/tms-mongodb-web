@@ -243,7 +243,7 @@ const componentOptions = {
       frameDisplay: {
         header: false,
         footer: false,
-        right: false,
+        right: true,
         left: false
       },
       docOperations: {
@@ -803,7 +803,7 @@ const componentOptions = {
                 .then(result => {
                   resolve(result)
                 })
-            else return {}
+            else return resolve({ db: '', cl: '' })
           }).then(preCondition => {
             let propsData = {
               bucketName,

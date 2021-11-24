@@ -25,7 +25,8 @@ const ComponentOptions = {
   },
   props: {
     schema: Object,
-    formData: Object
+    formData: Object,
+    tmsAxiosName: String
   },
   data() {
     return {

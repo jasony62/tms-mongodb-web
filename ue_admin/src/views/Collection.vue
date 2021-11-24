@@ -327,12 +327,12 @@ export default {
       } = collection
       let temp = {}
 
-      if (default_tags && default_tags.length) {
-        await this.getTaglist(default_tags).then(res => {
+      if (schema_default_tags && schema_default_tags.length) {
+        await this.getTaglist(schema_default_tags).then(res => {
           temp = res
         })
-      } else if (tags && tags.length) {
-        await this.getTaglist(tags).then(res => {
+      } else if (schema_tags && schema_tags.length) {
+        await this.getTaglist(schema_tags).then(res => {
           temp = res
         })
       } else if (
