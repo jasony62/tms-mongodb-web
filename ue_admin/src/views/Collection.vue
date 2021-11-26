@@ -93,7 +93,6 @@ import {
   schema as apiSchema
 } from '../apis'
 
-const { VUE_APP_SCHEMA_TAGS, VUE_APP_SCHEMA_DEFAULT_TAGS } = process.env
 const collection = {}
 
 export default {
@@ -319,25 +318,21 @@ export default {
         })
     },
     async handleProperty() {
-      let tags = VUE_APP_SCHEMA_TAGS
-        ? VUE_APP_SCHEMA_TAGS.split(',')
-        : collection.schema_tags
-      let default_tags = VUE_APP_SCHEMA_DEFAULT_TAGS
-        ? VUE_APP_SCHEMA_DEFAULT_TAGS.split(',')
-        : collection.schema_default_tags
       let {
+        schema_tags,
+        schema_default_tags,
         schema: {
           body: { properties }
         }
       } = collection
       let temp = {}
 
-      if (default_tags && default_tags.length) {
-        await this.getTaglist(default_tags).then(res => {
+      if (schema_default_tags && schema_default_tags.length) {
+        await this.getTaglist(schema_default_tags).then(res => {
           temp = res
         })
-      } else if (tags && tags.length) {
-        await this.getTaglist(tags).then(res => {
+      } else if (schema_tags && schema_tags.length) {
+        await this.getTaglist(schema_tags).then(res => {
           temp = res
         })
       } else if (

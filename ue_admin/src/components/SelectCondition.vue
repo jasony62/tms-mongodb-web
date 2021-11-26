@@ -1,49 +1,46 @@
 <template>
-  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <el-form :model="condition" label-position="top">
-      <el-form-item label="排序" style="font-weight: bold">
-        <el-button type="primary" :plain="condition.isCheckBtn[0]" @click="handleSort('asc')">升序</el-button>
-        <el-button type="success" :plain="condition.isCheckBtn[1]" @click="handleSort('desc')">降序</el-button>
-      </el-form-item>
-      <el-form-item label="筛选器" style="font-weight: bold;">
-        <el-select v-model="condition.selectValue" clearable placeholder="请选择文本筛选规则" @change="handleSelectChange">
-          <el-option v-for="item in condition.selectRules" :key="item.value" :label="item.label" :value="item.value">
-          </el-option>
+  <el-dialog :title="'筛选-'+currentPro.title" :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
+    <el-form :model="condition" label-width="60px">
+      <el-form-item label="按条件">
+        <el-select v-model="condition.selectValue" clearable placeholder="请选择筛选规则" @change="handleSelectChange">
+          <el-option v-for="item in condition.selectRules" :key="item.value" :label="item.label" :value="item.value"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item>
-        <el-input v-model="condition.keyword" placeholder="请输入搜索关键词" @input="handleInputChange"></el-input>
-      </el-form-item>
-      <el-form-item>
-        <el-table ref="multipleTable" :data="condition.selectResult" tooltip-effect="dark" border id="tables" style="min-width: 240px" max-height="250" v-loadmore="loadMore" @selection-change="handleSelectionChange">
-          <el-table-column type="selection" width="55">
-          </el-table-column>
-          <el-table-column :label="'全选('+selectedLen+')'">
-            <template slot-scope="scope">
-              <div v-if="currentPro.type === 'array' && currentPro.enum">
-                <span v-for="(i, v) in currentPro.enum" :key="v">
-                  <span v-if="scope.row.title && scope.row.title.includes(i.value)">{{i.label}}&nbsp;</span>
-                </span>
-                <span>{{'(' + scope.row.sum + ')' }}</span>
-              </div>
-              <div v-else-if="currentPro.type === 'string' && currentPro.enum">
-                <span v-for="(i, v) in currentPro.enum" :key="v">
-                  <span v-if="scope.row.title === i.value">{{i.label}}</span>
-                </span>
-                <span>{{'(' + scope.row.sum + ')' }}</span>
-              </div>
-              <div v-else>
-                {{ scope.row.title + '(' + scope.row.sum + ')' }}
-              </div>
-            </template>
-          </el-table-column>
-        </el-table>
+      <el-form-item label="关键字">
+        <el-input placeholder="请输入内容,多个关键字以英文逗号间隔" v-model="condition.keyword" @input="handleInputChange" :maxlength="30000" show-word-limit></el-input>
       </el-form-item>
     </el-form>
+    <div v-if="currentPro.groupable !== false">
+      <el-table id="tables" ref="multipleTable" :data="condition.selectResult" tooltip-effect="dark" border max-height="270" v-loadmore="loadMore" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="55">
+        </el-table-column>
+        <el-table-column :label="'全选('+selectedLen+')'">
+          <template slot-scope="scope">
+            <div v-if="currentPro.type === 'array' && currentPro.enum">
+              <span v-for="(i, v) in currentPro.enum" :key="v">
+                <span v-if="scope.row.title && scope.row.title.includes(i.value)">{{i.label}}&nbsp;</span>
+              </span>
+              <span>{{'(' + scope.row.sum + ')' }}</span>
+            </div>
+            <div v-else-if="currentPro.type === 'string' && currentPro.enum">
+              <span v-for="(i, v) in currentPro.enum" :key="v">
+                <span v-if="scope.row.title === i.value">{{i.label}}</span>
+              </span>
+              <span>{{'(' + scope.row.sum + ')' }}</span>
+            </div>
+            <div v-else>
+              {{ scope.row.title + '(' + scope.row.sum + ')' }}
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
     <div slot="footer" class="dialog-footer">
+      <el-button style="float:left" type="primary" :plain="condition.isCheckBtn[0]" @click="handleSort('asc')">升序</el-button>
+      <el-button style="float:left" type="primary" :plain="condition.isCheckBtn[1]" @click="handleSort('desc')">降序</el-button>
+      <el-button type="default" @click="dialogVisible = false">取消</el-button>
       <el-button type="warning" @click="onClear">清除筛选</el-button>
       <el-button type="primary" @click="onSubmit">提交</el-button>
-      <el-button @click="dialogVisible = false">取消</el-button>
     </div>
   </el-dialog>
 </template>
@@ -147,11 +144,31 @@ export default {
       if (!this.condition.rule.filter[this.columnName]) {
         this.condition.rule.filter[this.columnName] = {}
       }
-      this.condition.rule.filter[this.columnName].keyword = val
+      this.setKeyword(val)
       clearTimeout(this.timer)
+      if (!this.currentPro.groupable !== false) return
       this.timer = setTimeout(() => {
         this.updateByColumn()
       }, 500)
+    },
+    // 设置关键字
+    setKeyword(keyword) {
+      if (
+        ['array', 'string'].includes(this.currentPro.type) &&
+        this.currentPro.enum
+      ) {
+        keyword = keyword
+          .split(',')
+          .map(item =>
+            this.currentPro.enum
+              .filter(enumItem => enumItem.label === item)
+              .map(filterItem => filterItem.value)
+          )
+          .join()
+          .split(',')
+        this.condition.rule.filter[this.columnName].feature = 'in'
+      }
+      this.condition.rule.filter[this.columnName].keyword = keyword
     },
     updateByColumn(isLoadMore) {
       this.listByColumn(
@@ -225,6 +242,7 @@ export default {
         this.$on('submit', selectCondition => {
           const { rule, isClear, isCheckBtn } = selectCondition
           this.dialogVisible = false
+          document.body.removeChild(this.$el)
           resolve({
             rule,
             condition: { ...this.condition, columnName: columnName },

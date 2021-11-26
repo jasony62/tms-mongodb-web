@@ -66,6 +66,24 @@ module.exports = {
 | TMW_API_PORT               | 对外提供 API 服务的主机端口。                                                                                | 3000                       |
 | TMW_REQUIRE_BUCKET         | 是否检查请求中的`bucket`参数，等于`yes`或`true`（不区分大小写）时打开。详细说明参见[多租户](doc/多租户.md)。 |                            |
 | TMW_REALTIME_REPLICA       | 是否支持集合实时复制功能，等于`yes`或`true`（不区分大小写）时打开。详细说明参见[聚合集合](doc/复制集合.md)。 |                            |
+| TMS_FINDER_FS_ROOTDIR      | 导入文件存放目录                                                                                             |                            |
+| TMS_FINDER_FS_ROOTDIR      | 导出文件存放目录                                                                                             |                            |
+| TMS_FINDER_FS_CUSTOMNAME   | 是否使用文件自身命名                                                                                         |                            |
+| TMS_APP_LOG4JS_LEVEL       | 日志输出级别                                                                                                 |                            |
+| TMS_FINDER_FS_CUSTOMNAME   | 是否使用文件自身命名                                                                                         |                            |
+| TMS_MONGODB_HOST           | 数据库主机名                                                                                                 |                            |
+| TMS_MONGODB_PORT           | 数据库端口号                                                                                                 |                            |
+| TMS_MONGODB_USER           | 数据库用户名                                                                                                 |                            |
+| TMS_MONGODB_PASSWORD       | 数据库密码                                                                                                   |                            |
+| TMS_REDIS_PREFIX           | redis 前缀                                                                                                   | 'tms-mongodb-web'          |
+| TMS_REDIS_HOST             | redis 主机名                                                                                                 | '127.0.0.1'                |
+| TMS_REDIS_PORT             | redis 端口号                                                                                                 | 6379                       |
+| TMS_REDIS_EXPIRESIN        | redis 过期时间                                                                                               | 7200                       |
+| TMS_REDIS_PWD              | redis 密码                                                                                                   |                            |
+| TMS_APP_ROUTER_AUTH        | 鉴权接口前缀                                                                                                 |                            |
+| TMS_APP_ROUTER_CONTROLLER  | 控制器接口前缀                                                                                               |                            |
+| TMS_APP_ROUTER_PLUGIN      | 插件接口前缀                                                                                                 |                            |
+| TMS_APP_ROUTER_FSDOMAIN    | 文件下载接口前缀                                                                                             |                            |
 
 ## ue_admin
 
@@ -103,14 +121,18 @@ module.exports = {
 | VUE_APP_LOGIN_KEY_PIN            | 登录验证码键                                                                                             |        |
 | VUE_APP_FRONT_DOCEDITOR_ADD      | 添加数据时，对数据进行的额外校验                                                                         |        |
 | VUE_APP_FRONT_DOCEDITOR_MODIFY   | 修改数据时，对数据进行的额外校验                                                                         |        |
+| VUE_APP_FRONT_BATCHEDITOR        | 批量修改数据时，对数据进行的额外校验                                                                     |        |
 | VUE_APP_STORETOKEN_WAY           | 存储 token 的方式                                                                                        |        |
 | VUE_APP_PLUGINSUB_NAMES          | 顶栏插件，主要用于插件放表格上方时的展示                                                                 | ''     |
 
 # 说明文档
 
 [白名单](doc/白名单.md)
+
 [插件机制](doc/插件机制.md)
+
 [多租户](doc/多租户.md)
+
 [聚合集合](doc/聚合集合.md)
 
 [元数据](doc/元数据.md)
