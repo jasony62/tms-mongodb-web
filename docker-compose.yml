@@ -9,55 +9,50 @@ services:
     image: 192.168.253.28/mg_pool/back:latest
     container_name: pool-back
     # environment:
-    # app 端口
-    #    - TMS_APP_PORT=3000
-    # app 名称
-    #    - TMS_APP_NAME=dev-op
-    # 日志输出级别
-    #    - TMS_APP_LOG4JS_LEVEL=debug
-    # 文件导出
-    #    - TMS_FINDER_OUTDIR=/data/
-    # 文件导入
-    #    - TMS_FINDER_FS_ROOTDIR=/data/root
-    # 自定义名称(1210废弃)
-    #    - TMS_FINDER_FS_CUSTOMNAME=true
-    # 自定义名称(1210修改)
-    #    - TMS_FINDER_FS_CUSTOMNAME=false
-    # app auth(0107新增)
-    #    - TMS_APP_ROUTER_AUTH=/pool/auth
-    # app api(0107新增)
-    #    - TMS_APP_ROUTER_CONTROLLER=/pool/api
-    # app plugin(0107新增)
-    #    - TMS_APP_ROUTER_PLUGIN=/pool/plugin
-    # app fs(0107新增)
-    #    - TMS_APP_ROUTER_FSDOMAIN=/pool/fs
-    # 外部接口：插件receive接口白名单-it模块ip
-    #    - TRUSTIPS_PLUGINS_RECEIVE_IPS=[""](废弃0107)
-    #    - TRUSTIPS_EXTERNAL_RECEIVE_IPS=[""](新增0107)
-    # 外部接口：订单同步白名单-订单ip
-    #    - TRUSTIPS_ORDER_IPS=[""](废弃0107)
-    #    - TRUSTIPS_EXTERNAL_ORDER_IPS=[""](新增0107)
-    # mongodb配置
-    #    - TMS_MONGODB_HOST=pmongodb
-    #    - TMS_MONGODB_PORT=27017(主节点端口)
-    # 复制集：开启实时复制
-    #    - TMW_REALTIME_REPLICA=true(新增0204)
-    #    - TMW_REPLICA_SET_NAME=tmw-rA_s(复制集名称0204新)
-    #    - TMW_MONGODB_S_PORT=27018(从节点端口0204新)
-    #    - TMW_MONGODB_A_PORT=27019(仲裁节点端口0204新)
-    #    - TMS_MONGODB_S_HOST=""(从节点主机0204新)
-    #    - TMS_MONGODB_A_HOST=""(仲裁节点主机0204新)
-    # 调用订单的回调接口(0401新增)
-    #    - TMW_API_ORDER_ADDTELLIST=http://192.168.102.41:3000/order/api/plugins/receive/receive?module=it&async=Y
-    # 订单号码清单文件路径的前缀(0401新增)
-    #    - TMW_API_ORDER_ADDTELLIST_GETFILE=http://192.168.102.41:3000
-    # 订单号码清单信任ip(0401新增)
-    #    - TRUSTIPS_EXTERNAL_ORDERFILE_IPS=["192.168.20.248", "192.168.52.101"]
-    # redis增加密码
+    #   默认
+    #   - NODE_ENV=production
+    #   app 名称
+    #   - TMS_APP_NAME=tms-mongo-web
+    #   app 端口号
+    #   - TMS_APP_PORT=3000
+    #   导入文件存放目录
+    #   - TMS_FINDER_FS_ROOTDIR=/storage
+    #   导出文件存放目录
+    #   - TMS_FINDER_FS_OUTDIR=/storage
+    #   是否使用文件自身命名
+    #   - TMS_FINDER_FS_CUSTOMNAME=true
+    #   日志输出级别
+    #   - TMS_APP_LOG4JS_LEVEL=debug
+    #   mongodb 配置
+    #   - TMS_MONGODB_HOST=localhost
+    #   - TMS_MONGODB_PORT=27017
+    #   - TMS_MONGODB_USER=root
+    #   - TMS_MONGODB_PASSWORD=root
+    #   redis 配置
+    #   - TMS_REDIS_PREFIX=dev-op
+    #   - TMS_REDIS_HOST=localhost
+    #   - TMS_REDIS_PORT=6378
+    #   - TMS_REDIS_EXPIRESIN=7200
+    #   swagger 配置
+    #   - TMW_API_HOST=http://localhost
+    #   - TMW_API_PORT=3000
+    #   bucket
+    #   - TMW_REQUIRE_BUCKET=
+    #   复制集：开启实时复制
+    #    - TMW_REALTIME_REPLICA=true
+    #    - TMW_REPLICA_SET_NAME=tmw-rA_s
+    #    - TMW_MONGODB_S_PORT=27018
+    #    - TMW_MONGODB_A_PORT=27019
+    #    - TMS_MONGODB_S_HOST=""
+    #    - TMS_MONGODB_A_HOST=""
+    #   redis增加密码
     #    - TMS_REDIS_PWD=''
-    # 增加定时脚本任务(0722新增)
-    #    - TMW_SCHEDULE_ENABLE=true
-    #    - TMW_SCHEDULE_RULE=0 0 2 * * *
+    #   应用路由前缀
+    #    - TMS_APP_ROUTER_AUTH=''
+    #    - TMS_APP_ROUTER_CONTROLLER=''
+    #    - TMS_APP_ROUTER_PLUGIN=''
+    #    - TMS_APP_ROUTER_FSDOMAIN=''
+    #    - TMS_APP_DATA_ACTION_LOG=''
     command:
       [
         'sh',

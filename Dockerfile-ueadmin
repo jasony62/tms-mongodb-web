@@ -27,7 +27,7 @@ RUN echo VUE_APP_TITLE=$vue_app_title > ./ue_admin/.env && \
   echo VUE_APP_BACK_API_FS=$vue_app_back_api_fs >> ./ue_admin/.env && \
   echo VUE_APP_FRONT_DOCEDITOR_ADD=$vue_app_front_doceditor_add >> ./ue_admin/.env && \
   echo VUE_APP_FRONT_DOCEDITOR_MODIFY=$vue_app_front_doceditor_modify >> ./ue_admin/.env && \
-  echo VUE_APP_STORETOKEN_WAY=$vue_app_storetoken_way >> ./ue_admin/.env
+  echo VUE_APP_STORETOKEN_WAY=$vue_app_storetoken_way >> ./ue_admin/.env 
 
 # 安装依赖包，构建代码
 RUN cd ue_admin && cnpm i && yarn build

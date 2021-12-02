@@ -536,6 +536,7 @@ class Document extends Base {
       operateRules &&
       operateRules.scope &&
       operateRules.unrepeat &&
+      operateRules.unrepeat.database &&
       operateRules.unrepeat.database.sysname
     ) {
       const {

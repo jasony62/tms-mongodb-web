@@ -25,7 +25,8 @@ const ComponentOptions = {
   },
   props: {
     schema: Object,
-    formData: Object
+    formData: Object,
+    tmsAxiosName: String
   },
   data() {
     return {
@@ -45,7 +46,7 @@ const ComponentOptions = {
     onFileDownload(name, url) {
       /**需要访问控制 */
       if (process.env.VUE_APP_BACK_AUTH_BASE) {
-        const accessToken = sessionStorage.getItem('access_token')
+        const accessToken = this.$getToken()
         window.open(`${url}?access_token=${accessToken}`)
       } else {
         window.open(`${url}`)
