@@ -2,7 +2,7 @@ version: '3.7'
 services:
   back:
     build: ./back
-    image: 192.168.253.28/tms-mongodb/back:latest
+    image: 42.99.2.53:18124/tms-mongodb/back:21.12.2
     container_name: tms-back
     environment:
       - NODE_ENV=production
@@ -15,29 +15,29 @@ services:
       - TMS_APP_ROUTER_AUTH=/apiit/auth
       - TMS_APP_ROUTER_CONTROLLER=/apiit/api
       - TMS_APP_ROUTER_FSDOMAIN=/apiit/fs
-      - TMS_APP_ROUTER_PLUGIN=/pool/plugin
+      - TMS_APP_ROUTER_PLUGIN=/apiit/plugin
 
-      - TMS_MONGODB_HOST=host.docker.internal
-      - TMS_MONGODB_PORT=27027
-      - TMS_MONGODB_USER=admin
-      - TMS_MONGODB_PASSWORD=password
+      - TMS_MONGODB_HOST=172.16.157.19
+      - TMS_MONGODB_PORT=27014
+      - TMS_MONGODB_USER=root
+      - TMS_MONGODB_PASSWORD=Zhcqg4l+u3njTzTf
 
+      # Redis
       - TMS_REDIS_PREFIX=dev-op
-      - TMS_REDIS_HOST=host.docker.internal
-      - TMS_REDIS_PORT=6399
-      - TMS_REDIS_PWD=8811aa..
-
-      #- TMS_REDIS_EXPIRESIN=60
+      - TMS_REDIS_HOST=172.16.157.21
+      - TMS_REDIS_PORT=6500
+      - TMS_REDIS_EXPIRESIN=7200
+      - TMS_REDIS_PWD=urYgbBtgqv
       - TMS_APP_DEFAULT_CREATETIME=TMS_DEFAULT_CREATE_TIME
       - TMS_APP_DEFAULT_UPDATETIME=TMS_DEFAULT_UPDATE_TIME
       - TMS_APP_DB_CREATETIME=createTime
       - TMS_APP_DB_UPDATETIME=updateTime
       - TMW_REALTIME_REPLICA=false
       # 鉴权机制【redis,jwt】
-      - TMS_APP_AUTH_TYPE=jwt
+      - TMS_APP_AUTH_TYPE=redis
     command: [ 'node', 'server' ]
     ports:
-      - '3000:3000'
+      - '37001:3000'
     networks:
       - portal
   admin:
@@ -57,7 +57,7 @@ services:
         vue_app_storetoken_way: session
         VUE_APP_BACK_API_SERVER: http://back:3000
         VUE_APP_BACK_AUTH_SERVER: http://back:3000
-    image: 192.168.253.28/tms-mongodb/admin:latest
+    image: 42.99.2.53:18124/tms-mongodb/admin:21.12.2
     container_name: tms-admin
     environment:
       - NGINX_WEB_BASE_URL=/apiit/admin
@@ -65,7 +65,7 @@ services:
       - NGINX_WEB_AUTH_URL=/apiit/auth
       - NGINX_WEB_API_URL=/apiit/api
     ports:
-      - '3840:80'
+      - '37002:80'
     networks:
       - portal
 
@@ -88,7 +88,7 @@ services:
         vue_app_pluginsub_names: ''
         VUE_APP_BACK_API_SERVER: http://back:3000
         VUE_APP_BACK_AUTH_SERVER: http://back:3000
-    image: 192.168.253.28/tms-mongodb/ue-mongo:latest
+    image: 42.99.2.53:18124/tms-mongodb/ue-mongo:21.12.2
     container_name: tms-mongodb-ue_mongo
     environment:
       - NGINX_WEB_BASE_URL=/apiit/mongo
@@ -96,7 +96,7 @@ services:
       - NGINX_WEB_AUTH_URL=/apiit/auth
       - NGINX_WEB_API_URL=/apiit/api
     ports:
-      - '3830:80'
+      - '37003:80'
     networks:
       - portal
 networks:

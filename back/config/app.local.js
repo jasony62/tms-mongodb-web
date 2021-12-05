@@ -13,7 +13,7 @@ let app_config = {
     },
   },
   auth: {
-    jwt: process.env.TMS_APP_AUTH_TYPE === "redis" ? false : {
+    jwt: {
       privateKey: 'tms-mongodb-web',
       expiresIn: 3600
     },
@@ -23,7 +23,7 @@ let app_config = {
     },
     //
     client: {
-      accounts: process.env.TMS_APP_AUTH_CLIENT_ACCOUNTS ? JSON.parse(process.env.TMS_APP_AUTH_CLIENT_ACCOUNTS) : [{ id: 1, username: 'admin', password: 'nlpt@189', }]
+      accounts: process.env.TMS_APP_AUTH_CLIENT_ACCOUNTS ? JSON.parse(process.env.TMS_APP_AUTH_CLIENT_ACCOUNTS) : [{ id: 1, username: 'admin', password: 'nlpt@189', id: 2, username: 'admin2', password: 'nlpt@189' }]
     },
   },
   tmwConfig: {
@@ -36,6 +36,7 @@ let app_config = {
 }
 
 if (process.env.TMS_APP_AUTH_TYPE === "redis") {
+  app_config.auth.jwt = false
   app_config.auth.redis = {
     prefix: process.env.TMS_REDIS_PREFIX,
     host: process.env.TMS_REDIS_HOST,
@@ -43,6 +44,8 @@ if (process.env.TMS_APP_AUTH_TYPE === "redis") {
     password: process.env.TMS_REDIS_PWD || "",
     expiresIn: parseInt(process.env.TMS_REDIS_EXPIRESIN) || 7200
   }
+} else if (process.env.TMS_APP_AUTH_TYPE === "false") {
+  app_config.auth = false
 }
 
 module.exports = app_config
