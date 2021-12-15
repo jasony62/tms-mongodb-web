@@ -1,3 +1,6 @@
+README.md
+.git
+.gitignore
 /ue_admin/node_modules/*
 /ue_admin/.env.*
 /ue_admin/.env
