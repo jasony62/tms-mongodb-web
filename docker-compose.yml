@@ -1,13 +1,14 @@
 version: '3.7'
 services:
-  pmongodb:
+  mongodb:
     build: ./mongodb
-    image: 192.168.253.28/stateful/mongodb:latest
-    container_name: pool-mongodb
+    image: tms-mongodb/mongo:latest
+    container_name: tms-mongodb-mongo
+
   back:
     build: ./back
-    image: 192.168.253.28/mg_pool/back:latest
-    container_name: pool-back
+    image: tms-mongodb/back:latest
+    container_name: tms-mongodb-back
     # environment:
     #   默认
     #   - NODE_ENV=production
@@ -57,7 +58,7 @@ services:
       [
         'sh',
         './wait-for.sh',
-        'pmongodb:27017',
+        'mongodb:27017',
         '-t',
         '300',
         '--',
@@ -66,82 +67,40 @@ services:
       ]
   ue_admin:
     build:
-      context: .
-      dockerfile: Dockerfile-ueadmin
+      context: ./ue_admin
       args:
         vue_app_login_key_username: username
         vue_app_login_key_password: password
         vue_app_login_key_pin: pin
-        vue_app_base_url: /pool/admin
-        vue_app_back_auth_base: /pool/auth
-        vue_app_back_api_base: /pool/api
-        vue_app_back_api_fs: '/pool/fs'
-        vue_app_back_auth_server: http://192.168.20.71:3330
+        vue_app_base_url: /admin
+        vue_app_back_auth_base: /auth
+        vue_app_back_api_base: /api
+        vue_app_back_api_fs: /fs
         vue_app_front_doceditor_add: ''
         vue_app_front_doceditor_modify: ''
-        vue_app_storetoken_way: cookie
-    image: 192.168.253.28/mg_pool/admin:latest
-    container_name: pool-admin
+        vue_app_storetoken_way: session
+    image: tms-mongodb/ue-admin:latest
+    container_name: tms-mongodb-ue_admin
     environment:
-      - NGINX_WEB_BASE_URL=/pool/admin
+      - NGINX_WEB_BASE_URL=/admin
+
   ue_mongo:
     build:
-      context: .
-      dockerfile: Dockerfile-uemongo
+      context: ./ue_mongo
       args:
         vue_app_login_key_username: username
         vue_app_login_key_password: password
         vue_app_login_key_pin: pin
-        vue_app_base_url: /pool/mongo
-        vue_app_back_auth_base: /pool/auth
-        vue_app_back_api_base: /pool/api
-        vue_app_back_api_fs: '/pool/fs'
+        vue_app_base_url: /mongo
+        vue_app_back_auth_base: /auth
+        vue_app_back_api_base: /api
+        vue_app_back_api_fs: /fs
         vue_app_front_doceditor_add: ''
         vue_app_front_doceditor_modify: ''
         vue_app_front_batcheditor: ''
-        vue_app_back_auth_server: http://192.168.20.71:3330
-        vue_app_storetoken_way: cookie
-    image: 192.168.253.28/mg_pool/mongo:latest
-    container_name: pool-mongo
+        vue_app_storetoken_way: session
+        vue_app_pluginsub_names: ''
+    image: tms-mongodb/ue-mongo:latest
+    container_name: tms-mongodb-ue_mongo
     environment:
-      - NGINX_WEB_BASE_URL=/pool/mongo
-  ue_sale:
-    build:
-      context: .
-      dockerfile: Dockerfile-uesale
-      args:
-        vue_app_base_url: /pool/sale
-        vue_app_back_auth_base: /pool/auth
-        vue_app_back_api_base: /pool/api
-        vue_app_back_api_fs: /pool/fs
-        vue_app_back_api_plugin: /pool/plugin
-        vue_app_user_role: sale
-        vue_app_schema_tags: manager_editor
-        vue_app_schema_default_tags: manager_list
-        vue_app_front_framedisplay: '{header: false,footer: false,right: false,left: false}'
-        vue_app_front_docoperates: '{create: false,edit: false,remove: false,editMany:
-          false,removeMany: false,transferMany: false,import: false,export:
-          true,copyMany: false}'
-        vue_app_storetoken_way: session
-    image: 192.168.253.28/mg_pool/sale:latest
-    container_name: pool-sale
-  ue_promanage:
-    build:
-      context: .
-      dockerfile: Dockerfile-uepromanage
-      args:
-        vue_app_base_url: /pool/promanage
-        vue_app_back_auth_base: /pool/auth
-        vue_app_back_api_base: /pool/api
-        vue_app_back_api_fs: /pool/fs
-        vue_app_back_api_plugin: /pool/plugin
-        vue_app_user_role: promanage
-        vue_app_schema_tags: promanage_edit
-        vue_app_schema_default_tags: promanage_list
-        vue_app_front_framedisplay: '{header: false,footer: false,right: false,left: false}'
-        vue_app_front_docoperates: '{create: false,edit: false,remove: false,editMany:
-          false,removeMany: false,transferMany: false,import: false,export:
-          true,copyMany: false}'
-        vue_app_storetoken_way: session
-    image: 192.168.253.28/mg_pool/promanage:latest
-    container_name: pool-promanage
+      - NGINX_WEB_BASE_URL=/mongo
