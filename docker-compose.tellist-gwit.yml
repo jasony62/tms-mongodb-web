@@ -11,7 +11,7 @@ services:
       - TMS_APP_LOG4JS_LEVEL=debug
       - TMS_FINDER_OUTDIR=/data/
       - TMS_FINDER_FS_ROOTDIR=/data/root
-      - TMS_FINDER_FS_CUSTOMNAME=false
+      - TMS_FINDER_FS_CUSTOMNAME=true
       - TMS_APP_ROUTER_AUTH=/gwit/auth
       - TMS_APP_ROUTER_CONTROLLER=/gwit/api
       - TMS_APP_ROUTER_FSDOMAIN=/gwit/fs
