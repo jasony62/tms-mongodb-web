@@ -2,4 +2,4 @@
 
 echo "启动 Nginx server for tms-mongodb-mongo"
 
-envsubst '$NGINX_WEB_BASE_URL$NGINX_WEB_AUTH_URL$NGINX_WEB_BACK_SERVER$NGINX_WEB_API_URL' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && exec nginx -g 'daemon off;'
+envsubst '$NGINX_WEB_BASE_URL' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && exec nginx -g 'daemon off;'

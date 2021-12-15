@@ -61,9 +61,6 @@ services:
     container_name: tms-admin
     environment:
       - NGINX_WEB_BASE_URL=/apiit/admin
-      - NGINX_WEB_BACK_SERVER=http://back:3000
-      - NGINX_WEB_AUTH_URL=/apiit/auth
-      - NGINX_WEB_API_URL=/apiit/api
     ports:
       - '37002:80'
     networks:
@@ -92,9 +89,6 @@ services:
     container_name: tms-mongodb-ue_mongo
     environment:
       - NGINX_WEB_BASE_URL=/apiit/mongo
-      - NGINX_WEB_BACK_SERVER=http://back:3000
-      - NGINX_WEB_AUTH_URL=/apiit/auth
-      - NGINX_WEB_API_URL=/apiit/api
     ports:
       - '37003:80'
     networks:
