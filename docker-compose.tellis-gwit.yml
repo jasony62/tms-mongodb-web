@@ -3,7 +3,7 @@ services:
   back:
     build: ./back
     image: 192.168.253.28/tms-mongodb/back:latest
-    container_name: cdr-back
+    container_name: gwit-back
     environment:
       - NODE_ENV=production
       - TMS_APP_PORT=3000
@@ -12,10 +12,10 @@ services:
       - TMS_FINDER_OUTDIR=/data/
       - TMS_FINDER_FS_ROOTDIR=/data/root
       - TMS_FINDER_FS_CUSTOMNAME=false
-      - TMS_APP_ROUTER_AUTH=/cdr/auth
-      - TMS_APP_ROUTER_CONTROLLER=/cdr/api
-      - TMS_APP_ROUTER_FSDOMAIN=/cdr/fs
-      - TMS_APP_ROUTER_PLUGIN=/cdr/plugin
+      - TMS_APP_ROUTER_AUTH=/gwit/auth
+      - TMS_APP_ROUTER_CONTROLLER=/gwit/api
+      - TMS_APP_ROUTER_FSDOMAIN=/gwit/fs
+      - TMS_APP_ROUTER_PLUGIN=/gwit/plugin
 
       - TMS_MONGODB_HOST=host.docker.internal
       - TMS_MONGODB_PORT=27017
@@ -41,22 +41,22 @@ services:
         vue_app_login_key_username: username
         vue_app_login_key_password: password
         vue_app_login_key_pin: pin
-        vue_app_base_url: /cdr/admin
-        vue_app_back_auth_base: /cdr/auth
-        vue_app_back_api_base: /cdr/api
-        vue_app_back_api_fs: /cdr/fs
+        vue_app_base_url: /gwit/admin
+        vue_app_back_auth_base: /gwit/auth
+        vue_app_back_api_base: /gwit/api
+        vue_app_back_api_fs: /gwit/fs
         vue_app_front_doceditor_add: ''
         vue_app_front_doceditor_modify: ''
         vue_app_storetoken_way: session
         VUE_APP_BACK_API_SERVER: http://back:3000
         VUE_APP_BACK_AUTH_SERVER: http://back:3000
-    image: 192.168.253.28/tms-mongodb-cdr/admin:latest
-    container_name: cdr-admin
+    image: 192.168.253.28/tms-mongodb-gwit/admin:latest
+    container_name: gwit-admin
     environment:
-      - NGINX_WEB_BASE_URL=/cdr/admin
+      - NGINX_WEB_BASE_URL=/gwit/admin
       # - NGINX_WEB_BACK_SERVER=http://back:3000
-      # - NGINX_WEB_AUTH_URL=/cdr/auth
-      # - NGINX_WEB_API_URL=/cdr/api
+      # - NGINX_WEB_AUTH_URL=/gwit/auth
+      # - NGINX_WEB_API_URL=/gwit/api
     ports:
       - '3840:80'
     networks:
@@ -70,10 +70,10 @@ services:
         vue_app_login_key_username: username
         vue_app_login_key_password: password
         vue_app_login_key_pin: pin
-        vue_app_base_url: /cdr/mongo
-        vue_app_back_auth_base: /cdr/auth
-        vue_app_back_api_base: /cdr/api
-        vue_app_back_api_fs: /cdr/fs
+        vue_app_base_url: /gwit/mongo
+        vue_app_back_auth_base: /gwit/auth
+        vue_app_back_api_base: /gwit/api
+        vue_app_back_api_fs: /gwit/fs
         vue_app_front_doceditor_add: ''
         vue_app_front_doceditor_modify: ''
         vue_app_front_batcheditor: ''
@@ -81,13 +81,13 @@ services:
         vue_app_pluginsub_names: ''
         VUE_APP_BACK_API_SERVER: http://back:3000
         VUE_APP_BACK_AUTH_SERVER: http://back:3000
-    image: 192.168.253.28/tms-mongodb-cdr/mongo:latest
-    container_name: cdr-mongo
+    image: 192.168.253.28/tms-mongodb-gwit/mongo:latest
+    container_name: gwit-mongo
     environment:
-      - NGINX_WEB_BASE_URL=/cdr/mongo
+      - NGINX_WEB_BASE_URL=/gwit/mongo
       # - NGINX_WEB_BACK_SERVER=http://back:3000
-      # - NGINX_WEB_AUTH_URL=/cdr/auth
-      # - NGINX_WEB_API_URL=/cdr/api
+      # - NGINX_WEB_AUTH_URL=/gwit/auth
+      # - NGINX_WEB_API_URL=/gwit/api
     ports:
       - '3830:80'
     networks:
