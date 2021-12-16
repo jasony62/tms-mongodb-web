@@ -4,6 +4,8 @@ const _ = require('lodash')
 const ObjectId = require('mongodb').ObjectId
 const ModelColl = require('../../models/mgdb/collection')
 const ModelDoc = require('../../models/mgdb/document')
+const log4js = require('log4js')
+const logger = log4js.getLogger('tms-mongodb-web')
 
 class Document extends DocBase {
   constructor(...args) {
@@ -102,24 +104,127 @@ class Document extends DocBase {
     if (!columns) return new ResultFault('指定的集合没有指定集合列')
 
     const client = this.mongoClient
+    const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
+
     // 集合数据
-    let data = await client
+    function buildData(data, columns) {
+      let result = {}
+      try {
+        Object.keys(columns).forEach(column => {
+          const config = columns[column]
+          if (!data[column] || !data[column].length) {
+            result[column] = ''
+          } else {
+            if (config.type === 'array' && config.enum && config.enum.length) {
+              let enums = null
+              if (config.enumGroups && config.enumGroups.length) {
+                const id = config.enumGroups.find(grop => {
+                  const attr = grop.assocEnum.property
+                  if (data[attr] == grop.assocEnum.value) return grop
+                }).id
+                enums = config.enum.filter(item => item.group === id)
+              } else {
+                enums = config.enum
+              }
+              let arr = []
+              for (let obj of enums) {
+                if (data[column].includes(obj.value)) {
+                  arr.push(obj.label)
+                }
+              }
+              result[column] = arr.join(',')
+            } else if (
+              config.type === 'array' &&
+              config.items &&
+              config.items.format
+            ) {
+              result[column] = data[column].map(item => item.name).join(',')
+            } else if (
+              config.type === 'string' &&
+              config.enum &&
+              config.enum.length
+            ) {
+              const label = config.enum.find(
+                item => item.value === data[column]
+              ).label
+              if (!label) {
+                throw new Error(
+                  `字段英文名[${column}],字段值[${data[column]}]找不到对应的中文名`
+                )
+              } else {
+                result[column] = label
+              }
+            } else {
+              result[column] = data[column]
+            }
+          }
+        })
+        return [true, result]
+      } catch (e) {
+        return [false, e.message]
+      }
+    }
+    // let datas = []
+    // try {
+    //   await client
+    //     .db(existCl.db.sysname)
+    //     .collection(existCl.sysname)
+    //     .find(query)
+    //     .forEach(item => {
+    //       let [flag, data] = buildData(item, columns)
+    //       if (!flag) throw new Error(data)
+    //       datas.push(data)
+    //       if (datas.length === 30000) return
+    //     })
+    //   let rst = ExcelCtrl.export(columns, datas, existCl.name + '.xlsx')
+    //   if (rst[0] === false) return new ResultFault(rst[1])
+    //   return new ResultData(rst[1])
+    // } catch (e) {
+    //   return new ResultFault(e.message)
+    // }
+    // 49.30s
+    let count = 0,
+      num = 0,
+      datas = [],
+      result = []
+    const total = await client
       .db(existCl.db.sysname)
       .collection(existCl.sysname)
       .find(query)
-      .toArray()
-
-    // 数据处理-针对单选多选转化
-    this.docHelper.transformsCol('toLabel', data, columns)
-
-    const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
-    let rst = ExcelCtrl.export(columns, data, existCl.name + '.xlsx')
-
-    if (rst[0] === false) return new ResultFault(rst[1])
-
-    rst = rst[1]
-
-    return new ResultData(rst)
+      .count()
+    try {
+      await client
+        .db(existCl.db.sysname)
+        .collection(existCl.sysname)
+        .find(query)
+        .forEach(item => {
+          count++
+          var [flag, data] = buildData(item, columns)
+          if (!flag) throw new Error(data)
+          datas.push(data)
+          if (datas.length >= 10000) {
+            let name = `${existCl.name}(${num})`
+            let rst = ExcelCtrl.export(columns, datas, name + '.xlsx')
+            if (rst[0] === false) throw new Error(rst[1])
+            result.push(rst[1])
+            datas.length = 0
+            num++
+          } else {
+            if (total === count) {
+              let name = existCl.name
+              if (num !== 0) name += `(${num})`
+              let rst = ExcelCtrl.export(columns, datas, name + '.xlsx')
+              if (rst[0] === false) throw new Error(rst[1])
+              result.push(rst[1])
+              datas.length = 0
+              num++
+            }
+          }
+        })
+      return new ResultData(result)
+    } catch (e) {
+      return new ResultFault(e.message)
+    }
   }
   /**
    * 剪切文档到指定集合
