@@ -30,8 +30,8 @@ class DocumentHelper extends Helper {
       // 按选中删除
       query = {
         _id: {
-          $in: docIds.map(id => ObjectId(id))
-        }
+          $in: docIds.map((id) => ObjectId(id)),
+        },
       }
       operation = '批量（按选中）'
     } else if (typeof filter === 'string' && /all/i.test(filter)) {
@@ -74,12 +74,12 @@ class DocumentHelper extends Helper {
       if (schemaId) {
         const modelSchema = new ModelSchema(this.ctrl.bucket)
         const publicSchema = await modelSchema.bySchemaId(schemaId)
-        Object.keys(publicSchema).forEach(schema => {
+        Object.keys(publicSchema).forEach((schema) => {
           publicDoc[schema] = info[schema] ? info[schema] : ''
         })
       }
     }
-    let jsonFinishRows = rowsJson.map(row => {
+    let jsonFinishRows = rowsJson.map((row) => {
       let newRow = {}
       for (const k in columns) {
         let column = columns[k]
@@ -96,7 +96,7 @@ class DocumentHelper extends Helper {
             column.default.length
           ) {
             newRow[k] = column.enum.find(
-              ele => ele.value === column.default
+              (ele) => ele.value === column.default
             ).label
           } else if (
             column.type === 'array' &&
@@ -105,7 +105,7 @@ class DocumentHelper extends Helper {
             column.default &&
             column.default.length
           ) {
-            const target = column.enum.map(ele => {
+            const target = column.enum.map((ele) => {
               if (column.default.includes(ele.value)) {
                 return ele.label
               }
@@ -129,8 +129,8 @@ class DocumentHelper extends Helper {
       this.transformsCol('toValue', jsonFinishRows, columns)
       function getFailMsg(config, rows) {
         let msg = ''
-        rows.forEach(data => {
-          config.config.columns.forEach(key => {
+        rows.forEach((data) => {
+          config.config.columns.forEach((key) => {
             msg += data[key] + ','
           })
         })
@@ -154,7 +154,7 @@ class DocumentHelper extends Helper {
 
       // 补充公共属性
       if (publicDoc) {
-        jsonFinishRows = jsonFinishRows.map(item =>
+        jsonFinishRows = jsonFinishRows.map((item) =>
           Object.assign(item, publicDoc)
         )
       }
@@ -195,7 +195,7 @@ class DocumentHelper extends Helper {
     const gets = model === 'toLabel' ? 'value' : 'label'
     const sets = model === 'toLabel' ? 'label' : 'value'
 
-    Object.keys(columns).forEach(ele => {
+    Object.keys(columns).forEach((ele) => {
       // 输入框
       if (columns[ele].type === 'string' && data.length) {
         sourceData.forEach((item, index) => {
@@ -211,15 +211,15 @@ class DocumentHelper extends Helper {
           let arr = []
           let enums =
             model === 'toValue' && item[ele] && typeof item[ele] === 'string'
-              ? data[index][ele].split(',').filter(ele => ele)
+              ? data[index][ele].split(',').filter((ele) => ele)
               : data[index][ele]
           if (enums && Array.isArray(enums)) {
             if (model === 'toValue') {
-              enums = enums.map(ele => ele.trim().replace(/\n/g, ''))
+              enums = enums.map((ele) => ele.trim().replace(/\n/g, ''))
             }
             if (columns[ele].enumGroups && columns[ele].enumGroups.length) {
               columns[ele].enumGroups
-                .filter(enumGroup => {
+                .filter((enumGroup) => {
                   if (
                     enumGroup.assocEnum &&
                     enumGroup.assocEnum.property &&
@@ -229,7 +229,7 @@ class DocumentHelper extends Helper {
                     let property = enumGroup.assocEnum.property
                     if (model === 'toValue') {
                       let filterEnum = columns[property].enum.filter(
-                        e => e.label === item[property]
+                        (e) => e.label === item[property]
                       )
                       currentVal = filterEnum[0].value
                     } else {
@@ -238,8 +238,8 @@ class DocumentHelper extends Helper {
                     return currentVal === enumGroup.assocEnum.value
                   }
                 })
-                .map(oEnumG => {
-                  columns[ele].enum.forEach(childItem => {
+                .map((oEnumG) => {
+                  columns[ele].enum.forEach((childItem) => {
                     if (
                       childItem.group === oEnumG.id &&
                       enums.includes(childItem[gets])
@@ -249,14 +249,14 @@ class DocumentHelper extends Helper {
                   })
                 })
             } else {
-              columns[ele].enum.forEach(childItem => {
+              columns[ele].enum.forEach((childItem) => {
                 if (enums.includes(childItem[gets])) arr.push(childItem[sets])
               })
             }
             // 当且仅当导入多选选项，enums与文档列定义存在差集，则失败
             function enumFilter(item) {
               let labels = columns[ele].enum.map(
-                childItem => childItem['label']
+                (childItem) => childItem['label']
               )
               if (!labels.includes(item)) return item
               //return !columns[ele].enum.map(childItem => childItem['label']).includes(item)
@@ -278,13 +278,13 @@ class DocumentHelper extends Helper {
         })
       } else if (columns[ele].type === 'string' && columns[ele].enum) {
         sourceData.forEach((item, index) => {
-          let labels = columns[ele].enum.map(ele => ele.label)
+          let labels = columns[ele].enum.map((ele) => ele.label)
           let flag = labels.includes(item[ele])
           if (model === 'toValue' && item[ele] && !flag) {
             logger.info('单选不匹配', labels)
             throw '单选不匹配，导入失败'
           }
-          columns[ele].enum.forEach(childItem => {
+          columns[ele].enum.forEach((childItem) => {
             if (item[ele] === childItem[gets])
               data[index][ele] = childItem[sets]
           })
@@ -296,24 +296,17 @@ class DocumentHelper extends Helper {
   /**
    *  剪切数据到指定集合中
    */
-  async cutDocs(
-    oldDbName,
-    oldClName,
-    newDbName,
-    newClName,
-    docIds = null,
-    oldDocus = null,
-    client_info
-  ) {
+  async cutDocs(oldDbName, oldClName, newDbName, newClName, oldDocus = null) {
     if (!oldDbName || !oldClName || !newDbName || !newClName) {
       return [false, '参数不完整']
     }
+    if (!oldDocus || oldDocus.length === 0) return [false, '没有要移动的数据']
 
     let collModel = new ModelColl(this.ctrl.bucket)
     const oldExistCl = await collModel.byName(oldDbName, oldClName)
     const newExistCl = await collModel.byName(newDbName, newClName)
 
-    //获取指定集合的列
+    //获取document、schema的实例
     const modelDoc = new ModelDoc(this.ctrl.bucket, this.ctrl.client)
     const modelSchema = new ModelSchema(this.ctrl.bucket)
 
@@ -321,136 +314,106 @@ class DocumentHelper extends Helper {
     let newClSchema = await collModel.getSchemaByCollection(newExistCl)
     if (!newClSchema) return [false, '指定的集合未指定集合列定义']
     //获取新集合公共属性
-    let publicDoc = {}
+    let newPublicDoc = {}
     let { extensionInfo } = newExistCl
     if (extensionInfo) {
       const { info, schemaId } = extensionInfo
       if (schemaId) {
         const publicSchema = await modelSchema.bySchemaId(schemaId)
-        Object.keys(publicSchema).forEach(schema => {
-          publicDoc[schema] = info[schema] ? info[schema] : ''
+        Object.keys(publicSchema).forEach((schema) => {
+          newPublicDoc[schema] = info[schema] ? info[schema] : ''
         })
       }
     }
 
-    // 查询获取旧数据
-    let fields = {}
-    if (!oldDocus || oldDocus.length === 0) {
-      if (!docIds || docIds.length === 0) return [false, '没有要移动的数据']
-      oldDocus = await modelDoc.getDocumentByIds(oldExistCl, docIds, fields)
-      if (oldDocus[0] === false) return [false, oldDocus[1]]
-      oldDocus = oldDocus[1]
-    }
-    // 插入到指定集合中,补充没有的数据
-    let newDocs = oldDocus.map(doc => {
+    //插入到指定集合中,补充默认值和公共属性
+    let newDocs = oldDocus.map((oldDoc) => {
       let newd = {
-        _id: doc._id
+        _id: oldDoc._id,
       }
       for (const k in newClSchema) {
-        if (!doc[k]) {
-          //存在默认值
+        if (!oldDoc[k]) {
           newd[k] = newClSchema[k].default || ''
         } else {
-          newd[k] = doc[k]
+          newd[k] = oldDoc[k]
         }
       }
+      modelDoc.beforeProcessByInAndUp(newd, 'insert')
+      if (newPublicDoc) Object.assign(newd, newPublicDoc)
       return newd
     })
-
-    // 需要插入的总数量
-    let planMoveTotal = newDocs.length
-
-    // 经过插件后还剩数量
-    let afterFilterMoveTotal = newDocs.length
-    if (newDocs.length == 0)
-      return [false, '没有选择数据或为重复数据或不满足插件要求']
-
-    // 去除newDocs的_id
-    let newDocs2 = JSON.parse(JSON.stringify(newDocs)).map(nd => {
-      delete nd._id
-      // 加工数据
-      modelDoc.beforeProcessByInAndUp(nd, 'insert')
-
-      if (publicDoc) Object.assign(nd, publicDoc)
-
-      return nd
+    let newDocs2 = JSON.parse(JSON.stringify(newDocs)).map((newDoc) => {
+      delete newDoc._id
+      return newDoc
     })
 
+    //将数据插入到指定表中
     const client = this.ctrl.mongoClient
-    // 将数据插入到指定表中
     const clNew = client
       .db(newExistCl.db.sysname)
       .collection(newExistCl.sysname)
     let rst = await clNew
       .insertMany(newDocs2)
-      .then(rst => [true, rst])
-      .catch(err => [false, err.toString()])
+      .then((rst) => [true, rst])
+      .catch((err) => [false, err.toString()])
     if (rst[0] === false) return [false, '数据插入指定表错误: ' + rst[1]]
     rst = rst[1]
 
-    // 如果计划插入总数不等于实际插入总数，需回滚
-    if (rst.insertedCount != newDocs.length) {
-      Object.keys(rst.insertedIds).forEach(async k => {
-        let newId = rst.insertedIds[k]
-        await clNew.deleteOne({
-          _id: new ObjectId(newId)
+    //如果计划插入总数不等于实际插入总数，需回滚
+    if (rst.insertedCount != oldDocus.length) {
+      Object.values(rst.insertedIds)
+        .map((istId) => new ObjectId(istId))
+        .forEach(async (oid) => {
+          await clNew.deleteOne({
+            _id: oid,
+          })
         })
-      })
       return [
         false,
         '插入数据数量错误需插入：' +
-          newDocs.length +
+          newDocs2.length +
           '；实际插入：' +
-          rst.insertedCount
+          rst.insertedCount,
       ]
     }
 
-    // 插入成功后删除旧数据
-    let passDocIds = []
-    newDocs.forEach(nd => {
-      passDocIds.push(new ObjectId(nd._id))
-    })
+    //插入成功后记录并删除旧数据
     const clOld = client
       .db(oldExistCl.db.sysname)
       .collection(oldExistCl.sysname)
+    let passDocIds = [],
+      moveOldDatas = {}
+    oldDocus.forEach((oldDoc) => {
+      passDocIds.push(new ObjectId(oldDoc._id))
+      moveOldDatas[oldDoc._id] = oldDoc
+    })
     let rstDelOld = await clOld
       .deleteMany({
         _id: {
-          $in: passDocIds
-        }
+          $in: passDocIds,
+        },
       })
-      .then(rst => [true, rst])
-      .catch(err => [false, err.toString()])
+      .then((rst) => [true, rst])
+      .catch((err) => [false, err.toString()])
 
     if (rstDelOld[0] === false)
       return [false, '数据以到指定集合中，但删除旧数据时失败']
     rstDelOld = rstDelOld[1]
 
-    // 记录日志
-    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
-      let moveOldDatas = {}
-      oldDocus.forEach(od => {
-        if (passDocIds.includes(od._id)) {
-          moveOldDatas[od._id] = od
-        }
-      })
-      await modelDoc.dataActionLog(
-        newDocs,
-        '移动',
-        oldExistCl.db.name,
-        oldExistCl.name,
-        newExistCl.db.name,
-        newExistCl.name,
-        moveOldDatas,
-        client_info
-      )
-    }
-
+    //需要插入的总数量
+    let planMoveTotal = newDocs.length
     let returnData = {
       planMoveTotal,
-      afterFilterMoveTotal,
       rstInsNew: rst,
-      rstDelOld
+      rstDelOld,
+      logInfo: {
+        newDocs,
+        oldDbName: oldExistCl.db.name,
+        oldClName: oldExistCl.name,
+        newDbName: newExistCl.db.name,
+        newClName: newExistCl.name,
+        moveOldDatas,
+      },
     }
 
     return [true, returnData]
