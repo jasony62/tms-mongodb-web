@@ -5,4 +5,4 @@
 /storage
 /plugins
 /logs
-/config/*.local.js
+/config/*.local.*
