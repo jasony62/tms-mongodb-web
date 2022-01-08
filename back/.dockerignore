@@ -1,6 +1,4 @@
-node_modules/*
-Dockerfile
-.git
-.gitignore
+/node_modules/*
 /storage
-.env
+/logs
+.env*

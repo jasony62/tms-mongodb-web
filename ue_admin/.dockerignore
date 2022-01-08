@@ -1,2 +1,5 @@
-node_modules/*
+/dist/
+/dll/
+/node_modules/
 .env.*
+.env

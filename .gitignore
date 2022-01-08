@@ -2,10 +2,8 @@
 /mongodb/data
 /mongodb-*
 
-.env.local
+*.override.yml
 
 /tests/
 /patch/
 
-Dockerfile-uesale
-/ue_sale/
