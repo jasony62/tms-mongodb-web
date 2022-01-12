@@ -1,8 +1,5 @@
-node_modules/*
-Dockerfile
-.git
-.gitignore
+/node_modules/*
 /storage
 /logs
-.env
+.env*
 README.md

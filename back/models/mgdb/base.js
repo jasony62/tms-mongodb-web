@@ -43,6 +43,10 @@ class Base {
           } else if (feature === 'between') {
             if (Array.isArray(keyword) && keyword.length === 2)
               subQuery = { $gte: keyword[0], $lte: keyword[1] }
+          } else if (feature === 'eq') {
+            subQuery = { $eq: keyword }
+          } else if (feature === 'ne') {
+            subQuery = { $ne: keyword }
           } else if (typeof keyword === 'string') {
             subQuery = { $regex: fnKwRe(keyword) }
           }

@@ -14,7 +14,8 @@ services:
 
   ue_admin:
     build:
-      context: ./ue_admin
+      context: .
+      dockerfile: Dockerfile-ueadmin
       args:
         vue_app_back_auth_server: http://localhost:3000
         vue_app_back_api_server: http://localhost:3000
@@ -26,7 +27,8 @@ services:
 
   ue_mongo:
     build:
-      context: ./ue_mongo
+      context: .
+      dockerfile: Dockerfile-uemongo
       args:
         vue_app_back_auth_server: http://localhost:3000
         vue_app_back_api_server: http://localhost:3000
