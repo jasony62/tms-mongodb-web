@@ -16,7 +16,7 @@ class Base {
    * 组装 查询条件
    */
   assembleQuery(filter, like = true) {
-    const fnKwRe = keyword => {
+    const fnKwRe = (keyword) => {
       let kws = keyword.split(/,|，/)
       return kws.length === 1 ? keyword : '(' + kws.join('|') + ')'
     }
@@ -26,7 +26,7 @@ class Base {
       for (let column of columns) {
         let cond = filter[column]
         let subQuery
-        if (typeof cond === 'object' && cond.keyword) {
+        if (typeof cond === 'object' && cond.keyword !== undefined) {
           const { keyword, feature } = cond
           if (feature === 'start') {
             subQuery = { $regex: `^${fnKwRe(keyword)}` }
@@ -40,6 +40,8 @@ class Base {
             subQuery = { $not: { $regex: fnKwRe(keyword) } }
           } else if (feature === 'in') {
             if (Array.isArray(keyword)) subQuery = { $in: keyword }
+          } else if (feature === 'nin') {
+            if (Array.isArray(keyword)) subQuery = { $nin: keyword }
           } else if (feature === 'between') {
             if (Array.isArray(keyword) && keyword.length === 2)
               subQuery = { $gte: keyword[0], $lte: keyword[1] }
@@ -47,8 +49,30 @@ class Base {
             subQuery = { $eq: keyword }
           } else if (feature === 'ne') {
             subQuery = { $ne: keyword }
-          } else if (typeof keyword === 'string') {
-            subQuery = { $regex: fnKwRe(keyword) }
+          } else if (feature === 'exists') {
+            if ([true, false].includes(keyword)) {
+              subQuery = { $exists: keyword }
+            }
+          } else if (feature === 'all') {
+            if (Array.isArray(keyword)) subQuery = { $all: keyword }
+          } else if (feature === 'elemMatch') {
+            if (
+              Object.prototype.toString.call(keyword).toLowerCase() ===
+              '[object object]'
+            )
+              subQuery = { $elemMatch: keyword }
+          } else if (feature === 'size') {
+            if (isNaN(keyword) === false) {
+              subQuery = { $size: +keyword }
+            }
+          } else if (!feature && ![null, '', undefined].includes(keyword)) {
+            if (typeof keyword === 'string') {
+              subQuery = { $regex: fnKwRe(keyword) }
+            } else if ([true, false].includes(keyword)) {
+              subQuery = keyword
+            } else if (isNaN(keyword) === false) {
+              subQuery = keyword
+            }
           }
         } else if (
           typeof cond === 'object' &&
