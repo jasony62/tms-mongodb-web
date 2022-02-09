@@ -17,8 +17,8 @@ services:
       context: .
       dockerfile: Dockerfile-ueadmin
       args:
-        vue_app_back_auth_server: http://localhost:3000
-        vue_app_back_api_server: http://localhost:3000
+        vue_app_back_auth_server: http://back:3000
+        vue_app_back_api_server: http://back:3000
     ports:
       - '3840:80'
     dns:
@@ -30,8 +30,8 @@ services:
       context: .
       dockerfile: Dockerfile-uemongo
       args:
-        vue_app_back_auth_server: http://localhost:3000
-        vue_app_back_api_server: http://localhost:3000
+        vue_app_back_auth_server: http://back:3000
+        vue_app_back_api_server: http://back:3000
     ports:
       - '3830:80'
     dns:

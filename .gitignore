@@ -3,6 +3,7 @@
 /mongodb-*
 
 *.override.yml
+*.mongoweb.yml
 
 /tests/
 /patch/
