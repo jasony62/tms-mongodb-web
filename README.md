@@ -1,138 +1,120 @@
-# tms-mongodb-web
+## 简介
 
-可灵活扩展的 mongodb web 客户端。
+tms-mongodb-web, 可灵活扩展的 mongodb web 客户端。简单来说就是 mongodb 的 web 客户端，可以让用户在前端界面很直观的看到数据库中存储了哪些字段以及字段的值是什么，并对数据库做一些增删改查的操作。
 
-支持独立的管理端和使用端。
+## 主要依赖
 
-支持多租户模式。
+tms-mongo-web 是一个主要使用 JavaScript 语言搭建起来的轻量应用。
 
-支持数据导出。
+- 数据库采用的是非关系型数据库—— mongodb；
+- back 使用的语言为 nodejs，搭载自行对 koa 封装的一个库——[tms-koa](https://github.com/jasony62/tms-koa)；
+- 系统端、管理端、使用端主要采用的是 vue 框架和 elementui 样式库，以及自行封装的两个库 [tms-vue](https://github.com/jasony62/tms-vue) 和 [tms-vue-ui](https://github.com/jasony62/tms-vue-ui)。
 
-支持通过插件扩展系统功能。
+| 层级   | 后端模块名                                        | 前端模块名                                  |
+| :----- | :------------------------------------------------ | ------------------------------------------- |
+| 第一层 | tms-koa                                           | tms-vue、tms-vue-ui                         |
+| 第二层 | tms-mongo-web/back                                | tms-mongo-web/ue_admin、ue_mongo、ue_system |
+| 第三层 | 订单管理 mg_order、号池管理 mg_pool、话单查询等等 |
 
-**back**后端服务。
+由上个表格表明，在这个 mongoweb 的基础上，延伸出了诸多已上线的模块，例如订单管理 mg_order、号池管理 mg_pool、话单查询等等。因此，在实际使用中，某一个功能的正常呈现，从前到后的贯通，基本都需要上述模块的参与。所以，在考虑一个需求的实现时，需要正确分析这个需求的实现应该属于哪个模块的功能。
 
-**ue_systema**系统端管理界面。
+## 设计思路
 
-**ue_admin**管理端用户界面。
+- 支持独立的管理端和使用端、系统端
 
-**ue_mongo**使用端用户界面。
+  为了区分对一个应用不同层级的设置，因此分为了三个不同的端。但都拥有一些基本配置，比如对数据库、集合、文档的增删改查。
 
-**ue_comp**
+  **系统端**，配置多租户模式。代码参见`./ue_system`
 
-**doc**说明文档。
+  **管理端**，通俗理解来说，是提供给管理员使用的。除基本配置外，还拥有配置集合列定义；配置数据库、集合的扩展属性定义；配置标签；配置关联关系；对集合操作进行一些特定配置；管理 bucket 空间等等。代码参见`./ue_admin`
 
-# 运行
+  **使用端**，主要使用者为除超级管理员、管理员之外的用户。除基本配置外，更多的是对文档的操作。比如对文档进行批量复制、批量迁移、批量删除；以及配置给当前文档的插件操作。代码参见`./ue_mongo`
 
-指定 nginx 的配置文件
+- 支持 jwt 和 redis 两种认证方式，具体文档参见[访问控制](https://github.com/jasony62/tms-koa/blob/master/doc/%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6.md)
 
-> docker-compose up -d
+- 支持本地文件服务，具体文档参见[文件服务](https://github.com/jasony62/tms-koa/blob/master/doc/%E6%96%87%E4%BB%B6%E6%9C%8D%E5%8A%A1.md)
 
-启动 API 在线文档
+- 支持[多租户](./doc/多租户.md)模式
 
-> docker-compose -f docker-compose.swagger.yml -f docker-compose.swagger.override.yml up swagger-ui swagger-editor
+- 支持集合数据同步
 
-# 上传导出文件
+  由于采用的是非关系型数据库，各个集合中的文档数据独立。因此，当需要将所有集合的数据集中到一个集合中查看，且实时更新时，连表查或者实时推送就会导致需要写很多的逻辑。因此，利用 mongodb 的复制集+changestream 机制，在 mongoweb 中实现了这个集合数据同步的功能。
 
-上传文件需要在项目根目录`/back/config/fs.js`中指定文件保存目录`rootDir: '文件夹路径'`。
+  原理解释参见[复制集合](./doc/复制集合.md)，接口数据参见[元数据](./doc/元数据.md)中的`集合复制对应关系`部分。
 
-导出文件时为将生成的 excel 文件保存在服务器中，默认保存在根目录/back/public/文件夹下，如需指定目录需在根目录`/back/config/fs.js`中指定生成文件保存目录`outDir: '文件夹路径'`。支持从环境变量中取值
+- 支持日志记录
 
-```javascript
-module.exports = {
-  local: {
-    rootDir: process.env.TMS_FINDER_FS_ROOTDIR || 'storage', // 指定保存文件的目录
-    outDir: process.env.TMS_FINDER_FS_OUTDIR || 'storage' // 系统生成文件存放目录
-  }
-}
-```
+  可自定义是否开启日志记录，需在`back/config/app.js`中设置`TMS_APP_DATA_ACTION_LOG`的值。当开启后，日志会记录到 tms_admin 库下的 tms_app_data_action_log 集合中。
 
-# 数据操作日志
+  具体代码参见`back/models/document.js`中的`dataActionLog`方法。
 
-系统支持记录数据操作日志，通过也没操作在添加、修改、删除、批量删除、移动数据时会把相关数据以及操作类型记录到日志(tms_admin 库下的 tms_app_data_action_log 集合)表中。
+- 支持数据库字段的配置
 
-默认不记录，如需记录可在./back/config/app.js 中设置 tmsConfig.TMS_APP_DATA_ACTION_LOG = 'Y'
+  因为 mongoweb 的作用就是可以让用户在前端界面很直观的看到数据库中存储了哪些字段以及字段的值是什么，因此通过页面的方式规范化配置字段是较为合理的实现。且由于配置字段、编辑单条数据均属于通用功能，因此这部分逻辑写在了 tms-vue-ui 组件库中。
 
-# 环境变量
+  在**管理端**的**文档内容定义**配置字段，根据[json-schame](https://json-schema.org/understanding-json-schema/index.html)的规范，已实现常用数据类型的配置。具体文档参见[JSONSchema 编辑器（json-schema）](https://github.com/jasony62/tms-vue-ui/blob/master/doc/json-schema.md)
 
-## back
+  在**管理端/使用端**的**文档**中，添加或修改单条数据时，tms-vue-ui 中实现了 json 文档编辑器的功能。主要原理是根据 jsonschema 定义的字段类型，翻译为对应的控件进行展示。具体文档参见[json 文档编辑器（json-doc）](https://github.com/jasony62/tms-vue-ui/blob/master/doc/json-doc.md)
 
-| 环境变量                   | 说明                                                                                                         | 默认值                     |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------- |
-| TMS_APP_DEFAULT_CREATETIME | 集合中添加、创建、导入数据时默认添加创建时间字段，字段名。                                                   | TMS_DEFAULT_CREATE_TIME    |
-| TMS_APP_DEFAULT_UPDATETIME | 修改集合中文档时默认增加修改时间字段，字段名名。                                                             | TMS_APP_DEFAULT_UPDATETIME |
-| TMS_APP_DATA_ACTION_LOG    | 数据操作日志，日志会记录到`tms_admin`库下的`tms_app_data_action_log`集合中。                                 |                            |
-| TMW_API_HOST               | 对外提供 API 服务的主机地址。                                                                                | http://localhost           |
-| TMW_API_PORT               | 对外提供 API 服务的主机端口。                                                                                | 3000                       |
-| TMW_REQUIRE_BUCKET         | 是否检查请求中的`bucket`参数，等于`yes`或`true`（不区分大小写）时打开。详细说明参见[多租户](doc/多租户.md)。 |                            |
-| TMW_REALTIME_REPLICA       | 是否支持集合实时复制功能，等于`yes`或`true`（不区分大小写）时打开。详细说明参见[聚合集合](doc/复制集合.md)。 |                            |
-| TMS_FINDER_FS_ROOTDIR      | 导入文件存放目录                                                                                             |                            |
-| TMS_FINDER_FS_ROOTDIR      | 导出文件存放目录                                                                                             |                            |
-| TMS_FINDER_FS_CUSTOMNAME   | 是否使用文件自身命名                                                                                         |                            |
-| TMS_APP_LOG4JS_LEVEL       | 日志输出级别                                                                                                 |                            |
-| TMS_FINDER_FS_CUSTOMNAME   | 是否使用文件自身命名                                                                                         |                            |
-| TMS_MONGODB_HOST           | 数据库主机名                                                                                                 |                            |
-| TMS_MONGODB_PORT           | 数据库端口号                                                                                                 |                            |
-| TMS_MONGODB_USER           | 数据库用户名                                                                                                 |                            |
-| TMS_MONGODB_PASSWORD       | 数据库密码                                                                                                   |                            |
-| TMS_REDIS_PREFIX           | redis 前缀                                                                                                   | 'tms-mongodb-web'          |
-| TMS_REDIS_HOST             | redis 主机名                                                                                                 | '127.0.0.1'                |
-| TMS_REDIS_PORT             | redis 端口号                                                                                                 | 6379                       |
-| TMS_REDIS_EXPIRESIN        | redis 过期时间                                                                                               | 7200                       |
-| TMS_REDIS_PWD              | redis 密码                                                                                                   |                            |
-| TMS_APP_ROUTER_AUTH        | 鉴权接口前缀                                                                                                 |                            |
-| TMS_APP_ROUTER_CONTROLLER  | 控制器接口前缀                                                                                               |                            |
-| TMS_APP_ROUTER_PLUGIN      | 插件接口前缀                                                                                                 |                            |
-| TMS_APP_ROUTER_FSDOMAIN    | 文件下载接口前缀                                                                                             |                            |
+  在**管理端/使用端**的**文档**中，对于数据的 table 表格展示、筛选等功能，都对这些类型进行了对应的判断。
 
-## ue_admin
+  注：当需要支持新的数据类型时，应先在 tms-vue-ui 的 json-schema 中增加数据类型，然后在 tms-vue-ui 的 json-doc 中对需要的控件添加或优化。而后还要注意该类型的数据，在表格展示和筛选中的逻辑优化。
 
-| 环境变量                       | 说明                             | 默认值 |
-| ------------------------------ | -------------------------------- | ------ |
-| VUE_APP_TITLE                  | 页面标题                         | 管理端 |
-| VUE_APP_BASE_URL               | 打包基础路径                     |        |
-| VUE_APP_BACK_AUTH_BASE         | 鉴权接口前缀                     |        |
-| VUE_APP_BACK_AUTH_SERVER       | 鉴权服务器地址                   |        |
-| VUE_APP_BACK_API_BASE          | 后端接口前缀                     |        |
-| VUE_APP_BACK_API_FS            | 文件上传/下载接口前缀            |        |
-| VUE_APP_BACK_API_SERVER        | 后端服务器地址                   |        |
-| VUE_APP_LOGIN_KEY_USERNAME     | 登录用户名键                     |        |
-| VUE_APP_LOGIN_KEY_PASSWORD     | 登录密码键                       |        |
-| VUE_APP_LOGIN_KEY_PIN          | 登录验证码键                     |        |
-| VUE_APP_FRONT_DOCEDITOR_ADD    | 添加数据时，对数据进行的额外校验 |        |
-| VUE_APP_FRONT_DOCEDITOR_MODIFY | 修改数据时，对数据进行的额外校验 |        |
-| VUE_APP_STORETOKEN_WAY         | 存储 token 的方式                |        |
+- 支持对数据增删改查、批量复制、批量迁移的操作
 
-## ue_mongo
+- 支持通过插件扩展系统功能，具体文档参见[插件机制 2](./doc/插件机制2.md)
 
-| 环境变量                         | 说明                                                                                                     | 默认值 |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------- | ------ |
-| VUE_APP_TMW_REQUIRE_BUCKET       | 是否编译为多租户模式，等于`yes`或`true`（不区分大小写）时打开。详细说明参见[多租户](doc/多租户.md)。     |        |
-| VUE_APP_TMW_AGGREGATE_COLLECTION | 是否开放聚合集合功能，等于`yes`或`true`（不区分大小写）时打开。详细说明参见[聚合集合](doc/聚合集合.md)。 |        |
-| VUE_APP_TITLE                    | 页面标题                                                                                                 | 管理端 |
-| VUE_APP_BASE_URL                 | 打包基础路径                                                                                             |        |
-| VUE_APP_BACK_AUTH_BASE           | 鉴权接口前缀                                                                                             |        |
-| VUE_APP_BACK_AUTH_SERVER         | 鉴权服务器地址                                                                                           |        |
-| VUE_APP_BACK_API_BASE            | 后端接口前缀                                                                                             |        |
-| VUE_APP_BACK_API_FS              | 文件上传/下载接口前缀                                                                                    |        |
-| VUE_APP_BACK_API_SERVER          | 后端服务器地址                                                                                           |        |
-| VUE_APP_LOGIN_KEY_USERNAME       | 登录用户名键                                                                                             |        |
-| VUE_APP_LOGIN_KEY_PASSWORD       | 登录密码键                                                                                               |        |
-| VUE_APP_LOGIN_KEY_PIN            | 登录验证码键                                                                                             |        |
-| VUE_APP_FRONT_DOCEDITOR_ADD      | 添加数据时，对数据进行的额外校验                                                                         |        |
-| VUE_APP_FRONT_DOCEDITOR_MODIFY   | 修改数据时，对数据进行的额外校验                                                                         |        |
-| VUE_APP_FRONT_BATCHEDITOR        | 批量修改数据时，对数据进行的额外校验                                                                     |        |
-| VUE_APP_STORETOKEN_WAY           | 存储 token 的方式                                                                                        |        |
-| VUE_APP_PLUGINSUB_NAMES          | 顶栏插件，主要用于插件放表格上方时的展示                                                                 | ''     |
+- 支持通过接口与外部模块传输数据
 
-# 说明文档
+## 总体代码结构
 
-[白名单](doc/白名单.md)
+| 英文名                     | 说明                                                                                             |
+| :------------------------- | :----------------------------------------------------------------------------------------------- |
+| back                       | 后端                                                                                             |
+| doc                        | 说明文档                                                                                         |
+| mongodb                    | mongodb 的 docker service 配置                                                                   |
+| ue_admin                   | 管理端                                                                                           |
+| ue_comp                    | 通用组件，原意是管理端、使用端、系统端通用的组件，目前抽离组件还没那么彻底，因此只有使用端在用。 |
+| ue_mongo                   | 使用端(用户端)                                                                                   |
+| ue_system                  | 系统端                                                                                           |
+| .dockerignore              | docker 忽略文件                                                                                  |
+| .gitignore                 | git 忽略文件                                                                                     |
+| .prettierrc.json           | 格式化配置文件                                                                                   |
+| docker-compose.local.yml   | 启动 docker 容器的补充模板文件，主要写入各个服务的映射端口号、ip 配置等                          |
+| docker-compose.swagger.yml | 启动 api 服务的模板文件                                                                          |
+| docker-compose.yml         | 快速启动 docker 容器的模板文件，主要内容是各个服务的镜像名称、容器名称、参数、环境变量等         |
+| Dockerfile-ueadmin         | admin 服务的 dockerfile 配置文件                                                                 |
+| Dockerfile-uemongo         | mongo 服务的 dockerfile 配置文件                                                                 |
+| init_replicate.sh          | 复制集初始化命令行                                                                               |
+| LICENSE                    | 许可文件                                                                                         |
+| README.md                  | 说明文档                                                                                         |
 
-[插件机制](doc/插件机制.md)
+_注：想用 docker 快速方便的启动应用，建议新建一个名为 docker-compose.mongoweb.yml 的配置文件，按照下述命令启动即可_
 
-[多租户](doc/多租户.md)
+## 快速上手
 
-[聚合集合](doc/聚合集合.md)
+启动前，需要提前安装好 nodejs 环境、mongodb 服务，以及 cnpm 镜像客户端。
 
-[元数据](doc/元数据.md)
+目前应用支持两种启动方式，Docker 启动和本地启动。
+
+默认为 jwt 认证方式。
+
+- Docker 启动
+
+  1.  安装 docker、docker-compose
+  2.  新建 docker-compose.mongoweb.yml，内容参见此处[docker 自定义配置文件](./doc/docker自定义配置文件.md)。若仿照线上的登录方式，还需先本地启动 redis 服务，并在 docker-compose.mongoweb.yml 中配置对应的环境变量值再构建镜像。
+  3.  构建镜像，`docker-compose -f docker-compose.mongoweb.yml build`
+  4.  启动镜像，`docker-compose -f docker-compose.mongoweb.yml up`
+  5.  若需查看后端 API 文档，可用此命令启动。`docker-compose -f docker-compose.swagger.yml -f docker-compose.swagger.override.yml up swagger-ui swagger-editor`
+
+- 本地启动
+  |模块 |配置 |启动命令 |
+  |:---- |:-----|:----|
+  |mongodb|启动 mongodb 服务 | |
+  |back | 1、cnpm i，安装依赖包；2、添加.env 文件(禁止提交到 gitlab)，可根据本地服务的端口号覆盖应用中已设置的值来启动后端 |node server.js |
+  |ue_admin |1、cnpm i，安装依赖包；2、添加.env.development.local，可在本地自定义某些变量的值 |npm run serve| |
+  |ue_mongo |1、cnpm i，安装依赖包；2、添加.env.development.local，可在本地自定义某些变量的值 |npm run serve| |
+
+## 参考链接
+
+[用 Docker 简化 Nodejs 开发 4-全栈项目模板](https://www.jianshu.com/p/1105b25410fa)

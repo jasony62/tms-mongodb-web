@@ -4,6 +4,8 @@ const _ = require('lodash')
 const ObjectId = require('mongodb').ObjectId
 const ModelColl = require('../../models/mgdb/collection')
 const ModelDoc = require('../../models/mgdb/document')
+const log4js = require('log4js')
+const logger = log4js.getLogger('tms-mongodb-web')
 
 class Document extends DocBase {
   constructor(...args) {
@@ -40,15 +42,15 @@ class Document extends DocBase {
         database: { name: dbName },
         collection: { name: clName },
         primaryKeys,
-        insert
+        insert,
       } = operateRules.unrepeat
       noRepeatConfig = {
         config: {
           columns: primaryKeys,
           db: dbName,
           cl: clName,
-          insert: insert
-        }
+          insert: insert,
+        },
       }
     }
 
@@ -62,12 +64,12 @@ class Document extends DocBase {
     if (rst[0] === true) {
       result = {
         importAll: true,
-        message: `导入成功`
+        message: `导入成功`,
       }
     } else {
       result = {
         importAll: false,
-        message: `导入失败,${rst[1]}`
+        message: `导入失败,${rst[1]}`,
       }
     }
     return new ResultData(result)
@@ -83,7 +85,7 @@ class Document extends DocBase {
     let query
     if (docIds && docIds.length > 0) {
       // 按选中修改
-      let docIds2 = docIds.map(id => new ObjectId(id))
+      let docIds2 = docIds.map((id) => new ObjectId(id))
       query = { _id: { $in: docIds2 } }
     } else if (filter && typeof filter === 'object') {
       // 按条件修改
@@ -138,7 +140,7 @@ class Document extends DocBase {
       execNum = 100,
       planTotal = 0,
       alreadyMoveTotal = 0,
-      alreadyMovePassTotal = 0
+      alreadyMovePassTotal = 0,
     } = this.request.query
 
     let { docIds, filter } = this.request.body
@@ -148,36 +150,30 @@ class Document extends DocBase {
     }
 
     let modelCl = new ModelColl()
-    const oldExistCl = await modelCl.byName(oldDb, oldCl)
-
     let modelDoc = new ModelDoc(this.bucket, this.client)
 
-    let docIds2, oldDocus, total
-    if (docIds) {
+    const oldExistCl = await modelCl.byName(oldDb, oldCl)
+    let oldDocus, total, operateType
+    if (docIds && docIds.length > 0) {
+      oldDocus = await modelDoc.getDocumentByIds(oldExistCl, docIds, {})
+      if (oldDocus[0] === false) return [false, oldDocus[1]]
+      oldDocus = oldDocus[1]
       total = docIds.length
-      docIds2 = docIds
+      operateType = `批量（按选中）迁移`
     } else {
-      // 按条件
       let query = {}
+      let cl = this.docHelper.findSysColl(oldExistCl)
       if (_.toUpper(filter) !== 'ALL') {
         query = modelDoc.assembleQuery(filter)
+        operateType = `批量（按筛选）迁移`
+      } else {
+        operateType = `批量（按全部）迁移`
       }
-      let cl = this.docHelper.findSysColl(oldExistCl)
-      oldDocus = await cl
-        .find(query)
-        .limit(parseInt(execNum))
-        .toArray()
+      oldDocus = await cl.find(query).limit(parseInt(execNum)).toArray()
       total = await cl.find(query).count()
     }
 
-    let rst = await this.docHelper.cutDocs(
-      oldDb,
-      oldCl,
-      newDb,
-      newCl,
-      docIds2,
-      oldDocus
-    )
+    let rst = await this.docHelper.cutDocs(oldDb, oldCl, newDb, newCl, oldDocus)
     if (rst[0] === false) return new ResultFault(rst[1])
     rst = rst[1]
 
@@ -193,7 +189,21 @@ class Document extends DocBase {
       alreadyMoveTotal,
       alreadyMovePassTotal,
       alreadyMoveFailTotal,
-      spareTotal
+      spareTotal,
+    }
+
+    // 记录日志
+    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
+      let info = rst.logInfo
+      await modelDoc.dataActionLog(
+        info.newDocs,
+        operateType,
+        info.oldDbName,
+        info.oldClName,
+        info.newDbName,
+        info.newClName,
+        oldDocus
+      )
     }
 
     return new ResultData(data)
