@@ -9513,10 +9513,10 @@ tmpl@1.0.x:
   resolved "https://registry.npm.taobao.org/tmpl/download/tmpl-1.0.4.tgz#23640dd7b42d00433911140820e5cf440e521dd1"
   integrity sha1-I2QN17QtAEM5ERQIIOXPRA5SHdE=
 
-tms-vue-ui@^0.0.48:
-  version "0.0.48"
-  resolved "https://registry.yarnpkg.com/tms-vue-ui/-/tms-vue-ui-0.0.48.tgz#059bf28181084dbbb7ef4efdc5b2adb565e77bb9"
-  integrity sha512-bFON5jBsdQBztC1QjMhYz6FxKUTW9JGk5JEeVaStWkV177OILy47Thku00S3yADbjA7/twrpbF1+pPRcPiFi5Q==
+tms-vue-ui@^0.0.49:
+  version "0.0.49"
+  resolved "https://registry.yarnpkg.com/tms-vue-ui/-/tms-vue-ui-0.0.49.tgz#3ec8a25e8a593cfa419b41dff30ce129e579c331"
+  integrity sha512-I/3XW7zEHdDxrhZ+4/+kw42TDJoeEdh5W/jv4DDGLXfTLTPk59PVkP4iqMDBauIASKWtAEIjMGcElNi9e3y87A==
   dependencies:
     element-ui "^2.12.0"
     lodash "^4.17.15"
@@ -9827,9 +9827,9 @@ url-loader@^2.2.0:
     schema-utils "^2.4.1"
 
 url-parse@^1.4.3:
-  version "1.5.3"
-  resolved "https://registry.yarnpkg.com/url-parse/-/url-parse-1.5.3.tgz#71c1303d38fb6639ade183c2992c8cc0686df862"
-  integrity sha512-IIORyIQD9rvj0A4CLWsHkBBJuNqWpFQe224b6j9t/ABmquIS0qDU2pY6kl6AuOrL5OkCXHMCFNe1jBcuAggjvQ==
+  version "1.5.7"
+  resolved "https://registry.yarnpkg.com/url-parse/-/url-parse-1.5.7.tgz#00780f60dbdae90181f51ed85fb24109422c932a"
+  integrity sha512-HxWkieX+STA38EDk7CE9MEryFeHCKzgagxlGvsdS7WBImq9Mk+PGwiT56w82WI3aicwJA8REp42Cxo98c8FZMA==
   dependencies:
     querystringify "^2.1.1"
     requires-port "^1.0.0"
