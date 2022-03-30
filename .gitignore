@@ -2,6 +2,7 @@
 /mongodb/data
 /mongodb-*
 
+*.local.yml
 *.override.yml
 *.mongoweb.yml
 

@@ -1,6 +1,5 @@
 #基于alpine的nodejs基础镜像
-FROM node:12.10.0-alpine AS builder
-#MAINTAINER made nodejs by p21 from lit29@chinatelecom.cn
+FROM node:16.14.2-alpine3.15 AS builder
 WORKDIR /usr/src/app
 #Install dependencied of nodejs on alpine
 RUN npm install -g cnpm --registry=https://registry.npm.taobao.org

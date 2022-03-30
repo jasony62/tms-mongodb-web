@@ -1,14 +1,17 @@
 version: '3.7'
 services:
   mongodb:
-    build: ./mongodb
+    build: ../mongodb
     image: tms-mongodb/mongo:latest
     container_name: tms-mongodb-mongo
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: root
+    #   MONGO_INITDB_ROOT_PASSWORD: root
     networks:
       - tms-mongodb
 
   back:
-    build: ./back
+    build: ../back
     image: tms-mongodb/back:latest
     container_name: tms-mongodb-back
     # environment:
@@ -34,6 +37,7 @@ services:
     #   - TMS_MONGODB_USER=root
     #   - TMS_MONGODB_PASSWORD=root
     #   redis 配置
+    #   - TMS_REDIS_DISABLED=yes
     #   - TMS_REDIS_PREFIX=dev-op
     #   - TMS_REDIS_HOST=host.docker.internal
     #   - TMS_REDIS_PORT=6379
@@ -69,12 +73,12 @@ services:
         '300',
         '--',
         'node',
-        'server'
+        'server',
       ]
+
   ue_admin:
     build:
-      context: .
-      dockerfile: Dockerfile-ueadmin
+      context: ../ue_admin
       args:
         vue_app_login_key_username: username
         vue_app_login_key_password: password
@@ -89,15 +93,15 @@ services:
     image: tms-mongodb/ue-admin:latest
     container_name: tms-mongodb-ue_admin
     environment:
-    # - NGINX_BACK_BASE_URL=http://back:3000
+      # - NGINX_BACK_BASE_URL=http://back:3000
       - NGINX_WEB_BASE_URL=/admin
-    # # 定义连接基数区域，10m 可以储存 320000 个并发会话
-    # - NGINX_LIMIT_CONN_ZONE=10m
-    # # 是限制每个IP只能发起8000个并发连接
-    # - NGINX_LIMIT_CONN_CONNIP=8000
-    # # 指定当触发limit的时候日志打印级别
-    # - NGINX_LIMIT_CONN_LOG_LEVEL=error
-    # # 回复被禁用的连接请求时的状态码
+      # # 定义连接基数区域，10m 可以储存 320000 个并发会话
+      # - NGINX_LIMIT_CONN_ZONE=10m
+      # # 是限制每个IP只能发起8000个并发连接
+      # - NGINX_LIMIT_CONN_CONNIP=8000
+      # # 指定当触发limit的时候日志打印级别
+      # - NGINX_LIMIT_CONN_LOG_LEVEL=error
+      # # 回复被禁用的连接请求时的状态码
       - NGINX_LIMIT_CONN_STATUS=488
     # # 达到阀值后开始限速(字节)
     # - NGINX_LIMIT_RATE_AFTER=300m
@@ -118,8 +122,8 @@ services:
 
   ue_mongo:
     build:
-      context: .
-      dockerfile: Dockerfile-uemongo
+      context: ../
+      dockerfile: ./ue_mongo/Dockerfile
       args:
         vue_app_login_key_username: username
         vue_app_login_key_password: password
@@ -136,15 +140,15 @@ services:
     image: tms-mongodb/ue-mongo:latest
     container_name: tms-mongodb-ue_mongo
     environment:
-    # - NGINX_BACK_BASE_URL=http://back:3000
+      # - NGINX_BACK_BASE_URL=http://back:3000
       - NGINX_WEB_BASE_URL=/mongo
-    # # 定义连接基数区域，10m 可以储存 320000 个并发会话
-    # - NGINX_LIMIT_CONN_ZONE=10m
-    # # 是限制每个IP只能发起8000个并发连接
-    # - NGINX_LIMIT_CONN_CONNIP=8000
-    # # 指定当触发limit的时候日志打印级别
-    # - NGINX_LIMIT_CONN_LOG_LEVEL=error
-    # # 回复被禁用的连接请求时的状态码
+      # # 定义连接基数区域，10m 可以储存 320000 个并发会话
+      # - NGINX_LIMIT_CONN_ZONE=10m
+      # # 是限制每个IP只能发起8000个并发连接
+      # - NGINX_LIMIT_CONN_CONNIP=8000
+      # # 指定当触发limit的时候日志打印级别
+      # - NGINX_LIMIT_CONN_LOG_LEVEL=error
+      # # 回复被禁用的连接请求时的状态码
       - NGINX_LIMIT_CONN_STATUS=488
     # # 达到阀值后开始限速(字节)
     # - NGINX_LIMIT_RATE_AFTER=300m

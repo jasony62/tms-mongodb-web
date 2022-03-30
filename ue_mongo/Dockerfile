@@ -1,11 +1,11 @@
 #基于alpine的nodejs基础镜像
-FROM node:12.10.0-alpine AS builder
-MAINTAINER made nodejs by p21 from lit29@chinatelecom.cn
+FROM node:16.14.2-alpine3.15 AS builder
 WORKDIR /usr/src/app
 #Install dependencied of nodejs on alpine
 RUN npm install -g cnpm --registry=https://registry.npm.taobao.org
 #Install node_modules
-COPY . .
+COPY ./ue_mongo ./ue_mongo
+COPY ./ue_comp ./ue_comp
 
 # 生成.env文件
 ARG vue_app_title=用户端
@@ -33,7 +33,6 @@ RUN echo VUE_APP_TITLE=$vue_app_title > ./ue_mongo/.env && \
   echo VUE_APP_FRONT_BATCHEDITOR=$vue_app_front_batcheditor >> ./ue_mongo/.env && \
   echo VUE_APP_STORETOKEN_WAY=$vue_app_storetoken_way >> ./ue_mongo/.env && \
   echo VUE_APP_PLUGINSUB_NAMES=$vue_app_pluginsub_names >> ./ue_mongo/.env
-
 
 # 安装依赖包，构建代码
 RUN cd ue_mongo && cnpm i && yarn build
