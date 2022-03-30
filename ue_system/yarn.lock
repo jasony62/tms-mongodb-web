@@ -7929,9 +7929,9 @@ querystring@0.2.0:
   integrity sha1-sgmEkgO7Jd+CDadW50cAWHhSFiA=
 
 querystringify@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.npm.taobao.org/querystringify/download/querystringify-2.1.1.tgz#60e5a5fd64a7f8bfa4d2ab2ed6fdf4c85bad154e"
-  integrity sha1-YOWl/WSn+L+k0qsu1v30yFutFU4=
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/querystringify/-/querystringify-2.2.0.tgz#3345941b4153cb9d082d8eee4cda2016a9aef7f6"
+  integrity sha512-FIqgj2EUvTa7R50u0rGsyTftzjYmv/a3hO345bZNrqabNqjtgiDMgmo4mkUjd+nzU5oF3dClKqFIPUKybUyqoQ==
 
 randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.5:
   version "2.1.0"
@@ -8206,7 +8206,7 @@ require-main-filename@^2.0.0:
 
 requires-port@^1.0.0:
   version "1.0.0"
-  resolved "https://registry.npm.taobao.org/requires-port/download/requires-port-1.0.0.tgz#925d2601d39ac485e091cf0da5c6e694dc3dcaff"
+  resolved "https://registry.yarnpkg.com/requires-port/-/requires-port-1.0.0.tgz#925d2601d39ac485e091cf0da5c6e694dc3dcaff"
   integrity sha1-kl0mAdOaxIXgkc8NpcbmlNw9yv8=
 
 reselect@^3.0.1:
@@ -9216,18 +9216,20 @@ tmpl@1.0.x:
   resolved "https://registry.npm.taobao.org/tmpl/download/tmpl-1.0.4.tgz#23640dd7b42d00433911140820e5cf440e521dd1"
   integrity sha1-I2QN17QtAEM5ERQIIOXPRA5SHdE=
 
-tms-vue-ui@^0.0.14:
-  version "0.0.14"
-  resolved "https://registry.yarnpkg.com/tms-vue-ui/-/tms-vue-ui-0.0.14.tgz#b13987f75f12b7d2f7c67d7ec4aa4496f0c7c5a6"
-  integrity sha512-r0UP9gOukKXmTmAw2lzyKjRX/B0RaBoVRePUAucRdptCK8lT6khaAigYov+ubUDo1aNfDL7e5vbQFMnU6t09zg==
+tms-vue-ui@^0.0.48:
+  version "0.0.48"
+  resolved "https://registry.yarnpkg.com/tms-vue-ui/-/tms-vue-ui-0.0.48.tgz#059bf28181084dbbb7ef4efdc5b2adb565e77bb9"
+  integrity sha512-bFON5jBsdQBztC1QjMhYz6FxKUTW9JGk5JEeVaStWkV177OILy47Thku00S3yADbjA7/twrpbF1+pPRcPiFi5Q==
   dependencies:
     element-ui "^2.12.0"
+    lodash "^4.17.15"
     vant "^2.2.11"
+    vue-router "^3.1.5"
 
-tms-vue@^0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/tms-vue/-/tms-vue-0.0.5.tgz#3581c16bef210939710d5d43ce3c81524bc815a4"
-  integrity sha512-2L3X04/erteiJiMeF6dNJ6yu0VfMNeQLUkvENK02DRX6aCM/7hOoLDm0FFzwHUkY7ni3kynrODqAH/5mrKt+Ow==
+tms-vue@^0.0.12:
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/tms-vue/-/tms-vue-0.0.12.tgz#1ccc250ff618fa195c38060e23bd350febf00cdc"
+  integrity sha512-Hzgzy0fjneaWJZWuEuypJlAe8ve6snDFRcEswKK86OKcNswPXsHapgRpbkaYkbV2bQAa9QV5u+nzO4RoDNpazA==
   dependencies:
     axios "^0.19.0"
 
@@ -9524,9 +9526,9 @@ url-loader@^2.2.0:
     schema-utils "^2.4.1"
 
 url-parse@^1.4.3:
-  version "1.4.7"
-  resolved "https://registry.npm.taobao.org/url-parse/download/url-parse-1.4.7.tgz#a8a83535e8c00a316e403a5db4ac1b9b853ae278"
-  integrity sha1-qKg1NejACjFuQDpdtKwbm4U64ng=
+  version "1.5.10"
+  resolved "https://registry.yarnpkg.com/url-parse/-/url-parse-1.5.10.tgz#9d3c2f736c1d75dd3bd2be507dcc111f1e2ea9c1"
+  integrity sha512-WypcfiRhfeUP9vvF0j6rw0J3hrWrw6iZv3+22h6iRMJ/8z1Tj6XfLP4DsUix5MhMPnXpiHDoKyoZ/bdCkwBCiQ==
   dependencies:
     querystringify "^2.1.1"
     requires-port "^1.0.0"
@@ -9681,6 +9683,11 @@ vue-router@^3.1.3:
   version "3.1.3"
   resolved "https://registry.npm.taobao.org/vue-router/download/vue-router-3.1.3.tgz#e6b14fabc0c0ee9fda0e2cbbda74b350e28e412b"
   integrity sha1-5rFPq8DA7p/aDiy72nSzUOKOQSs=
+
+vue-router@^3.1.5:
+  version "3.5.3"
+  resolved "https://registry.yarnpkg.com/vue-router/-/vue-router-3.5.3.tgz#041048053e336829d05dafacf6a8fb669a2e7999"
+  integrity sha512-FUlILrW3DGitS2h+Xaw8aRNvGTwtuaxrRkNSHWTizOfLUie7wuYwezeZ50iflRn8YPV5kxmU2LQuu3nM/b3Zsg==
 
 vue-style-loader@^4.1.0:
   version "4.1.2"
