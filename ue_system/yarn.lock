@@ -9228,10 +9228,10 @@ tmpl@1.0.x:
   resolved "https://registry.yarnpkg.com/tmpl/-/tmpl-1.0.5.tgz#8683e0b902bb9c20c4f726e3c0b69f36518c07cc"
   integrity sha512-3f0uOEAQwIqGuWW2MVzYg8fV/QNnc/IpuJNG837rLuczAaLVHslWHZQj4IGiEl5Hs3kkbhwL9Ab7Hrsmuj+Smw==
 
-tms-vue-ui@^0.0.48:
-  version "0.0.48"
-  resolved "https://registry.yarnpkg.com/tms-vue-ui/-/tms-vue-ui-0.0.48.tgz#059bf28181084dbbb7ef4efdc5b2adb565e77bb9"
-  integrity sha512-bFON5jBsdQBztC1QjMhYz6FxKUTW9JGk5JEeVaStWkV177OILy47Thku00S3yADbjA7/twrpbF1+pPRcPiFi5Q==
+tms-vue-ui@^0.0.51:
+  version "0.0.51"
+  resolved "https://registry.yarnpkg.com/tms-vue-ui/-/tms-vue-ui-0.0.51.tgz#8867e141fe7d5615470bf42ede558d8da956bdb0"
+  integrity sha512-OWi+6yg3xJN0lPg1ImtxWjgo0m+lRxFbsM4XYEqgLCY3Izoejt8BsdLenrdNrmXLz5FyTMmCwBtV/OOO9syFgA==
   dependencies:
     element-ui "^2.12.0"
     lodash "^4.17.15"
@@ -10047,9 +10047,9 @@ write@1.0.3:
     mkdirp "^0.5.1"
 
 ws@^5.2.0:
-  version "5.2.2"
-  resolved "https://registry.npm.taobao.org/ws/download/ws-5.2.2.tgz?cache=0&sync_timestamp=1571495118606&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fws%2Fdownload%2Fws-5.2.2.tgz#dffef14866b8e8dc9133582514d1befaf96e980f"
-  integrity sha1-3/7xSGa46NyRM1glFNG++vlumA8=
+  version "5.2.3"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-5.2.3.tgz#05541053414921bc29c63bee14b8b0dd50b07b3d"
+  integrity sha512-jZArVERrMsKUatIdnLzqvcfydI85dvd/Fp1u/VOpfdDWQ4c9qWXe+VIeAbQ5FrDwciAkr+lzofXLz3Kuf26AOA==
   dependencies:
     async-limiter "~1.0.0"
 
