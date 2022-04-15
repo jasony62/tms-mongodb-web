@@ -55,9 +55,10 @@ class Schema extends Base {
     info.type = 'schema'
     if (!info.scope) return new ResultData('没有指定属性定义适用对象类型')
 
-    return this.clPreset
-      .insertOne(info)
-      .then((result) => new ResultData(result.ops[0]))
+    return this.clPreset.insertOne(info).then((result) => {
+      info._id = result.insertedId
+      return new ResultData(info)
+    })
   }
   /**
    * @swagger

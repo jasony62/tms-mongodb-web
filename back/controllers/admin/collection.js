@@ -208,9 +208,10 @@ class Collection extends CollectionBase {
       info.usage = parseInt(usage)
     }
 
-    return this.clMongoObj
-      .insertOne(info)
-      .then((result) => new ResultData(result.ops[0]))
+    return this.clMongoObj.insertOne(info).then((result) => {
+      info._id = result.insertedId
+      return new ResultData(info)
+    })
   }
   /**
    * @swagger

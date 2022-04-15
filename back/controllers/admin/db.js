@@ -172,9 +172,10 @@ class Db extends DbBase {
     if (existTmwDb)
       return new ResultFault(`已存在同名数据库[name=${info.name}]`)
 
-    return this.clMongoObj
-      .insertOne(info)
-      .then((result) => new ResultData(result.ops[0]))
+    return this.clMongoObj.insertOne(info).then((result) => {
+      info._id = result.insertedId
+      return new ResultData(info)
+    })
   }
   /**
    * @swagger

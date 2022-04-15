@@ -34,21 +34,15 @@ class ReplicaBase extends Base {
     const { primary, secondary } = this.request.body
     const query = {}
     if (primary && typeof primary === 'object') {
-      const [
-        success,
-        priDbOrCause,
-        priCl
-      ] = await this.replicaHelper.findDbAndCl(primary)
+      const [success, priDbOrCause, priCl] =
+        await this.replicaHelper.findDbAndCl(primary)
       if (success !== true) return new ResultFault(`主集合-${priDbOrCause}`)
       query['primary.db'] = priDbOrCause.sysname
       query['primary.cl'] = priCl.sysname
     }
     if (secondary && typeof secondary === 'object') {
-      const [
-        success,
-        secDbOrCause,
-        secCl
-      ] = await this.replicaHelper.findDbAndCl(secondary)
+      const [success, secDbOrCause, secCl] =
+        await this.replicaHelper.findDbAndCl(secondary)
       if (success !== true) return new ResultFault(`从集合-${secDbOrCause}`)
       query['secondary.db'] = secDbOrCause.sysname
       query['secondary.cl'] = secCl.sysname
@@ -56,7 +50,7 @@ class ReplicaBase extends Base {
 
     const options = {
       projection: { type: 0 },
-      sort: { top: -1 }
+      sort: { top: -1 },
     }
     let { skip, limit } = this.replicaHelper.requestPage()
     // 添加分页条件
@@ -73,12 +67,12 @@ class ReplicaBase extends Base {
       map.createTime = ts
       let priDb = await this.clMongoObj.findOne({
         sysname: primary.db,
-        type: 'database'
+        type: 'database',
       })
       let priCl = await this.clMongoObj.findOne({
         'db.sysname': priDb.sysname,
         sysname: primary.cl,
-        type: 'collection'
+        type: 'collection',
       })
       if (priCl) {
         primary.db = { name: priDb.name, title: priDb.title }
@@ -86,12 +80,12 @@ class ReplicaBase extends Base {
       }
       let secDb = await this.clMongoObj.findOne({
         sysname: secondary.db,
-        type: 'database'
+        type: 'database',
       })
       let secCl = await this.clMongoObj.findOne({
         'db.sysname': secDb.sysname,
         sysname: secondary.cl,
-        type: 'collection'
+        type: 'collection',
       })
       if (secCl) {
         secondary.db = { name: secDb.name, title: secDb.title }
@@ -115,12 +109,8 @@ class ReplicaBase extends Base {
    * @returns {object} 创建的复制关系对象
    */
   async create() {
-    const [
-      passed,
-      causeOrBefore,
-      pri,
-      sec
-    ] = await this.replicaHelper.checkRequestReplicaMap()
+    const [passed, causeOrBefore, pri, sec] =
+      await this.replicaHelper.checkRequestReplicaMap()
     if (passed !== true) return new ResultFault(causeOrBefore)
 
     if (causeOrBefore) {
@@ -134,18 +124,16 @@ class ReplicaBase extends Base {
      */
     const replicaMap = {
       primary: { db: pri.db.sysname, cl: pri.cl.sysname },
-      secondary: { db: sec.db.sysname, cl: sec.cl.sysname }
+      secondary: { db: sec.db.sysname, cl: sec.cl.sysname },
     }
     return this.clReplicaMap
       .insertOne(replicaMap)
-      .then(result => new ResultData(result.ops[0]))
+      .then((result) => new ResultData(result))
   }
   /**删除映射关系 */
   async remove() {
-    const [
-      passed,
-      causeOrBefore
-    ] = await this.replicaHelper.checkRequestReplicaMap({ existent: true })
+    const [passed, causeOrBefore] =
+      await this.replicaHelper.checkRequestReplicaMap({ existent: true })
     if (passed !== true) return new ResultFault(causeOrBefore)
 
     return this.clReplicaMap
@@ -154,10 +142,8 @@ class ReplicaBase extends Base {
   }
   /**将一个集合的数据复制到另一个集合 */
   async synchronize() {
-    const [
-      passed,
-      causeOrBefore
-    ] = await this.replicaHelper.checkRequestReplicaMap({ existent: true })
+    const [passed, causeOrBefore] =
+      await this.replicaHelper.checkRequestReplicaMap({ existent: true })
     if (passed !== true) return new ResultFault(causeOrBefore)
 
     let { primary, secondary } = causeOrBefore
@@ -176,7 +162,7 @@ class ReplicaBase extends Base {
       logger.info(`启动后台执行集合复制关系同步count=${count}]`)
       const cp = require('child_process')
       const child = cp.fork('./replica/synchronize.js')
-      child.on('message', msg => {
+      child.on('message', (msg) => {
         logger.info(`结束后台执行集合复制关系同步[syncCount=${msg.syncCount}]`)
       })
     })

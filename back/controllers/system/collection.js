@@ -67,9 +67,10 @@ class Collection extends Base {
     info.type = 'collection'
     info.database = existDb.name
 
-    return this.clPreset
-      .insertOne(info)
-      .then((result) => new ResultData(result.ops[0]))
+    return this.clPreset.insertOne(info).then((result) => {
+      info._id = result.insertedId
+      return new ResultData(info)
+    })
   }
   /**
    * @swagger

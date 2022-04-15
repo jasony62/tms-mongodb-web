@@ -36,7 +36,7 @@ class CollectionBase extends Base {
     if (existCl.schema_id) {
       await this.clMongoObj
         .findOne({ type: 'schema', _id: new ObjectId(existCl.schema_id) })
-        .then(schema => {
+        .then((schema) => {
           existCl.schema = schema
           delete existCl.schema_id
           return existCl
@@ -55,11 +55,11 @@ class CollectionBase extends Base {
       let re = new RegExp(keyword)
       query['$or'] = [
         { name: { $regex: re, $options: 'i' } },
-        { title: { $regex: re, $options: 'i' } }
+        { title: { $regex: re, $options: 'i' } },
       ]
     }
     const options = {
-      projection: { type: 0 }
+      projection: { type: 0 },
     }
     let { skip, limit } = this.clHelper.requestPage()
     // 添加分页条件
@@ -92,6 +92,8 @@ class CollectionBase extends Base {
     if (!flag) {
       return new ResultFault(result)
     }
+
+    info._id = result.insertedId
 
     return new ResultData(result)
   }
@@ -127,21 +129,13 @@ class CollectionBase extends Base {
         )
     }
 
-    const {
-      _id,
-      sysname,
-      database,
-      db,
-      type,
-      bucket,
-      usage,
-      ...updatedInfo
-    } = info
+    const { _id, sysname, database, db, type, bucket, usage, ...updatedInfo } =
+      info
 
     const rst = await this.clMongoObj
       .updateOne({ _id: existCl._id }, { $set: updatedInfo })
-      .then(rst => [true, rst.result])
-      .catch(err => [false, err.message])
+      .then((rst) => [true, rst.result])
+      .catch((err) => [false, err.message])
 
     if (rst[0] === false) return new ResultFault(rst[1])
 
@@ -180,7 +174,7 @@ class CollectionBase extends Base {
       .deleteOne({ _id: existCl._id })
       .then(() => client.db(this.reqDb.sysname).dropCollection(existCl.sysname))
       .then(() => new ResultData('ok'))
-      .catch(err => new ResultFault(err.message))
+      .catch((err) => new ResultFault(err.message))
   }
 }
 

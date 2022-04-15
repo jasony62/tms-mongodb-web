@@ -23,8 +23,8 @@ class CollectionHelper extends Helper {
     return clDb
       .rename(newName)
       .then(() => this.clMongoObj.updateOne(query, { $set: { name: newName } }))
-      .then(rst => [true, rst.result])
-      .catch(err => [false, err.message])
+      .then((rst) => [true, rst.result])
+      .catch((err) => [false, err.message])
   }
   /**
    * 创建集合
@@ -51,7 +51,7 @@ class CollectionHelper extends Helper {
     if (existTmwCl)
       return [
         false,
-        `数据库[name=${existDb.name}]中，已存在同名集合[name=${info.name}]`
+        `数据库[name=${existDb.name}]中，已存在同名集合[name=${info.name}]`,
       ]
 
     // 检查是否指定了用途
@@ -80,8 +80,8 @@ class CollectionHelper extends Helper {
     return mgdb
       .createCollection(info.sysname)
       .then(() => this.clMongoObj.insertOne(info))
-      .then(result => [true, result.ops[0]])
-      .catch(err => [false, err.message])
+      .then((result) => [true, result])
+      .catch((err) => [false, err.message])
   }
 }
 

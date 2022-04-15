@@ -52,9 +52,10 @@ class Tag extends TagBase {
     let existTag = await this.tagHelper.tagByName(info.name)
     if (existTag) return new ResultFault('已存在同名标签')
 
-    return this.clMongoObj
-      .insertOne(info)
-      .then((result) => new ResultData(result.ops[0]))
+    return this.clMongoObj.insertOne(info).then((result) => {
+      info._id = result.insertedId
+      return new ResultData(info)
+    })
   }
   /**
    * @swagger

@@ -66,7 +66,10 @@ class Bucket extends BucketBase {
 
     info.creator = this.client.id
 
-    return cl.insertOne(info).then((result) => new ResultData(result.ops[0]))
+    return cl.insertOne(info).then((result) => {
+      info._id = result.insertedId
+      return new ResultData(info)
+    })
   }
   /**
    * @swagger

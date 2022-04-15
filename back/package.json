@@ -2,25 +2,25 @@
   "name": "back",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
+    "serve": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "pm2": "pm2 start ecosystem.config.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "jasony62",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.19.2",
-    "glob": "^7.1.6",
+    "axios": "^0.26.1",
+    "glob": "^8.0.1",
     "lodash": "^4.17.20",
     "log4js": "^6.1.0",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "mongo-escape": "^2.0.6",
-    "mongodb": "^3.6.3",
+    "mongodb": "^4.5.0",
     "nanoid": "^3.1.4",
-    "redis": "^2.8.0",
-    "request": "^2.88.2",
-    "tms-koa": "0.0.70"
+    "redis": "^4.0.6",
+    "tms-koa": "0.0.73"
   }
 }

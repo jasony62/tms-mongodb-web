@@ -56,9 +56,10 @@ class Db extends Base {
     let existDb = await this.helper.dbByName(info.name)
     if (existDb) return new ResultFault('已存在同名预制数据库')
 
-    return this.clPreset
-      .insertOne(info)
-      .then((result) => new ResultData(result.ops[0]))
+    return this.clPreset.insertOne(info).then((result) => {
+      info._id = result.insertedId
+      return new ResultData(info)
+    })
   }
   /**
    * @swagger

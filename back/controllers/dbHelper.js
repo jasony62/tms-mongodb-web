@@ -64,8 +64,8 @@ class DbHelper extends Helper {
 
     return this.clMongoObj
       .insertOne(info)
-      .then(result => [true, result.ops[0]])
-      .catch(err => [false, err.message])
+      .then((result) => [true, result])
+      .catch((err) => [false, err.message])
   }
 }
 

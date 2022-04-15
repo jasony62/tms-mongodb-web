@@ -118,9 +118,10 @@ class Schema extends SchemaBase {
     if (!info.scope) info.scope = 'document'
     if (this.bucket) info.bucket = this.bucket.name
 
-    return this.clMongoObj
-      .insertOne(info)
-      .then((result) => new ResultData(result.ops[0]))
+    return this.clMongoObj.insertOne(info).then((result) => {
+      info._id = result.insertedId
+      return new ResultData(info)
+    })
   }
   /**
    * @swagger

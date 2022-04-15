@@ -1,13 +1,13 @@
 ## 简介
 
-tms-mongodb-web, 可灵活扩展的 mongodb web 客户端。简单来说就是 mongodb 的 web 客户端，可以让用户在前端界面很直观的看到数据库中存储了哪些字段以及字段的值是什么，并对数据库做一些增删改查的操作。
+tms-mongodb-web, 提供访问 mongodb 数据的 REST API 和可灵活扩展的 mongodb web 客户端，可以让用户通过 API 或前端界面直观的看到数据库中存储了哪些字段以及字段的值是什么，并对数据库进行增删改查的操作。
 
 ## 主要依赖
 
-tms-mongo-web 是一个主要使用 JavaScript 语言搭建起来的轻量应用。
+tms-mongo-web 是一个使用 JavaScript 搭建起来的轻量应用。
 
 - 数据库采用的是非关系型数据库—— mongodb；
-- back 使用的语言为 nodejs，搭载自行对 koa 封装的一个库——[tms-koa](https://github.com/jasony62/tms-koa)；
+- back 使用的语言为 nodejs，基于对 koa 封装的一个 API 服务框架——[tms-koa](https://github.com/jasony62/tms-koa)；
 - 系统端、管理端、使用端主要采用的是 vue 框架和 elementui 样式库，以及自行封装的两个库 [tms-vue](https://github.com/jasony62/tms-vue) 和 [tms-vue-ui](https://github.com/jasony62/tms-vue-ui)。
 
 | 层级   | 后端模块名                                        | 前端模块名                                  |
@@ -114,6 +114,10 @@ _注：想用 docker 快速方便的启动应用，建议新建一个名为 dock
   |back | 1、cnpm i，安装依赖包；2、添加.env 文件(禁止提交到 gitlab)，可根据本地服务的端口号覆盖应用中已设置的值来启动后端 |node server.js |
   |ue_admin |1、cnpm i，安装依赖包；2、添加.env.development.local，可在本地自定义某些变量的值 |npm run serve| |
   |ue_mongo |1、cnpm i，安装依赖包；2、添加.env.development.local，可在本地自定义某些变量的值 |npm run serve| |
+
+访问管理界面，默认用户名口令 root/root
+
+> http://localhost:4082/admin
 
 ## 参考链接
 

@@ -1,10 +1,15 @@
 #基于alpine的nodejs基础镜像
 FROM node:16.14.2-alpine3.15 AS builder
+
+# 更改npm镜像
+RUN yarn config set registry https://registry.npm.taobao.org --global && \
+  yarn config set disturl https://npm.taobao.org/dist --global
+
 WORKDIR /usr/src/app
-#Install dependencied of nodejs on alpine
-RUN npm install -g cnpm --registry=https://registry.npm.taobao.org
+
 #Install node_modules
 COPY . .
+
 # 生成.env文件
 ARG vue_app_title=管理端
 ARG vue_app_base_url
@@ -29,7 +34,7 @@ RUN echo VUE_APP_TITLE=$vue_app_title > .env && \
   echo VUE_APP_STORETOKEN_WAY=$vue_app_storetoken_way >> .env 
 
 # 安装依赖包，构建代码
-RUN cnpm i && yarn build
+RUN yarn && yarn build
 
 # 标准基础镜像（部署阶段）
 FROM nginx:alpine
