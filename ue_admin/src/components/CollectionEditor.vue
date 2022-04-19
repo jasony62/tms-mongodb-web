@@ -16,12 +16,12 @@
           <el-option v-for="item in schemas" :key="item._id" :label="item.title" :value="item._id"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="集合文档内容定义（定制）">
+      <el-form-item label="集合文档内容定义（定制-修改）">
         <el-select v-model="collection.schema_tags" clearable multiple placeholder="请选择定义标签">
           <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="默认展示（定制）">
+      <el-form-item label="集合文档内容定义（定制-展示）">
         <el-select v-model="collection.schema_default_tags" clearable multiple placeholder="请选择定义标签">
           <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
         </el-select>
@@ -104,7 +104,7 @@ export default {
     dbName: { type: String },
     collection: {
       type: Object,
-      default: function() {
+      default: function () {
         return {
           name: '',
           title: '',
@@ -124,23 +124,23 @@ export default {
               transferMany: true,
               import: true,
               export: true,
-              copyMany: true
-            }
+              copyMany: true,
+            },
           },
           operateRules: {
             scope: {
-              unrepeat: false
+              unrepeat: false,
             },
             unrepeat: {
               database: {},
               collection: {},
               primaryKeys: [],
-              insert: false
-            }
-          }
+              insert: false,
+            },
+          },
         }
-      }
-    }
+      },
+    },
   },
   data() {
     return {
@@ -157,23 +157,23 @@ export default {
         collectionLoading: false,
         collections: [],
         clBatch: new Batch(),
-        properties: {}
-      }
+        properties: {},
+      },
     }
   },
   mounted() {
-    apiSchema.listSimple(this.bucketName).then(schemas => {
+    apiSchema.listSimple(this.bucketName).then((schemas) => {
       this.schemas = schemas
     })
-    apiTag.list(this.bucketName).then(tags => {
+    apiTag.list(this.bucketName).then((tags) => {
       this.tags = tags
     })
     let {
       collection: {
         operateRules: {
-          unrepeat: { database, collection, primaryKeys }
-        }
-      }
+          unrepeat: { database, collection, primaryKeys },
+        },
+      },
     } = this
     const dbKey = database.name ? database.name : null
     this.listDbByKw(database.name)
@@ -190,7 +190,7 @@ export default {
     changeDb() {
       this.collection.operateRules.unrepeat.collection = {}
       this.criteria.clBatch = startBatch(this.batchCollection, [null], {
-        size: SELECT_PAGE_SIZE
+        size: SELECT_PAGE_SIZE,
       })
       this.changeCl()
     },
@@ -205,7 +205,7 @@ export default {
       let { database, collection } = this.collection.operateRules.unrepeat
       apiCollection
         .byName(this.bucketName, database.name, collection.name)
-        .then(result => {
+        .then((result) => {
           this.criteria.properties = Object.entries(
             result.schema.body.properties
           ).map(([key, value]) => {
@@ -215,7 +215,7 @@ export default {
     },
     listDbByKw(keyword) {
       this.criteria.dbBatch = startBatch(this.batchDatabase, [keyword], {
-        size: SELECT_PAGE_SIZE
+        size: SELECT_PAGE_SIZE,
       })
     },
     changeDbPage(page) {
@@ -226,15 +226,15 @@ export default {
       return apiDb
         .list(this.bucketName, {
           keyword,
-          ...batchArg
+          ...batchArg,
         })
-        .then(result => {
+        .then((result) => {
           this.criteria.databaseLoading = false
-          this.criteria.databases = result.databases.map(db => {
+          this.criteria.databases = result.databases.map((db) => {
             return {
               name: db.name,
               sysname: db.sysname,
-              label: `${db.title} (${db.name})`
+              label: `${db.title} (${db.name})`,
             }
           })
           return result
@@ -242,7 +242,7 @@ export default {
     },
     listClByKw(keyword) {
       this.criteria.clBatch = startBatch(this.batchCollection, [keyword], {
-        size: SELECT_PAGE_SIZE
+        size: SELECT_PAGE_SIZE,
       })
     },
     batchCollection(keyword, batchArg) {
@@ -253,14 +253,14 @@ export default {
         return apiCollection
           .list(this.bucketName, database.name, {
             keyword,
-            ...batchArg
+            ...batchArg,
           })
-          .then(result => {
-            this.criteria.collections = result.collections.map(cl => {
+          .then((result) => {
+            this.criteria.collections = result.collections.map((cl) => {
               return {
                 name: cl.name,
                 sysname: cl.sysname,
-                label: `${cl.title} (${cl.name})`
+                label: `${cl.title} (${cl.name})`,
               }
             })
             this.criteria.collectionLoading = false
@@ -280,9 +280,9 @@ export default {
         collection: {
           operateRules: {
             scope: { unrepeat },
-            unrepeat: { database, collection, primaryKeys }
-          }
-        }
+            unrepeat: { database, collection, primaryKeys },
+          },
+        },
       } = this
       if (unrepeat) {
         if (!database.label || !collection.label || !primaryKeys.length) {
@@ -294,7 +294,7 @@ export default {
       if (this.mode === 'create')
         apiCollection
           .create(this.bucketName, this.dbName, this.collection)
-          .then(newCollection => this.$emit('submit', newCollection))
+          .then((newCollection) => this.$emit('submit', newCollection))
       else if (this.mode === 'update')
         apiCollection
           .update(
@@ -303,7 +303,7 @@ export default {
             this.collection.fromDatabase,
             this.collection
           )
-          .then(newCollection => this.$emit('submit', newCollection))
+          .then((newCollection) => this.$emit('submit', newCollection))
     },
     open(mode, bucketName, dbName, collection) {
       this.mode = mode
@@ -316,13 +316,13 @@ export default {
       }
       this.$mount()
       document.body.appendChild(this.$el)
-      return new Promise(resolve => {
-        this.$on('submit', newCollection => {
+      return new Promise((resolve) => {
+        this.$on('submit', (newCollection) => {
           this.dialogVisible = false
           resolve(newCollection)
         })
       })
-    }
-  }
+    },
+  },
 }
 </script>
