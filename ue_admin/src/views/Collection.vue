@@ -80,8 +80,8 @@
           <el-button @click="createDocument">添加文档</el-button>
         </div>
         <div v-if="jsonItems.length">
-          <el-button v-if="jsonItems.length===1" plain @click="configJson(jsonItems[0])">{{jsonItems[0].title}}</el-button>
-          <el-dropdown>
+          <el-button v-if="jsonItems.length===1" plain @click="configJson(jsonItems[0])">配置{{jsonItems[0].title}}</el-button>
+          <el-dropdown v-else>
             <el-button>配置json类型<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item v-for="(value, key) in jsonItems" :key="key">
@@ -149,8 +149,8 @@ export default {
         let value = this.properties[property]
         if (value.type === 'json') {
           value.field = property
+          this.jsonItems.push(value)
         }
-        this.jsonItems.push(value)
       }
     },
     configJson(config) {
