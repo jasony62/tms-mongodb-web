@@ -8,7 +8,8 @@
       </el-breadcrumb>
     </template>
     <template v-slot:center>
-      <el-table id="tables" class="table-fixed" :data="documents" stripe style="width: 100%" :max-height="tableHeight">
+      <el-table id="tables" class="table-fixed" highlight-current-row style="width: 100%" :max-height="tableHeight" :data="documents" @current-change="selectedRow">
+        <el-table-column type="index" width="55"></el-table-column>
         <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
           <template slot="header">
             <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
@@ -74,7 +75,22 @@
       <el-pagination style="float: right" background @size-change="handleSize" @current-change="handleCurrentPage" :current-page.sync="page.at" :page-sizes="[10, 25, 50, 100]" :page-size="page.size" layout="total, sizes, prev, pager, next" :total="page.total"></el-pagination>
     </template>
     <template v-slot:right>
-      <el-button @click="createDocument">添加文档</el-button>
+      <tms-flex direction="column" align-items="flex-start">
+        <div>
+          <el-button @click="createDocument">添加文档</el-button>
+        </div>
+        <div v-if="jsonItems.length">
+          <el-button v-if="jsonItems.length===1" plain @click="configJson(jsonItems[0])">配置{{jsonItems[0].title}}</el-button>
+          <el-dropdown v-else>
+            <el-button>配置json类型<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item v-for="(value, key) in jsonItems" :key="key">
+                <el-button type="text" @click="configJson(value)">{{value.title}}</el-button>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </div>
+      </tms-flex>
     </template>
   </tms-frame>
 </template>
@@ -85,12 +101,14 @@ import { mapState, mapMutations } from 'vuex'
 import { Frame } from 'tms-vue-ui'
 Vue.use(Frame)
 
+import { Message } from 'element-ui'
 import DocEditor from '../components/DocEditor.vue'
 import SelectCondition from '../components/SelectCondition.vue'
+import ConfigJSON from '../components/ConfigJSON.vue'
 import {
   collection as apiCol,
   doc as apiDoc,
-  schema as apiSchema
+  schema as apiSchema,
 } from '../apis'
 
 const collection = {}
@@ -105,22 +123,58 @@ export default {
       page: {
         at: 1,
         size: 100,
-        total: 0
+        total: 0,
       },
       dialogPage: {
         at: 1,
-        size: 100
-      }
+        size: 100,
+      },
+      jsonItems: [],
+      currentRow: {},
     }
   },
   computed: {
-    ...mapState(['documents', 'conditions'])
+    ...mapState(['documents', 'conditions']),
   },
   created() {
     this.tableHeight = window.innerHeight * 0.8
   },
   methods: {
     ...mapMutations(['updateDocument', 'conditionReset']),
+    selectedRow(row) {
+      this.currentRow = row
+    },
+    handleJsonItems() {
+      for (let property in this.properties) {
+        let value = this.properties[property]
+        if (value.type === 'json') {
+          value.field = property
+          this.jsonItems.push(value)
+        }
+      }
+    },
+    configJson(config) {
+      if (this.currentRow && Object.keys(this.currentRow).length) {
+        let value = this.currentRow[config.field]
+        const configModel = new Vue(ConfigJSON)
+        configModel.open(value).then((result) => {
+          this.currentRow[config.field] = result
+          apiDoc
+            .update(
+              this.bucketName,
+              this.dbName,
+              this.clName,
+              this.currentRow._id,
+              this.currentRow
+            )
+            .then(() => {
+              this.listDocument()
+            })
+        })
+      } else {
+        Message.info({ message: '请选择要配置的数据' })
+      }
+    },
     handleCondition() {
       let _obj = JSON.parse(JSON.stringify(this.conditions))
       if (!_obj.length) {
@@ -129,15 +183,15 @@ export default {
       if (_obj.length === 1) {
         return {
           filter: _obj[0].rule.filter,
-          orderBy: _obj[0].rule.orderBy
+          orderBy: _obj[0].rule.orderBy,
         }
       }
       return _obj
-        .map(ele => ele.rule)
+        .map((ele) => ele.rule)
         .reduce((prev, curr) => {
           return {
             filter: Object.assign(prev.filter, curr.filter),
-            orderBy: Object.assign(prev.orderBy, curr.orderBy)
+            orderBy: Object.assign(prev.orderBy, curr.orderBy),
           }
         })
     },
@@ -168,7 +222,7 @@ export default {
       let filter, orderBy
       if (this.conditions.length) {
         const columnobj = this.conditions.find(
-          ele => ele.columnName === columnName
+          (ele) => ele.columnName === columnName
         )
         const rule = this.handleCondition()
         if (columnobj) {
@@ -186,7 +240,7 @@ export default {
         this.conditions.length ? orderBy : undefined,
         this.dialogPage.at,
         this.dialogPage.size
-      ).then(columnResult => {
+      ).then((columnResult) => {
         select.condition.selectResult = columnResult
         select.condition.multipleSelection = columnResult
         // 暂时先用延迟解决，该方法还需改进
@@ -202,7 +256,7 @@ export default {
           this.listByColumn,
           this.properties[columnName]
         )
-        .then(rsl => {
+        .then((rsl) => {
           const { condition, isClear, isCheckBtn } = rsl
           this.$store.commit('conditionAddColumn', { condition })
           if (isClear) this.$store.commit('conditionDelColumn', { condition })
@@ -224,7 +278,7 @@ export default {
               }
             } else if (isCheckBtn) {
               // 如果选择升降序规则，则需重置其他图标
-              this.conditions.map(conEle => {
+              this.conditions.map((conEle) => {
                 if (ele === conEle.columnName) {
                   if (
                     conEle.rule &&
@@ -280,9 +334,9 @@ export default {
           cl: this.clName,
           page: this.page,
           orderBy,
-          filter
+          filter,
         })
-        .then(result => {
+        .then((result) => {
           this.page.total = result.total
         })
     },
@@ -305,15 +359,15 @@ export default {
         apiSchema.listByTag(this.bucketName, data[index])
       )
       return Promise.all(arrPromise)
-        .then(res => {
-          res.forEach(schemas => {
-            schemas.forEach(schema => {
+        .then((res) => {
+          res.forEach((schemas) => {
+            schemas.forEach((schema) => {
               temp = { ...temp, ...schema.body.properties }
             })
           })
           return temp
         })
-        .catch(err => {
+        .catch((err) => {
           throw new Error(err)
         })
     },
@@ -322,17 +376,17 @@ export default {
         schema_tags,
         schema_default_tags,
         schema: {
-          body: { properties }
-        }
+          body: { properties },
+        },
       } = collection
       let temp = {}
 
       if (schema_default_tags && schema_default_tags.length) {
-        await this.getTaglist(schema_default_tags).then(res => {
+        await this.getTaglist(schema_default_tags).then((res) => {
           temp = res
         })
       } else if (schema_tags && schema_tags.length) {
-        await this.getTaglist(schema_tags).then(res => {
+        await this.getTaglist(schema_tags).then((res) => {
           temp = res
         })
       } else if (
@@ -344,19 +398,22 @@ export default {
       }
 
       this.properties = Object.freeze(temp)
-    }
+    },
   },
   mounted() {
-    apiCol.byName(this.bucketName, this.dbName, this.clName).then(async res => {
-      Object.assign(collection, res)
-      await this.handleProperty()
-      this.conditionReset()
-      this.listDocument()
-    })
+    apiCol
+      .byName(this.bucketName, this.dbName, this.clName)
+      .then(async (res) => {
+        Object.assign(collection, res)
+        await this.handleProperty()
+        this.handleJsonItems()
+        this.conditionReset()
+        this.listDocument()
+      })
   },
   beforeDestroy() {
     this.conditionReset()
-  }
+  },
 }
 </script>
 <style lang="less" scoped>
