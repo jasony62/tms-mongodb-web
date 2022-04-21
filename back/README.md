@@ -78,7 +78,7 @@ module.exports = {
 | TMS_REDIS_PORT             | redis 端口号                                                                                                 | 6379                       |
 | TMS_REDIS_EXPIRESIN        | redis 过期时间                                                                                               | 7200                       |
 | TMS_REDIS_PWD              | redis 密码                                                                                                   | ''                         |
-| TMS_APP_ROUTER_AUTH        | 鉴权接口前缀                                                                                                 | 'auth'                     |
-| TMS_APP_ROUTER_CONTROLLER  | 控制器接口前缀                                                                                               | 'api'                      |
+| TMS_APP_ROUTER_AUTH        | 鉴权接口前缀，例如：指定为`auth`，那么和认证相关的地址为`http://hostname:port/auth/xxx`                      | 'auth'                     |
+| TMS_APP_ROUTER_CONTROLLER  | 控制器接口前缀，例如：指定为`api`，那么功能相关的地址为`http://hostname:port/api/xxxx`                       | 'api'                      |
 | TMS_APP_ROUTER_PLUGIN      | 插件接口前缀                                                                                                 | 'plugin'                   |
 | TMS_APP_ROUTER_FSDOMAIN    | 文件下载接口前缀                                                                                             | 'fs'                       |

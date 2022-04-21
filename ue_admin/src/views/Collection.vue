@@ -8,7 +8,8 @@
       </el-breadcrumb>
     </template>
     <template v-slot:center>
-      <el-table id="tables" class="table-fixed" highlight-current-row style="width: 100%" :max-height="tableHeight" :data="documents" @current-change="selectedRow">
+      <el-table id="tables" class="table-fixed" highlight-current-row style="width: 100%" :max-height="tableHeight"
+        :data="documents" @current-change="selectedRow">
         <el-table-column type="index" width="55"></el-table-column>
         <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
           <template slot="header">
@@ -18,7 +19,7 @@
             <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)" />
           </template>
           <template slot-scope="scope">
-            <span v-if="s.type === 'boolean'">{{scope.row[k] ? '是' : '否'}}</span>
+            <span v-if="s.type === 'boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
             <span v-else-if="s.type === 'array' && s.items && s.items.format === 'file'">
               <span v-for="(i, v) in scope.row[k]" :key="v">
                 <a href="#" @click="handleDownload(i)">{{ i.name }}</a>
@@ -31,11 +32,11 @@
                   <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value">
                     <span v-for="(e, v) in s.enum" :key="v">
                       <span v-if="
-                          e.group === g.id &&
-                            scope.row[k] &&
-                            scope.row[k].length &&
-                            scope.row[k].includes(e.value)
-                        ">{{ e.label }}&nbsp;</span>
+                        e.group === g.id &&
+                        scope.row[k] &&
+                        scope.row[k].length &&
+                        scope.row[k].includes(e.value)
+                      ">{{ e.label }}&nbsp;</span>
                     </span>
                   </span>
                 </span>
@@ -72,7 +73,9 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination style="float: right" background @size-change="handleSize" @current-change="handleCurrentPage" :current-page.sync="page.at" :page-sizes="[10, 25, 50, 100]" :page-size="page.size" layout="total, sizes, prev, pager, next" :total="page.total"></el-pagination>
+      <el-pagination style="float: right" background @size-change="handleSize" @current-change="handleCurrentPage"
+        :current-page.sync="page.at" :page-sizes="[10, 25, 50, 100]" :page-size="page.size"
+        layout="total, sizes, prev, pager, next" :total="page.total"></el-pagination>
     </template>
     <template v-slot:right>
       <tms-flex direction="column" align-items="flex-start">
@@ -80,12 +83,13 @@
           <el-button @click="createDocument">添加文档</el-button>
         </div>
         <div v-if="jsonItems.length">
-          <el-button v-if="jsonItems.length===1" plain @click="configJson(jsonItems[0])">配置{{jsonItems[0].title}}</el-button>
+          <el-button v-if="jsonItems.length === 1" plain @click="configJson(jsonItems[0])">编辑【{{ jsonItems[0].title }}】
+          </el-button>
           <el-dropdown v-else>
             <el-button>配置json类型<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item v-for="(value, key) in jsonItems" :key="key">
-                <el-button type="text" @click="configJson(value)">{{value.title}}</el-button>
+                <el-button type="text" @click="configJson(value)">{{ value.title }}</el-button>
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -392,7 +396,7 @@ export default {
       } else if (
         properties &&
         Object.prototype.toString.call(properties).toLowerCase() ==
-          '[object object]'
+        '[object object]'
       ) {
         Object.assign(temp, collection.schema.body.properties)
       }
@@ -422,9 +426,11 @@ export default {
     margin-left: 10px;
     cursor: pointer;
   }
+
   .icon-heightlight {
     color: #409eff;
   }
+
   .icon_filter {
     width: 15px;
     height: 15px;
