@@ -10,11 +10,11 @@ tms-mongo-web 是一个使用 JavaScript 搭建起来的轻量应用。
 - back 使用的语言为 nodejs，基于对 koa 封装的一个 API 服务框架——[tms-koa](https://github.com/jasony62/tms-koa)；
 - 系统端、管理端、使用端主要采用的是 vue 框架和 elementui 样式库，以及自行封装的两个库 [tms-vue](https://github.com/jasony62/tms-vue) 和 [tms-vue-ui](https://github.com/jasony62/tms-vue-ui)。
 
-| 层级   | 后端模块名                                        | 前端模块名                                  |
-| :----- | :------------------------------------------------ | ------------------------------------------- |
-| 第一层 | tms-koa                                           | tms-vue、tms-vue-ui                         |
-| 第二层 | tms-mongo-web/back                                | tms-mongo-web/ue_admin、ue_mongo、ue_system |
-| 第三层 | 订单管理 mg_order、号池管理 mg_pool、话单查询等等 |
+| 层级   | 后端模块名         | 前端模块名                                  |
+| :----- | :----------------- | ------------------------------------------- |
+| 第一层 | tms-koa            | tms-vue、tms-vue-ui                         |
+| 第二层 | tms-mongo-web/back | tms-mongo-web/ue_admin、ue_mongo、ue_system |
+| 第三层 | 处理业务数据       | 插件                                        |
 
 由上个表格表明，在这个 mongoweb 的基础上，延伸出了诸多已上线的模块，例如订单管理 mg_order、号池管理 mg_pool、话单查询等等。因此，在实际使用中，某一个功能的正常呈现，从前到后的贯通，基本都需要上述模块的参与。所以，在考虑一个需求的实现时，需要正确分析这个需求的实现应该属于哪个模块的功能。
 
