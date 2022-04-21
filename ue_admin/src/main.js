@@ -8,7 +8,7 @@ import {
   TmsAxiosPlugin,
   TmsErrorPlugin,
   TmsIgnorableError,
-  TmsLockPromise
+  TmsLockPromise,
 } from 'tms-vue'
 import {
   Pagination,
@@ -42,7 +42,7 @@ import {
   Col,
   Icon,
   Message,
-  MessageBox
+  MessageBox,
 } from 'element-ui'
 import './assets/css/common.less'
 import { setToken, getToken } from './global.js'
@@ -86,18 +86,18 @@ const schema = [
   {
     key: process.env.VUE_APP_LOGIN_KEY_USERNAME || 'username',
     type: 'text',
-    placeholder: '用户名'
+    placeholder: '用户名',
   },
   {
     key: process.env.VUE_APP_LOGIN_KEY_PASSWORD || 'password',
     type: 'password',
-    placeholder: '密码'
+    placeholder: '密码',
   },
   {
     key: process.env.VUE_APP_LOGIN_KEY_PIN || 'pin',
     type: 'code',
-    placeholder: '验证码'
-  }
+    placeholder: '验证码',
+  },
 ]
 Vue.use(Login, { schema, fnGetCaptcha, fnGetToken })
 Vue.config.productionTip = false
@@ -105,14 +105,14 @@ Vue.config.productionTip = false
 /**
  * 请求中需要包含认证信息
  */
-const LoginPromise = (function() {
+const LoginPromise = (function () {
   let login = new Login(schema, fnGetCaptcha, fnGetToken)
-  return new TmsLockPromise(function() {
+  return new TmsLockPromise(function () {
     return login
-      .showAsDialog(function(res) {
+      .showAsDialog(function (res) {
         Message({ message: res.msg, type: 'error', customClass: 'mzindex' })
       })
-      .then(token => {
+      .then((token) => {
         setToken(token)
         return `Bearer ${token}`
       })
@@ -148,7 +148,7 @@ function onResultFault(res) {
     message: res.data.msg,
     type: 'error',
     duration: 3000,
-    customClass: 'mzindex'
+    customClass: 'mzindex',
   })
   return Promise.reject(new TmsIgnorableError(res.data))
 }
@@ -166,14 +166,14 @@ function onResponseRejected(err) {
 Vue.directive('loadmore', {
   bind(el, binding) {
     const selectWrap = el.querySelector('.el-table__body-wrapper')
-    selectWrap.addEventListener('scroll', function() {
+    selectWrap.addEventListener('scroll', function () {
       const scrollDistance =
         this.scrollHeight - this.scrollTop - this.clientHeight
       if (scrollDistance <= 0) {
         binding.value()
       }
     })
-  }
+  },
 })
 
 /**
@@ -184,9 +184,9 @@ Vue.directive('loadmore', {
  *
  */
 function mountCustomMethod() {
-  Vue.prototype.$customeConfirm = function(
+  Vue.prototype.$customeConfirm = function (
     msg = '文件',
-    successCB = function() {
+    successCB = function () {
       return Promise.reject()
     },
     callback
@@ -194,14 +194,14 @@ function mountCustomMethod() {
     MessageBox.confirm(`此操作将永久删除该【${msg}】, 是否继续?`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
       .then(() => {
         successCB().then(() => {
           Message({
             message: '删除成功!',
             type: 'success',
-            showClose: true
+            showClose: true,
           })
           if (callback) callback(null)
         })
@@ -220,7 +220,7 @@ function initFunc() {
     rulesObj = {
       ...rulesObj,
       requestHeaders: new Map([['Authorization', getAccessToken]]),
-      onRetryAttempt
+      onRetryAttempt,
     }
   }
   const responseRule = Vue.TmsAxios.newInterceptorRule(rulesObj)
@@ -236,5 +236,5 @@ new Vue({
   created() {
     initFunc.call(this)
   },
-  render: h => h(App)
+  render: (h) => h(App),
 }).$mount('#app')
