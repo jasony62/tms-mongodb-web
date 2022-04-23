@@ -85,6 +85,9 @@ class CollectionBase extends Base {
    */
   async create() {
     const info = this.request.body
+
+    if (!info.name) return new ResultFault('集合名称不允许为空')
+
     const existDb = this.reqDb
 
     let [flag, result] = await this.clHelper.createCl(existDb, info)
@@ -95,7 +98,7 @@ class CollectionBase extends Base {
 
     info._id = result.insertedId
 
-    return new ResultData(result)
+    return new ResultData(info)
   }
   /**
    * 更新集合对象信息
