@@ -57,7 +57,7 @@ export default defineStore('mongodb', {
       const { bucket, keyword, size } = payload
       return startBatch(action, [bucket, keyword], {
         size,
-        reactiveWrap: reactive,
+        wrap: reactive,
       })
     },
     appendDatabase(payload: {
@@ -114,7 +114,7 @@ export default defineStore('mongodb', {
       const { bucket, db, size, keyword } = payload
       return startBatch(action, [keyword], {
         size: size,
-        reactiveWrap: reactive,
+        wrap: reactive,
       })
     },
     appendCollection(payload: { collection: any }) {

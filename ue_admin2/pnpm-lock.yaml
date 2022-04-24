@@ -8,8 +8,8 @@ specifiers:
   jsoneditor: ^9.7.4
   pinia: ^2.0.13
   sass: ^1.50.1
-  tms-vue3: 0.0.2
-  tms-vue3-ui: 0.0.10
+  tms-vue3: 0.0.3
+  tms-vue3-ui: 0.0.11
   typescript: ^4.5.4
   vite: ^2.9.5
   vue: ^3.2.25
@@ -22,8 +22,8 @@ dependencies:
   element-plus: 2.1.10_vue@3.2.33
   jsoneditor: 9.7.4
   pinia: 2.0.13_ifhmkzsxec62ezvqv7qmanm4bq
-  tms-vue3: 0.0.2_vue@3.2.33
-  tms-vue3-ui: 0.0.10
+  tms-vue3: 0.0.3_vue@3.2.33
+  tms-vue3-ui: 0.0.11
   vue: 3.2.33
   vue-router: 4.0.14_vue@3.2.33
 
@@ -820,29 +820,18 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /tms-vue3-ui/0.0.10:
-    resolution: {integrity: sha512-B+0ZNBvKmGwoH/ieuSHxRLy2zpxLuwPfsnd5UkyEpEVvS34NSmBSbXDCfqG3K/qIMCRamIMtMA3tdkvZZ/e1iw==}
+  /tms-vue3-ui/0.0.11:
+    resolution: {integrity: sha512-CC8lQdT6dvsMtTZU0ONxdhw9mKrfSSyDRLF5eyfuk15iMdQUSjOkxAehxJqOD6LcQpY2ZPzWEIYa0cDrVIvu6w==}
     dependencies:
       lodash: 4.17.21
-      tms-vue3: 0.0.1_vue@3.2.33
+      tms-vue3: 0.0.3_vue@3.2.33
       vue: 3.2.33
     transitivePeerDependencies:
       - debug
     dev: false
 
-  /tms-vue3/0.0.1_vue@3.2.33:
-    resolution: {integrity: sha512-nfhLBu0DQIBYH/drmQ8sUdAiD6CMmMfQxia6eQSHbD9bdmGRRe5Z2GsLNgfp9OyUo/ysmJD72E4DEPH3BM7QMA==}
-    peerDependencies:
-      vue: ^3.2.25
-    dependencies:
-      axios: 0.26.1
-      vue: 3.2.33
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
-  /tms-vue3/0.0.2_vue@3.2.33:
-    resolution: {integrity: sha512-/oHdZD7RZRaXCKG/PODHSOicod5rHiuvXvlf++GRiUawO2d3MbChIMwswS3SEj2GMy4+chbOaCxi+5ZjeyVlag==}
+  /tms-vue3/0.0.3_vue@3.2.33:
+    resolution: {integrity: sha512-MHk3qbNwGvs8inwwkx5htjz5J0r4bG/YuCd/6q17EDr4mWNAMmcl+PoBhpi+Gyd3SuOVv/XAA+CvKpCqo/yE6w==}
     peerDependencies:
       vue: ^3.2.25
     dependencies:
