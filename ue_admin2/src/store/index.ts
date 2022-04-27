@@ -131,25 +131,34 @@ export default defineStore('mongodb', {
         return { collection }
       })
     },
-    listDocument(payload: {
-      bucket: any
-      db: any
-      cl: any
-      orderBy: any
-      filter: any
-      page: any
-    }) {
-      const { bucket, db, cl, orderBy, filter, page } = payload
-      return apis.doc
-        .list(bucket, db, cl, orderBy, filter, page)
-        .then((result: { docs: never[] }) => {
-          this.documents = result.docs
-          return result
-        })
+    listDocument(payload: { bucket: any; db: any; cl: any; size: any }) {
+      const action = (
+        keyword: any,
+        batchArg: { page: any; size: any } | undefined
+      ) => {
+        return apis.doc
+          .list(bucket, db, cl, { ...batchArg })
+          .then((result: { docs: never[] }) => {
+            this.documents = result.docs
+            return result
+          })
+      }
+      const { bucket, db, cl, size } = payload
+      return startBatch(action, [null], {
+        size: size,
+        wrap: reactive,
+      })
     },
     updateDocument(payload: { index: any; document: any }) {
       const { index, document } = payload
       this.documents.splice(index, 1, document)
+    },
+    removeDocument(payload: { bucket: any; db: any; cl: any; document: any }) {
+      const { bucket, db, cl, document } = payload
+      return apis.doc.remove(bucket, db, cl, document.id).then(() => {
+        this.documents.splice(this.documents.indexOf(document), 1)
+        return { document }
+      })
     },
     listTags(payload: { bucket: any }) {
       const { bucket } = payload

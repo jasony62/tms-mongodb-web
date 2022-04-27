@@ -1,17 +1,22 @@
 import { TmsAxios } from 'tms-vue3'
 
 const base = (import.meta.env.VITE_BACK_API_BASE || '') + '/admin/document'
+let uploadUrl = (import.meta.env.VITE_BACK_API_BASE || '') + '/upload/plain'
+
+type ApiRst = {
+  data: { result: any }
+}
 
 export default {
   byColumnVal(
-    bucket,
-    dbName,
-    clName,
-    columnName,
-    filter = {},
-    orderBy = {},
-    page,
-    size
+    bucket: any,
+    dbName: string,
+    clName: string,
+    columnName: string,
+    page: string,
+    size: string,
+    filter?: {},
+    orderBy?: {}
   ) {
     const params = {
       bucket,
@@ -23,21 +28,26 @@ export default {
     }
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/getGroupByColumnVal`, { filter, orderBy }, { params })
-      .then((rst) => rst.data.result)
+      .then((rst: ApiRst) => rst.data.result)
   },
-  list(bucket, dbName, clName, orderBy = {}, filter = {}, page) {
+  list(bucket: any, dbName: string, clName: string, batchArg?: any) {
     const params = {
       bucket,
       db: dbName,
       cl: clName,
-      page: page.at,
-      size: page.size,
+      ...batchArg,
     }
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/list`, { orderBy, filter }, { params })
-      .then((rst) => rst.data.result)
+      .post(
+        `${base}/list`,
+        {},
+        {
+          params,
+        }
+      )
+      .then((rst: ApiRst) => rst.data.result)
   },
-  create(bucket, dbName, clName, proto) {
+  create(bucket: any, dbName: string, clName: string, proto: any) {
     const params = {
       bucket,
       db: dbName,
@@ -45,9 +55,15 @@ export default {
     }
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/create`, proto, { params })
-      .then((rst) => rst.data.result)
+      .then((rst: ApiRst) => rst.data.result)
   },
-  update(bucket, dbName, clName, id, updated) {
+  update(
+    bucket: any,
+    dbName: string,
+    clName: string,
+    id: string,
+    updated: any
+  ) {
     const params = {
       bucket,
       db: dbName,
@@ -56,9 +72,9 @@ export default {
     }
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/update`, updated, { params })
-      .then((rst) => rst.data.result)
+      .then((rst: ApiRst) => rst.data.result)
   },
-  remove(bucket, dbName, clName, id) {
+  remove(bucket: any, dbName: string, clName: string, id: string) {
     const params = {
       bucket,
       db: dbName,
@@ -67,13 +83,12 @@ export default {
     }
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/remove`, { params })
-      .then((rst) => rst.data.result)
+      .then((rst: ApiRst) => rst.data.result)
   },
-  upload(query, fileData, config) {
-    let url = `${process.env.VUE_APP_BACK_API_BASE}/upload/plain`
-    if (query && query.dir) url += `?dir=${query.dir}`
+  upload(query: any, fileData: any, config: any) {
+    if (query && query.dir) uploadUrl += `?dir=${query.dir}`
     return TmsAxios.ins('mongodb-api')
-      .post(url, fileData, config)
-      .then((rst) => rst.data.result)
+      .post(uploadUrl, fileData, config)
+      .then((rst: ApiRst) => rst.data.result)
   },
 }
