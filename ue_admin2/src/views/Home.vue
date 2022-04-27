@@ -114,7 +114,6 @@
         <el-button @click="createSchema('collection')" v-if="activeTab === 'colSchemas'">添加集合属性定义</el-button>
         <el-button @click="createTag" v-if="activeTab === 'tag'">添加标签</el-button>
         <el-button @click="createReplica" v-if="activeTab === 'replica'">配置复制关系</el-button>
-        <!-- <el-button @click="handleSyncAllReplica" v-if="activeTab === 'replica'">批量同步</el-button> -->
       </tms-flex>
     </template>
   </tms-frame>
@@ -125,7 +124,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Batch } from 'tms-vue3'
 
 import facStore from '@/store'
-import { openDbEditor, openTagEditor, openReplicaEditor } from '@/components/editor'
+import { openDbEditor, openTagEditor, openReplicaEditor, openSchemaEditor } from '@/components/editor'
 
 const store = facStore()
 
@@ -196,11 +195,15 @@ const changeDbSize = (size: any) => {
 const changeDbSelect = (value: never[]) => {
   criteria.multipleDb = value
 }
-const createSchema = (scope: any) => {
-  // const editor = new Vue(SchemaEditor)
-  // editor.open({ scope }, props.bucketName).then((newSchema: any) => {
-  //   store.appendSchema({ schema: newSchema })
-  // })
+const createSchema = (scope: string) => {
+  openSchemaEditor({
+    bucketName: props.bucketName,
+    schema: { scope, body: {} },
+    onBeforeClose: (newSchema?: any) => {
+      if (newSchema)
+        store.appendSchema({ schema: newSchema })
+    }
+  })
 }
 const editSchema = (schema: any, index: any, isCopy = false) => {
   let newObj = { ...schema }
@@ -208,14 +211,18 @@ const editSchema = (schema: any, index: any, isCopy = false) => {
     newObj.title = newObj.title + '-复制'
     delete newObj._id
   }
-  // const editor = new Vue(SchemaEditor)
-  // editor.open(newObj, props.bucketName).then((newSchema: any) => {
-  //   if (isCopy) {
-  //     store.appendSchema({ schema: newSchema })
-  //   } else {
-  //     store.updateSchema({ schema: newSchema, index })
-  //   }
-  // })
+  openSchemaEditor({
+    bucketName: props.bucketName,
+    schema: JSON.parse(JSON.stringify(toRaw(schema))),
+    onBeforeClose: (newSchema?: any) => {
+      if (newSchema)
+        if (isCopy) {
+          store.appendSchema({ schema: newSchema })
+        } else {
+          store.updateSchema({ schema: newSchema, index })
+        }
+    }
+  })
 }
 const removeSchema = (schema: { title: string }) => {
   // this.$customeConfirm(schema.title, () => {

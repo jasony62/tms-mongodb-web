@@ -17,7 +17,8 @@
           <el-table-column type="selection" width="55"></el-table-column>
           <el-table-column label="数据库" width="180">
             <template slot-scope="scope">
-              <router-link :to="{ name: 'database', params: { dbName: scope.row.name } }">{{ scope.row.name }}</router-link>
+              <router-link :to="{ name: 'database', params: { dbName: scope.row.name } }">{{ scope.row.name }}
+              </router-link>
             </template>
           </el-table-column>
           <el-table-column prop="title" label="名称" width="180"></el-table-column>
@@ -30,11 +31,14 @@
           </el-table-column>
         </el-table>
         <tms-flex class="tmw-pagination">
-          <span class="tmw-pagination__text">已选中 {{criteria.multipleDb.length}} 条数据</span>
-          <el-pagination layout="total, sizes, prev, pager, next" background :total="criteria.dbBatch.total" :page-sizes="[10, 25, 50, 100]" :current-page="criteria.dbBatch.page" :page-size="criteria.dbBatch.size" @current-change="changeDbPage" @size-change="changeDbSize"></el-pagination>
+          <span class="tmw-pagination__text">已选中 {{ criteria.multipleDb.length }} 条数据</span>
+          <el-pagination layout="total, sizes, prev, pager, next" background :total="criteria.dbBatch.total"
+            :page-sizes="[10, 25, 50, 100]" :current-page="criteria.dbBatch.page" :page-size="criteria.dbBatch.size"
+            @current-change="changeDbPage" @size-change="changeDbSize"></el-pagination>
         </tms-flex>
       </tms-flex>
-      <el-table v-show="activeTab === 'docSchemas'" :data="documentSchemas" stripe style="width: 100%" :max-height="dymaicHeight">
+      <el-table v-show="activeTab === 'docSchemas'" :data="documentSchemas" stripe style="width: 100%"
+        :max-height="dymaicHeight">
         <el-table-column prop="title" label="名称" width="180"></el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
         <el-table-column label="操作" width="120">
@@ -45,7 +49,8 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-table v-show="activeTab === 'dbSchemas'" :data="dbSchemas" stripe style="width: 100%" :max-height="dymaicHeight">
+      <el-table v-show="activeTab === 'dbSchemas'" :data="dbSchemas" stripe style="width: 100%"
+        :max-height="dymaicHeight">
         <el-table-column prop="title" label="名称" width="180"></el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
         <el-table-column label="操作" width="120">
@@ -56,7 +61,8 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-table v-show="activeTab === 'colSchemas'" :data="collectionSchemas" stripe style="width: 100%" :max-height="dymaicHeight">
+      <el-table v-show="activeTab === 'colSchemas'" :data="collectionSchemas" stripe style="width: 100%"
+        :max-height="dymaicHeight">
         <el-table-column prop="title" label="名称" width="180"></el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
         <el-table-column label="操作" width="120">
@@ -76,7 +82,8 @@
         </el-table-column>
       </el-table>
       <tms-flex direction="column" v-show="activeTab === 'replica'">
-        <el-table :data="replicas" stripe style="width: 100%" @selection-change="changeReplicaSelect" :max-height="dymaicHeight">
+        <el-table :data="replicas" stripe style="width: 100%" @selection-change="changeReplicaSelect"
+          :max-height="dymaicHeight">
           <el-table-column type="selection" width="55"></el-table-column>
           <el-table-column prop="primary.db.label" label="主数据库名称"></el-table-column>
           <el-table-column prop="primary.cl.label" label="主集合名称"></el-table-column>
@@ -90,8 +97,11 @@
           </el-table-column>
         </el-table>
         <tms-flex class="tmw-pagination">
-          <span class="tmw-pagination__text">已选中 {{criteria.multipleReplica.length}} 条数据</span>
-          <el-pagination layout="total, sizes, prev, pager, next" background :total="criteria.replicaBatch.total" :page-sizes="[10, 25, 50, 100]" :current-page="criteria.replicaBatch.page" :page-size="criteria.replicaBatch.size" @current-change="changeReplicaPage" @size-change="changeReplicaSize"></el-pagination>
+          <span class="tmw-pagination__text">已选中 {{ criteria.multipleReplica.length }} 条数据</span>
+          <el-pagination layout="total, sizes, prev, pager, next" background :total="criteria.replicaBatch.total"
+            :page-sizes="[10, 25, 50, 100]" :current-page="criteria.replicaBatch.page"
+            :page-size="criteria.replicaBatch.size" @current-change="changeReplicaPage"
+            @size-change="changeReplicaSize"></el-pagination>
         </tms-flex>
       </tms-flex>
     </template>

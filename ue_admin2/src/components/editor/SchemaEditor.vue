@@ -1,5 +1,5 @@
-<!-- <template>
-  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
+<template>
+  <el-dialog v-model="dialogVisible" :destroy-on-close="true" :close-on-click-modal="false">
     <el-tabs v-model="activeTab" type="card">
       <el-tab-pane label="基本信息" name="first"></el-tab-pane>
       <el-tab-pane label="列定义" name="second"></el-tab-pane>
@@ -25,17 +25,19 @@
         </el-form-item>
       </template>
     </tms-json-schema>
-    <div slot="footer" class="dialog-footer">
+    <template #footer>
       <el-button type="primary" @click="onSubmit">提交</el-button>
-      <el-button @click="dialogVisible2 = false">取消</el-button>
-    </div>
+      <el-button @click="dialogVisible = false">取消</el-button>
+    </template>
   </el-dialog>
 </template>
 <script setup lang="ts">
 import { JsonSchema as TmsJsonSchema } from 'tms-vue3-ui'
-import apiSchema from '../apis/schema'
-import apiTag from '../apis/tag'
-import apiDoc from '../apis/document'
+import 'tms-vue3-ui/dist/es/json-schema/style/tailwind.scss'
+
+import apiSchema from '@/apis/schema'
+import apiTag from '@/apis/tag'
+import apiDoc from '@/apis/document'
 import { onMounted, ref } from 'vue'
 
 const emit = defineEmits(['submit'])
@@ -45,21 +47,20 @@ const props = defineProps({
   bucketName: { type: String },
   schema: {
     type: Object,
-    default: function () {
+    default() {
       return { title: '', description: '', scope: '', tags: [], body: {} }
     }
-  }
+  },
+  onClose: { type: Function, default: (newSchema: any) => { } }
 })
 
-const dialogVisible2 = ref(props.dialogVisible)
+const dialogVisible = ref(props.dialogVisible)
 
 const activeTab = ref('first')
 const tags = ref([])
-const destroyOnClose = ref(true)
-const closeOnClickModal = ref(false)
 
-const extendSchema = (vm, schema) => {
-  vm.$set(schema, 'readonly', schema.readonly || false)
+const extendSchema = (schema) => {
+  schema.readonly = schema.readonly || false
 }
 
 onMounted(() => {
@@ -81,6 +82,7 @@ const onUploadFile = (file: any) => {
       throw error
     })
 }
+
 const onSubmit = () => {
   let sm = props.schema
   if (sm._id) {
@@ -95,17 +97,4 @@ const onSubmit = () => {
       .then((newSchema: any) => emit('submit', newSchema))
   }
 }
-  // open(schema, bucketName) {
-  //   this.bucketName = bucketName
-  //   Object.assign(this.schema, schema)
-  //   this.$mount()
-  //   document.body.appendChild(this.$el)
-  //   return new Promise(resolve => {
-  //     this.$on('submit', schema => {
-  //       this.dialogVisible = false
-  //       resolve(schema)
-  //     })
-  //   })
-  // }
-</script> -->
-<template></template>
+</script>
