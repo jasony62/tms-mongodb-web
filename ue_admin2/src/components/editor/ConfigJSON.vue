@@ -1,11 +1,10 @@
 <template>
-  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal"
-    v-if="dialogVisible">
+  <el-dialog v-model="dialogVisible" :destroy-on-close="true" :close-on-click-modal="false" :before-close="onBeforeClose">
     <div id="jsonEditor" style="height:100%"></div>
-    <div slot="footer" class="dialog-footer">
+    <template #footer>
       <el-button type="primary" @click="onSubmit">提交</el-button>
-      <el-button @click="dialogVisible = false">取消</el-button>
-    </div>
+      <el-button @click="onBeforeClose">取消</el-button>
+    </template>
   </el-dialog>
 </template>
 
@@ -20,17 +19,30 @@ const emit = defineEmits(['submit'])
 
 const props = defineProps({
   dialogVisible: { type: Boolean, default: true },
-  jsonData: { type: Object, default: () => { } },
+  jsonData: { type: Object, default: () => {} },
+  onClose: { type: Function, default: (newData: any) => {} },
 })
-
-const destroyOnClose = ref(true)
-const closeOnClickModal = ref(false)
-
 const options = reactive({
   mode: 'code',
   search: false,
   transform: false,
 })
+
+const onSubmit = () => {
+  let newJsonData = editor.get()
+  emit('submit', newJsonData)
+  closeDialog(newJsonData)
+}
+
+// 关闭对话框时执行指定的回调方法
+const closeDialog = (newCl?: any) => {
+  props.onClose(newCl)
+}
+
+// 对话框关闭前触发
+const onBeforeClose = () => {
+  closeDialog(null)
+}
 
 onMounted(() => {
   nextTick(() => {
@@ -39,23 +51,6 @@ onMounted(() => {
     editor.set(props.jsonData)
   })
 })
-
-const onSubmit = () => {
-  let newJsonData = editor.get()
-  emit('submit', newJsonData)
-}
-    // open(data) {
-    //   this.jsonData = JSON.parse(JSON.stringify(data))
-    //   this.$mount()
-    //   document.body.appendChild(this.$el)
-    //   return new Promise((resolve) => {
-    //     this.$on('submit', (newValue) => {
-    //       this.dialogVisible = false
-    //       resolve(newValue)
-    //     })
-    //   })
-    // }
-  }
 </script>
 
 <style>
