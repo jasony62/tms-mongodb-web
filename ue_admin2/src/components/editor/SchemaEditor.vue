@@ -1,5 +1,6 @@
 <template>
-  <el-dialog v-model="dialogVisible" :destroy-on-close="true" :close-on-click-modal="false">
+  <el-dialog v-model="dialogVisible" :fullscreen="true" :destroy-on-close="true" :close-on-click-modal="false"
+    :before-close="onBeforeClose">
     <el-tabs v-model="activeTab" type="card">
       <el-tab-pane label="基本信息" name="first"></el-tab-pane>
       <el-tab-pane label="列定义" name="second"></el-tab-pane>
@@ -17,17 +18,17 @@
         </el-select>
       </el-form-item>
     </el-form>
-    <tms-json-schema v-show="activeTab === 'second'" :schema="schema.body" :extendSchema="extendSchema"
-      :on-upload="onUploadFile" class="schema-editor">
-      <template v-slot:extKeywords="props">
+    <tms-json-schema ref="$jse" v-show="activeTab === 'second'" :schema="schema.body" :on-upload="onUploadFile"
+      class="schema-editor">
+      <template #extattrs="{ attrs }">
         <el-form-item label="不可修改">
-          <el-switch v-model="props.schema.readonly"></el-switch>
+          <el-switch v-model="attrs.readonly"></el-switch>
         </el-form-item>
       </template>
     </tms-json-schema>
     <template #footer>
       <el-button type="primary" @click="onSubmit">提交</el-button>
-      <el-button @click="dialogVisible = false">取消</el-button>
+      <el-button @click="onBeforeClose">取消</el-button>
     </template>
   </el-dialog>
 </template>
@@ -38,9 +39,12 @@ import 'tms-vue3-ui/dist/es/json-schema/style/tailwind.scss'
 import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
 import apiDoc from '@/apis/document'
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 
 const emit = defineEmits(['submit'])
+
+// JSONSchema编辑器
+const $jse = ref(null as unknown as { outcome: () => any })
 
 const props = defineProps({
   dialogVisible: { default: true },
@@ -55,16 +59,24 @@ const props = defineProps({
 })
 
 const dialogVisible = ref(props.dialogVisible)
+const schema = reactive(props.schema)
+const { onClose, bucketName } = props
 
 const activeTab = ref('first')
 const tags = ref([])
 
-const extendSchema = (schema) => {
-  schema.readonly = schema.readonly || false
+// 关闭对话框时执行指定的回调方法
+const closeDialog = (newSchema?: any) => {
+  onClose(newSchema)
+}
+
+// 对话框关闭前触发
+const onBeforeClose = () => {
+  closeDialog(null)
 }
 
 onMounted(() => {
-  apiTag.list(props.bucketName).then((tags: any) => {
+  apiTag.list(bucketName).then((tags: any) => {
     tags.value = tags
   })
 })
@@ -74,7 +86,7 @@ const onUploadFile = (file: any) => {
   fileData.append('file', file)
   const config = { 'Content-Type': 'multipart/form-data' }
   return apiDoc
-    .upload({ bucket: props.bucketName }, fileData, config)
+    .upload({ bucket: bucketName }, fileData, config)
     .then((uploadUrl: any) => {
       return { name: file.name, url: uploadUrl }
     })
@@ -84,17 +96,24 @@ const onUploadFile = (file: any) => {
 }
 
 const onSubmit = () => {
-  let sm = props.schema
-  if (sm._id) {
+  let newBody = $jse.value?.outcome()
+  if (newBody) {
+    schema.body = newBody
+  }
+  if (schema._id) {
     apiSchema
-      .update(props.bucketName, sm, sm)
-      .then((newSchema: any) =>
-        emit('submit', { ...newSchema, _id: sm._id })
-      )
+      .update(bucketName, schema, schema)
+      .then((newSchema: any) => {
+        emit('submit', { ...newSchema, _id: schema._id })
+        closeDialog(newSchema)
+      })
   } else {
     apiSchema
-      .create(props.bucketName, sm)
-      .then((newSchema: any) => emit('submit', newSchema))
+      .create(bucketName, schema)
+      .then((newSchema: any) => {
+        emit('submit', newSchema)
+        closeDialog(newSchema)
+      })
   }
 }
 </script>

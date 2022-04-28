@@ -15,7 +15,7 @@ specifiers:
   stylelint-config-standard: ^25.0.0
   tailwindcss: ^3.0.24
   tms-vue3: 0.0.4
-  tms-vue3-ui: 0.0.17
+  tms-vue3-ui: 0.0.20
   typescript: ^4.5.4
   vite: ^2.9.5
   vue: ^3.2.25
@@ -30,7 +30,7 @@ dependencies:
   jsoneditor: 9.7.4
   pinia: 2.0.13_ifhmkzsxec62ezvqv7qmanm4bq
   tms-vue3: 0.0.4_vue@3.2.33
-  tms-vue3-ui: 0.0.17
+  tms-vue3-ui: 0.0.20
   vue: 3.2.33
   vue-router: 4.0.14_vue@3.2.33
 
@@ -1960,8 +1960,8 @@ packages:
       - ts-node
     dev: true
 
-  /tms-vue3-ui/0.0.17:
-    resolution: {integrity: sha512-Qj4luUGebScpVkr6NC8J79bKkx+w4M7JFxxTx6GZIoNqzBps+LyMQPCeQhkSwIRMsfER8sASvmv2TN468VZqxQ==}
+  /tms-vue3-ui/0.0.20:
+    resolution: {integrity: sha512-UJDSh4Yz/5wCKz79F8lSNImB+p/BexXOF+Hw0obW9kMjCVpt9WYEnssckxT1ef29zz6hD+AprQY5seuPMXyIwA==}
     dependencies:
       lodash: 4.17.21
       tms-vue3: 0.0.4_vue@3.2.33
