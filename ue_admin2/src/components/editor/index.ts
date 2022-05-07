@@ -1,5 +1,6 @@
 import DbEditor from './DbEditor.vue'
 import CollectionEditor from './CollectionEditor.vue'
+import DocEditor from './DocEditor.vue'
 import TagEditor from './TagEditor.vue'
 import ReplicaEditor from './ReplicaEditor.vue'
 import ConfigJsonEditor from './ConfigJSON.vue'
@@ -20,6 +21,15 @@ type CollectionEditorOptions = {
   bucketName?: any
   dbName: string
   collection?: any
+  onBeforeClose: Function
+}
+
+type DocEditorOptions = {
+  mode: any
+  bucketName?: any
+  dbName: string
+  collection?: any
+  document?: any
   onBeforeClose: Function
 }
 
@@ -46,7 +56,7 @@ type ConfigJsonEditorOptions = {
   jsonData?: any
   onBeforeClose: Function
 }
-
+/***/
 export function openDbEditor(options: DbEditorOptions) {
   const root = document.createElement('div')
   document.body.appendChild(root)
@@ -63,7 +73,7 @@ export function openDbEditor(options: DbEditorOptions) {
   })
   app.use(ElementPlus).mount(root)
 }
-
+/***/
 export function openCollectionEditor(options: CollectionEditorOptions) {
   const root = document.createElement('div')
   document.body.appendChild(root)
@@ -81,7 +91,7 @@ export function openCollectionEditor(options: CollectionEditorOptions) {
   })
   app.use(ElementPlus).mount(root)
 }
-
+/***/
 export function openTagEditor(options: TagEditorOptions) {
   const root = document.createElement('div')
   document.body.appendChild(root)
@@ -98,7 +108,7 @@ export function openTagEditor(options: TagEditorOptions) {
   })
   app.use(ElementPlus).mount(root)
 }
-
+/***/
 export function openReplicaEditor(options: ReplicaEditorOptions) {
   const root = document.createElement('div')
   document.body.appendChild(root)
@@ -114,7 +124,7 @@ export function openReplicaEditor(options: ReplicaEditorOptions) {
   })
   app.use(ElementPlus).mount(root)
 }
-
+/***/
 export function openConfigJsonEditor(options: ConfigJsonEditorOptions) {
   const root = document.createElement('div')
   document.body.appendChild(root)
@@ -129,7 +139,7 @@ export function openConfigJsonEditor(options: ConfigJsonEditorOptions) {
   })
   app.use(ElementPlus).mount(root)
 }
-
+/***/
 export function openSchemaEditor(options: SchemaEditorOptions) {
   const root = document.createElement('div')
   document.body.appendChild(root)
@@ -139,6 +149,34 @@ export function openSchemaEditor(options: SchemaEditorOptions) {
     schema,
     onClose: (newSchema: any) => {
       if (newSchema && onBeforeClose) onBeforeClose(newSchema)
+      app.unmount()
+      document.body.removeChild(root)
+    },
+  })
+  app.use(ElementPlus).mount(root)
+}
+/***/
+export function openDocEditor(options: DocEditorOptions) {
+  const root = document.createElement('div')
+  document.body.appendChild(root)
+
+  const {
+    mode,
+    bucketName,
+    dbName,
+    collection,
+    document: doc,
+    onBeforeClose,
+  } = options
+
+  let app = createApp(DocEditor, {
+    mode,
+    bucketName,
+    dbName,
+    collection,
+    document: doc,
+    onClose: (newCl: any) => {
+      if (newCl && onBeforeClose) onBeforeClose(newCl)
       app.unmount()
       document.body.removeChild(root)
     },

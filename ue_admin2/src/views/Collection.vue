@@ -8,7 +8,8 @@
       </el-breadcrumb>
     </template>
     <template v-slot:center>
-      <el-table :data="store.documents" highlight-current-row style="width: 100%;" :max-height="dymaicHeight" @current-change="handleCurrentChange">
+      <el-table :data="store.documents" highlight-current-row style="width: 100%;" :max-height="dymaicHeight"
+        @current-change="handleCurrentChange">
         <el-table-column type="index" width="55"></el-table-column>
         <el-table-column v-for="(s, k) in data.properties" :key="k" :prop="k">
           <template #header>
@@ -17,7 +18,7 @@
             <!-- <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)" /> -->
           </template>
           <template #default="scope">
-            <span v-if="s.type === 'boolean'">{{scope.row[k] ? '是' : '否'}}</span>
+            <span v-if="s.type === 'boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
             <span v-else-if="s.type === 'array' && s.items && s.items.format === 'file'">
               <span v-for="(i, v) in scope.row[k]" :key="v">
                 <a href="#" @click="downLoadFile(i)">{{ i.name }}</a>
@@ -29,7 +30,10 @@
                 <span v-for="(g, i) in s.enumGroups" :key="i">
                   <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value">
                     <span v-for="(e, v) in s.enum" :key="v">
-                      <span v-if="e.group === g.id && scope.row[k] && scope.row[k].length && scope.row[k].includes(e.value)">{{ e.label }}&nbsp;</span>
+                      <span
+                        v-if="e.group === g.id && scope.row[k] && scope.row[k].length && scope.row[k].includes(e.value)">{{
+                            e.label
+                        }}&nbsp;</span>
                     </span>
                   </span>
                 </span>
@@ -61,14 +65,16 @@
         </el-table-column>
         <el-table-column fixed="right" label="操作" width="180">
           <template #default="scope">
-            <el-button size="small" @click="editDocument(scope.row)">修改</el-button>
+            <el-button size="small" @click="editDocument(scope.row, scope.$index)">修改</el-button>
             <el-button size="small" @click="removeDocument(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
       <tms-flex class="tmw-pagination">
         <span class="tmw-pagination__text">已选中 {{ data.multipleDoc.length }} 条数据</span>
-        <el-pagination layout="total, sizes, prev, pager, next" background :total="data.docBatch.total" :page-sizes="[10, 25, 50, 100]" :current-page="data.docBatch.page" :page-size="data.docBatch.size" @current-change="changeDocPage" @size-change="changeDocSize"></el-pagination>
+        <el-pagination layout="total, sizes, prev, pager, next" background :total="data.docBatch.total"
+          :page-sizes="[10, 25, 50, 100]" :current-page="data.docBatch.page" :page-size="data.docBatch.size"
+          @current-change="changeDocPage" @size-change="changeDocSize"></el-pagination>
       </tms-flex>
     </template>
     <template v-slot:right>
@@ -77,7 +83,9 @@
           <el-button @click="createDocument">添加文档</el-button>
         </div>
         <div v-if="data.jsonItems.length">
-          <el-button v-if="data.jsonItems.length === 1" plain @click="configJson(data.jsonItems[0])">编辑【{{ data.jsonItems[0].title }}】
+          <el-button v-if="data.jsonItems.length === 1" plain @click="configJson(data.jsonItems[0])">编辑【{{
+              data.jsonItems[0].title
+          }}】
           </el-button>
           <el-dropdown v-else>
             <el-button>配置json类型<i class="el-icon-arrow-down el-icon--right"></i></el-button>
@@ -94,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, toRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowRight } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
@@ -104,7 +112,7 @@ import apiSchema from '@/apis/schema'
 import apiDoc from '@/apis/document'
 
 import facStore from '@/store'
-import { openConfigJsonEditor } from '@/components/editor'
+import { openDocEditor, openConfigJsonEditor } from '@/components/editor'
 
 const store = facStore()
 
@@ -128,7 +136,7 @@ const props = defineProps({
 const { bucketName, dbName, clName } = props
 
 const data = reactive({
-  docBatch: new Batch(() => {}),
+  docBatch: new Batch(() => { }),
   multipleDoc: [] as any[],
   jsonItems: [] as any[],
   properties: {} as any,
@@ -176,11 +184,30 @@ const handleCurrentChange = (val: any) => {
 }
 
 const createDocument = () => {
-  console.log('添加文档')
+  openDocEditor({
+    mode: 'create',
+    bucketName,
+    dbName,
+    collection,
+    onBeforeClose: (newDoc?: any) => {
+      if (newDoc)
+        store.appendDocument({ document: newDoc })
+    }
+  })
 }
 
-const editDocument = (document: any) => {
-  console.log('编辑文档')
+const editDocument = (document: any, index: number) => {
+  openDocEditor({
+    mode: 'update',
+    bucketName,
+    dbName,
+    collection,
+    document: toRaw(document),
+    onBeforeClose: (newDoc?: any) => {
+      if (newDoc)
+        store.updateDocument({ document: newDoc, index })
+    }
+  })
 }
 
 const removeDocument = (document: any) => {
@@ -199,10 +226,10 @@ const removeDocument = (document: any) => {
         })
         .then(() => {
           ElMessage({ message: '删除成功', type: 'success' })
-          listDocByKw()
+          // listDocByKw()
         })
     })
-    .catch(() => {})
+    .catch(() => { })
 }
 
 const downLoadFile = (file: any) => {
@@ -249,7 +276,7 @@ const handleProperty = async () => {
   } else if (
     properties &&
     Object.prototype.toString.call(properties).toLowerCase() ==
-      '[object object]'
+    '[object object]'
   ) {
     Object.assign(temp, properties)
   }
