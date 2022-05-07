@@ -131,20 +131,27 @@ export default defineStore('mongodb', {
         return { collection }
       })
     },
-    listDocument(payload: { bucket: any; db: any; cl: any; size: any }) {
+    listDocument(payload: {
+      bucket: any
+      db: any
+      cl: any
+      size: any
+      criterais: any
+    }) {
       const action = (
-        keyword: any,
+        gatherArgs: any,
         batchArg: { page: any; size: any } | undefined
       ) => {
         return apis.doc
-          .list(bucket, db, cl, { ...batchArg })
+          .list(bucket, db, cl, gatherArgs, { ...batchArg })
           .then((result: { docs: never[] }) => {
             this.documents = result.docs
             return result
           })
       }
-      const { bucket, db, cl, size } = payload
-      return startBatch(action, [null], {
+      const { bucket, db, cl, size, criterais } = payload
+
+      return startBatch(action, [criterais], {
         size: size,
         wrap: reactive,
       })
@@ -184,7 +191,7 @@ export default defineStore('mongodb', {
     conditionAddColumn(payload: { condition: any }) {
       const { condition } = payload
       const index = this.conditions.findIndex(
-        (ele) => ele.columnName === condition.columnName
+        (ele: any) => ele.columnName === condition.columnName
       )
       if (index !== -1) {
         this.conditions.splice(index, 1)
@@ -196,24 +203,24 @@ export default defineStore('mongodb', {
     },
     conditionDelBtn(payload: { columnName: any }) {
       const { columnName } = payload
-      this.conditions.forEach((ele) => {
+      this.conditions.forEach((ele: any) => {
         if (ele.columnName !== columnName) {
           ele.rule.orderBy = {}
-          ele.isCheckBtn = [true, true]
+          ele.bySort = ''
         }
       })
     },
     conditionDelColumn(payload: { condition: any }) {
       const { condition } = payload
       const index = this.conditions.findIndex(
-        (ele) => ele.columnName === condition.columnName
+        (ele: any) => ele.columnName === condition.columnName
       )
       if (index !== -1) {
         this.conditions.splice(index, 1)
       }
     },
     conditionReset() {
-      state.conditions = []
+      this.conditions = []
     },
     listReplica(payload: { bucket: any; size: any; keyword: any }) {
       const { bucket, size, keyword } = payload
