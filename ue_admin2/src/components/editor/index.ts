@@ -140,6 +140,9 @@ export function openConfigJsonEditor(options: ConfigJsonEditorOptions) {
   })
   app.use(ElementPlus).mount(root)
 }
+
+import { JsonSchema } from 'tms-vue3-ui'
+import 'tms-vue3-ui/dist/es/json-schema/style/tailwind.scss'
 /***/
 export function openSchemaEditor(options: SchemaEditorOptions) {
   const root = document.createElement('div')
@@ -155,7 +158,7 @@ export function openSchemaEditor(options: SchemaEditorOptions) {
       document.body.removeChild(root)
     },
   })
-  app.use(ElementPlus).mount(root)
+  app.use(ElementPlus).use(JsonSchema).mount(root)
 }
 /***/
 export function openDocEditor(options: DocEditorOptions) {
