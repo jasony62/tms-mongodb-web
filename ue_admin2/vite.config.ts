@@ -11,7 +11,6 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     port: 9000,
-    // 主用于本地调试
     proxy: {
       '/api': 'http://localhost:3001',
     },

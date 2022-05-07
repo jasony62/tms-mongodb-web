@@ -18,7 +18,7 @@ class Document extends Base {
     let mongoClient = await this.mongoClient()
     let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
     let existDoc = await sysCl.findOne({
-      _id: ObjectId(id)
+      _id: ObjectId(id),
     })
 
     return existDoc
@@ -75,7 +75,7 @@ class Document extends Base {
 
     return removeSysCl
       .deleteOne(removeQuery)
-      .then(({ result }) => result.n === 1)
+      .then(({ acknowledged, deletedCount }) => deletedCount === 1)
   }
   /**
    * 按条件批量删除文档
@@ -156,7 +156,7 @@ class Document extends Base {
         )
       })
 
-      return Promise.all(promises).then(deletedCounts =>
+      return Promise.all(promises).then((deletedCounts) =>
         deletedCounts.reduce((total, deletedCount) => total + deletedCount, 0)
       )
     }
@@ -198,12 +198,9 @@ class Document extends Base {
         bulkOp.find({ _id: doc._id }).updateOne({ $set: info })
       } else {
         this.beforeProcessByInAndUp(info, 'insert')
-        bulkOp
-          .find({ _id: doc._id })
-          .upsert()
-          .updateOne({
-            $setOnInsert: info
-          })
+        bulkOp.find({ _id: doc._id }).upsert().updateOne({
+          $setOnInsert: info,
+        })
       }
     }
 
@@ -229,7 +226,7 @@ class Document extends Base {
       return sysCl
         .updateOne(
           {
-            _id: ObjectId(id)
+            _id: ObjectId(id),
           },
           { $set: updated }
         )
@@ -292,7 +289,7 @@ class Document extends Base {
         )
       })
 
-      return Promise.all(promises).then(modifiedCounts =>
+      return Promise.all(promises).then((modifiedCounts) =>
         modifiedCounts.reduce(
           (total, modifiedCount) => total + modifiedCount,
           0
@@ -342,7 +339,7 @@ class Document extends Base {
       .limit(limit)
       .sort(sort)
       .toArray()
-      .then(async docs => {
+      .then(async (docs) => {
         //await this.getDocCompleteStatus(existCl, docs)
         return docs
       })
@@ -362,7 +359,7 @@ class Document extends Base {
   async byIds(existCl, ids, fields = {}) {
     if (!existCl || !ids) return [false, '参数不完整']
 
-    let docIds = ids.map(id => new ObjectId(id))
+    let docIds = ids.map((id) => new ObjectId(id))
     let query = { _id: { $in: docIds } }
 
     const client = await this.mongoClient()
@@ -372,8 +369,8 @@ class Document extends Base {
       .find(query)
       .project(fields)
       .toArray()
-      .then(rst => [true, rst])
-      .catch(err => [false, err.toString()])
+      .then((rst) => [true, rst])
+      .catch((err) => [false, err.toString()])
   }
   /**
    * 获得符合条件的文档数量
@@ -425,7 +422,7 @@ class Document extends Base {
     const cl2 = cl.collection('tms_app_data_action_log')
     if (operate_before_data && Array.isArray(operate_before_data)) {
       let newDatas = {}
-      operate_before_data.forEach(od => {
+      operate_before_data.forEach((od) => {
         newDatas[od._id] = od
       })
       operate_before_data = newDatas
@@ -483,10 +480,10 @@ class Document extends Base {
     const clSchemas = await modelCl.getSchemaByCollection(existCl)
     if (!clSchemas) return docs
     //
-    docs.forEach(doc => {
+    docs.forEach((doc) => {
       let status = {
         unCompleted: {},
-        completed: {}
+        completed: {},
       }
       for (const k in clSchemas) {
         const v = clSchemas[k]
@@ -512,7 +509,7 @@ class Document extends Base {
     const cl = client.db(oldExistCl.db.sysname).collection(oldExistCl.sysname)
 
     let docIds = []
-    ids.forEach(id => {
+    ids.forEach((id) => {
       docIds.push(new ObjectId(id))
     })
     let find = { _id: { $in: docIds } }
@@ -522,8 +519,8 @@ class Document extends Base {
       .find(find)
       .project(fields)
       .toArray()
-      .then(rst => [true, rst])
-      .catch(err => [false, err.toString()])
+      .then((rst) => [true, rst])
+      .catch((err) => [false, err.toString()])
   }
   /**
    * 检查集合中是否有去重规则
@@ -543,7 +540,7 @@ class Document extends Base {
         database: { sysname: dbSysName, name: dbName },
         collection: { sysname: clSysName, name: clName },
         primaryKeys: keys,
-        insert
+        insert,
       } = operateRules.unrepeat
       return [true, { dbSysName, dbName, clSysName, clName, keys, insert }]
     } else {
@@ -555,8 +552,8 @@ class Document extends Base {
           clSysName: null,
           clName: null,
           keys: null,
-          insert: false
-        }
+          insert: false,
+        },
       ]
     }
   }
@@ -575,9 +572,9 @@ class Document extends Base {
 
     const docs = await existSysCl.find(query).toArray()
     let targetQuery = {}
-    keys.forEach(key => {
+    keys.forEach((key) => {
       let result = []
-      docs.forEach(doc => result.push(doc[key]))
+      docs.forEach((doc) => result.push(doc[key]))
       targetQuery[key] = { $in: result }
     })
     return { targetSysCl, targetQuery }

@@ -9,7 +9,7 @@
     </template>
     <template v-slot:center>
       <el-table :data="store.documents" highlight-current-row style="width: 100%;" :max-height="dymaicHeight"
-        @current-change="handleCurrentChange">
+        @current-change="selectDocument">
         <el-table-column type="index" width="55"></el-table-column>
         <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
           <template #header>
@@ -67,7 +67,7 @@
         </el-table-column>
         <el-table-column fixed="right" label="操作" width="180">
           <template #default="scope">
-            <el-button size="small" @click="editDocument(scope.row)">修改</el-button>
+            <el-button size="small" @click="editDocument(scope.row, scope.$index)">修改</el-button>
             <el-button size="small" @click="removeDocument(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -104,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, nextTick } from 'vue'
+import { onMounted, reactive, ref, toRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowRight, Filter } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
@@ -114,7 +114,7 @@ import apiSchema from '@/apis/schema'
 import apiDoc from '@/apis/document'
 
 import facStore from '@/store'
-import { openConfigJsonEditor, openSelectConditionEditor } from '@/components/editor'
+import { openDocEditor, openConfigJsonEditor, openSelectConditionEditor } from '@/components/editor'
 
 const store = facStore()
 
@@ -159,7 +159,6 @@ const handleCondition = () => {
     Object.assign(criterais.orderBy, ele.rule.orderBy)
   })
   return criterais
-
 }
 
 const handleFilter = ($event: any, schema: any, name: any) => {
@@ -200,10 +199,10 @@ const hasJsonItems = () => {
 }
 
 const configJson = (item: any) => {
-  if (currentRow.value && Object.keys(currentRow.value).length) {
-    let value = currentRow.value[item.name]
+  if (currentRow.value?._id) {
+    let jsonData = currentRow.value[item.name]
     openConfigJsonEditor({
-      jsonData: value,
+      jsonData,
       onBeforeClose: (newJson?: any) => {
         currentRow.value[item.name] = newJson
         apiDoc
@@ -214,9 +213,6 @@ const configJson = (item: any) => {
             currentRow.value._id,
             currentRow.value
           )
-          .then(() => {
-            listDocByKw()
-          })
       },
     })
   } else {
@@ -224,16 +220,35 @@ const configJson = (item: any) => {
   }
 }
 
-const handleCurrentChange = (val: any) => {
+const selectDocument = (val: any) => {
   currentRow.value = val
 }
 
 const createDocument = () => {
-  console.log('添加文档')
+  openDocEditor({
+    mode: 'create',
+    bucketName,
+    dbName,
+    collection,
+    onBeforeClose: (newDoc?: any) => {
+      if (newDoc)
+        store.appendDocument({ document: newDoc })
+    }
+  })
 }
 
-const editDocument = (document: any) => {
-  console.log('编辑文档')
+const editDocument = (document: any, index: number) => {
+  openDocEditor({
+    mode: 'update',
+    bucketName,
+    dbName,
+    collection,
+    document: toRaw(document),
+    onBeforeClose: (newDoc?: any) => {
+      if (newDoc)
+        store.updateDocument({ document: newDoc, index })
+    }
+  })
 }
 
 const removeDocument = (document: any) => {
@@ -252,7 +267,7 @@ const removeDocument = (document: any) => {
         })
         .then(() => {
           ElMessage({ message: '删除成功', type: 'success' })
-          listDocByKw()
+          // listDocByKw()
         })
     })
     .catch(() => { })

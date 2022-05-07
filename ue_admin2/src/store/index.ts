@@ -16,7 +16,7 @@ export default defineStore('mongodb', {
       collectionSchemas: [],
       collections: [] as any,
       tags: [],
-      documents: [],
+      documents: [] as any,
       conditions: [],
       replicas: [],
     }
@@ -156,13 +156,16 @@ export default defineStore('mongodb', {
         wrap: reactive,
       })
     },
+    appendDocument(payload: { document: any }) {
+      this.documents.splice(0, 0, payload.document)
+    },
     updateDocument(payload: { index: any; document: any }) {
       const { index, document } = payload
       this.documents.splice(index, 1, document)
     },
     removeDocument(payload: { bucket: any; db: any; cl: any; document: any }) {
       const { bucket, db, cl, document } = payload
-      return apis.doc.remove(bucket, db, cl, document.id).then(() => {
+      return apis.doc.remove(bucket, db, cl, document._id).then(() => {
         this.documents.splice(this.documents.indexOf(document), 1)
         return { document }
       })

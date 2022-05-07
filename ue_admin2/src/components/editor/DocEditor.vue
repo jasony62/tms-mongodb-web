@@ -1,16 +1,23 @@
 <template>
-  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <tms-el-json-doc :is-submit="isSubmit" :schema="body" :doc="document" v-on:submit="onJsonDocSubmit"
-      :on-file-submit="handleFileSubmit" :on-axios="handleAxios" :on-file-download="handleDownload"></tms-el-json-doc>
+  <el-dialog title="文档" v-model="dialogVisible" :fullscreen="true" :destroy-on-close="true" :close-on-click-modal="true"
+    :before-close="onBeforeClose">
+    <tms-json-doc ref="jsonDocEditor" :schema="collection.schema.body" :value="document" :on-axios="handleAxios"
+      :on-file-download="handleDownload"></tms-json-doc>
+    <template #footer>
+      <el-button type="primary" @click="onSubmit">提交</el-button>
+      <el-button @click="onBeforeClose">取消</el-button>
+    </template>
   </el-dialog>
 </template>
+
 <script setup lang="ts">
-import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue3-ui'
+import { PropType, ref } from 'vue'
+import { JsonDoc as TmsJsonDoc } from 'tms-vue3-ui'
 import { TmsAxios } from 'tms-vue3'
-import utils from '../tms/utils'
-import apiDoc from '../apis/document'
-import apiSchema from '../apis/schema'
-import { ref } from 'vue'
+import apiDoc from '@/apis/document'
+import apiSchema from '@/apis/schema'
+
+import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 
 const {
   VITE_SCHEMA_TAGS,
@@ -20,29 +27,44 @@ const {
 
 const emit = defineEmits(['submit'])
 
+type TMWDocument = {
+  _id: string,
+  [k: string]: any
+}
+
 const props = defineProps({
+  mode: { default: '' },
   dialogVisible: { default: true },
-  bucketName: { type: String }
+  bucketName: { type: String },
+  dbName: { type: String, required: true },
+  collection: { type: Object, required: true },
+  document: { type: Object as PropType<TMWDocument> },
+  onClose: { type: Function, default: (newDoc: any) => { } },
 })
 
-const isSubmit = ref(false)
-const body = ref({})
-const document = ref({} as { [k: string]: any })
-const destroyOnClose = ref(true)
-const closeOnClickModal = ref(false)
+const { bucketName, dbName, collection, document, onClose } = props
+const jsonDocEditor = ref<{ editing: () => string } | null>(null)
 
-let dbName = ''
-let collection: { [k: string]: any } = {}
-const plugins: any[] = []
+// const plugins: any[] = []
+
+// 关闭对话框时执行指定的回调方法
+const closeDialog = (newDoc?: any) => {
+  onClose(newDoc)
+}
+
+// 对话框关闭前触发
+const onBeforeClose = () => {
+  closeDialog(null)
+}
 
 const handleAxios = () => {
   return TmsAxios.ins('mongodb-api')
 }
 
-// const handleDownload = (name, url) => {
-//   const access_token = this.$getToken()
-//   window.open(`${url}?access_token=${access_token}`)
-// }
+const handleDownload = (name: string, url: string) => {
+  // const access_token = this.$getToken()
+  // window.open(`${url}?access_token=${access_token}`)
+}
 
 const handleFileSubmit = (ref: string | number, files: any[]) => {
   let result: any = {}
@@ -66,43 +88,48 @@ const handleFileSubmit = (ref: string | number, files: any[]) => {
       return Promise.resolve(result)
     })
     .catch(err => Promise.reject(err))
-},
-const onJsonDocSubmit = (slimDoc: any, newDoc: any) => {
-  isSubmit.value = true
+}
+const onSubmit = () => {
   let validate = true
-  if (plugins.length) {
-    validate = plugins
-      .map(item => {
-        const result = utils[item](body.value, newDoc)
-        if (result.msg === 'success') {
-          newDoc = result.data
-          return true
-        } else {
-          return false
-        }
-      })
-      .every(ele => ele === true)
-  }
+  // if (plugins.length) {
+  //   validate = plugins
+  //     .map(item => {
+  //       const result = utils[item](body.value, newDoc)
+  //       if (result.msg === 'success') {
+  //         newDoc = result.data
+  //         return true
+  //       } else {
+  //         return false
+  //       }
+  //     })
+  //     .every(ele => ele === true)
+  // }
   if (!validate) {
-    isSubmit.value = false
     return false
   }
-  if (document.value && document.value._id) {
+
+  let newDoc = jsonDocEditor.value?.editing()
+
+  if (document?._id) {
     apiDoc
       .update(
         props.bucketName,
         dbName,
         collection.name,
-        document.value._id,
+        document._id,
         newDoc
       )
-      .then((newDoc: any) => emit('submit', newDoc))
-      .finally(() => (isSubmit.value = false))
+      .then(() => {
+        emit('submit', newDoc)
+        closeDialog(newDoc)
+      })
   } else {
     apiDoc
-      .create(props.bucketName, dbName, collection.name, newDoc)
-      .then((newDoc: any) => emit('submit', newDoc))
-      .finally(() => (isSubmit.value = false))
+      .create(bucketName, dbName, collection.name, newDoc)
+      .then((newDoc: any) => {
+        emit('submit', newDoc)
+        closeDialog(newDoc)
+      })
   }
 }
 
@@ -132,31 +159,4 @@ const handleProperty = async () => {
     Object.assign(body.value, collection.schema.body)
   }
 }
-    // async open(bucketName, dbName, collection, doc) {
-    //   props.bucketName = bucketName
-    //   dbName = dbName
-    //   collection = collection
-    //   if (VITE_FRONT_DOCEDITOR_ADD) {
-    //     let str = VITE_FRONT_DOCEDITOR_ADD.replace(/\s/g, '')
-    //     plugins = str.split(',')
-    //   }
-    //   await this.handleProperty()
-    //   if (doc && doc._id) {
-    //     if (VITE_FRONT_DOCEDITOR_MODIFY) {
-    //       let str = VITE_FRONT_DOCEDITOR_MODIFY.replace(/\s/g, '')
-    //       plugins = str.split(',')
-    //     }
-    //     document.value = JSON.parse(
-    //       JSON.stringify(Object.assign(document.value, doc))
-    //     )
-    //   }
-    //   this.$mount()
-    //   document.body.appendChild(this.$el)
-    //   return new Promise(resolve => {
-    //     this.$on('submit', newDoc => {
-    //       this.dialogVisible = false
-    //       resolve(newDoc)
-    //     })
-    //   })
-    // }
 </script>

@@ -18,6 +18,7 @@ let appConfig = {
   tmsTransaction: false,
   // 鉴权 jwt
   auth: {
+    disabled: true,
     jwt: {
       privateKey: 'tms-mongodb-web',
       expiresIn: 3600,
