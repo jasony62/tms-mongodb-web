@@ -9,7 +9,7 @@
     </template>
     <template v-slot:center>
       <el-table :data="store.documents" highlight-current-row style="width: 100%;" :max-height="dymaicHeight"
-        @current-change="handleCurrentChange">
+        @current-change="selectDocument">
         <el-table-column type="index" width="55"></el-table-column>
         <el-table-column v-for="(s, k) in data.properties" :key="k" :prop="k">
           <template #header>
@@ -155,10 +155,10 @@ const hasJsonItems = () => {
 }
 
 const configJson = (item: any) => {
-  if (currentRow && Object.keys(currentRow).length) {
-    let value = currentRow.value[item.name]
+  if (currentRow.value?._id) {
+    let jsonData = currentRow.value[item.name]
     openConfigJsonEditor({
-      jsonData: value,
+      jsonData,
       onBeforeClose: (newJson?: any) => {
         currentRow.value[item.name] = newJson
         apiDoc
@@ -169,9 +169,6 @@ const configJson = (item: any) => {
             currentRow.value._id,
             currentRow.value
           )
-          .then(() => {
-            listDocByKw()
-          })
       },
     })
   } else {
@@ -179,7 +176,7 @@ const configJson = (item: any) => {
   }
 }
 
-const handleCurrentChange = (val: any) => {
+const selectDocument = (val: any) => {
   currentRow.value = val
 }
 

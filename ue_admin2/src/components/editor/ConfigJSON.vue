@@ -1,6 +1,7 @@
 <template>
-  <el-dialog v-model="dialogVisible" :destroy-on-close="true" :close-on-click-modal="false" :before-close="onBeforeClose">
-    <div id="jsonEditor" style="height:100%"></div>
+  <el-dialog title="JSON" v-model="dialogVisible" :fullscreen="true" :destroy-on-close="true"
+    :close-on-click-modal="false" :before-close="onBeforeClose">
+    <div id="jsonEditor"></div>
     <template #footer>
       <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button @click="onBeforeClose">取消</el-button>
@@ -19,8 +20,8 @@ const emit = defineEmits(['submit'])
 
 const props = defineProps({
   dialogVisible: { type: Boolean, default: true },
-  jsonData: { type: Object, default: () => {} },
-  onClose: { type: Function, default: (newData: any) => {} },
+  jsonData: { type: Object, default: () => { } },
+  onClose: { type: Function, default: (newData: any) => { } },
 })
 const options = reactive({
   mode: 'code',
@@ -53,10 +54,28 @@ onMounted(() => {
 })
 </script>
 
-<style>
-.jsoneditor .jsoneditor-transform,
-.jsoneditor .jsoneditor-repair,
-.jsoneditor .jsoneditor-poweredBy {
-  display: none;
+<style lang="scss">
+#configJsonEditor {
+
+  .jsoneditor {
+
+    .jsoneditor-transform,
+    .jsoneditor-repair,
+    .jsoneditor-poweredBy {
+      display: none;
+    }
+  }
+
+  .el-dialog.is-fullscreen {
+    @apply flex flex-col;
+
+    .el-dialog__body {
+      @apply flex-grow
+    }
+  }
+
+  #jsonEditor {
+    height: 100%;
+  }
 }
 </style>

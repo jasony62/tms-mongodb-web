@@ -1,31 +1,33 @@
 <template>
   <el-dialog v-model="dialogVisible" :fullscreen="true" :destroy-on-close="true" :close-on-click-modal="false"
     :before-close="onBeforeClose">
-    <el-tabs v-model="activeTab" type="card">
-      <el-tab-pane label="基本信息" name="first"></el-tab-pane>
-      <el-tab-pane label="列定义" name="second"></el-tab-pane>
-    </el-tabs>
-    <el-form v-show="activeTab === 'first'" :model="schema" label-position="top">
-      <el-form-item label="显示名（中文）">
-        <el-input v-model="schema.title"></el-input>
-      </el-form-item>
-      <el-form-item label="说明">
-        <el-input type="textarea" v-model="schema.description"></el-input>
-      </el-form-item>
-      <el-form-item label="标签">
-        <el-select v-model="schema.tags" multiple clearable placeholder="请选择">
-          <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
-        </el-select>
-      </el-form-item>
-    </el-form>
-    <tms-json-schema ref="$jse" v-show="activeTab === 'second'" :schema="schema.body" :on-upload="onUploadFile"
-      class="schema-editor">
-      <template #extattrs="{ attrs }">
-        <el-form-item label="不可修改">
-          <el-switch v-model="attrs.readonly"></el-switch>
+    <div class="editor">
+      <el-tabs v-model="activeTab" type="card">
+        <el-tab-pane label="基本信息" name="first"></el-tab-pane>
+        <el-tab-pane label="列定义" name="second"></el-tab-pane>
+      </el-tabs>
+      <el-form v-show="activeTab === 'first'" :model="schema" label-position="top">
+        <el-form-item label="显示名（中文）">
+          <el-input v-model="schema.title"></el-input>
         </el-form-item>
-      </template>
-    </tms-json-schema>
+        <el-form-item label="说明">
+          <el-input type="textarea" v-model="schema.description"></el-input>
+        </el-form-item>
+        <el-form-item label="标签">
+          <el-select v-model="schema.tags" multiple clearable placeholder="请选择">
+            <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <tms-json-schema ref="$jse" v-show="activeTab === 'second'" :schema="schema.body" :on-upload="onUploadFile"
+        class="schema-editor">
+        <template #extattrs="{ attrs }">
+          <el-form-item label="不可修改">
+            <el-switch v-model="attrs.readonly"></el-switch>
+          </el-form-item>
+        </template>
+      </tms-json-schema>
+    </div>
     <template #footer>
       <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button @click="onBeforeClose">取消</el-button>
@@ -117,3 +119,20 @@ const onSubmit = () => {
   }
 }
 </script>
+
+<style lang="scss">
+#schemaEditor {
+
+  .el-dialog.is-fullscreen {
+    @apply flex flex-col;
+
+    .el-dialog__body {
+      @apply flex-grow overflow-auto;
+    }
+  }
+
+  .editor {
+    height: 100%;
+  }
+}
+</style>

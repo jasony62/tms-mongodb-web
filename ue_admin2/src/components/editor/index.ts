@@ -127,6 +127,7 @@ export function openReplicaEditor(options: ReplicaEditorOptions) {
 /***/
 export function openConfigJsonEditor(options: ConfigJsonEditorOptions) {
   const root = document.createElement('div')
+  root.setAttribute('id', 'configJsonEditor')
   document.body.appendChild(root)
   const { jsonData, onBeforeClose } = options
   let app = createApp(ConfigJsonEditor, {
@@ -142,6 +143,7 @@ export function openConfigJsonEditor(options: ConfigJsonEditorOptions) {
 /***/
 export function openSchemaEditor(options: SchemaEditorOptions) {
   const root = document.createElement('div')
+  root.setAttribute('id', 'schemaEditor')
   document.body.appendChild(root)
   const { bucketName, schema, onBeforeClose } = options
   let app = createApp(SchemaEditor, {
