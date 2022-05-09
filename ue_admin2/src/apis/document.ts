@@ -13,8 +13,8 @@ export default {
     dbName: string,
     clName: string,
     columnName: string,
-    page: string,
-    size: string,
+    page: number,
+    size: number,
     filter?: {},
     orderBy?: {}
   ) {
@@ -30,7 +30,13 @@ export default {
       .post(`${base}/getGroupByColumnVal`, { filter, orderBy }, { params })
       .then((rst: ApiRst) => rst.data.result)
   },
-  list(bucket: any, dbName: string, clName: string, batchArg?: any) {
+  list(
+    bucket: any,
+    dbName: string,
+    clName: string,
+    gatherArgs: any,
+    batchArg?: any
+  ) {
     const params = {
       bucket,
       db: dbName,
@@ -38,13 +44,9 @@ export default {
       ...batchArg,
     }
     return TmsAxios.ins('mongodb-api')
-      .post(
-        `${base}/list`,
-        {},
-        {
-          params,
-        }
-      )
+      .post(`${base}/list`, gatherArgs, {
+        params,
+      })
       .then((rst: ApiRst) => rst.data.result)
   },
   create(bucket: any, dbName: string, clName: string, proto: any) {

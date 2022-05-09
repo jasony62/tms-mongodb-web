@@ -11,11 +11,13 @@
       <el-table :data="store.documents" highlight-current-row style="width: 100%;" :max-height="dymaicHeight"
         @current-change="selectDocument">
         <el-table-column type="index" width="55"></el-table-column>
-        <el-table-column v-for="(s, k) in data.properties" :key="k" :prop="k">
+        <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
           <template #header>
             <i v-if="s.required" style="color: red">*</i>
             <span>{{ s.title }}</span>
-            <!-- <img src="../assets/icon_filter.png" class="icon_filter" @click="handleSelect(s, k)" /> -->
+            <el-icon class="el-icon__filter" @click="handleFilter($event, s, k)">
+              <Filter />
+            </el-icon>
           </template>
           <template #default="scope">
             <span v-if="s.type === 'boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
@@ -104,7 +106,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, toRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowRight } from '@element-plus/icons-vue'
+import { ArrowRight, Filter } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
 
 import apiCollection from '@/apis/collection'
@@ -112,7 +114,7 @@ import apiSchema from '@/apis/schema'
 import apiDoc from '@/apis/document'
 
 import facStore from '@/store'
-import { openDocEditor, openConfigJsonEditor } from '@/components/editor'
+import { openDocEditor, openConfigJsonEditor, openSelectConditionEditor } from '@/components/editor'
 
 const store = facStore()
 
@@ -142,6 +144,48 @@ const data = reactive({
   properties: {} as any,
   documents: [] as any[],
 })
+
+const handleCondition = () => {
+  const conditions = store.conditions
+  let criterais = {
+    filter: {} as any,
+    orderBy: {} as any
+  }
+  if (!conditions.length) {
+    return criterais
+  }
+  conditions.forEach((ele: any) => {
+    Object.assign(criterais.filter, ele.rule.filter)
+    Object.assign(criterais.orderBy, ele.rule.orderBy)
+  })
+  return criterais
+}
+
+const handleFilter = ($event: any, schema: any, name: any) => {
+  openSelectConditionEditor({
+    bucket: bucketName,
+    db: dbName,
+    cl: clName,
+    columnName: name,
+    schema: schema,
+    conditions: store.conditions,
+    onBeforeClose: (result?: any) => {
+      const { condition, isClear, isCheckBtn } = result
+      store.conditionAddColumn({ condition })
+      if (isCheckBtn) {
+        //排序仅存在一项，其它应去掉样式
+        store.conditionDelBtn({ columnName: name })
+      }
+      $event.target.style.color = '#409EFC'
+      if (isClear) {
+        store.conditionDelColumn({ condition })
+        $event.target.style.color = 'rgb(144, 147, 153)'
+      }
+      listDocByKw()
+    },
+  })
+
+}
 
 const hasJsonItems = () => {
   for (let propertyName in data.properties) {
@@ -282,11 +326,13 @@ const handleProperty = async () => {
 }
 
 const listDocByKw = () => {
+  const criterais = handleCondition()
   data.docBatch = store.listDocument({
     bucket: bucketName,
     db: dbName,
     cl: clName,
     size: LIST_DB_PAGE_SIZE,
+    criterais
   })
 }
 

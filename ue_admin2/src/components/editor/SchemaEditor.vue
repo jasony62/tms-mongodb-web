@@ -1,6 +1,6 @@
 <template>
-  <el-dialog v-model="dialogVisible" :fullscreen="true" :destroy-on-close="true" :close-on-click-modal="false"
-    :before-close="onBeforeClose">
+  <el-dialog title="文档内容定义" v-model="dialogVisible" :fullscreen="true" :destroy-on-close="true"
+    :close-on-click-modal="false" :before-close="onBeforeClose">
     <div class="editor">
       <el-tabs v-model="activeTab" type="card">
         <el-tab-pane label="基本信息" name="first"></el-tab-pane>
@@ -19,8 +19,8 @@
           </el-select>
         </el-form-item>
       </el-form>
-      <tms-json-schema ref="$jse" v-show="activeTab === 'second'" :schema="schema.body" :on-upload="onUploadFile"
-        class="schema-editor">
+      <tms-json-schema ref="$jse" v-show="activeTab === 'second'" :schema="schema.body" :root-name="'$'"
+        :on-upload="onUploadFile" class="schema-editor">
         <template #extattrs="{ attrs }">
           <el-form-item label="不可修改">
             <el-switch v-model="attrs.readonly"></el-switch>
@@ -35,9 +35,6 @@
   </el-dialog>
 </template>
 <script setup lang="ts">
-import { JsonSchema as TmsJsonSchema } from 'tms-vue3-ui'
-import 'tms-vue3-ui/dist/es/json-schema/style/tailwind.scss'
-
 import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
 import apiDoc from '@/apis/document'
