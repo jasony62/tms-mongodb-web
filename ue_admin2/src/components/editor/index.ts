@@ -4,6 +4,7 @@ import DocEditor from './DocEditor.vue'
 import TagEditor from './TagEditor.vue'
 import ReplicaEditor from './ReplicaEditor.vue'
 import ConfigJsonEditor from './ConfigJSON.vue'
+import SelectCondition from './SelectCondition.vue'
 import SchemaEditor from './SchemaEditor.vue'
 
 import { createApp } from 'vue'
@@ -56,7 +57,17 @@ type ConfigJsonEditorOptions = {
   jsonData?: any
   onBeforeClose: Function
 }
-/***/
+
+type SelectConditionOptions = {
+  bucket?: string
+  db?: string
+  cl?: string
+  columnName?: any
+  schema?: any
+  conditions?: any
+  onBeforeClose: Function
+}
+
 export function openDbEditor(options: DbEditorOptions) {
   const root = document.createElement('div')
   document.body.appendChild(root)
@@ -134,6 +145,26 @@ export function openConfigJsonEditor(options: ConfigJsonEditorOptions) {
     jsonData,
     onClose: (newJson: any) => {
       if (newJson && onBeforeClose) onBeforeClose(newJson)
+      app.unmount()
+      document.body.removeChild(root)
+    },
+  })
+  app.use(ElementPlus).mount(root)
+}
+export function openSelectConditionEditor(options: SelectConditionOptions) {
+  const root = document.createElement('div')
+  document.body.appendChild(root)
+  const { bucket, db, cl, columnName, schema, conditions, onBeforeClose } =
+    options
+  let app = createApp(SelectCondition, {
+    bucket,
+    db,
+    cl,
+    columnName,
+    schema,
+    conditions,
+    onClose: (newRule: any) => {
+      if (newRule && onBeforeClose) onBeforeClose(newRule)
       app.unmount()
       document.body.removeChild(root)
     },

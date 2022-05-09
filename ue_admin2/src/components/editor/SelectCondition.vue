@@ -1,33 +1,33 @@
 <template>
-  <el-dialog :title="'筛选-' + currentPro.title" :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal">
+  <el-dialog :title="'筛选-' + schema.title" v-model="dialogVisible" :destroy-on-close="false"
+    :close-on-click-modal="false">
     <el-form :model="condition" label-width="60px">
       <el-form-item label="按条件">
-        <el-select v-model="condition.selectValue" clearable placeholder="请选择筛选规则" @change="handleSelectChange">
-          <el-option v-for="item in condition.selectRules" :key="item.value" :label="item.label" :value="item.value">
+        <el-select v-model="condition.byRule" clearable placeholder="请选择筛选规则" @change="handleSelectChange">
+          <el-option v-for="reg in regs" :key="reg.value" :label="reg.label" :value="reg.value">
           </el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="关键字">
-        <el-input placeholder="请输入内容,多个关键字以英文逗号间隔" v-model="condition.keyword" @input="handleInputChange"
+        <el-input placeholder="请输入内容,多个关键字以英文逗号间隔" v-model="condition.byKeyword" @input="handleInputChange"
           :maxlength="30000" show-word-limit></el-input>
       </el-form-item>
     </el-form>
-    <div v-if="currentPro.groupable !== false">
-      <el-table id="tables" ref="multipleTable" :data="condition.selectResult" tooltip-effect="dark" border
-        max-height="270" v-loadmore="loadMore" @selection-change="handleSelectionChange">
+    <div v-if="schema.groupable !== false">
+      <el-table id="tables" ref="multipleTableRef" :data="condition.selectResult" tooltip-effect="dark" :border="true"
+        max-height="270" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55">
         </el-table-column>
-        <el-table-column :label="'全选(' + selectedLen + ')'">
-          <template slot-scope="scope">
-            <div v-if="currentPro.type === 'array' && currentPro.enum">
-              <span v-for="(i, v) in currentPro.enum" :key="v">
+        <el-table-column :label="'全选(' + total + ')'">
+          <template #default="scope">
+            <div v-if="schema.type === 'array' && schema.enum">
+              <span v-for="(i, v) in schema.enum" :key="v">
                 <span v-if="scope.row.title && scope.row.title.includes(i.value)">{{ i.label }}&nbsp;</span>
               </span>
               <span>{{ '(' + scope.row.sum + ')' }}</span>
             </div>
-            <div v-else-if="currentPro.type === 'string' && currentPro.enum">
-              <span v-for="(i, v) in currentPro.enum" :key="v">
+            <div v-else-if="schema.type === 'string' && schema.enum">
+              <span v-for="(i, v) in schema.enum" :key="v">
                 <span v-if="scope.row.title === i.value">{{ i.label }}</span>
               </span>
               <span>{{ '(' + scope.row.sum + ')' }}</span>
@@ -39,79 +39,100 @@
         </el-table-column>
       </el-table>
     </div>
-    <div slot="footer" class="dialog-footer">
-      <el-button style="float:left" type="primary" :plain="condition.isCheckBtn[0]" @click="handleSort('asc')">升序
-      </el-button>
-      <el-button style="float:left" type="primary" :plain="condition.isCheckBtn[1]" @click="handleSort('desc')">降序
-      </el-button>
-      <el-button type="default" @click="dialogVisible2 = false">取消</el-button>
+    <template #footer>
+      <el-radio-group style="float:left" v-model="condition.bySort" size="large" @change="handleSort">
+        <el-radio-button label="asc">升序</el-radio-button>
+        <el-radio-button label="desc">降序</el-radio-button>
+      </el-radio-group>
+      <el-button type="default" @click="onBeforeClose">取消</el-button>
       <el-button type="warning" @click="onClear">清除筛选</el-button>
       <el-button type="primary" @click="onSubmit">提交</el-button>
-    </div>
+    </template>
   </el-dialog>
 </template>
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-import { computed, ref } from 'vue';
+import type { ElTable } from 'element-plus'
+import { computed, onMounted, reactive, ref } from 'vue';
+import apiDoc from '@/apis/document'
+
+interface Group {
+  sum: number,
+  title: string
+}
 
 const emit = defineEmits(['submit'])
 const props = defineProps({
+  onClose: { type: Function, default: (newData: any) => { } },
   dialogVisible: { default: true },
-  condition: {
+  bucket: { type: String, default: '' },
+  db: { type: String, default: '' },
+  cl: { type: String, default: '' },
+  columnName: { type: String, default: '' },
+  schema: {
     type: Object,
-    default: function () {
+    default: () => {
       return {
-        selectValue: '',
-        keyword: '',
-        selectRules: [
-          {
-            value: 'start',
-            label: '开头是'
-          },
-          {
-            value: 'notStart',
-            label: '开头不是'
-          },
-          {
-            value: 'end',
-            label: '结尾是'
-          },
-          {
-            value: 'notEnd',
-            label: '结尾不是'
-          }
-        ],
-        selectResult: [],
-        multipleSelection: [],
-        isCheckBtn: [true, true],
-        rule: {
-          filter: {},
-          orderBy: {}
-        }
+        type: '',
+        groupable: false,
+        enum: []
       }
     }
-  }
+  },
+  conditions: {
+    type: Array,
+    default: []
+  },
 })
 
-const dialogVisible2 = ref(props.dialogVisible)
-
-const destroyOnClose = ref(false)
-const closeOnClickModal = ref(false)
-const conditions = ref([] as any)
-const currentPro = ref({} as any)
-
-let listByColumn: Function
-const columnName = ''
-const page: any = {}
+const multipleTableRef = ref<InstanceType<typeof ElTable>>()
+const regs = reactive([
+  {
+    value: 'start',
+    label: '开头是'
+  },
+  {
+    value: 'notStart',
+    label: '开头不是'
+  },
+  {
+    value: 'end',
+    label: '结尾是'
+  },
+  {
+    value: 'notEnd',
+    label: '结尾不是'
+  }
+])
+let condition = reactive({
+  byRule: "",
+  byKeyword: "",
+  bySort: "",
+  columnName: props.columnName,
+  rule: {
+    filter: {} as { [k: string]: any },
+    orderBy: {} as { [k: string]: any }
+  },
+  selectResult: [] as any[],
+  multipleSelection: [] as any[],
+})
 let timer: any = null
+let page = reactive({
+  at: 1,
+  size: 100
+})
+let criterias = reactive({
+  filter: {} as { [k: string]: any },
+  orderBy: {} as { [k: string]: any }
+})
 
 const isAllElection = computed(() => {
-  const { multipleSelection, selectResult } = props.condition
+  const { multipleSelection, selectResult } = condition
   return multipleSelection.length === selectResult.length
 })
-const selectedLen = computed(() => {
-  if (props.condition.multipleSelection.length) {
-    return props.condition.multipleSelection
+const total = computed(() => {
+  if (condition.multipleSelection.length) {
+    return condition.multipleSelection
       .map((ele: { sum: any; }) => ele.sum)
       .reduce((prev: any, curr: any) => prev + curr)
   } else {
@@ -122,143 +143,157 @@ const loadMore = () => {
   page.at++
   updateByColumn(true)
 }
-const toggleSelection = (rows: any[]) => {
-  if (rows) {
-    rows.forEach((row: any) => {
-      // this.$refs.multipleTable.toggleRowSelection(row)
-    })
-  }
-}
-const onClear = () => {
-  let cd = props.condition
-  cd.selectValue = ''
-  cd.keyword = ''
-  cd.isCheckBtn = [true, true]
-  cd.rule = { filter: {}, orderBy: {} }
-  emit('submit', { rule: cd.rule, isClear: true })
-}
-const handleMultipleTable = () => {
-  // this.$refs.multipleTable.toggleAllSelection()
-  props.condition.multipleSelection = props.condition.selectResult
-}
 const handleInputChange = (val: any) => {
-  props.condition.rule.filter = {
-    ...conditions.filter,
-    ...props.condition.rule.filter
+  condition.rule.filter = {
+    ...criterias.filter,
+    ...condition.rule.filter
   }
-  props.condition.rule.orderBy = conditions.orderBy
-  if (!props.condition.rule.filter[columnName]) {
-    props.condition.rule.filter[columnName] = {}
+  condition.rule.orderBy = criterias.orderBy
+  if (!condition.rule.filter[props.columnName]) {
+    condition.rule.filter[props.columnName] = {}
   }
   setKeyword(val)
   clearTimeout(timer)
-  if (!currentPro.value.groupable !== false) return
+  if (!props.schema.groupable !== false) return
   timer = setTimeout(() => {
     updateByColumn(false)
   }, 500)
 }
-// 设置关键字
 const setKeyword = (keyword: string) => {
   let kws
   if (
-    ['array', 'string'].includes(currentPro.type) &&
-    currentPro.enum
+    ['array', 'string'].includes(props.schema.type) &&
+    props.schema.enum
   ) {
     kws = keyword
       .split(',')
       .map((item: any) =>
-        currentPro.enum
+        props.schema.enum
           .filter((enumItem: { label: any; }) => enumItem.label === item)
           .map((filterItem: { value: any; }) => filterItem.value)
       )
       .join()
       .split(',')
-    props.condition.rule.filter[columnName].feature = 'in'
+    condition.rule.filter[props.columnName].feature = 'in'
   } else {
     kws = keyword
   }
-  props.condition.rule.filter[columnName].keyword = kws
+  condition.rule.filter[props.columnName].keyword = kws
+}
+const handleSelectChange = (val: any) => {
+  condition.rule.filter[props.columnName].feature = val
+}
+const handleSort = (type: string) => {
+  condition.bySort = type
+  condition.rule.orderBy[props.columnName] = type
+  emit('submit', { condition: condition, isCheckBtn: true })
+  closeDialog({ condition: condition, isCheckBtn: true })
+}
+const handleSelectionChange = (val: Group[]) => {
+  condition.multipleSelection = val
+}
+const listByColumn = (
+  bucketName = props.bucket,
+  dbName = props.db,
+  clName = props.cl,
+  columnName: string,
+  page: number,
+  size: number,
+  filter: any,
+  orderBy: any,
+) => {
+  return apiDoc.byColumnVal(
+    bucketName,
+    dbName,
+    clName,
+    columnName,
+    page,
+    size,
+    filter,
+    orderBy,
+  )
 }
 const updateByColumn = (isLoadMore: boolean) => {
-  let cd = props.condition
+  let orderBy = JSON.stringify(condition.rule.orderBy) === '{}'
+    ? criterias.orderBy
+    : condition.rule.orderBy
+
   listByColumn?.(
-    columnName,
-    { ...conditions.filter, ...cd.rule.filter },
-    JSON.stringify(cd.rule.orderBy) === '{}'
-      ? conditions.orderBy
-      : cd.rule.orderBy,
+    props.bucket,
+    props.db,
+    props.cl,
+    props.columnName,
     page.at,
-    page.size
+    page.size,
+    { ...criterias.filter, ...condition.rule.filter },
+    orderBy
   ).then((matchRes: any[]) => {
     if (isLoadMore) {
-      cd.selectResult.push(...matchRes)
       const message =
         matchRes.length > 0
           ? `成功加载${matchRes.length}条数据`
           : '全部数据加载完毕'
-      ElMessage({ message, type: 'success', customClass: 'mzindex' })
+      ElMessage.success({ message })
       if (matchRes.length) {
-        matchRes.forEach((ele: any) => {
-          // this.$refs.multipleTable.toggleRowSelection(ele, true)
+        matchRes.forEach((row: any) => {
+          condition.selectResult.push(row)
+          multipleTableRef.value!.toggleRowSelection(row, true)
         })
-        cd.multipleSelection = cd.selectResult
+        condition.multipleSelection = condition.selectResult
       }
     } else {
-      cd.selectResult = matchRes
-      handleMultipleTable()
+      condition.selectResult = matchRes
+      condition.multipleSelection = condition.selectResult
+      multipleTableRef.value!.toggleAllSelection()
     }
   })
 }
-const handleSelectChange = (val: any) => {
-  props.condition.rule.filter[columnName].feature = val
+const closeDialog = (newCl?: any) => {
+  props.onClose(newCl)
 }
-const handleSort = (type: string) => {
-  let cd = props.condition
-  if (type === 'asc') {
-    cd.isCheckBtn = [false, true]
-  } else if (type === 'desc') {
-    cd.isCheckBtn = [true, false]
-  }
-
-  cd.rule.orderBy[columnName] = type
-  emit('submit', { rule: cd.rule, isCheckBtn: true })
+const onClear = () => {
+  condition.byRule = ""
+  condition.byKeyword = ""
+  condition.bySort = ""
+  condition.rule = { filter: {}, orderBy: {} }
+  emit('submit', { condition: condition, isClear: true })
+  closeDialog({ condition: condition, isClear: true })
 }
-const handleSelectionChange = (val: any) => {
-  props.condition.multipleSelection = val
+const onBeforeClose = () => {
+  closeDialog(null)
 }
 const onSubmit = () => {
-  let cd = props.condition
-  if (!isAllElection || (isAllElection && !cd.keyword)) {
-    cd.rule.filter[
-      columnName
-    ].keyword = cd.multipleSelection.map((ele: { title: any; }) => ele.title)
-    cd.rule.filter[columnName].feature = 'in'
+  if (!isAllElection || (isAllElection && !condition.byKeyword)) {
+    condition.rule.filter[props.columnName] = {}
+    condition.rule.filter[
+      props.columnName
+    ].keyword = condition.multipleSelection.map((ele: { title: any; }) => ele.title)
+    condition.rule.filter[props.columnName].feature = 'in'
   }
-  emit('submit', { rule: cd.rule })
+  emit('submit', { condition: condition })
+  closeDialog({ condition: condition })
 }
-    // open(columnName, page, conditions, listByColumn, currentPro) {
-    //   columnName = columnName
-    //   this.page = page
-    //   this.conditions = conditions
-    //   this.listByColumn = listByColumn
-    //   this.currentPro = currentPro
-    //   if (!this.condition.rule.filter[columnName]) {
-    //     this.condition.rule.filter[columnName] = {}
-    //   }
-    //   this.$mount()
-    //   document.body.appendChild(this.$el)
-    //   return new Promise(resolve => {
-    //     this.$on('submit', selectCondition => {
-    //       const { rule, isClear, isCheckBtn } = selectCondition
-    //       this.dialogVisible = false
-    //       document.body.removeChild(this.$el)
-    //       resolve({
-    //         rule,
-    //         condition: { ...this.condition, columnName: columnName },
-    //         isClear,
-    //         isCheckBtn
-    //       })
-    //     })
-    //   })
-    // }
+
+onMounted(async () => {
+  const conditions = props.conditions
+  if (conditions.length) {
+    // 抽出全部的筛选条件
+    conditions.forEach((ele: any) => {
+      Object.assign(criterias.filter, ele.rule.filter)
+      Object.assign(criterias.orderBy, ele.rule.orderBy)
+    })
+    // 查找是否有当前列的筛选条件
+    let result: any = conditions.find(
+      (ele: any) => ele.columnName === props.columnName
+    )
+    if (result) {
+      condition.byRule = result.byRule
+      condition.byKeyword = result.byKeyword
+      condition.bySort = result.bySort
+      condition.rule = result.rule
+    }
+  }
+
+  updateByColumn(false)
+})
 </script>
