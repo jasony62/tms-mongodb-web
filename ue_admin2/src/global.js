@@ -1,4 +1,4 @@
-const way = process.env.VUE_APP_STORETOKEN_WAY
+const way = import.meta.env.VITE_APP_STORETOKEN_WAY
 
 function getCookie(cname) {
   let name = cname + '='

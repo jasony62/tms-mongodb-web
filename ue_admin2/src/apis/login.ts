@@ -1,9 +1,9 @@
 import { TmsAxios } from 'tms-vue3'
 import Crypto from 'crypto'
-import { rateEmits } from 'element-plus'
-const baseAuth = (import.meta.env.VITE_BACK_API_BASE || '') + '/auth'
-const userKey = import.meta.env.VUE_APP_LOGIN_KEY_USERNAME || 'username'
-const pwdKey = import.meta.env.VUE_APP_LOGIN_KEY_PASSWORD || 'password'
+//import { rateEmits } from 'element-plus'
+const baseAuth = (import.meta.env.VITE_APP_BACK_AUTH_BASE || '') + '/auth'
+const userKey = import.meta.env.VITE_APP_LOGIN_KEY_USERNAME || 'username'
+const pwdKey = import.meta.env.VITE_APP_LOGIN_KEY_PASSWORD || 'password'
 /**
  * 加密
  * @param {*} password
@@ -43,7 +43,7 @@ export default {
     let params = { ...userArg }
     console.log('params', params)
     let url = `${baseAuth}/authorize`
-    if (process.env.VUE_APP_AUTH_SECRET === 'yes') {
+    if (import.meta.env.VITE_APP_AUTH_SECRET === 'yes') {
       const time = Date.now()
       url += '?adc=' + time
       params[userKey] = aesEncrypt(params[userKey], time)

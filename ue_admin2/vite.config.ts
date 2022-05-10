@@ -9,9 +9,6 @@ export default defineConfig({
     },
   },
   plugins: [vue()],
-  define: {
-    'process.env': process.env
-  },
   server: {
     port: 9000,
   },
