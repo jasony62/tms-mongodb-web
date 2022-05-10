@@ -1,6 +1,6 @@
 const way = import.meta.env.VITE_APP_STORETOKEN_WAY
 
-function getCookie(cname) {
+function getCookie(cname: string) {
   let name = cname + '='
   let ca = document.cookie.split(';')
   for (let i = 0; i < ca.length; i++) {
@@ -10,7 +10,7 @@ function getCookie(cname) {
   return ''
 }
 
-function setToken(token) {
+export function setLocalToken(token: string) {
   if (way === 'session') {
     sessionStorage.setItem('access_token', token)
   } else {
@@ -18,13 +18,14 @@ function setToken(token) {
     document.cookie = `access_token=${token};path=/;domain=${host}`
   }
 }
-
-function getToken() {
+/**
+ * 返回保存在本地的token信息
+ * @returns
+ */
+export function getLocalToken(): string | null {
   if (way === 'session') {
     return sessionStorage.getItem('access_token')
   } else {
     return getCookie('access_token')
   }
 }
-
-export { setToken, getToken }

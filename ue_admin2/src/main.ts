@@ -5,10 +5,7 @@ import { Frame, Flex } from 'tms-vue3-ui'
 import router from './router'
 import App from './App.vue'
 import ElementPlus from 'element-plus'
-import { getToken } from './global'
-//import { schema } from './data/login'
-//import apiLogin from './apis/login'
-//const { fnGetCaptcha: fnCaptcha, fnGetToken: fnLogin } = apiLogin
+import { getLocalToken } from './global'
 
 import './index.css'
 import 'element-plus/dist/index.css'
@@ -23,14 +20,15 @@ createApp(App)
   .use(Flex)
   .use(ElementPlus)
   .mount('#app')
-let token = getToken()
-if (!token) {
-  router.push('/login')
-}
+
+let token = getLocalToken()
+if (!token) router.push('/login')
+
 token = `Bearer ${token}`
 const rulesObj: any = {
   requestHeaders: new Map([['Authorization', token]]),
 }
+
 let rule = TmsAxios.newInterceptorRule(rulesObj)
 TmsAxios.ins({ name: 'mongodb-api', rules: [rule] })
 TmsAxios.ins({ name: 'auth-api' })

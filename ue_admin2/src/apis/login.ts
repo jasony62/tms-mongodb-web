@@ -1,6 +1,6 @@
 import { TmsAxios } from 'tms-vue3'
 import Crypto from 'crypto'
-//import { rateEmits } from 'element-plus'
+
 const baseAuth = (import.meta.env.VITE_APP_BACK_AUTH_BASE || '') + '/auth'
 const userKey = import.meta.env.VITE_APP_LOGIN_KEY_USERNAME || 'username'
 const pwdKey = import.meta.env.VITE_APP_LOGIN_KEY_PASSWORD || 'password'
@@ -17,6 +17,7 @@ function aesEncrypt(param: string, time: number) {
 
   return crypted
 }
+
 export default {
   /**
    * 获取验证码
@@ -29,7 +30,7 @@ export default {
       .then((rst: any) => {
         const data = {
           code: rst.data.code,
-          captcha: rst.data.result
+          captcha: rst.data.result,
         }
         return data
       })
@@ -41,8 +42,7 @@ export default {
    */
   fnGetToken(userArg: any) {
     let params = { ...userArg }
-    console.log('params', params)
-    let url = `${baseAuth}/authorize`
+    let url = `${baseAuth}/authenticate`
     if (import.meta.env.VITE_APP_AUTH_SECRET === 'yes') {
       const time = Date.now()
       url += '?adc=' + time
@@ -52,10 +52,10 @@ export default {
     const data = {
       password: params['password'],
       pin: params['pin'],
-      username: params['uname']
+      username: params['uname'],
     }
     return TmsAxios.ins('auth-api')
       .post(url, data)
       .then((rst: any) => rst.data)
-  }
+  },
 }

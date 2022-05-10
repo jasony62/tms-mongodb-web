@@ -3,7 +3,7 @@ let appConfig = {
   port: process.env.TMS_APP_PORT || 3000, // 如需自定义可在项目根目录下创建/back/.env文件配置成环境变量
   router: {
     auth: {
-      prefix: process.env.TMS_APP_ROUTER_AUTH || 'auth', // 鉴权接口调用url的前缀
+      prefix: process.env.TMS_APP_ROUTER_AUTH || '', // 鉴权接口调用url的前缀
     },
     controllers: {
       prefix: process.env.TMS_APP_ROUTER_CONTROLLER || 'api', // 控制器接口调用url的前缀，例如：/api

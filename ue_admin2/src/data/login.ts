@@ -1,22 +1,4 @@
-import { SubmitDataItem, CaptchaResponse, LoginResponse } from 'tms-vue3-ui'
-
-import captcha from './captcha'
-
-function fnCaptcha(): Promise<CaptchaResponse> {
-  return Promise.resolve({ code: 0, captcha })
-}
-
-function fnLogin(submitData: {
-  [key: string]: string
-}): Promise<LoginResponse> {
-  let { uname, password, pin } = submitData
-  console.info('login submit data', { uname, password, pin })
-  return Promise.resolve({
-    code: 0,
-    msg: '成功',
-    result: { access_token: '89898989' },
-  })
-}
+import { SubmitDataItem } from 'tms-vue3-ui'
 
 const schema: SubmitDataItem[] = [
   {
@@ -38,4 +20,4 @@ const schema: SubmitDataItem[] = [
   },
 ]
 
-export { schema, fnCaptcha, fnLogin }
+export { schema }
