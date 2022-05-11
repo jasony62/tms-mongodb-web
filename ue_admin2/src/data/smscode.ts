@@ -1,3 +1,19 @@
+function fnVerify(userData: { [key: string]: string }) {
+  let { uname, password, pin } = userData
+  console.info('register user data', { uname, password, pin })
+  return Promise.resolve({
+    code: 0,
+    msg: '成功',
+    result: { access_token: '89898989' },
+  })
+}
+function fnSendSmsCode() {
+  return Promise.resolve({
+    code: 0,
+    msg: '成功',
+    result: { access_token: '89898989' },
+  })
+}
 const schema = [
   {
     // 当前双向绑定的属性名
@@ -13,4 +29,4 @@ const schema = [
   },
 ]
 
-export { schema }
+export { schema, fnVerify, fnSendSmsCode }

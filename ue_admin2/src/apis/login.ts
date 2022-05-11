@@ -25,14 +25,17 @@ export default {
    * @returns
    */
   fnGetCaptcha() {
+    const userId: string = String(new Date().getTime())
+    sessionStorage.setItem('captcha_code', userId)
+    const data = { userId: userId, appId: import.meta.env.VITE_APP_LOGIN_CODE_APPID || 'tms-web' }
     return TmsAxios.ins('auth-api')
-      .get(`${baseAuth}/captcha?width=150&height=44`)
+      .post(`${baseAuth}/captcha?width=150&height=44`, data)
       .then((rst: any) => {
         const data = {
           code: rst.data.code,
           captcha: rst.data.result,
         }
-        return data
+        return Promise.resolve(data)
       })
   },
   /**
@@ -41,6 +44,12 @@ export default {
    * @returns
    */
   fnGetToken(userArg: any) {
+    let userId
+    if (sessionStorage.getItem('captcha_code')) {
+      userId = sessionStorage.getItem('captcha_code')
+    }
+    console.log('userId', userId)
+    const appId = import.meta.env.VITE_APP_LOGIN_CODE_APPID || 'tms-web'
     let params = { ...userArg }
     let url = `${baseAuth}/authenticate`
     if (import.meta.env.VITE_APP_AUTH_SECRET === 'yes') {
@@ -53,9 +62,12 @@ export default {
       password: params['password'],
       pin: params['pin'],
       username: params['uname'],
+      userId: userId,
+      appId: appId
     }
+    console.log('token222')
     return TmsAxios.ins('auth-api')
       .post(url, data)
-      .then((rst: any) => rst.data)
+      .then((rst: any) => { return Promise.resolve(rst.data) })
   },
 }

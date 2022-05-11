@@ -5,6 +5,8 @@ import Home from '../views/Home.vue'
 import Bucket from '../views/Bucket.vue'
 import Database from '../views/Database.vue'
 import Collection from '../views/Collection.vue'
+import Register from '../views/Register.vue'
+import Smscode from '../views/Smscode.vue'
 
 const VITE_BASE_URL =
   typeof import.meta.env.VITE_BASE_URL === 'string'
@@ -27,9 +29,21 @@ const routes: RouteRecordRaw[] = [
     component: Bucket,
   },
   {
+    path: `${BucketPart}/smscode`,
+    name: 'smscode',
+    component: Smscode,
+    props: true,
+  },
+  {
     path: `${BucketPart}/home`,
     name: 'home',
     component: Home,
+    props: true,
+  },
+  {
+    path: `${BucketPart}/register`,
+    name: 'register',
+    component: Register,
     props: true,
   },
   {

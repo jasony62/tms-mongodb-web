@@ -3,28 +3,28 @@ import { TmsAxios } from 'tms-vue3'
 const base = (import.meta.env.VITE_BACK_API_BASE || '') + '/admin/replica'
 
 export default {
-  list(bucket, { keyword, page, size } = {}, proto) {
+  list(bucket: any, { keyword, page, size }: any = {}, proto: any) {
     const params = { bucket, keyword, page, size }
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/list`, proto, { params })
-      .then((rst) => rst.data.result)
+      .then((rst: any) => rst.data.result)
   },
-  create(bucket, proto) {
+  create(bucket: any, proto: any) {
     const params = { bucket }
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/create`, proto, { params })
-      .then((rst) => rst.data.result)
+      .then((rst: any) => rst.data.result)
   },
-  remove(bucket, proto) {
+  remove(bucket: any, proto: any) {
     const params = { bucket }
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/remove`, proto, { params })
-      .then((rst) => rst.data.result)
+      .then((rst: any) => rst.data.result)
   },
-  synchronize(bucket, proto) {
+  synchronize(bucket: any, proto: any) {
     const params = { bucket }
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/synchronize`, proto, { params })
-      .then((rst) => rst.data.result)
+      .then((rst: any) => rst.data.result)
   },
 }
