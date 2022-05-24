@@ -2,8 +2,8 @@ import { TmsAxios } from 'tms-vue3'
 
 import { aesEncrypt } from '../encryption'
 const baseAuth = (import.meta.env.VITE_BACK_AUTH_BASE || '') + '/auth'
-const userKey = import.meta.env.VITE_APP_LOGIN_KEY_USERNAME || 'uname'
-const pwdKey = import.meta.env.VITE_APP_LOGIN_KEY_PASSWORD || 'password'
+//const userKey = import.meta.env.VITE_APP_LOGIN_KEY_USERNAME || 'uname'
+//const pwdKey = import.meta.env.VITE_APP_LOGIN_KEY_PASSWORD || 'password'
 
 export default {
   /**
@@ -40,8 +40,8 @@ export default {
     if (import.meta.env.VITE_APP_AUTH_SECRET === 'yes') {
       const time = Date.now()
       url += '?adc=' + time
-      params[userKey] = aesEncrypt(params[userKey], time)
-      params[pwdKey] = aesEncrypt(params[pwdKey], time)
+      params['uname'] = aesEncrypt(params['uname'], time)
+      params['password'] = aesEncrypt(params['password'], time)
     }
     const data = {
       password: params['password'],

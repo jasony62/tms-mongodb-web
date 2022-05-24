@@ -1,5 +1,5 @@
 // 解密方法
-export function unencryption(ctx) {
+function unencryption(ctx) {
   const CryptoJS = require("crypto-js")
   const authDecode = (string, key) => {
     key = CryptoJS.enc.Utf8.parse(key); // 十六位十六进制数作为密钥
@@ -14,6 +14,7 @@ export function unencryption(ctx) {
   }
 
   let { username, password } = ctx.request.body
+  console.log('console.log()', ctx)
   if (ctx.request.query.adc) {
     const authEncryKey = ctx.request.query.adc + "adc"
     if (authEncryKey.length !== 16) {
@@ -27,3 +28,4 @@ export function unencryption(ctx) {
 
   return { username, password }
 }
+module.exports = { unencryption }

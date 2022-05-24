@@ -1,5 +1,5 @@
-const unencryption = require('./unencryption')
-let account = {
+const custom = require('./custom')
+module.exports = {
   disabled: false,
   mongodb: {
     disabled: false,
@@ -22,8 +22,14 @@ let account = {
   //   },
   // ],
   admin: { username: 'admin', password: 'admin' },
-  accountBeforeEach: unencryption ? unencryption(ctx) : (ctx) => { },
-
+  accountBeforeEach: (ctx) => {
+    if (custom && custom.unencryption && typeof custom.unencryption == 'function') {
+      return custom.unencryption(ctx)
+    } else {
+      let { username, password } = ctx.request.body
+      return { username, password }
+    }
+  },
   authConfig: {
     pwdErrMaxNum: 5, // int 密码错误次数限制 0 不限制
     authLockDUR: 300,   // int 登录锁定时长 （秒）
@@ -48,4 +54,3 @@ let account = {
   //   expire: 300, // 过期时间 s
   // }
 }
-module.exports = account
