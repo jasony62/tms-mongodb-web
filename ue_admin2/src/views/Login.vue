@@ -32,7 +32,7 @@ import { setLocalToken } from '@/global'
 import router from '@/router/index'
 import { ElMessage } from 'element-plus'
 import { TmsAxios } from 'tms-vue3'
-const { fnGetCaptcha: fnCaptcha, fnGetToken: fnLogin } = apiLogin
+const { fnCaptcha, fnLogin } = apiLogin
 
 const fnSuccessLogin = (response: LoginResponse) => {
   if (response.result && response.result.access_token) {

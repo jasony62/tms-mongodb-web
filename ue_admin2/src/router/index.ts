@@ -8,9 +8,9 @@ import Collection from '../views/Collection.vue'
 import Register from '../views/Register.vue'
 import Smscode from '../views/Smscode.vue'
 
-const VITE_BASE_URL =
-  typeof import.meta.env.VITE_BASE_URL === 'string'
-    ? import.meta.env.VITE_BASE_URL
+const VITE_BACK_API_BASE =
+  typeof import.meta.env.VITE_BACK_API_BASE === 'string'
+    ? import.meta.env.VITE_BACK_API_BASE
     : '/'
 
 const BucketPart = /yes|true/i.test(import.meta.env.VITE_TMW_REQUIRE_BUCKET)
@@ -65,7 +65,7 @@ const routes: RouteRecordRaw[] = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(VITE_BASE_URL),
+  history: createWebHistory(VITE_BACK_API_BASE),
   routes,
 })
 

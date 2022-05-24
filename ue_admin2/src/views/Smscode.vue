@@ -21,7 +21,7 @@ import 'tms-vue3-ui/dist/es/sms-code/style/tailwind.scss'
 import { fnVerify, schema, fnSendSmsCode } from '@/data/smscode'
 import apiLogin from '@/apis/login'
 
-const { fnGetCaptcha: fnSendCode } = apiLogin
+const { fnCaptcha: fnSendCode } = apiLogin
 const showSmsCodeDialog = () => {
   SmsCode.open({ schema, fnSendCode, fnVerify })
 }
