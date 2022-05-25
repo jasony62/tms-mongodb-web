@@ -26,7 +26,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/bucket',
     name: 'bucket',
-    component: Bucket,
+    component: Bucket
   },
   {
     path: `${BucketPart}/smscode`,

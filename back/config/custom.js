@@ -14,7 +14,6 @@ function unencryption(ctx) {
   }
 
   let { username, password } = ctx.request.body
-  console.log('console.log()', ctx)
   if (ctx.request.query.adc) {
     const authEncryKey = ctx.request.query.adc + "adc"
     if (authEncryKey.length !== 16) {
