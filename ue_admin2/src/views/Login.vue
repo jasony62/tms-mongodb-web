@@ -19,7 +19,6 @@ import { schema } from '@/data/login'
 import apiLogin from '@/apis/login'
 import { setLocalToken } from '@/global'
 import router from '@/router/index'
-import { ElMessage } from 'element-plus'
 import { TmsAxios } from 'tms-vue3'
 const { fnCaptcha, fnLogin } = apiLogin
 
@@ -37,9 +36,5 @@ const fnSuccessLogin = (response: LoginResponse) => {
     TmsAxios.ins({ name: 'auth-api' })
     router.push('/home')
   }
-}
-
-const fnFailLogin = (response: LoginResponse) => {
-  ElMessage.error(response.msg || '登录失败')
 }
 </script>
