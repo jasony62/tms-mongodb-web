@@ -14,7 +14,6 @@ import 'tms-vue3-ui/dist/es/flex/style/index.css'
 function initFunc() {
   let token = getLocalToken()
   if (!token) router.push('/login')
-  console.log('inndex')
   token = `Bearer ${token}`
   const rulesObj: any = {
     requestHeaders: new Map([['Authorization', token]]),

@@ -1,5 +1,4 @@
 const way = import.meta.env.VITE_APP_STORETOKEN_WAY
-import Crypto from 'crypto'
 function getCookie(cname: string) {
   let name = cname + '='
   let ca = document.cookie.split(';')
@@ -28,15 +27,4 @@ export function getLocalToken(): string | null {
   } else {
     return getCookie('access_token')
   }
-}
-
-// 加密方法
-
-export function aesEncrypt(param: string, time: number) {
-  const key = time + 'adc'
-  const cipher = Crypto.createCipheriv('aes-128-cbc', key, key)
-  let crypted = cipher.update(param, 'utf8', 'hex')
-  crypted += cipher.final('hex')
-
-  return crypted
 }

@@ -1,3 +1,4 @@
+const custom = require('./custom')
 module.exports = {
   disabled: false,
   mongodb: {
@@ -22,43 +23,13 @@ module.exports = {
   // ],
   admin: { username: 'admin', password: 'admin' },
   accountBeforeEach: (ctx) => {
-    const crypto = require("crypto")
-    const authDecode = (string, key) => {
-      const cipher = crypto.createDecipheriv("aes-128-cbc", key, key)
-      let decrypted = cipher.update(string, "hex", "utf8")
-      decrypted += cipher.final("utf8")
-      return decrypted
+    if (custom && custom.unencryption && typeof custom.unencryption == 'function') {
+      return custom.unencryption(ctx)
+    } else {
+      let { username, password } = ctx.request.body
+      return { username, password }
     }
-    const getPwd = (seed) => {
-      const md5 = crypto.createHash("md5")
-      return md5.update(seed).digest("hex")
-    }
-
-    let { username, password } = ctx.request.body
-    if (ctx.request.query.adc) {
-      const authEncryKey = ctx.request.query.adc + "adc"
-      if (authEncryKey.length !== 16) {
-        return Promise.reject("参数错误2")
-      }
-      username = authDecode(username, authEncryKey)
-      password = authDecode(password, authEncryKey)
-    }
-    //模拟前端加密
-    // password = getPwd(password)
-
-    return { username, password }
   },
-  // accountBeforeEach: "./accountBeforeEach.js", // 登录、注册 前置处理方法（如：对密码加解密）
-  // accountBeforeEach: (ctx) => {
-  //   let { username, password } = ctx.request.body
-
-  //   let buff = Buffer.from(username, 'base64');
-  //   username = buff.toString('utf-8');
-  //   buff = Buffer.from(password, 'base64');
-  //   password = buff.toString('utf-8');
-
-  //   return { username, password }
-  // },
   authConfig: {
     pwdErrMaxNum: 5, // int 密码错误次数限制 0 不限制
     authLockDUR: 300,   // int 登录锁定时长 （秒）

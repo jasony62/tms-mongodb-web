@@ -6,6 +6,7 @@ import ReplicaEditor from './ReplicaEditor.vue'
 import ConfigJsonEditor from './ConfigJSON.vue'
 import SelectCondition from './SelectCondition.vue'
 import SchemaEditor from './SchemaEditor.vue'
+import BucketEditor from './BucketEditor.vue'
 
 import { createApp } from 'vue'
 import ElementPlus from 'element-plus'
@@ -65,6 +66,11 @@ type SelectConditionOptions = {
   columnName?: any
   schema?: any
   conditions?: any
+  onBeforeClose: Function
+}
+type BucketEditorOptions = {
+  mode: any
+  bucket?: any
   onBeforeClose: Function
 }
 
@@ -211,6 +217,27 @@ export function openDocEditor(options: DocEditorOptions) {
     dbName,
     collection,
     document: doc,
+    onClose: (newCl: any) => {
+      if (newCl && onBeforeClose) onBeforeClose(newCl)
+      app.unmount()
+      document.body.removeChild(root)
+    },
+  })
+  app.use(ElementPlus).mount(root)
+}
+/***/
+export function openBucketEditor(options: BucketEditorOptions) {
+  const root = document.createElement('div')
+  document.body.appendChild(root)
+  const {
+    mode,
+    bucket,
+    onBeforeClose
+  } = options
+  console.log('options',options)
+  let app = createApp(BucketEditor, {
+    mode,
+    bucket,
     onClose: (newCl: any) => {
       if (newCl && onBeforeClose) onBeforeClose(newCl)
       app.unmount()

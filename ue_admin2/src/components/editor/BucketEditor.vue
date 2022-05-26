@@ -1,6 +1,6 @@
 <template>
-  <el-dialog ref="el" :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal">
+  <el-dialog ref="el" v-model="dialogVisible" :destroy-on-close="destroyOnClose"
+    :close-on-click-modal="closeOnClickModal" :before-close="onBeforeClose">
     <el-form ref="form" :model="bucket" label-position="top">
       <el-form-item label="ID（英文字符）">
         <el-input v-model="bucket.name"></el-input>
@@ -14,34 +14,34 @@
     </el-form>
     <div slot="footer" class="dialog-footer">
       <el-button type="primary" @click="onSubmit">提交</el-button>
-      <el-button @click="dialogVisible2 = false">取消</el-button>
+      <el-button @click="onBeforeClose">取消</el-button>
     </div>
   </el-dialog>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue';
-import apiBkt from '../apis/bucket'
+import { ref, reactive } from 'vue';
+import apiBkt from '@/apis/bucket'
 
 const emit = defineEmits(['submit'])
 
 const props = defineProps({
   dialogVisible: { default: true },
+  mode: { type: String, default: '' },
   bucket: {
     type: Object,
     default: function () {
       return { name: '', title: '', description: '' }
     },
-  }
-})
+  },
+  onClose: { type: Function, default: (newDb: any) => { } }
 
+})
 const el = ref(null as unknown as Element)
-const { bucket, dialogVisible } = props
-const dialogVisible2 = ref(dialogVisible)
+const { mode, onClose } = props
+const dialogVisible = ref(props.dialogVisible)
+const bucket = reactive(props.bucket)
 const destroyOnClose = ref(true)
 const closeOnClickModal = ref(false)
-
-let mode = ''
-
 const onSubmit = () => {
   if (mode === 'update') {
     apiBkt
@@ -53,7 +53,15 @@ const onSubmit = () => {
       .then((newBucket: any) => emit('submit', newBucket))
   }
 }
+// 关闭对话框时执行指定的回调方法
+const closeDialog = (newDb?: any) => {
+  onClose(newDb)
+}
 
+// 对话框关闭前触发
+const onBeforeClose = () => {
+  closeDialog(null)
+}
 // const open = (newMode, bucket) => {
 //   mode = newMode
 //   if (mode === 'update') Object.assign(this.bucket, bucket)
