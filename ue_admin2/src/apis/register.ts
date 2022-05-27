@@ -1,9 +1,6 @@
 import { TmsAxios } from 'tms-vue3'
-import { aesEncrypt } from '../encryption'
 const baseAuth = (import.meta.env.VITE_BACK_AUTH_BASE || '') + '/auth'
-//const userKey = import.meta.env.VITE_APP_LOGIN_KEY_USERNAME || 'uname'
-//const pwdKey = import.meta.env.VITE_APP_LOGIN_KEY_PASSWORD || 'password'
-
+import { encodeAccountV1 } from "tms-koa-account/models/crypto"
 export default {
   /**
    * 注册
@@ -19,11 +16,11 @@ export default {
     let params = { ...userArg }
     let url = `${baseAuth}/register`
     if (import.meta.env.VITE_APP_AUTH_SECRET === 'yes') {
-      const time = Date.now()
-      url += '?adc=' + time
-      params['uname'] = aesEncrypt(params['uname'], time)
-      params['password'] = aesEncrypt(params['password'], time)
-
+      // const time = Date.now()
+      // url += '?adc=' + time
+      const encode = encodeAccountV1({username: params['uname'], password: params['password']})
+      params['uname'] = encode[1]['username']
+      params['password'] =  encode[1]['password']
     }
     const data = {
       password: params['password'],
