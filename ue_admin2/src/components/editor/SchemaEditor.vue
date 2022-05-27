@@ -43,7 +43,7 @@ import { onMounted, reactive, ref } from 'vue'
 const emit = defineEmits(['submit'])
 
 // JSONSchema编辑器
-const $jse = ref(null as unknown as { outcome: () => any })
+const $jse = ref(null as unknown as { editing: () => any })
 
 const props = defineProps({
   dialogVisible: { default: true },
@@ -95,7 +95,7 @@ const onUploadFile = (file: any) => {
 }
 
 const onSubmit = () => {
-  let newBody = $jse.value?.outcome()
+  let newBody = $jse.value?.editing()
   if (newBody) {
     schema.body = newBody
   }
