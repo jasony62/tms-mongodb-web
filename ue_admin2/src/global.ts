@@ -1,4 +1,5 @@
-const way = import.meta.env.VITE_APP_STORETOKEN_WAY
+const way = import.meta.env.VITE_STORETOKEN_WAY
+
 function getCookie(cname: string) {
   let name = cname + '='
   let ca = document.cookie.split(';')

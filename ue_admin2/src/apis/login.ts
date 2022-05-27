@@ -5,17 +5,25 @@ const baseAuth = (import.meta.env.VITE_BACK_AUTH_BASE || '') + '/auth'
 //const userKey = import.meta.env.VITE_APP_LOGIN_KEY_USERNAME || 'uname'
 //const pwdKey = import.meta.env.VITE_APP_LOGIN_KEY_PASSWORD || 'password'
 
+const APPID = import.meta.env.VITE_LOGIN_CODE_APPID || 'tms-mongodb-web'
+
+let captchaId: string
+
+function genCaptchaId() {
+  let rand = Math.floor(Math.random() * 1000 + 1)
+  let id = Date.now() * 1000 + rand
+  return `${id}`
+}
+
 export default {
   /**
    * 获取验证码
-   *
-   * @returns
    */
-   fnCaptcha() {
-    const userId: string = String(new Date().getTime())
-    sessionStorage.setItem('captcha_code', userId)
+  fnCaptcha() {
+    captchaId = genCaptchaId()
+    const url = `${baseAuth}/captcha?appid=${APPID}&captchaid=${captchaId}&background=fff`
     return TmsAxios.ins('auth-api')
-      .get(`${baseAuth}/captcha?captchaid=${userId}&appid=${import.meta.env.VITE_APP_LOGIN_CODE_APPID || 'tms-web'}&background=fff`)
+      .get(url)
       .then((rst: any) => {
         const data = {
           code: rst.data.code,
@@ -26,18 +34,12 @@ export default {
   },
   /**
    * 获取token
-   *
-   * @returns
    */
-   fnLogin(userArg: any) {
-    let userId
-    if (sessionStorage.getItem('captcha_code')) {
-      userId = sessionStorage.getItem('captcha_code')
-    }
-    const appId = import.meta.env.VITE_APP_LOGIN_CODE_APPID || 'tms-web'
+  fnLogin(userArg: any) {
     let params = { ...userArg }
     let url = `${baseAuth}/authenticate`
-    if (import.meta.env.VITE_APP_AUTH_SECRET === 'yes') {
+    if (import.meta.env.VITEP_ENCRYPT_SECRET === 'yes') {
+      //TODO 加密方法不能写死
       const time = Date.now()
       url += '?adc=' + time
       params['uname'] = aesEncrypt(params['uname'], time)
@@ -47,11 +49,13 @@ export default {
       password: params['password'],
       code: params['pin'],
       username: params['uname'],
-      captchaid: userId,
-      appid: appId
+      captchaid: captchaId,
+      appid: APPID,
     }
     return TmsAxios.ins('auth-api')
       .post(url, data)
-      .then((rst: any) => { return Promise.resolve(rst.data) })
+      .then((rst: any) => {
+        return Promise.resolve(rst.data)
+      })
   },
 }

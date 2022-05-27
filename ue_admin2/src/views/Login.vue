@@ -1,8 +1,7 @@
 <template>
   <div class="grid place-items-center h-screen">
     <div class="border-2 rounded w-1/4">
-      <login :schema="schema" :fn-captcha="fnCaptcha" :fn-login="fnLogin" :on-success="fnSuccessLogin"
-        :on-fail="fnFailLogin">
+      <login :schema="schema" :fn-captcha="fnCaptcha" :fn-login="fnLogin" :on-success="fnSuccessLogin">
       </login>
       <div class="flex flex-nowrap pb-4">
         <router-link class="flex-grow pl-4" :to="{ path: 'Smscode' }">短信登录</router-link>

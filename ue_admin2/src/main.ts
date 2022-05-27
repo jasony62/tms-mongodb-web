@@ -11,9 +11,10 @@ import './index.css'
 import 'element-plus/dist/index.css'
 import 'tms-vue3-ui/dist/es/frame/style/index.css'
 import 'tms-vue3-ui/dist/es/flex/style/index.css'
+
 function initFunc() {
   let token = getLocalToken()
-  if (!token) router.push('/login')
+  if (!token) return router.push('/login')
   token = `Bearer ${token}`
   const rulesObj: any = {
     requestHeaders: new Map([['Authorization', token]]),
@@ -21,8 +22,10 @@ function initFunc() {
 
   let rule = TmsAxios.newInterceptorRule(rulesObj)
   TmsAxios.ins({ name: 'mongodb-api', rules: [rule] })
-  TmsAxios.ins({ name: 'auth-api' })
 }
+
+TmsAxios.ins({ name: 'auth-api' })
+
 createApp(App)
   .use(router)
   .use(createPinia())
@@ -32,4 +35,3 @@ createApp(App)
   .use(initFunc)
   .use(ElementPlus)
   .mount('#app')
-
