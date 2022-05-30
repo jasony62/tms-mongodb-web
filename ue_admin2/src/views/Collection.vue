@@ -178,8 +178,7 @@ const handleFilter = (schema: any, name: any) => {
       store.conditionAddColumn({ condition })
       if (isCheckBtn) store.conditionDelBtn({ columnName: name })
       if (isClear) store.conditionDelColumn({ condition })
-      // 处理图标
-
+      // 待处理：排序降序后的图标颜色不变；是因为点击的target不一定是哪个元素；
       listDocByKw()
     },
   })
