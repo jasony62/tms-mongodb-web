@@ -19,7 +19,6 @@ let appConfig = {
   tmsTransaction: false,
   // 鉴权 jwt
   auth: {
-    disabled: true,
     jwt: {
       privateKey: 'tms-mongodb-web',
       expiresIn: 3600,
@@ -43,7 +42,26 @@ let appConfig = {
         id: 'tms-koa-account',
         module: 'models/captcha',
         checker: 'checkCaptcha',
-        generator: 'createCaptcha',
+        generator: "createCaptcha"
+      },
+    },
+    //
+    client: {
+      // 如需自定义鉴权函数，可在项目根目录下创建鉴权函数, 将文件路径命名给path并注释 accounts
+      // path: '/auth/client.js', // 指定用户认证实现方法
+      // registerPath: "/auth/register.js" // 指定用户注册的实现方法
+      // accounts: [ // 默认用户组
+      //   {
+      //     id: 1,
+      //     username: 'root',
+      //     password: 'root',
+      //   },
+      // ],
+      npm: {
+        disabled: false,
+        id: 'tms-koa-account',
+        authentication: 'models/authenticate',
+        register: 'models/register',
       },
     },
   },

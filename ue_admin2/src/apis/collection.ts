@@ -1,40 +1,42 @@
 import { TmsAxios } from 'tms-vue3'
 
 const base = (import.meta.env.VITE_BACK_API_BASE || '') + '/admin/collection'
-
+type ApiRst = {
+  data: { result: any }
+}
 export default {
-  byName(bucket, dbName, clName) {
+  byName(bucket:any, dbName?:string, clName?:string) {
     const params = { bucket, db: dbName, cl: clName }
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/byName`, { params })
-      .then((rst) => rst.data.result)
+      .then((rst:ApiRst) => rst.data.result)
   },
   /**
    *
    * @param {*} dbName
    */
-  list(bucket, dbName, { keyword, page, size } = {}) {
+  list(bucket:any, dbName:string, { keyword, page, size }:any = {}) {
     const params = { bucket, db: dbName, keyword, page, size }
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/list`, { params })
-      .then((rst) => rst.data.result)
+      .then((rst:ApiRst) => rst.data.result)
   },
-  create(bucket, dbName, proto) {
+  create(bucket:any, dbName:string, proto?:any) {
     const params = { bucket, db: dbName }
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/create`, proto, { params })
-      .then((rst) => rst.data.result)
+      .then((rst:ApiRst) => rst.data.result)
   },
-  update(bucket, dbName, clName, proto) {
+  update(bucket:any, dbName:string, clName:string, proto?:any) {
     const params = { bucket, db: dbName, cl: clName }
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/update`, proto, { params })
-      .then((rst) => rst.data.result)
+      .then((rst:ApiRst) => rst.data.result)
   },
-  remove(bucket, dbName, clName) {
+  remove(bucket:any, dbName:string, clName:string) {
     const params = { bucket, db: dbName, cl: clName }
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/remove`, { params })
-      .then((rst) => rst.data.result)
+      .then((rst:ApiRst) => rst.data.result)
   },
 }
