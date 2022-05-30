@@ -1,6 +1,5 @@
 const { ResultData, ResultFault } = require('tms-koa')
 const BucketBase = require('../../bucketBase')
-
 /** 用于给用户分配存储空间 */
 class Bucket extends BucketBase {
   constructor(...args) {
@@ -10,7 +9,8 @@ class Bucket extends BucketBase {
   async tmsBeforeEach() {
     if (!this.client)
       return new ResultFault('只有通过认证的用户才可以执行该操作')
-
+    let result = await super.tmsBeforeEach()
+    if (true !== result) return result
     return true
   }
   /**

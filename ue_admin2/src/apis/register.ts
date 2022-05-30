@@ -1,23 +1,42 @@
 import { TmsAxios } from 'tms-vue3'
 const baseAuth = (import.meta.env.VITE_BACK_AUTH_BASE || '') + '/auth'
 import { encodeAccountV1 } from "tms-koa-account/models/crypto"
+const APPID = import.meta.env.VITE_LOGIN_CODE_APPID || 'tms-mongodb-web'
+
+let captchaId: string
+
+function genCaptchaId() {
+  let rand = Math.floor(Math.random() * 1000 + 1)
+  let id = Date.now() * 1000 + rand
+  return `${id}`
+}
+
 export default {
+  /**
+   * 获取验证码
+   */
+   fnCaptcha() {
+    captchaId = genCaptchaId()
+    const url = `${baseAuth}/captcha?appid=${APPID}&captchaid=${captchaId}&background=fff`
+    return TmsAxios.ins('auth-api')
+      .get(url)
+      .then((rst: any) => {
+        const data = {
+          code: rst.data.code,
+          captcha: rst.data.result,
+        }
+        return Promise.resolve(data)
+      })
+  },
   /**
    * 注册
    *
    * @returns
    */
    fnRegister(userArg: any) {
-    let userId
-    if (sessionStorage.getItem('captcha_code')) {
-      userId = sessionStorage.getItem('captcha_code')
-    }
-    const appId = import.meta.env.VITE_APP_LOGIN_CODE_APPID || 'tms-web'
     let params = { ...userArg }
     let url = `${baseAuth}/register`
     if (import.meta.env.VITE_ENCRYPT_SECRET === 'yes') {
-      // const time = Date.now()
-      // url += '?adc=' + time
       const encode = encodeAccountV1({username: params['uname'], password: params['password']})
       params['uname'] = encode[1]['username']
       params['password'] =  encode[1]['password']
@@ -26,8 +45,8 @@ export default {
       password: params['password'],
       code: params['pin'],
       username: params['uname'],
-      captchaid: userId,
-      appid: appId
+      captchaid: captchaId,
+      appid: APPID
     }
     return TmsAxios.ins('auth-api')
       .post(url, data)
