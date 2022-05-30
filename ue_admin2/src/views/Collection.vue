@@ -13,11 +13,13 @@
         <el-table-column type="index" width="55"></el-table-column>
         <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
           <template #header>
-            <i v-if="s.required" style="color: red">*</i>
-            <span>{{ s.title }}</span>
-            <el-icon class="el-icon__filter" @click="handleFilter($event, s, k)">
-              <Filter />
-            </el-icon>
+            <div @click="handleFilter(s, k)" :class="{ 'active': currentNames.includes(k) }">
+              <i v-if="s.required" style="color: red">*</i>
+              <span>{{ s.title }}</span>
+              <el-icon class="el-icon__filter">
+                <Filter />
+              </el-icon>
+            </div>
           </template>
           <template #default="scope">
             <span v-if="s.type === 'boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
@@ -145,6 +147,8 @@ const data = reactive({
   documents: [] as any[],
 })
 
+let currentNames = ref([] as any[])
+
 const handleCondition = () => {
   const conditions = store.conditions
   let criterais = {
@@ -161,7 +165,7 @@ const handleCondition = () => {
   return criterais
 }
 
-const handleFilter = ($event: any, schema: any, name: any) => {
+const handleFilter = (schema: any, name: any) => {
   openSelectConditionEditor({
     bucket: bucketName,
     db: dbName,
@@ -172,15 +176,10 @@ const handleFilter = ($event: any, schema: any, name: any) => {
     onBeforeClose: (result?: any) => {
       const { condition, isClear, isCheckBtn } = result
       store.conditionAddColumn({ condition })
-      if (isCheckBtn) {
-        //排序仅存在一项，其它应去掉样式
-        store.conditionDelBtn({ columnName: name })
-      }
-      $event.target.style.color = '#409EFC'
-      if (isClear) {
-        store.conditionDelColumn({ condition })
-        $event.target.style.color = 'rgb(144, 147, 153)'
-      }
+      if (isCheckBtn) store.conditionDelBtn({ columnName: name })
+      if (isClear) store.conditionDelColumn({ condition })
+      // 处理图标
+
       listDocByKw()
     },
   })
@@ -349,5 +348,9 @@ onMounted(async () => {
 .tms-frame__main__center {
   width: calc(75% - 16px);
   background-color: #f0f3f6 !important;
+}
+
+.active {
+  color: red;
 }
 </style>
