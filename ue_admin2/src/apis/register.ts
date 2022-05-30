@@ -15,7 +15,7 @@ export default {
     const appId = import.meta.env.VITE_APP_LOGIN_CODE_APPID || 'tms-web'
     let params = { ...userArg }
     let url = `${baseAuth}/register`
-    if (import.meta.env.VITE_APP_AUTH_SECRET === 'yes') {
+    if (import.meta.env.VITE_ENCRYPT_SECRET === 'yes') {
       // const time = Date.now()
       // url += '?adc=' + time
       const encode = encodeAccountV1({username: params['uname'], password: params['password']})
