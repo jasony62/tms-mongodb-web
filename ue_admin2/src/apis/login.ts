@@ -5,6 +5,8 @@ const baseAuth = (import.meta.env.VITE_BACK_AUTH_BASE || '') + '/auth'
 
 const APPID = import.meta.env.VITE_LOGIN_CODE_APPID || 'tms-mongodb-web'
 
+const ISCRYPTO = import.meta.env.VITE_ENCRYPT_SECRET || 'no'
+
 let captchaId: string
 
 function genCaptchaId() {
@@ -31,12 +33,41 @@ export default {
       })
   },
   /**
+   * 注册
+   *
+   * @returns
+   */
+  fnRegister(userArg: any) {
+    let params = { ...userArg }
+    let url = `${baseAuth}/register`
+    if (ISCRYPTO === 'yes') {
+      const encode = encodeAccountV1({
+        username: params['uname'],
+        password: params['password'],
+      })
+      params['uname'] = encode[1]['username']
+      params['password'] = encode[1]['password']
+    }
+    const data = {
+      password: params['password'],
+      code: params['pin'],
+      username: params['uname'],
+      captchaid: captchaId,
+      appid: APPID,
+    }
+    return TmsAxios.ins('auth-api')
+      .post(url, data)
+      .then((rst: any) => {
+        return Promise.resolve(rst.data)
+      })
+  },
+  /**
    * 获取token
    */
   fnLogin(userArg: any) {
     let params = { ...userArg }
     let url = `${baseAuth}/authenticate`
-    if (import.meta.env.VITE_ENCRYPT_SECRET === 'yes') {
+    if (ISCRYPTO === 'yes') {
       const encode = encodeAccountV1({
         username: params['uname'],
         password: params['password'],
