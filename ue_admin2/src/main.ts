@@ -5,7 +5,7 @@ import { Frame, Flex } from 'tms-vue3-ui'
 import router from './router'
 import App from './App.vue'
 import ElementPlus from 'element-plus'
-import { getLocalToken } from './global'
+import { getLocalToken,setLocalToken } from './global'
 import { ElMessage } from 'element-plus'
 import './index.css'
 import 'element-plus/dist/index.css'
@@ -15,13 +15,30 @@ import 'tms-vue3-ui/dist/es/flex/style/index.css'
 function initFunc() {
   let token = getLocalToken()
   if (!token) return router.push('/login')
-  token = `Bearer ${token}`
-  const rulesObj: any = {
-    requestHeaders: new Map([['Authorization', token]]),
+  let authToken = `Bearer ${token}`
+  let rulesObj: any = {
+    requestHeaders: new Map([['Authorization', authToken]]),
+    //requestParams:new Map([['access_token', token]]),
     onResultFault: (res:any) => {
-      return new Promise((resolve) => {
+      return new Promise((resolve,reject) => {
         ElMessage.error(res.data.msg||'发生业务逻辑错误')
-        resolve(res)
+        reject(res.data)
+      })
+    },
+    onRetryAttempt:(res:any) => {
+      return new Promise((resolve,reject) => {
+        if (res.data.code === 20001) {
+          ElMessage({
+            showClose: true,
+            message: res.data.msg||'登录失效请重新登录',
+            type: 'error',
+            onClose: function(){
+              setLocalToken('')
+              router.push('/login')
+            }
+            })
+        }
+        reject(res.data)
       })
     }
   }
