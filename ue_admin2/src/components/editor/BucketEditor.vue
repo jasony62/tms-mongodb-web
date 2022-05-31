@@ -46,11 +46,17 @@ const onSubmit = () => {
   if (mode === 'update') {
     apiBkt
       .update(bucket.name, bucket)
-      .then((newBucket: any) => emit('submit', newBucket))
+      .then((newBucket: any) => {
+        emit('submit', newBucket)
+        closeDialog(newBucket)
+      })
   } else if (mode === 'create') {
     apiBkt
       .create(bucket)
-      .then((newBucket: any) => emit('submit', newBucket))
+      .then((newBucket: any) => {
+        emit('submit', newBucket)
+        closeDialog(newBucket)
+      })
   }
 }
 // 关闭对话框时执行指定的回调方法
