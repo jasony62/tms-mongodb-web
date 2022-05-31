@@ -7,7 +7,7 @@ RUN npm install -g cnpm --registry=https://registry.npm.taobao.org
 COPY ./package.json ./
 RUN cnpm install --production
 #拉包
-FROM node:12.10.0-alpine
+FROM node:16.14.2-alpine3.15 
 WORKDIR /usr/src/app
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
 RUN apk update && apk add bash tzdata \
