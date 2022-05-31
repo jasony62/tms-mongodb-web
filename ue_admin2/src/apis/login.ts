@@ -36,7 +36,7 @@ export default {
   fnLogin(userArg: any) {
     let params = { ...userArg }
     let url = `${baseAuth}/authenticate`
-    if (import.meta.env.VITEP_ENCRYPT_SECRET === 'yes') {
+    if (import.meta.env.VITE_ENCRYPT_SECRET === 'yes') {
       const encode = encodeAccountV1({
         username: params['uname'],
         password: params['password'],
