@@ -13,7 +13,7 @@ export default defineConfig({
     port: 9000,
     proxy: {
       '/api': 'http://localhost:3001',
-      '/auth': 'http://localhost:3330',
+      '/auth': 'http://localhost:3001',
     },
   },
 })
