@@ -7,6 +7,7 @@ import ConfigJsonEditor from './ConfigJSON.vue'
 import SelectCondition from './SelectCondition.vue'
 import SchemaEditor from './SchemaEditor.vue'
 import BucketEditor from './BucketEditor.vue'
+import PickFileEditor from './PickFile.vue'
 
 import { createApp } from 'vue'
 import ElementPlus from 'element-plus'
@@ -71,6 +72,10 @@ type SelectConditionOptions = {
 type BucketEditorOptions = {
   mode: any
   bucket?: any
+  onBeforeClose: Function
+}
+type PickFileEditorOptions = {
+  url: string
   onBeforeClose: Function
 }
 
@@ -229,17 +234,27 @@ export function openDocEditor(options: DocEditorOptions) {
 export function openBucketEditor(options: BucketEditorOptions) {
   const root = document.createElement('div')
   document.body.appendChild(root)
-  const {
-    mode,
-    bucket,
-    onBeforeClose
-  } = options
-  console.log('options',options)
+  const { mode, bucket, onBeforeClose } = options
   let app = createApp(BucketEditor, {
     mode,
     bucket,
     onClose: (newCl: any) => {
       if (newCl && onBeforeClose) onBeforeClose(newCl)
+      app.unmount()
+      document.body.removeChild(root)
+    },
+  })
+  app.use(ElementPlus).mount(root)
+}
+export function openPickFileEditor(options: PickFileEditorOptions) {
+  const root = document.createElement('div')
+  root.setAttribute('id', 'aEditor')
+  document.body.appendChild(root)
+  const { url, onBeforeClose } = options
+  let app = createApp(PickFileEditor, {
+    url,
+    onClose: (newJson: any) => {
+      if (newJson && onBeforeClose) onBeforeClose(newJson)
       app.unmount()
       document.body.removeChild(root)
     },
