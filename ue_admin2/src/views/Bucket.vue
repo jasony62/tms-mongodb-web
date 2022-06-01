@@ -17,8 +17,8 @@
         <el-table-column prop="description" label="说明"></el-table-column>
         <el-table-column fixed="right" label="操作" width="120">
           <template #default="scope">
-            <el-button @click="editBucket(scope.row, scope.$index)" type="text" size="mini">修改</el-button>
-            <el-button @click="removeBucket(scope.row)" type="text" size="mini">删除</el-button>
+            <el-button @click="editBucket(scope.row, scope.$index)" type="primary" text size="mini">修改</el-button>
+            <el-button @click="removeBucket(scope.row)" type="primary" text size="mini">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
