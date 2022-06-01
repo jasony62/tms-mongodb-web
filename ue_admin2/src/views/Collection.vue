@@ -25,7 +25,7 @@
             <span v-if="s.type === 'boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
             <span v-else-if="s.type === 'array' && s.items && s.items.format === 'file'">
               <span v-for="(i, v) in scope.row[k]" :key="v">
-                <a href="#" @click="downLoadFile(i)">{{ i.name }}</a>
+                <el-link type="primary" @click="downLoadFile(i)">{{ i.name }}</el-link>
                 <br />
               </span>
             </span>
@@ -95,7 +95,7 @@
             <el-button>配置json类型<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item v-for="(item, index) in data.jsonItems" :key="index">
-                <el-button type="text" @click="configJson(item)">编辑【{{ item.title }}】</el-button>
+                <el-button type="primary" text @click="configJson(item)">编辑【{{ item.title }}】</el-button>
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -114,6 +114,7 @@ import { Batch } from 'tms-vue3'
 import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiDoc from '@/apis/document'
+import { getLocalToken } from '@/global'
 
 import facStore from '@/store'
 import { openDocEditor, openConfigJsonEditor, openSelectConditionEditor } from '@/components/editor'
@@ -272,8 +273,8 @@ const removeDocument = (document: any) => {
 }
 
 const downLoadFile = (file: any) => {
-  //const access_token = this.$getToken()
-  //window.open(`${file.url}?access_token=${access_token}`)
+  const access_token = getLocalToken()
+  window.open(`${file.url}?access_token=${access_token}`)
 }
 
 const changeDocPage = (page: number) => {
