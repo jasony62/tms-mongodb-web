@@ -26,8 +26,8 @@
           <el-table-column prop="description" label="说明"></el-table-column>
           <el-table-column label="操作" width="120">
             <template #default="scope">
-              <el-button type="text" size="small" @click="editDb(scope.row, scope.$index)">修改</el-button>
-              <el-button type="text" size="small" @click="removeDb(scope.row)">删除</el-button>
+              <el-button type="primary" text size="small" @click="editDb(scope.row, scope.$index)">修改</el-button>
+              <el-button type="primary" text size="small" @click="removeDb(scope.row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -44,9 +44,9 @@
         <el-table-column prop="description" label="说明"></el-table-column>
         <el-table-column label="操作" width="150">
           <template #default="scope">
-            <el-button type="text" size="small" @click="editSchema(scope.row, scope.$index, true)">复制</el-button>
-            <el-button type="text" size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
-            <el-button type="text" size="small" @click="removeSchema(scope.row)">删除</el-button>
+            <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index, true)">复制</el-button>
+            <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
+            <el-button type="primary" text size="small" @click="removeSchema(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -56,9 +56,9 @@
         <el-table-column prop="description" label="说明"></el-table-column>
         <el-table-column label="操作" width="120">
           <template #default="scope">
-            <el-button type="text" size="small" @click="editSchema(scope.row, scope.$index, true)">复制</el-button>
-            <el-button type="text" size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
-            <el-button type="text" size="small" @click="removeSchema(scope.row)">删除</el-button>
+            <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index, true)">复制</el-button>
+            <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
+            <el-button type="primary" text size="small" @click="removeSchema(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -68,9 +68,9 @@
         <el-table-column prop="description" label="说明"></el-table-column>
         <el-table-column label="操作" width="120">
           <template #default="scope">
-            <el-button type="text" size="small" @click="editSchema(scope.row, scope.$index, true)">复制</el-button>
-            <el-button type="text" size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
-            <el-button type="text" size="small" @click="removeSchema(scope.row)">删除</el-button>
+            <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index, true)">复制</el-button>
+            <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
+            <el-button type="primary" text size="small" @click="removeSchema(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -78,7 +78,7 @@
         <el-table-column prop="name" label="名称"></el-table-column>
         <el-table-column label="操作" width="120">
           <template #default="scope">
-            <el-button type="text" size="small" @click="removeTag(scope.row)">删除</el-button>
+            <el-button type="primary" text size="small" @click="removeTag(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -92,8 +92,8 @@
           <el-table-column prop="secondary.cl.label" label="从集合名称"></el-table-column>
           <el-table-column label="操作" width="120">
             <template #default="scope">
-              <el-button type="text" size="small" @click="handleSyncReplica(scope.row)">同步</el-button>
-              <el-button type="text" size="small" @click="removeReplica(scope.row)">删除</el-button>
+              <el-button type="primary" text size="small" @click="handleSyncReplica(scope.row)">同步</el-button>
+              <el-button type="primary" text size="small" @click="removeReplica(scope.row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -109,11 +109,11 @@
     <template v-slot:right>
       <tms-flex direction="column" align-items="flex-start">
         <el-button @click="createDb" v-if="activeTab === 'database'">添加数据库</el-button>
-        <el-button @click="createSchema('document')" v-if="activeTab === 'docSchemas'">添加文档列定义</el-button>
-        <el-button @click="createSchema('db')" v-if="activeTab === 'dbSchemas'">添加数据库属性定义</el-button>
-        <el-button @click="createSchema('collection')" v-if="activeTab === 'colSchemas'">添加集合属性定义</el-button>
-        <el-button @click="createTag" v-if="activeTab === 'tag'">添加标签</el-button>
-        <el-button @click="createReplica" v-if="activeTab === 'replica'">配置复制关系</el-button>
+        <el-button @click="createSchema('document')" v-else-if="activeTab === 'docSchemas'">添加文档列定义</el-button>
+        <el-button @click="createSchema('db')" v-else-if="activeTab === 'dbSchemas'">添加数据库属性定义</el-button>
+        <el-button @click="createSchema('collection')" v-else-if="activeTab === 'colSchemas'">添加集合属性定义</el-button>
+        <el-button @click="createTag" v-else-if="activeTab === 'tag'">添加标签</el-button>
+        <el-button @click="createReplica" v-else-if="activeTab === 'replica'">配置复制关系</el-button>
       </tms-flex>
     </template>
   </tms-frame>

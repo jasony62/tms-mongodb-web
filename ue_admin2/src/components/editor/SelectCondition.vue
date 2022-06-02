@@ -14,8 +14,8 @@
       </el-form-item>
     </el-form>
     <div v-if="schema.groupable !== false">
-      <el-table id="tables" ref="multipleTableRef" :data="condition.selectResult" tooltip-effect="dark" :border="true"
-        max-height="270" @selection-change="handleSelectionChange">
+      <el-table id="tables" ref="multipleTableRef" :data="groups" tooltip-effect="dark" :border="true" height="270"
+        @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55">
         </el-table-column>
         <el-table-column :label="'全选(' + total + ')'">
@@ -53,7 +53,7 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
 import type { ElTable } from 'element-plus'
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, nextTick } from 'vue';
 import apiDoc from '@/apis/document'
 
 interface Group {
@@ -113,7 +113,7 @@ let condition = reactive({
     filter: {} as { [k: string]: any },
     orderBy: {} as { [k: string]: any }
   },
-  selectResult: [] as any[],
+
   multipleSelection: [] as any[],
 })
 let timer: any = null
@@ -125,10 +125,11 @@ let criterias = reactive({
   filter: {} as { [k: string]: any },
   orderBy: {} as { [k: string]: any }
 })
+let groups = reactive([] as Group[])
 
 const isAllElection = computed(() => {
-  const { multipleSelection, selectResult } = condition
-  return multipleSelection.length === selectResult.length
+  const { multipleSelection } = condition
+  return multipleSelection.length === groups.length
 })
 const total = computed(() => {
   if (condition.multipleSelection.length) {
@@ -218,7 +219,7 @@ const updateByColumn = (isLoadMore: boolean) => {
     ? criterias.orderBy
     : condition.rule.orderBy
 
-  listByColumn?.(
+  return listByColumn?.(
     props.bucket,
     props.db,
     props.cl,
@@ -227,7 +228,7 @@ const updateByColumn = (isLoadMore: boolean) => {
     page.size,
     { ...criterias.filter, ...condition.rule.filter },
     orderBy
-  ).then((matchRes: any[]) => {
+  ).then((matchRes: Group[]) => {
     if (isLoadMore) {
       const message =
         matchRes.length > 0
@@ -235,15 +236,15 @@ const updateByColumn = (isLoadMore: boolean) => {
           : '全部数据加载完毕'
       ElMessage.success({ message })
       if (matchRes.length) {
-        matchRes.forEach((row: any) => {
-          condition.selectResult.push(row)
+        matchRes.forEach((row: Group) => {
+          groups.push(row)
           multipleTableRef.value!.toggleRowSelection(row, true)
         })
-        condition.multipleSelection = condition.selectResult
+        condition.multipleSelection = groups
       }
     } else {
-      condition.selectResult = matchRes
-      condition.multipleSelection = condition.selectResult
+      groups.push(...matchRes)
+      condition.multipleSelection = groups
       multipleTableRef.value!.toggleAllSelection()
     }
   })
@@ -293,7 +294,17 @@ onMounted(async () => {
       condition.rule = result.rule
     }
   }
-
   updateByColumn(false)
+  nextTick(() => {
+    const $wrap = multipleTableRef.value!.$refs.scrollBarRef.wrap$
+    $wrap.addEventListener('scroll', () => {
+      const scrollDistance =
+        $wrap.scrollHeight - $wrap.scrollTop - $wrap.clientHeight
+      if (scrollDistance <= 0) {
+        console.log($wrap.scrollHeight, $wrap.scrollTop, $wrap.clientHeight)
+        loadMore()
+      }
+    })
+  })
 })
 </script>
