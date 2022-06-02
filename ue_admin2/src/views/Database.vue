@@ -26,8 +26,8 @@
           <el-table-column prop="description" label="说明"></el-table-column>
           <el-table-column fixed="right" label="操作" width="120">
             <template #default="scope">
-              <el-button @click="editCollection(scope.row, scope.$index)" type="text" size="small">修改</el-button>
-              <el-button @click="removeCollection(scope.row)" type="text" size="small">删除</el-button>
+              <el-button @click="editCollection(scope.row, scope.$index)" type="primary" text size="small">修改</el-button>
+              <el-button @click="removeCollection(scope.row)" type="primary" text size="small">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
