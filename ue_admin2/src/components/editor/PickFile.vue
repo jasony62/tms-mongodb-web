@@ -23,6 +23,7 @@
 
 <script setup lang="ts">
 import { PropType, ref, onMounted, nextTick } from 'vue'
+import { parseLocation } from '@/global'
 
 const props = defineProps({
   innerVisible: { default: true },
@@ -52,7 +53,8 @@ onMounted(() => {
       'message',
       (e) => {
         const origin = event.origin || event.originalEvent.origin
-        if (origin === 'http://localhost:8080') {
+        const locationObj =  parseLocation(props.url)     
+        if (origin === locationObj.origin) {
           closeDialog(e.data)
         }
       },

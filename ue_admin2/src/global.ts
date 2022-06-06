@@ -29,3 +29,20 @@ export function getLocalToken(): string | null {
     return getCookie('access_token')
   }
 }
+
+export function parseLocation(url: string): any | null {
+  if (!url) return null
+  let aEl = window.document.createElement("a");
+  aEl.href = url
+  return {
+    href: aEl.href,
+    origin: aEl.origin || aEl.protocol + "//" + aEl.host,
+    protocol: aEl.protocol,
+    host: aEl.host,
+    hostname: aEl.hostname,
+    port: aEl.port,
+    pathname: aEl.pathname,
+    search: aEl.search,
+    hash: aEl.hash
+  };
+}
