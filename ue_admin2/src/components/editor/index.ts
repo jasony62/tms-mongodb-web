@@ -256,7 +256,7 @@ export function openPickFileEditor(options: PickFileEditorOptions) {
     onClose: (newJson: any) => {
       if (newJson && onBeforeClose) onBeforeClose(newJson)
       app.unmount()
-      document.body.removeChild(root)
+      if (document.body.contains(root)) document.body.removeChild(root)
     },
   })
   app.use(ElementPlus).mount(root)
