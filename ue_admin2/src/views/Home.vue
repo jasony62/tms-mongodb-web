@@ -24,10 +24,12 @@
           </el-table-column>
           <el-table-column prop="title" label="名称" width="180"></el-table-column>
           <el-table-column prop="description" label="说明"></el-table-column>
-          <el-table-column label="操作" width="120">
+          <el-table-column label="操作" width="120" >
             <template #default="scope">
-              <el-button type="primary" text size="small" @click="editDb(scope.row, scope.$index)">修改</el-button>
-              <el-button type="primary" text size="small" @click="removeDb(scope.row)">删除</el-button>
+              <div class="flex">
+                <el-button type="primary" text size="small" @click="editDb(scope.row, scope.$index)">修改</el-button>
+                <el-button type="primary" text size="small" @click="removeDb(scope.row)">删除</el-button>
+              </div>
             </template>
           </el-table-column>
         </el-table>
@@ -42,11 +44,13 @@
         :max-height="dymaicHeight">
         <el-table-column prop="title" label="名称" width="180"></el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
-        <el-table-column label="操作" width="150">
+        <el-table-column label="操作" width="180">
           <template #default="scope">
-            <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index, true)">复制</el-button>
-            <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
-            <el-button type="primary" text size="small" @click="removeSchema(scope.row)">删除</el-button>
+            <div class="flex">
+              <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index, true)">复制</el-button>
+              <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
+              <el-button type="primary" text size="small" @click="removeSchema(scope.row)">删除</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -54,11 +58,13 @@
         :max-height="dymaicHeight">
         <el-table-column prop="title" label="名称" width="180"></el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
-        <el-table-column label="操作" width="120">
+        <el-table-column label="操作" width="180">
           <template #default="scope">
-            <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index, true)">复制</el-button>
-            <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
-            <el-button type="primary" text size="small" @click="removeSchema(scope.row)">删除</el-button>
+            <div class="flex">
+              <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index, true)">复制</el-button>
+              <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
+              <el-button type="primary" text size="small" @click="removeSchema(scope.row)">删除</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -66,11 +72,13 @@
         :max-height="dymaicHeight">
         <el-table-column prop="title" label="名称" width="180"></el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
-        <el-table-column label="操作" width="120">
+        <el-table-column label="操作" width="180">
           <template #default="scope">
-            <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index, true)">复制</el-button>
-            <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
-            <el-button type="primary" text size="small" @click="removeSchema(scope.row)">删除</el-button>
+            <div class="flex">
+              <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index, true)">复制</el-button>
+              <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
+              <el-button type="primary" text size="small" @click="removeSchema(scope.row)">删除</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -92,8 +100,10 @@
           <el-table-column prop="secondary.cl.label" label="从集合名称"></el-table-column>
           <el-table-column label="操作" width="120">
             <template #default="scope">
-              <el-button type="primary" text size="small" @click="handleSyncReplica(scope.row)">同步</el-button>
-              <el-button type="primary" text size="small" @click="removeReplica(scope.row)">删除</el-button>
+              <div class="flex">
+                <el-button type="primary" text size="small" @click="handleSyncReplica(scope.row)">同步</el-button>
+                <el-button type="primary" text size="small" @click="removeReplica(scope.row)">删除</el-button>
+              </div>
             </template>
           </el-table-column>
         </el-table>
