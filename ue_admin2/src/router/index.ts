@@ -7,6 +7,7 @@ import Database from '../views/Database.vue'
 import Collection from '../views/Collection.vue'
 import Register from '../views/Register.vue'
 import Smscode from '../views/Smscode.vue'
+import Invite from '../views/Invite.vue'
 
 const VITE_BASE_URL =
   typeof import.meta.env.VITE_BASE_URL === 'string'
@@ -29,7 +30,12 @@ const routes: RouteRecordRaw[] = [
     component: Bucket,
   },
   {
-    path: `${BucketPart}/smscode`,
+    path: '/invite',
+    name: 'invite',
+    component: Invite,
+  },
+  {
+    path: `/smscode`,
     name: 'smscode',
     component: Smscode,
     props: true,
@@ -41,7 +47,7 @@ const routes: RouteRecordRaw[] = [
     props: true,
   },
   {
-    path: `${BucketPart}/register`,
+    path: `/register`,
     name: 'register',
     component: Register,
     props: true,
