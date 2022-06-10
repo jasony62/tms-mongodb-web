@@ -234,11 +234,15 @@ export function openDocEditor(options: DocEditorOptions) {
 export function openBucketEditor(options: BucketEditorOptions) {
   const root = document.createElement('div')
   document.body.appendChild(root)
-  const { mode, bucket, onBeforeClose } = options
+  const {
+    mode,
+    bucket,
+    onBeforeClose
+  } = options
   let app = createApp(BucketEditor, {
     mode,
     bucket,
-    onClose: (newCl: any) => {
+    onClose: (newCl?: any) => {
       if (newCl && onBeforeClose) onBeforeClose(newCl)
       app.unmount()
       document.body.removeChild(root)

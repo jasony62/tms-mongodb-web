@@ -19,10 +19,10 @@
   </el-dialog>
 </template>
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, defineEmits } from 'vue';
 import apiBkt from '@/apis/bucket'
-
-const emit = defineEmits(['submit'])
+import { ElMessage } from 'element-plus'
+//const emit = defineEmits(['submitBucket'])
 
 const props = defineProps({
   dialogVisible: { default: true },
@@ -47,15 +47,19 @@ const onSubmit = () => {
     apiBkt
       .update(bucket.name, bucket)
       .then((newBucket: any) => {
-        emit('submit', newBucket)
+        ElMessage({ message: '更新成功', type: 'success' })
         closeDialog(newBucket)
+      }, (err: any) => {
+        ElMessage({ message: err.msg || '失败', type: 'error' })
       })
   } else if (mode === 'create') {
     apiBkt
       .create(bucket)
       .then((newBucket: any) => {
-        emit('submit', newBucket)
+        ElMessage({ message: '创建成功', type: 'success' })
         closeDialog(newBucket)
+      }, (err: any) => {
+        ElMessage({ message: err.msg || '失败', type: 'error' })
       })
   }
 }
@@ -68,8 +72,8 @@ const closeDialog = (newDb?: any) => {
 const onBeforeClose = () => {
   closeDialog(null)
 }
-// const open = (newMode, bucket) => {
-//   mode = newMode
+// const open = (newMode: string, bucket: any) => {
+//   mode.value = newMode
 //   if (mode === 'update') Object.assign(this.bucket, bucket)
 //   this.$mount()
 //   document.body.appendChild(el.value)

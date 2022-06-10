@@ -112,9 +112,13 @@ class Bucket extends BucketBase {
     const bucketName = this.request.query.bucket
     let info = this.request.body
     let { _id, name, ...updatedInfo } = info
+    const bucketInfo = await this.clBucket.findOne({ name: bucketName })
+    if (this.client.id !== bucketInfo.creator) return new ResultFault('没有权限')
     return this.clBucket
       .updateOne({ name: bucketName }, { $set: updatedInfo })
-      .then(() => new ResultData(info))
+      .then((res) => {
+        return new ResultData(info)
+      })
   }
   /**
    * @swagger
@@ -138,6 +142,8 @@ class Bucket extends BucketBase {
    */
   async remove() {
     const { bucket: bucketName } = this.request.query
+    const bucketInfo = await this.clBucket.findOne({ name: bucketName })
+    if (this.client.id !== bucketInfo.creator) return new ResultFault('没有权限')
 
     return this.clBucket
       .deleteOne({ name: bucketName, creator: this.client.id })
@@ -163,7 +169,7 @@ class Bucket extends BucketBase {
    */
   async list() {
     const tmsBuckets = await this.clBucket
-      .find({ creator: this.client.id })
+      .find({ $or: [{ creator: this.client.id }, { 'coworkers.id': this.client.id }] })
       .toArray()
 
     return new ResultData(tmsBuckets)
