@@ -9,3 +9,5 @@
 /tests/
 /patch/
 /volumes/
+
+.pnpm-debug.log

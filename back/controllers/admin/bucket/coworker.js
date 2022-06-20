@@ -2,7 +2,9 @@ const { ResultData, ResultFault } = require('tms-koa')
 const Base = require('../../base')
 const { nanoid } = require('nanoid')
 const ObjectId = require('mongodb').ObjectId
-
+const log4js = require('log4js')
+const moment = require('moment')
+const logger = log4js.getLogger('tms-mongodb-web')
 /** 空间用户管理控制器 */
 class Coworker extends Base {
   constructor(...args) {
@@ -10,9 +12,12 @@ class Coworker extends Base {
   }
   /** 执行方法调用前检查 */
   async tmsBeforeEach() {
+    const { url } = this.request
     if (!this.client)
       return new ResultFault('只有通过认证的用户才可以执行该操作')
-
+    if (url.split('?')[0].split('/').pop() === 'accept') return true
+    let result = await super.tmsBeforeEach()
+    if (true !== result) return result
     return true
   }
   /**
@@ -46,7 +51,6 @@ class Coworker extends Base {
    */
   async invite() {
     if (!this.bucket) return new ResultFault('没有指定邀请的空间')
-
     const { nickname } = this.request.body
     if (!nickname) return new ResultFault('没有指定被邀请用户的昵称')
 
@@ -56,9 +60,12 @@ class Coworker extends Base {
       name: this.bucket.name,
       'coworkers.nickname': nickname,
     })
+    const coworkerInfo = await clBkt.findOne({
+      name: this.bucket.name
+    })
+    if (this.client.id !== coworkerInfo.creator) return new ResultFault(`没有权限`)
     if (coworkerBucket)
       return new ResultFault(`用户【${nickname}】已经是授权用户，不能重复邀请`)
-
     const clLog = this.mongoClient
       .db('tms_admin')
       .collection('bucket_invite_log')
@@ -149,6 +156,7 @@ class Coworker extends Base {
 
     const { code, nickname } = this.request.body
     if (!code || !nickname) return new ResultFault('没有提供又有效参数')
+    if (nickname !== (this.client && this.client.id)) return new ResultFault('用户信息不匹配')
 
     const invite = await clLog.findOne({
       bucket,
@@ -165,24 +173,25 @@ class Coworker extends Base {
     if (invite.acceptAt)
       return new ResultFault('邀请码已经使用，不允许重复使用')
 
+    const current = moment(new Date(Date.now() + 3600 * 8 * 1000))
+    let accept_time = current.format('YYYY-MM-DD HH:mm:ss')
     const invitee = this.client.id // 被邀请人
-
     /*加入bucket授权列表*/
     const clBucket = this.mongoClient.db('tms_admin').collection('bucket')
     const coworkerQuery = {
       name: bucket,
-      'coworkers.id': invitee,
+      'coworkers.id': invitee
     }
     const coworkerBucket = await clBucket.findOne(coworkerQuery)
     if (coworkerBucket) {
       await clBucket.updateOne(coworkerQuery, {
-        $set: { 'coworkers.$.nickname': nickname },
+        $set: { 'coworkers.$.nickname': nickname, 'coworkers.$.change_time': accept_time },
       })
     } else {
       await clBucket.updateOne(
         { name: bucket },
         {
-          $push: { coworkers: { id: invitee, nickname } },
+          $push: { coworkers: { id: invitee, nickname, accept_time: accept_time } },
         }
       )
     }
@@ -190,7 +199,7 @@ class Coworker extends Base {
     return clLog
       .updateOne(
         { _id: ObjectId(invite._id) },
-        { $set: { invitee, acceptAt: new Date(Date.now() + 3600 * 8 * 1000) } }
+        { $set: { invitee, acceptAt: accept_time } }
       )
       .then(() => new ResultData('ok'))
   }

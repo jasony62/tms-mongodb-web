@@ -72,7 +72,6 @@ class CollectionBase extends Base {
       .find(query, options)
       .sort({ _id: -1 })
       .toArray()
-
     if (typeof skip === 'number') {
       let total = await this.clMongoObj.countDocuments(query)
       return new ResultData({ collections: tmwCls, total })
@@ -85,11 +84,10 @@ class CollectionBase extends Base {
    */
   async create() {
     const info = this.request.body
-
+    if (this.bucket) info.bucket = this.bucket.name
     if (!info.name) return new ResultFault('集合名称不允许为空')
 
     const existDb = this.reqDb
-
     let [flag, result] = await this.clHelper.createCl(existDb, info)
 
     if (!flag) {

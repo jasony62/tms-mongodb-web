@@ -1,19 +1,8 @@
 <template>
-  <el-dialog
-    title="文档"
-    v-model="dialogVisible"
-    :fullscreen="true"
-    :destroy-on-close="true"
-    :close-on-click-modal="true"
-    :before-close="onBeforeClose"
-  >
-    <tms-json-doc
-      ref="jsonDocEditor"
-      :schema="collection.schema.body"
-      :value="document"
-      :on-file-select="onFileSelect"
-      :on-file-download="onFileDownload"
-    ></tms-json-doc>
+  <el-dialog title="文档" v-model="dialogVisible" :fullscreen="true" :destroy-on-close="true" :close-on-click-modal="true"
+    :before-close="onBeforeClose">
+    <tms-json-doc ref="jsonDocEditor" :schema="collection.schema.body" :value="document" :on-file-select="onFileSelect"
+      :on-file-download="onFileDownload"></tms-json-doc>
     <template #footer>
       <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button @click="onBeforeClose">取消</el-button>
@@ -52,7 +41,7 @@ const props = defineProps({
   dbName: { type: String, required: true },
   collection: { type: Object, required: true },
   document: { type: Object as PropType<TMWDocument> },
-  onClose: { type: Function, default: (newDoc: any) => {} },
+  onClose: { type: Function, default: (newDoc: any) => { } },
 })
 
 const { bucketName, dbName, collection, document, onClose } = props
@@ -75,7 +64,7 @@ const onFileSelect = async (params: any) => {
     /**这里需要返回文件属性中items.properties中定义的内容*/
     openPickFileEditor({
       url: openUrl,
-      onBeforeClose: (newJson?: any) => {        
+      onBeforeClose: (newJson?: any) => {
         resolve({
           name: newJson.name,
           url: newJson.url,
@@ -146,7 +135,7 @@ const onSubmit = () => {
     if (Object.keys(newDoc).length === 0) {
       closeDialog(null)
       return false
-    } 
+    }
     apiDoc
       .create(bucketName, dbName, collection.name, newDoc)
       .then((newDoc: any) => {
