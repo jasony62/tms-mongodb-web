@@ -1,20 +1,56 @@
 <template>
-  <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <el-input placeholder="自定义选中列的值，不填则值为空" v-model="input" class="input-with-select">
-      <el-select v-model="select" slot="prepend" placeholder="选择列" @change="handleSelect" clearable filterable>
-        <el-option v-for="(s, k) in collection.schema.body.properties" :key="k" :prop="k" :label="s.title" :value="k"></el-option>
+  <el-dialog
+    :visible.sync="dialogVisible"
+    :destroy-on-close="destroyOnClose"
+    :close-on-click-modal="closeOnClickModal"
+  >
+    <el-input
+      placeholder="自定义选中列的值，不填则值为空"
+      v-model="input"
+      class="input-with-select"
+    >
+      <el-select
+        v-model="select"
+        slot="prepend"
+        placeholder="选择列"
+        @change="handleSelect"
+        clearable
+        filterable
+      >
+        <el-option
+          v-for="(s, k) in collection.schema.body.properties"
+          :key="k"
+          :prop="k"
+          :label="s.title"
+          :value="k"
+        ></el-option>
       </el-select>
     </el-input>
-    <div style="margin:10px 0" v-if="
+    <div
+      style="margin: 10px 0"
+      v-if="
         select &&
-          collection.schema.body.properties[select].type === 'string' &&
-          collection.schema.body.properties[select].hasOwnProperty('enum')
-      ">
+        collection.schema.body.properties[select].type === 'string' &&
+        collection.schema.body.properties[select].hasOwnProperty('enum')
+      "
+    >
       <span>请选择以下文字中的内容，填入输入框内： </span>
-      <span style="margin-right:20px" v-for="(s, k) in collection.schema.body.properties[select].enum" :key="k">{{ s.label }}</span>
+      <span
+        style="margin-right: 20px"
+        v-for="(s, k) in collection.schema.body.properties[select].enum"
+        :key="k"
+        >{{ s.label }}</span
+      >
     </div>
     <div class="tmw-tags">
-      <el-tag v-for="tag in tags" :key="tag.id" closable :disable-transitions="false" @close="removeTag(tag)">{{ tag.label }}:{{ tag.value }}</el-tag>
+      <el-tag
+        v-for="tag in tags"
+        :key="tag.id"
+        closable
+        :disable-transitions="false"
+        @close="removeTag(tag)"
+        >{{ tag.label }}:{{ tag.value }}</el-tag
+      >
     </div>
     <div slot="footer" class="dialog-footer">
       <el-button type="success" @click="handleButton">添加</el-button>
@@ -25,18 +61,13 @@
 <script>
 import Vue from 'vue'
 import { Dialog, Input, Select, Option, Button, Tag, Message } from 'element-ui'
-Vue.use(Dialog)
-  .use(Input)
-  .use(Select)
-  .use(Option)
-  .use(Button)
-  .use(Tag)
+Vue.use(Dialog).use(Input).use(Select).use(Option).use(Button).use(Tag)
 import utils from '../tms/utils'
 
 export default {
   name: 'ColumnValueEditor',
   props: {
-    dialogVisible: { default: true }
+    dialogVisible: { default: true },
   },
   data() {
     return {
@@ -47,7 +78,7 @@ export default {
       input: '',
       column: {},
       tags: [],
-      plugins: []
+      plugins: [],
     }
   },
   methods: {
@@ -62,12 +93,12 @@ export default {
       }
       this.$set(this.column, this.select, this.input.replace(/^\s+|\s+$/g, ''))
       if (this.tags.length) {
-        this.tags.forEach(tag => {
+        this.tags.forEach((tag) => {
           if (tag && tag.id === this.select) {
             tag.value = this.input
           }
         })
-        if (this.tags.every(ele => ele.id !== this.select)) {
+        if (this.tags.every((ele) => ele.id !== this.select)) {
           this.addColumn()
         }
       } else {
@@ -78,7 +109,7 @@ export default {
       this.tags.push({
         id: this.select,
         label: this.collection.schema.body.properties[this.select].title,
-        value: this.input
+        value: this.input,
       })
       this.select = ''
       this.input = ''
@@ -99,7 +130,7 @@ export default {
       let validate = true
       if (this.plugins.length) {
         validate = this.plugins
-          .map(item => {
+          .map((item) => {
             const result = utils[item](this.collection.schema.body, this.column)
             if (result.msg === 'success') {
               this.column = result.data
@@ -108,23 +139,29 @@ export default {
               return false
             }
           })
-          .every(ele => ele === true)
+          .every((ele) => ele === true)
       }
       if (validate) {
         const properties = this.collection.schema.body.properties
+        if (JSON.stringify(this.column) === '{}') {
+          Message.warning({
+            message: '请先添加要修改的列',
+          })
+          return false
+        }
         for (let [key, val] of Object.entries(this.column)) {
           if (
             properties[key].type === 'string' &&
             properties[key].hasOwnProperty('enum')
           ) {
-            let values = properties[key].enum.map(item => item.label)
+            let values = properties[key].enum.map((item) => item.label)
             if (val !== '' && !values.includes(val)) {
               Message.info({
-                message: '请输入“' + properties[key].title + '”列正确的选值'
+                message: '请输入“' + properties[key].title + '”列正确的选值',
               })
               return false
             }
-            properties[key].enum.forEach(item => {
+            properties[key].enum.forEach((item) => {
               if (item.label == val) this.column[key] = item.value
             })
           }
@@ -138,7 +175,7 @@ export default {
       )
       if (!this.collection.schema) {
         this.collection.schema = {
-          body: { properties: { _id: { title: 'id' } } }
+          body: { properties: { _id: { title: 'id' } } },
         }
       }
       if (process.env.VUE_APP_FRONT_BATCHEDITOR) {
@@ -161,13 +198,13 @@ export default {
       )
       this.$mount()
       document.body.appendChild(this.$el)
-      return new Promise(resolve => {
-        this.$on('submit', column => {
+      return new Promise((resolve) => {
+        this.$on('submit', (column) => {
           this.dialogVisible = false
           resolve(column)
         })
       })
-    }
-  }
+    },
+  },
 }
 </script>

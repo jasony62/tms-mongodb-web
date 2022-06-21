@@ -60,7 +60,7 @@ tms-mongo-web 是一个使用 JavaScript 搭建起来的轻量应用。
 
   注：当需要支持新的数据类型时，应先在 tms-vue-ui 的 json-schema 中增加数据类型，然后在 tms-vue-ui 的 json-doc 中对需要的控件添加或优化。而后还要注意该类型的数据，在表格展示和筛选中的逻辑优化。
 
-- 支持对数据增删改查、批量复制、批量迁移的操作
+- 支持对数据增删改查、批量复制、批量迁移、批量修改、批量删除的操作
 
 - 支持通过插件扩展系统功能，具体文档参见[插件机制 2](./doc/插件机制2.md)
 
@@ -115,7 +115,7 @@ _注：想用 docker 快速方便的启动应用，建议新建一个名为 dock
   |ue_admin |1、cnpm i，安装依赖包；2、添加.env.development.local，可在本地自定义某些变量的值 |npm run serve| |
   |ue_mongo |1、cnpm i，安装依赖包；2、添加.env.development.local，可在本地自定义某些变量的值 |npm run serve| |
 
-访问管理界面，默认用户名口令 root/root
+访问管理界面，默认用户名口令：root/root
 
 > http://localhost:4082/admin
 
