@@ -7,7 +7,7 @@ import Database from '../views/Database.vue'
 import Collection from '../views/Collection.vue'
 import Register from '../views/Register.vue'
 import Smscode from '../views/Smscode.vue'
-import Invite from '../views/Invite.vue'
+import Invite from '../views/Invite2.vue'
 
 const VITE_BASE_URL =
   typeof import.meta.env.VITE_BASE_URL === 'string'
