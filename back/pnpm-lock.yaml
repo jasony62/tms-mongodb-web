@@ -1,6 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@log4js-node/log4js-api': ^1.0.2
   axios: ^0.26.1
   crypto-js: ^4.1.1
   glob: ^8.0.1
@@ -10,11 +11,12 @@ specifiers:
   mongo-escape: ^2.0.6
   mongodb: ^3.7.3
   nanoid: ^3.1.4
-  redis: ^4.0.6
+  redis: ^3.1.2
   tms-koa: ^0.0.82
   tms-koa-account: ^0.0.7
 
 dependencies:
+  '@log4js-node/log4js-api': 1.0.2
   axios: 0.26.1
   crypto-js: 4.1.1
   glob: 8.0.3
@@ -24,9 +26,9 @@ dependencies:
   mongo-escape: 2.0.6
   mongodb: 3.7.3
   nanoid: 3.3.4
-  redis: 4.1.0
-  tms-koa: 0.0.82_mongodb@3.7.3+redis@4.1.0
-  tms-koa-account: 0.0.7_mongodb@3.7.3+redis@4.1.0
+  redis: 3.1.2
+  tms-koa: 0.0.82_mongodb@3.7.3+redis@3.1.2
+  tms-koa-account: 0.0.7_mongodb@3.7.3+redis@3.1.2
 
 packages:
 
@@ -87,55 +89,6 @@ packages:
 
   /@log4js-node/log4js-api/1.0.2:
     resolution: {integrity: sha512-6SJfx949YEWooh/CUPpJ+F491y4BYJmknz4hUN1+RHvKoUEynKbRmhnwbk/VLmh4OthLLDNCyWXfbh4DG1cTXA==}
-    dev: false
-
-  /@redis/bloom/1.0.2_@redis+client@1.1.0:
-    resolution: {integrity: sha512-EBw7Ag1hPgFzdznK2PBblc1kdlj5B5Cw3XwI9/oG7tSn85/HKy3X9xHy/8tm/eNXJYHLXHJL/pkwBpFMVVefkw==}
-    peerDependencies:
-      '@redis/client': ^1.0.0
-    dependencies:
-      '@redis/client': 1.1.0
-    dev: false
-
-  /@redis/client/1.1.0:
-    resolution: {integrity: sha512-xO9JDIgzsZYDl3EvFhl6LC52DP3q3GCMUer8zHgKV6qSYsq1zB+pZs9+T80VgcRogrlRYhi4ZlfX6A+bHiBAgA==}
-    engines: {node: '>=14'}
-    dependencies:
-      cluster-key-slot: 1.1.0
-      generic-pool: 3.8.2
-      yallist: 4.0.0
-    dev: false
-
-  /@redis/graph/1.0.1_@redis+client@1.1.0:
-    resolution: {integrity: sha512-oDE4myMCJOCVKYMygEMWuriBgqlS5FqdWerikMoJxzmmTUErnTRRgmIDa2VcgytACZMFqpAOWDzops4DOlnkfQ==}
-    peerDependencies:
-      '@redis/client': ^1.0.0
-    dependencies:
-      '@redis/client': 1.1.0
-    dev: false
-
-  /@redis/json/1.0.3_@redis+client@1.1.0:
-    resolution: {integrity: sha512-4X0Qv0BzD9Zlb0edkUoau5c1bInWSICqXAGrpwEltkncUwcxJIGEcVryZhLgb0p/3PkKaLIWkjhHRtLe9yiA7Q==}
-    peerDependencies:
-      '@redis/client': ^1.0.0
-    dependencies:
-      '@redis/client': 1.1.0
-    dev: false
-
-  /@redis/search/1.0.6_@redis+client@1.1.0:
-    resolution: {integrity: sha512-pP+ZQRis5P21SD6fjyCeLcQdps+LuTzp2wdUbzxEmNhleighDDTD5ck8+cYof+WLec4csZX7ks+BuoMw0RaZrA==}
-    peerDependencies:
-      '@redis/client': ^1.0.0
-    dependencies:
-      '@redis/client': 1.1.0
-    dev: false
-
-  /@redis/time-series/1.0.3_@redis+client@1.1.0:
-    resolution: {integrity: sha512-OFp0q4SGrTH0Mruf6oFsHGea58u8vS/iI5+NpYdicaM+7BgqBZH8FFvNZ8rYYLrUO/QRqMq72NpXmxLVNcdmjA==}
-    peerDependencies:
-      '@redis/client': ^1.0.0
-    dependencies:
-      '@redis/client': 1.1.0
     dev: false
 
   /@types/component-emitter/1.2.11:
@@ -265,11 +218,6 @@ packages:
     dependencies:
       adler-32: 1.3.1
       crc-32: 1.2.2
-    dev: false
-
-  /cluster-key-slot/1.1.0:
-    resolution: {integrity: sha512-2Nii8p3RwAPiFwsnZvukotvow2rIHM+yQ6ZcBXGHdniadkYGZYiGmkHJIbZPIV9nfv7m/U1IPMVVcAhoWFeklw==}
-    engines: {node: '>=0.10.0'}
     dev: false
 
   /co-body/5.2.0:
@@ -541,11 +489,6 @@ packages:
 
   /function-bind/1.1.1:
     resolution: {integrity: sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==}
-    dev: false
-
-  /generic-pool/3.8.2:
-    resolution: {integrity: sha512-nGToKy6p3PAbYQ7p1UlWl6vSPwfwU6TMSWK7TTu+WUY4ZjyZQGniGGt2oNVvyNSpyZYSB43zMXVLcBm08MTMkg==}
-    engines: {node: '>= 4'}
     dev: false
 
   /get-intrinsic/1.1.1:
@@ -1085,15 +1028,30 @@ packages:
       util-deprecate: 1.0.2
     dev: false
 
-  /redis/4.1.0:
-    resolution: {integrity: sha512-5hvJ8wbzpCCiuN1ges6tx2SAh2XXCY0ayresBmu40/SGusWHFW86TAlIPpbimMX2DFHOX7RN34G2XlPA1Z43zg==}
+  /redis-commands/1.7.0:
+    resolution: {integrity: sha512-nJWqw3bTFy21hX/CPKHth6sfhZbdiHP6bTawSgQBlKOVRG7EZkfHbbHwQJnrE4vsQf0CMNE+3gJ4Fmm16vdVlQ==}
+    dev: false
+
+  /redis-errors/1.2.0:
+    resolution: {integrity: sha512-1qny3OExCf0UvUV/5wpYKf2YwPcOqXzkwKKSmKHiE6ZMQs5heeE/c8eXK+PNllPvmjgAbfnsbpkGZWy8cBpn9w==}
+    engines: {node: '>=4'}
+    dev: false
+
+  /redis-parser/3.0.0:
+    resolution: {integrity: sha512-DJnGAeenTdpMEH6uAJRK/uiyEIH9WVsUmoLwzudwGJUwZPp80PDBWPHXSAGNPwNvIXAbe7MSUB1zQFugFml66A==}
+    engines: {node: '>=4'}
     dependencies:
-      '@redis/bloom': 1.0.2_@redis+client@1.1.0
-      '@redis/client': 1.1.0
-      '@redis/graph': 1.0.1_@redis+client@1.1.0
-      '@redis/json': 1.0.3_@redis+client@1.1.0
-      '@redis/search': 1.0.6_@redis+client@1.1.0
-      '@redis/time-series': 1.0.3_@redis+client@1.1.0
+      redis-errors: 1.2.0
+    dev: false
+
+  /redis/3.1.2:
+    resolution: {integrity: sha512-grn5KoZLr/qrRQVwoSkmzdbw6pwF+/rwODtrOr6vuBRiR/f3rjSTGupbF90Zpqm2oenix8Do6RV7pYEkGwlKkw==}
+    engines: {node: '>=10'}
+    dependencies:
+      denque: 1.5.1
+      redis-commands: 1.7.0
+      redis-errors: 1.2.0
+      redis-parser: 3.0.0
     dev: false
 
   /require-at/1.0.6:
@@ -1268,7 +1226,7 @@ packages:
     resolution: {integrity: sha512-pkY1fj1cKHb2seWDy0B16HeWyczlJA9/WW3u3c4z/NiWDsO3DOU5D7nhTLE9CF0yXv/QZFY7sEJmj24dK+Rrqw==}
     dev: false
 
-  /tms-koa-account/0.0.7_mongodb@3.7.3+redis@4.1.0:
+  /tms-koa-account/0.0.7_mongodb@3.7.3+redis@3.1.2:
     resolution: {integrity: sha512-12f6VB8EswDwethQDRD90vky1vJ+HbHmvOwRMqAnRlYrLqoffHy1NceOCJAlkiX2CPfUMI5MxpR6wUaqhErTIg==}
     peerDependencies:
       redis: 3.1.2
@@ -1287,9 +1245,9 @@ packages:
       nanoid: 3.3.4
       password-validator: 5.3.0
       path: 0.12.7
-      redis: 4.1.0
+      redis: 3.1.2
       svg-captcha: 1.4.0
-      tms-koa: 0.0.82_mongodb@3.7.3+redis@4.1.0
+      tms-koa: 0.0.82_mongodb@3.7.3+redis@3.1.2
     transitivePeerDependencies:
       - bufferutil
       - mongodb
@@ -1301,7 +1259,7 @@ packages:
       - utf-8-validate
     dev: false
 
-  /tms-koa/0.0.82_mongodb@3.7.3+redis@4.1.0:
+  /tms-koa/0.0.82_mongodb@3.7.3+redis@3.1.2:
     resolution: {integrity: sha512-DvCcy+XyRSsR3Bska8dYhDb2L+6cau2A+Ja22oM+NRLoc732oHmxzTB2kd9M27P6BcEAD2WkacBRJHarrZAAFw==}
     peerDependencies:
       mongodb: 4.5.0
@@ -1325,7 +1283,7 @@ packages:
       lodash: 4.17.21
       moment: 2.29.3
       mongodb: 3.7.3
-      redis: 4.1.0
+      redis: 3.1.2
       socket.io: 4.5.1
       swagger-jsdoc: 6.2.1
       uuid: 8.3.2
@@ -1429,10 +1387,6 @@ packages:
       ssf: 0.11.2
       wmf: 1.0.2
       word: 0.3.0
-    dev: false
-
-  /yallist/4.0.0:
-    resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
     dev: false
 
   /yaml/2.0.0-1:
