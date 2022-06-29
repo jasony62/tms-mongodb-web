@@ -48,8 +48,11 @@ const onBeforeClose = () => {
 onMounted(() => {
   nextTick(() => {
     const container = document.getElementById('jsonEditor')
-    editor = new JSONEditor(container, options)
-    editor.set(props.jsonData)
+    if (container) {
+      // @ts-ignore
+      editor = new JSONEditor(container, options)
+      editor.set(props.jsonData)
+    }
   })
 })
 </script>

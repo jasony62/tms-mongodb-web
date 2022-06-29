@@ -5,7 +5,7 @@ type ApiRst = {
   data: { result: any }
 }
 export default {
-  list(bucket: any, { keyword, page, size }: any = {}, proto: any) {
+  list(bucket: any, { keyword, page, size }: any = {}, proto: any = {}) {
     const params = { bucket, keyword, page, size }
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/list`, proto, { params })
