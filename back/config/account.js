@@ -3,8 +3,8 @@ module.exports = {
   mongodb: {
     disabled: false,
     name: 'master',
-    database: 'tms_account',
-    collection: 'account',
+    database: process.env.TMS_ACCOUNT_DBNAME || 'tms_account',
+    collection: process.env.TMS_ACCOUNT_CLNAME || 'account',
     schema: { test: { type: 'string', title: '测试' } },
   },
   redis: {
