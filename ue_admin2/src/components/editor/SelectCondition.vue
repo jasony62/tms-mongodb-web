@@ -296,15 +296,15 @@ onMounted(async () => {
   }
   updateByColumn(false)
   nextTick(() => {
-    const $wrap = multipleTableRef.value!.$refs.scrollBarRef.wrap$
-    $wrap.addEventListener('scroll', () => {
-      const scrollDistance =
-        $wrap.scrollHeight - $wrap.scrollTop - $wrap.clientHeight
-      if (scrollDistance <= 0) {
-        console.log($wrap.scrollHeight, $wrap.scrollTop, $wrap.clientHeight)
-        loadMore()
-      }
-    })
+    // const $wrap = multipleTableRef.value!.$refs.scrollBarRef.wrap$
+    // $wrap.addEventListener('scroll', () => {
+    //   const scrollDistance =
+    //     $wrap.scrollHeight - $wrap.scrollTop - $wrap.clientHeight
+    //   if (scrollDistance <= 0) {
+    //     console.log($wrap.scrollHeight, $wrap.scrollTop, $wrap.clientHeight)
+    //     loadMore()
+    //   }
+    // })
   })
 })
 </script>

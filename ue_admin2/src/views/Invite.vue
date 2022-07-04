@@ -7,13 +7,11 @@
       <el-button @click="acceptInvite" type="primary">加入</el-button>
     </div>
   </div>
-
 </template>
 <script setup lang="ts">
 import apiInvite from '@/apis/invite'
-import { onMounted, reactive, ref, toRaw } from 'vue'
+import { ref } from 'vue'
 const nickname = ref('')
-const bucket = ref('')
 const inviteCode = ref('')
 const acceptInvite = () => {
   const json: any = getUrlParams()

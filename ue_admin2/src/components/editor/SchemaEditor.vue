@@ -62,7 +62,7 @@ const schema = reactive(props.schema)
 const { onClose, bucketName } = props
 
 const activeTab = ref('first')
-const tags = ref([])
+const tags = ref([] as any[])
 
 // 关闭对话框时执行指定的回调方法
 const closeDialog = (newSchema?: any) => {

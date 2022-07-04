@@ -69,8 +69,8 @@
         </el-table-column>
         <el-table-column fixed="right" label="操作" width="180">
           <template #default="scope">
-            <el-button size="small" @click="editDocument(scope.row, scope.$index)">修改</el-button>
-            <el-button size="small" @click="removeDocument(scope.row)">删除</el-button>
+            <el-button type="primary" text size="small" @click="editDocument(scope.row, scope.$index)">修改</el-button>
+            <el-button type="primary" text size="small" @click="removeDocument(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

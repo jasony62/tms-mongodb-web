@@ -123,25 +123,26 @@ const onSubmit = () => {
   }
 
   let newDoc = jsonDocEditor.value?.editing()
-
-  if (document?._id) {
-    apiDoc
-      .update(props.bucketName, dbName, collection.name, document._id, newDoc)
-      .then(() => {
-        emit('submit', newDoc)
-        closeDialog(newDoc)
-      })
-  } else {
-    if (Object.keys(newDoc).length === 0) {
-      closeDialog(null)
-      return false
+  if (newDoc) {
+    if (document?._id) {
+      apiDoc
+        .update(props.bucketName, dbName, collection.name, document._id, newDoc)
+        .then(() => {
+          emit('submit', newDoc)
+          closeDialog(newDoc)
+        })
+    } else {
+      if (Object.keys(newDoc).length === 0) {
+        closeDialog(null)
+        return false
+      }
+      apiDoc
+        .create(bucketName, dbName, collection.name, newDoc)
+        .then((newDoc: any) => {
+          emit('submit', newDoc)
+          closeDialog(newDoc)
+        })
     }
-    apiDoc
-      .create(bucketName, dbName, collection.name, newDoc)
-      .then((newDoc: any) => {
-        emit('submit', newDoc)
-        closeDialog(newDoc)
-      })
   }
 }
 

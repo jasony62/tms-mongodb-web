@@ -18,7 +18,6 @@ function initFunc() {
   let authToken = `Bearer ${token}`
   let rulesObj: any = {
     requestHeaders: new Map([['Authorization', authToken]]),
-    //requestParams:new Map([['access_token', token]]),
     onResultFault: (res: any) => {
       return new Promise((resolve, reject) => {
         ElMessage.error(res.data.msg || '发生业务逻辑错误')

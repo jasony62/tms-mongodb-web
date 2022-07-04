@@ -9,16 +9,16 @@ type DbPayload = { bucket?: string; keyword?: string; size: number }
 export default defineStore('mongodb', {
   state: () => {
     return {
-      buckets: [],
+      buckets: [] as any[],
       dbs: [] as any[],
-      documentSchemas: [],
-      dbSchemas: [],
-      collectionSchemas: [],
-      collections: [] as any,
-      tags: [],
-      documents: [] as any,
-      conditions: [],
-      replicas: [],
+      documentSchemas: [] as any[],
+      dbSchemas: [] as any[],
+      collectionSchemas: [] as any[],
+      collections: [] as any[],
+      tags: [] as any[],
+      documents: [] as any[],
+      conditions: [] as any[],
+      replicas: [] as any[],
     }
   },
   actions: {
@@ -79,23 +79,49 @@ export default defineStore('mongodb', {
     listSchema(payload: { bucket: any; scope: any }) {
       const { bucket, scope } = payload
       return apis.schema.list(bucket, scope).then((schemas: any) => {
-        this[`${scope}Schemas`] = schemas
+        if (scope === 'document') {
+          this.documentSchemas = schemas
+        } else if (scope === 'collection') {
+          this.collectionSchemas = schemas
+        } else if (scope === 'db') {
+          this.dbSchemas = schemas
+        }
         return { schemas }
       })
     },
     appendSchema(payload: { schema: any }) {
       const { schema } = payload
-      this[`${schema.scope}Schemas`].push(schema)
+      if (schema.scope === 'document') {
+        this.documentSchemas.push(schema)
+      } else if (schema.scope === 'collection') {
+        this.collectionSchemas.push(schema)
+      } else if (schema.scope === 'db') {
+        this.dbSchemas.push(schema)
+      }
     },
     updateSchema(payload: { index: any; schema: any }) {
       const { index, schema } = payload
-      this[`${schema.scope}Schemas`].splice(index, 1, schema)
+      if (schema.scope === 'document') {
+        this.documentSchemas.splice(index, 1, schema)
+      } else if (schema.scope === 'collection') {
+        this.collectionSchemas.splice(index, 1, schema)
+      } else if (schema.scope === 'db') {
+        this.dbSchemas.splice(index, 1, schema)
+      }
     },
     removeSchema(playload: { bucket: any; schema: any }) {
       const { bucket, schema } = playload
       return apis.schema.remove(bucket, schema).then(() => {
-        const scopeSchemas = this[`${schema.scope}Schemas`]
-        scopeSchemas.splice(scopeSchemas.indexOf(schema), 1)
+        if (schema.scope === 'document') {
+          this.documentSchemas.splice(this.documentSchemas.indexOf(schema), 1)
+        } else if (schema.scope === 'collection') {
+          this.collectionSchemas.splice(
+            this.collectionSchemas.indexOf(schema),
+            1
+          )
+        } else if (schema.scope === 'db') {
+          this.dbSchemas.splice(this.dbSchemas.indexOf(schema), 1)
+        }
         return { schema }
       })
     },
@@ -292,7 +318,7 @@ export default defineStore('mongodb', {
     },
     synchronizeAll(payload: { bucket: any; params: any }) {
       const { bucket, params } = payload
-      let result = { success: [], error: [] }
+      let result = { success: [] as any[], error: [] as any[] }
       for (const param of params) {
         let transfer = {
           primary: {

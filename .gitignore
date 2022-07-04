@@ -1,4 +1,5 @@
 .DS_Store
+node_modules
 /mongodb/data
 /mongodb-*
 
@@ -11,3 +12,5 @@
 /volumes/
 
 .pnpm-debug.log
+
+docker/standalone/back

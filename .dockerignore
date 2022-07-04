@@ -1,3 +1,7 @@
+/back/config/*.local.js
+/ue_admin2/node_modules/*
+/ue_admin2/.env.*
+/ue_admin2/.env
 /ue_admin/node_modules/*
 /ue_admin/.env.*
 /ue_admin/.env
