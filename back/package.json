@@ -4,9 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "pm2": "pm2 start ecosystem.config.js"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "jasony62",
@@ -23,7 +21,7 @@
     "mongodb": "^3.7.3",
     "nanoid": "^3.1.4",
     "redis": "^3.1.2",
-    "tms-koa": "^0.0.82",
-    "tms-koa-account": "^0.0.7"
+    "tms-koa": "^0.0.84",
+    "tms-koa-account": "^0.0.9"
   }
 }

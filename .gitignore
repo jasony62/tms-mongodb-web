@@ -11,3 +11,5 @@
 /volumes/
 
 .pnpm-debug.log
+
+docker/standalone/back
