@@ -44,7 +44,7 @@ export class ReplicaMap {
    * @param {object} pri
    * @param {object} sec
    */
-  async synchronize(pri, sec, limit) {
+  async synchronize(pri, sec, limits) {
     let dbClient = this.dbClient
     const priSysCl = dbClient.db(pri.db).collection(pri.cl)
     const secSysCl = dbClient.db(sec.db).collection(sec.cl)
@@ -54,7 +54,8 @@ export class ReplicaMap {
     // 同步集合中的数据
     const replacedCount = await priSysCl.countDocuments()
     if (replacedCount) {
-      limit = limit === undefined ? 10 : 100
+      let { limit } = limits
+      limit = limit === undefined ? 10 : parseInt(limit)
       // 同步数据
       let skip = 0
       for (let remainder = replacedCount; remainder; ) {
@@ -85,3 +86,5 @@ export class ReplicaMap {
     return { replacedCount, deletedCount }
   }
 }
+
+export default ReplicaMap

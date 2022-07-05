@@ -1,6 +1,7 @@
-const Helper = require('./helper')
-const ModelDb = require('../models/mgdb/db')
-const { nanoid } = require('nanoid')
+import Helper from './helper'
+import ModelDb from '../../../tmw-model/src/db'
+import { nanoid } from 'nanoid'
+
 /**
  * 数据库控制器辅助类
  */
@@ -39,7 +40,7 @@ export class DbHelper extends Helper {
     info.type = 'database'
 
     // 检查数据库名
-    let modelDb = new ModelDb(info.bucket)
+    let modelDb = new ModelDb(this["mongoClient"], info.bucket, this["client"], this["config"])
     let newName = modelDb.checkDbName(info.name)
     if (newName[0] === false) return [false, newName[1]]
     info.name = newName[1]

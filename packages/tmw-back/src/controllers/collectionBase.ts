@@ -1,10 +1,10 @@
-const ObjectId = require('mongodb').ObjectId
-const { ResultData, ResultFault } = require('tms-koa')
-
+import { ResultData, ResultFault } from 'tms-koa'
 import Base from './base'
 import CollectionHelper from './collectionHelper'
 import ReplicaHelper from './replicaHelper'
-import { ModelCl } from 'tmw-model'
+import ModelCl from '../../../tmw-model/src/collection'
+import * as mongodb from 'mongodb'
+const ObjectId = mongodb.ObjectId
 
 /**
  * 集合控制器基类
@@ -13,8 +13,8 @@ import { ModelCl } from 'tmw-model'
 export class CollectionBase extends Base {
   constructor(...args) {
     super(...args)
-    this.clHelper = new CollectionHelper(this)
-    this.rpHelper = new ReplicaHelper(this)
+    this["clHelper"] = new CollectionHelper(this)
+    this["rpHelper"] = new ReplicaHelper(this)
   }
   /** 执行每个方法前执行 */
   async tmsBeforeEach() {
@@ -22,9 +22,9 @@ export class CollectionBase extends Base {
     if (true !== result) return result
 
     // 请求中指定的db
-    this.reqDb = await this.clHelper.findRequestDb()
+    this["reqDb"] = await this["clHelper"].findRequestDb()
 
-    this.clMongoObj = this.clHelper.clMongoObj
+    this["clMongoObj"] = this["clHelper"].clMongoObj
 
     return true
   }
@@ -32,10 +32,10 @@ export class CollectionBase extends Base {
    * 根据名称返回指定集合
    */
   async byName() {
-    const existCl = await this.clHelper.findRequestCl()
+    const existCl = await this["clHelper"].findRequestCl()
 
     if (existCl.schema_id) {
-      await this.clMongoObj
+      await this["clMongoObj"]
         .findOne({ type: 'schema', _id: new ObjectId(existCl.schema_id) })
         .then((schema) => {
           existCl.schema = schema
@@ -49,9 +49,9 @@ export class CollectionBase extends Base {
    * 指定库下所有的集合，包含未被管理的集合
    */
   async list() {
-    const query: any = { type: 'collection', 'db.sysname': this.reqDb.sysname }
-    if (this.bucket) query.bucket = this.bucket.name
-    const { keyword } = this.request.query
+    const query: any = { type: 'collection', 'db.sysname': this["reqDb"].sysname }
+    if (this["bucket"]) query.bucket = this["bucket"].name
+    const { keyword } = this["request"].query
     if (keyword) {
       let re = new RegExp(keyword)
       query['$or'] = [
@@ -62,19 +62,19 @@ export class CollectionBase extends Base {
     const options: any = {
       projection: { type: 0 },
     }
-    let { skip, limit } = this.clHelper.requestPage()
+    let { skip, limit } = this["clHelper"].requestPage()
     // 添加分页条件
     if (typeof skip === 'number') {
       options.skip = skip
       options.limit = limit
     }
 
-    const tmwCls = await this.clMongoObj
+    const tmwCls = await this["clMongoObj"]
       .find(query, options)
       .sort({ _id: -1 })
       .toArray()
     if (typeof skip === 'number') {
-      let total = await this.clMongoObj.countDocuments(query)
+      let total = await this["clMongoObj"].countDocuments(query)
       return new ResultData({ collections: tmwCls, total })
     }
 
@@ -84,12 +84,12 @@ export class CollectionBase extends Base {
    * 指定数据库下新建集合
    */
   async create() {
-    const info = this.request.body
-    if (this.bucket) info.bucket = this.bucket.name
+    const info = this["request"].body
+    if (this["bucket"]) info.bucket = this["bucket"].name
     if (!info.name) return new ResultFault('集合名称不允许为空')
 
-    const existDb = this.reqDb
-    let [flag, result] = await this.clHelper.createCl(existDb, info)
+    const existDb = this["reqDb"]
+    let [flag, result] = await this["clHelper"].createCl(existDb, info)
 
     if (!flag) {
       return new ResultFault(result)
@@ -103,11 +103,11 @@ export class CollectionBase extends Base {
    * 更新集合对象信息
    */
   async update() {
-    const existCl = await this.clHelper.findRequestCl()
+    const existCl = await this["clHelper"].findRequestCl()
 
-    let info = this.request.body
-    let { cl: clName } = this.request.query
-    let modelCl = new ModelCl()
+    let info = this["request"].body
+    let { cl: clName } = this["request"].query
+    let modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"], this["config"])
 
     // 格式化集合名
     let newClName
@@ -115,26 +115,26 @@ export class CollectionBase extends Base {
       newClName = modelCl.checkClName(info.name)
       if (newClName[0] === false) return new ResultFault(newClName[1])
       // 查询是否已存在同名集合
-      let existTmwCl = await modelCl.byName(this.reqDb, info.name)
+      let existTmwCl = await modelCl.byName(this["reqDb"], info.name)
       if (existTmwCl)
         return new ResultFault(
-          `数据库[name=${this.reqDb.name}]中，已存在同名集合[name=${info.name}]`
+          `数据库[name=${this["reqDb"].name}]中，已存在同名集合[name=${info.name}]`
         )
     }
 
     // 查询是否已存在同名集合
     if (newClName) {
-      let otherCl = await modelCl.byName(this.reqDb, newClName)
+      let otherCl = await modelCl.byName(this["reqDb"], newClName)
       if (otherCl)
         return new ResultFault(
-          `数据库[name=${this.reqDb.name}]中，已存在同名集合[name=${newClName}]`
+          `数据库[name=${this["reqDb"].name}]中，已存在同名集合[name=${newClName}]`
         )
     }
 
     const { _id, sysname, database, db, type, bucket, usage, ...updatedInfo } =
       info
 
-    const rst = await this.clMongoObj
+    const rst = await this["clMongoObj"]
       .updateOne({ _id: existCl._id }, { $set: updatedInfo })
       .then((rst) => [true, rst.result])
       .catch((err) => [false, err.message])
@@ -147,7 +147,7 @@ export class CollectionBase extends Base {
    * 删除集合。如果集合中存在文档可以被删除吗？
    */
   async remove() {
-    const existCl = await this.clHelper.findRequestCl()
+    const existCl = await this["clHelper"].findRequestCl()
 
     let { db, name: clName, usage } = existCl
 
@@ -166,15 +166,15 @@ export class CollectionBase extends Base {
       return new ResultFault(`系统自带集合[${clName}]，不能删除`)
 
     if (usage !== undefined) {
-      const [flag] = await this.rpHelper.byId(existCl)
+      const [flag] = await this["rpHelper"].byId(existCl)
       if (flag) return new ResultFault(`该集合存在关联关系不允许删除`)
     }
 
-    const client = this.mongoClient
+    const client = this["mongoClient"]
 
-    return this.clMongoObj
+    return this["clMongoObj"]
       .deleteOne({ _id: existCl._id })
-      .then(() => client.db(this.reqDb.sysname).dropCollection(existCl.sysname))
+      .then(() => client.db(this["reqDb"].sysname).dropCollection(existCl.sysname))
       .then(() => new ResultData('ok'))
       .catch((err) => new ResultFault(err.message))
   }

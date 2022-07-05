@@ -1,6 +1,6 @@
 import * as mongodb from 'mongodb'
-import { Base } from './base'
-import { Collection as ModelColl } from './collection'
+import Base from './base'
+import ModelColl from './collection'
 import * as dayjs from 'dayjs'
 const ObjectId = mongodb.ObjectId
 
@@ -587,3 +587,5 @@ export class Document extends Base {
     return { targetSysCl, targetQuery }
   }
 }
+
+export default Document

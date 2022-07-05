@@ -1,6 +1,6 @@
-const { nanoid } = require('nanoid')
-import { ModelCl } from 'tmw-model'
+import ModelCl from '../../../tmw-model/src/collection'
 import Helper from './helper'
+import { nanoid } from 'nanoid'
 
 /** 数据库控制器辅助类 */
 export class CollectionHelper extends Helper {
@@ -30,7 +30,7 @@ export class CollectionHelper extends Helper {
    * 创建集合
    */
   async createCl(existDb, info) {
-    let modelCl = new ModelCl()
+    let modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"], this["config"])
 
     // 加工数据
     modelCl.beforeProcessByInAndUp(info, 'insert')
