@@ -162,3 +162,5 @@ export class Collection extends Base {
     return true
   }
 }
+
+export default Collection
