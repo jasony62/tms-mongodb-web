@@ -1,4 +1,4 @@
-import { ModelCl } from 'tmw-model'
+import ModelCl from '../../../tmw-model/src/collection'
 
 /**
  * 控制器辅助类
@@ -65,7 +65,7 @@ export class Helper {
       dbName = this.ctrl.request.query.db
       clName = this.ctrl.request.query.cl
     }
-    const modelCl = new ModelCl(this.ctrl.bucket)
+    const modelCl = new ModelCl(this["mongoClient"], this.ctrl.bucket, this["client"], this["config"])
     const cl = await modelCl.byName(dbName, clName)
 
     if (bThrowNotFound && !cl)

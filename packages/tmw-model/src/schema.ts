@@ -23,3 +23,5 @@ export class Schema extends Base {
       })
   }
 }
+
+export default Schema

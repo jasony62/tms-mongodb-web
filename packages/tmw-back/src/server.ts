@@ -1,10 +1,12 @@
-const log4jsConfig = require('./config/log4js')
-const log4js = require('log4js')
+import log4jsConfig from './config/log4js'
+import * as log4js from 'log4js'
 log4js.configure(log4jsConfig)
 const logger = log4js.getLogger('tms-mongodb-web')
-const PluginContext = require('./models/plugin/context').Context
 
-const { TmsKoa, loadConfig } = require('tms-koa')
+import Context from 'tms-koa/lib/context/mongodb'
+const { PluginContext } = Context
+
+import { TmsKoa, loadConfig } from 'tms-koa'
 const tmsKoa = new TmsKoa()
 
 function loadPlugins() {

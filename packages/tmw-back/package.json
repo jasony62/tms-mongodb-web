@@ -10,6 +10,12 @@
   "author": "jasony62",
   "license": "MIT",
   "dependencies": {
+    "dayjs": "^1.11.3",
+    "log4js": "^6.5.2",
+    "mongodb": "^4.7.0",
+    "nanoid": "^4.0.0",
+    "tms-koa": "0.0.84",
+    "tms-koa-account": "0.0.9",
     "tmw-model": "workspace:^0.0.1"
   },
   "devDependencies": {

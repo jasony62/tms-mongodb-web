@@ -1,4 +1,4 @@
-const { Ctrl, ResultFault, ResultObjectNotFound } = require('tms-koa')
+import { Ctrl, ResultFault, ResultObjectNotFound } from 'tms-koa'
 
 function allowAccessBucket(bucket, clientId) {
   if (bucket.creator === clientId) return true
@@ -27,12 +27,12 @@ export class Base extends Ctrl {
   async tmsBeforeEach() {
     /* 多租户模式下，检查bucket访问权限 */
     if (/yes|true/i.test(process.env.TMW_REQUIRE_BUCKET)) {
-      const bucketName = this.request.query.bucket
+      const bucketName = this["request"].query.bucket
       if (!bucketName) {
         return new ResultFault('没有提供bucket参数')
       }
       // 检查bucket是否存在
-      const client = this.mongoClient
+      const client = this["mongoClient"]
       const clBucket = client.db('tms_admin').collection('bucket')
       const bucket = await clBucket.findOne({
         name: bucketName,
@@ -41,11 +41,11 @@ export class Base extends Ctrl {
         return new ResultObjectNotFound(`指定的[bucket=${bucketName}]不存在`)
       }
       // 检查当前用户是否对bucket有权限
-      if (!allowAccessBucket(bucket, this.client.id)) {
+      if (!allowAccessBucket(bucket, this["client"].id)) {
         // 检查是否做过授权
         return new ResultObjectNotFound(`没有访问[bucket=${bucketName}]的权限`)
       }
-      this.bucket = bucket
+      this["bucket"] = bucket
     }
 
     return true

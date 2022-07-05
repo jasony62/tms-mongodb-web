@@ -139,3 +139,5 @@ export class Base {
     return data
   }
 }
+
+export default Base

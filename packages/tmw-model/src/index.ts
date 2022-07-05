@@ -1,8 +1,8 @@
-import * as ModelBkt from './bucket'
-import * as ModelDb from './db'
+import ModelBkt from './bucket'
+import ModelDb from './db'
 import ModelCl from './collection'
-import * as ModelDoc from './document'
-import * as ModelTag from './tag'
-import * as ModelReplicaMap from './replicaMap'
+import ModelDoc from './document'
+import ModelTag from './tag'
+import ModelReplicaMap from './replicaMap'
 
 export { ModelBkt, ModelDb, ModelCl, ModelDoc, ModelTag, ModelReplicaMap }
