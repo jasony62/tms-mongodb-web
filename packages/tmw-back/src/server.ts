@@ -1,30 +1,22 @@
-import log4jsConfig from './config/log4js'
 import * as log4js from 'log4js'
-log4js.configure(log4jsConfig)
+import * as path from 'path'
+import * as fs from 'fs'
+let cnfpath = path.resolve(process.cwd()+'/config/log4js.js')
+if (fs.existsSync(cnfpath)) {
+  const log4jsConfig = require(process.cwd()+'/config/log4js')
+  log4js.configure(log4jsConfig)
+}
 const logger = log4js.getLogger('tms-mongodb-web')
 
-import Context from 'tms-koa/lib/context/mongodb'
-const { PluginContext } = Context
-
-import { TmsKoa, loadConfig } from 'tms-koa'
+import { TmsKoa } from 'tms-koa'
 const tmsKoa = new TmsKoa()
 
-function loadPlugins() {
-  let config = loadConfig('plugin')
-  PluginContext.init(config)
-}
 let Replica_Child_Process // 执行集合复制的子进程
 /**
  * 框架完成初始化
- *
- * @param {object} context
  */
-function afterInit(context) {
+function afterInit() {
   logger.info('已完成框架初始化')
-  /**
-   * 加载插件
-   */
-  loadPlugins()
   /**
    * 启动集合实时复制
    */

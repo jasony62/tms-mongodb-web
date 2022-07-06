@@ -2,7 +2,7 @@ import { ResultData, ResultFault } from 'tms-koa'
 import Base from './base'
 import CollectionHelper from './collectionHelper'
 import ReplicaHelper from './replicaHelper'
-import ModelCl from '../../../tmw-model/src/collection'
+import { ModelCl } from 'tmw-model'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
@@ -10,7 +10,7 @@ const ObjectId = mongodb.ObjectId
  * 集合控制器基类
  * @extends Base 控制器基类
  */
-export class CollectionBase extends Base {
+class CollectionBase extends Base {
   constructor(...args) {
     super(...args)
     this["clHelper"] = new CollectionHelper(this)

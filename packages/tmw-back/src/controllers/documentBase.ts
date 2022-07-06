@@ -2,12 +2,10 @@ import { ResultData, ResultFault } from 'tms-koa'
 import Base from './base'
 import DocumentHelper from './documentHelper'
 import unrepeat from './unrepeat'
-import ModelDoc from '../../../tmw-model/src/document'
-import ModelCl from '../../../tmw-model/src/collection'
-import ModelSchema from '../../../tmw-model/src/schema'
+import { ModelDoc, ModelCl, ModelSchema } from 'tmw-model'
 
-import * as mongodb from 'mongodb'
 import _ from 'lodash'
+import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
 /**文档对象控制器基类 */

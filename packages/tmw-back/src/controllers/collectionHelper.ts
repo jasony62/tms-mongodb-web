@@ -1,9 +1,9 @@
-import ModelCl from '../../../tmw-model/src/collection'
+import { ModelCl } from 'tmw-model'
 import Helper from './helper'
 import { nanoid } from 'nanoid'
 
 /** 数据库控制器辅助类 */
-export class CollectionHelper extends Helper {
+class CollectionHelper extends Helper {
   /**
    * 修改集合名称
    */

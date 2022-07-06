@@ -1,6 +1,6 @@
 import * as dayjs from 'dayjs'
 
-export class Base {
+class Base {
   mongoClient // mongodb连接客户端
   bucket // 指定的数据空间
   client // 执行操作的用户

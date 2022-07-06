@@ -1,9 +1,9 @@
 import * as mongodb from 'mongodb'
-import { Base } from './base'
+import Base from './base'
 import unescape from 'mongo-escape'
 const ObjectId = mongodb.ObjectId
 
-export class Collection extends Base {
+class Collection extends Base {
   /**
    *
    * @param {object} bucket - 用户存储空间

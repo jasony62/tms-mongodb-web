@@ -1,6 +1,6 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import Base from './base'
-import modelDb from '../../../../tmw-model/src/db'
+import { ModelDb } from 'tmw-model'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
@@ -48,7 +48,7 @@ class Db extends Base {
     info.type = 'database'
 
     // 检查数据库名
-    let model = new modelDb(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    let model = new ModelDb(this["mongoClient"], this["bucket"], this["client"], this["config"])
     let newName = model.checkDbName(info.name)
     if (newName[0] === false) return new ResultFault(newName[1])
     info.name = newName[1]
