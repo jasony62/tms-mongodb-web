@@ -1,5 +1,5 @@
-import { Base } from './base'
+import Base from './base'
 
-export class Tag extends Base {}
+class Tag extends Base {}
 
 export default Tag

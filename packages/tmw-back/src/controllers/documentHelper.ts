@@ -6,16 +6,13 @@ const ObjectId = mongodb.ObjectId
 import * as log4js from 'log4js'
 const logger = log4js.getLogger('tms-mongodb-web')
 
-import ModelColl from '../../../tmw-model/src/collection'
-import ModelDoc from '../../../tmw-model/src/document'
-import ModelSchema from '../../../tmw-model/src/schema'
-
+import { ModelDoc, ModelCl, ModelSchema } from 'tmw-model'
 import Helper from "./helper"
 
 /**
  * 数据库控制器辅助类
  */
-export class DocumentHelper extends Helper {
+class DocumentHelper extends Helper {
   // constructor(ctrl) {
   //   super(ctrl)
   // }
@@ -65,7 +62,7 @@ export class DocumentHelper extends Helper {
       const sh = wb.Sheets[firstSheetName]
       rowsJson = xlsx.utils.sheet_to_json(sh)
     }
-    let collModel = new ModelColl(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    let collModel = new ModelCl(this["mongoClient"], this["bucket"], this["client"], this["config"])
     let columns = await collModel.getSchemaByCollection(existCl)
     if (!columns) return [false, '指定的集合没有指定集合列']
 
@@ -304,7 +301,7 @@ export class DocumentHelper extends Helper {
     }
     if (!oldDocus || oldDocus.length === 0) return [false, '没有要移动的数据']
 
-    let collModel = new ModelColl(this["mongoClient"], this.ctrl.bucket, this["client"], this["config"])
+    let collModel = new ModelCl(this["mongoClient"], this.ctrl.bucket, this["client"], this["config"])
     const oldExistCl = await collModel.byName(oldDbName, oldClName)
     const newExistCl = await collModel.byName(newDbName, newClName)
 

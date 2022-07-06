@@ -1,11 +1,11 @@
 import Helper from './helper'
-import { ModelDb, ModelCl, ModelReplicaMap } from '../../../tmw-model/src'
+import { ModelDb, ModelCl, ModelReplicaMap } from 'tmw-model'
 
 /**
  * 集合复制控制器辅助类
  * @extends Helper
  */
-export class ReplicaHelper extends Helper {
+class ReplicaHelper extends Helper {
   /**集合复制映射关系集合 */
   get clReplicaMap() {
     const client = this.ctrl.mongoClient

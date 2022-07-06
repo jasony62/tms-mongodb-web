@@ -5,7 +5,7 @@ import * as dayjs from 'dayjs'
 const ObjectId = mongodb.ObjectId
 
 /**文档模型类基类 */
-export class Document extends Base {
+class Document extends Base {
   /**
    * 获得指定id的文档
    * @param {object} existCl - 文档所在集合

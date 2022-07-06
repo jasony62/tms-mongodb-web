@@ -5,13 +5,13 @@ import { ResultData, ResultFault } from 'tms-koa'
 import Base from './base'
 import ReplicaHelper from './replicaHelper'
 
-import ModelReplicaMap from '../../../tmw-model/src/replicaMap'
+import { ModelReplicaMap } from 'tmw-model'
 
 /**
  * 集合复制控制器基类
  * @extends Base 控制器基类
  */
-export class ReplicaBase extends Base {
+class ReplicaBase extends Base {
   constructor(...args) {
     super(...args)
     this["replicaHelper"] = new ReplicaHelper(this)

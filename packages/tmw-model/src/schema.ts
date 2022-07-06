@@ -1,8 +1,8 @@
 import * as mongodb from 'mongodb'
-import { Base } from './base'
+import Base from './base'
 const ObjectId = mongodb.ObjectId
 
-export class Schema extends Base {
+class Schema extends Base {
   /**
    *
    * @param {object} tmwCl

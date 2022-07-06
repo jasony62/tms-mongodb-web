@@ -1,7 +1,7 @@
 const MONGODB_CLIENT = Symbol('mongodb_client')
 
 /**集合间复制关系 */
-export class ReplicaMap {
+class ReplicaMap {
   constructor(dbClient) {
     this[MONGODB_CLIENT] = dbClient
   }

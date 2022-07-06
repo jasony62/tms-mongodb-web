@@ -1,11 +1,11 @@
 import Helper from './helper'
-import ModelDb from '../../../tmw-model/src/db'
+import { ModelDb } from 'tmw-model'
 import { nanoid } from 'nanoid'
 
 /**
  * 数据库控制器辅助类
  */
-export class DbHelper extends Helper {
+class DbHelper extends Helper {
   /**
    * 在系统范围内按名称查找数据库
    *

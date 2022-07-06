@@ -1,8 +1,7 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import DocBase from '../documentBase'
 import _ from 'lodash'
-import ModelColl from '../../../../tmw-model/src/collection'
-import ModelDoc from '../../../../tmw-model/src/document'
+import { ModelCl, ModelDoc } from 'tmw-model'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
@@ -98,7 +97,7 @@ class Document extends DocBase {
 
     const existCl = await this["docHelper"].findRequestCl()
     // 集合列
-    let modelCl = new ModelColl(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    let modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"], this["config"])
     columns = columns ? columns : await modelCl.getSchemaByCollection(existCl)
     if (!columns) return new ResultFault('指定的集合没有指定集合列')
 
@@ -148,7 +147,7 @@ class Document extends DocBase {
       return new ResultFault('没有要移动的数据')
     }
 
-    let modelCl = new ModelColl(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    let modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"], this["config"])
     let modelDoc = new ModelDoc(this["mongoClient"], this["bucket"], this["client"], this["config"])
 
     const oldExistCl = await modelCl.byName(oldDb, oldCl)
