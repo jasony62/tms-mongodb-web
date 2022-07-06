@@ -1,9 +1,9 @@
-import ModelCl from '../../../tmw-model/src/collection'
+import { ModelCl } from 'tmw-model'
 
 /**
  * 控制器辅助类
  */
-export class Helper {
+class Helper {
   ctrl
   bucket: { name: string }
 

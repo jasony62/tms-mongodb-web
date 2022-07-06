@@ -1,6 +1,11 @@
-import log4jsConfig from '../config/log4js'
 import * as log4js from 'log4js'
-log4js.configure(log4jsConfig)
+import * as path from 'path'
+import * as fs from 'fs'
+let cnfpath = path.resolve(process.cwd()+'/config/log4js.ts')
+if (fs.existsSync(cnfpath)) {
+  const log4jsConfig = require(process.cwd()+'/config/log4js')
+  log4js.configure(log4jsConfig)
+}
 const logger = log4js.getLogger('tmw-replica-watch')
 
 import { loadConfig } from 'tms-koa'

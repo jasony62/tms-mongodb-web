@@ -1,4 +1,4 @@
-import modelColl from "../../../../tmw-model/src/collection"
+import { ModelCl } from 'tmw-model'
 
 /**
  * 控制器辅助类
@@ -60,7 +60,7 @@ class Helper {
    *  检查集合名
    */
   checkClName(clName) {
-    let model = new modelColl(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    let model = new ModelCl(this["mongoClient"], this["bucket"], this["client"], this["config"])
     return model.checkClName(clName)
   }
 }

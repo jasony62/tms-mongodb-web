@@ -10,7 +10,7 @@ function allowAccessBucket(bucket, clientId) {
   return coworkers.some((c) => c.id === clientId)
 }
 
-export class Base extends Ctrl {
+class Base extends Ctrl {
   /**
    * 创建控制器
    *

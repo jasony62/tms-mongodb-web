@@ -1,7 +1,7 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import Base from './base'
 import DbHelper from './dbHelper'
-import ModelDb from '../../../tmw-model/src/db'
+import { ModelDb } from 'tmw-model'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 

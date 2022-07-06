@@ -1,6 +1,6 @@
 import CollectionBase from '../collectionBase'
 import { ResultData, ResultFault } from 'tms-koa'
-import ModelCl from '../../../../tmw-model/src/collection'
+import { ModelCl } from 'tmw-model'
 
 class Collection extends CollectionBase {
   constructor(...args) {
