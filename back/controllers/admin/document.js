@@ -367,5 +367,11 @@ class Document extends DocBase {
   async getDocCompleteStatusById() {
     return super.getDocCompleteStatusById()
   }
+  /**
+   * 导出数据
+   */
+  async export() {
+    return super.export()
+  }
 }
 module.exports = Document
