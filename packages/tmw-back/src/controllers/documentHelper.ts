@@ -1,5 +1,6 @@
 import unrepeat from './unrepeat'
-import _ from 'lodash'
+import * as _ from 'lodash'
+import * as path from 'path'
 import * as fs from 'fs'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
@@ -8,6 +9,18 @@ const logger = log4js.getLogger('tms-mongodb-web')
 
 import { ModelDoc, ModelCl, ModelSchema } from 'tmw-model'
 import Helper from "./helper"
+
+let TMWCONFIG
+let cnfpath = path.resolve(process.cwd() + '/config/app.js')
+if (fs.existsSync(cnfpath)) {
+  TMWCONFIG = require(process.cwd() + '/config/app').tmwConfig
+} else {
+  TMWCONFIG = {
+    TMS_APP_DEFAULT_CREATETIME: 'TMS_DEFAULT_CREATE_TIME',
+    TMS_APP_DEFAULT_UPDATETIME: 'TMS_DEFAULT_UPDATE_TIME',
+    TMS_APP_DATA_ACTION_LOG: 'N'
+  }
+}
 
 /**
  * 数据库控制器辅助类
@@ -39,7 +52,7 @@ class DocumentHelper extends Helper {
       operation = '批量（按全部）'
     } else if (typeof filter === 'object' && Object.keys(filter).length) {
       // 按条件删除
-      const modelDoc = new ModelDoc(this["mongoClient"], this["bucket"], this["client"], this["config"])
+      const modelDoc = new ModelDoc(this["mongoClient"], this["bucket"], this["client"])
       query = modelDoc.assembleQuery(filter)
       operation = '批量（按条件）'
     } else {
@@ -53,7 +66,7 @@ class DocumentHelper extends Helper {
    *  noRepeatconfig 数据去重配置
    */
   async importToColl(existCl, filename, noRepeatconfig, rowsJson = []) {
-    const modelDoc = new ModelDoc(this["mongoClient"], this.ctrl.bucket, this.ctrl.client, this["config"])
+    const modelDoc = new ModelDoc(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
     if (!rowsJson.length) {
       if (!fs.existsSync(filename)) return [false, '指定的文件不存在']
       const xlsx = require('tms-koa/node_modules/xlsx')
@@ -62,7 +75,7 @@ class DocumentHelper extends Helper {
       const sh = wb.Sheets[firstSheetName]
       rowsJson = xlsx.utils.sheet_to_json(sh)
     }
-    let collModel = new ModelCl(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    let collModel = new ModelCl(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
     let columns = await collModel.getSchemaByCollection(existCl)
     if (!columns) return [false, '指定的集合没有指定集合列']
 
@@ -71,7 +84,7 @@ class DocumentHelper extends Helper {
     if (extensionInfo) {
       const { info, schemaId } = extensionInfo
       if (schemaId) {
-        const modelSchema = new ModelSchema(this["mongoClient"], this.ctrl.bucket, this["client"], this["config"])
+        const modelSchema = new ModelSchema(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
         const publicSchema = await modelSchema.bySchemaId(schemaId)
         Object.keys(publicSchema).forEach((schema) => {
           publicDoc[schema] = info[schema] ? info[schema] : ''
@@ -161,7 +174,7 @@ class DocumentHelper extends Helper {
       return this.findSysColl(existCl)
         .insertMany(jsonFinishRows)
         .then(() => {
-          if (this["config"].TMS_APP_DATA_ACTION_LOG === 'Y') {
+          if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
             // 记录日志
             modelDoc.dataActionLog(
               jsonFinishRows,
@@ -301,13 +314,13 @@ class DocumentHelper extends Helper {
     }
     if (!oldDocus || oldDocus.length === 0) return [false, '没有要移动的数据']
 
-    let collModel = new ModelCl(this["mongoClient"], this.ctrl.bucket, this["client"], this["config"])
+    let collModel = new ModelCl(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
     const oldExistCl = await collModel.byName(oldDbName, oldClName)
     const newExistCl = await collModel.byName(newDbName, newClName)
 
     //获取document、schema的实例
-    const modelDoc = new ModelDoc(this["mongoClient"], this.ctrl.bucket, this.ctrl.client, this["config"])
-    const modelSchema = new ModelSchema(this["mongoClient"], this.ctrl.bucket, this["client"], this["config"])
+    const modelDoc = new ModelDoc(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
+    const modelSchema = new ModelSchema(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
 
     //获取新集合列定义
     let newClSchema = await collModel.getSchemaByCollection(newExistCl)

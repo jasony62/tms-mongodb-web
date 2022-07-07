@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import * as _ from 'lodash'
 import Helper from './helper'
 import unrepeatByArray from '../tms/utilities'
 

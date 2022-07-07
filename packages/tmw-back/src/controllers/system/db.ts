@@ -48,7 +48,7 @@ class Db extends Base {
     info.type = 'database'
 
     // 检查数据库名
-    let model = new ModelDb(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    let model = new ModelDb(this["mongoClient"], this["bucket"], this["client"])
     let newName = model.checkDbName(info.name)
     if (newName[0] === false) return new ResultFault(newName[1])
     info.name = newName[1]

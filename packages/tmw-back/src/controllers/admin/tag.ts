@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import * as _ from 'lodash'
 import { ResultData, ResultFault } from 'tms-koa'
 import TagBase from '../tagBase'
 import * as mongodb from 'mongodb'
