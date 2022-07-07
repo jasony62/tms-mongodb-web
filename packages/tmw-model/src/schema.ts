@@ -8,7 +8,7 @@ class Schema extends Base {
    * @param {object} tmwCl
    */
   async bySchemaId(id) {
-    const client = await this.mongoClient()
+    const client = await this.mongoClient
     const cl = client.db('tms_admin').collection('mongodb_object')
     // 获取表列
     return cl

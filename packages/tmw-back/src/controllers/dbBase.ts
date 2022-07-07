@@ -88,7 +88,7 @@ class DbBase extends Base {
     let info = this["request"].body
 
     // 检查数据库名
-    let modelDb = new ModelDb(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    let modelDb = new ModelDb(this["mongoClient"], this["bucket"], this["client"])
 
     let newName
     if (info.name !== undefined) {

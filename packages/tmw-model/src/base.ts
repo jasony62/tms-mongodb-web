@@ -1,19 +1,31 @@
 import * as dayjs from 'dayjs'
+import * as path from 'path'
+import * as fs from 'fs'
+
+let TMWCONFIG
+let cnfpath = path.resolve(process.cwd() + '/config/app.js')
+if (fs.existsSync(cnfpath)) {
+  TMWCONFIG = require(process.cwd() + '/config/app').tmwConfig
+} else {
+  TMWCONFIG = {
+    TMS_APP_DEFAULT_CREATETIME: 'TMS_DEFAULT_CREATE_TIME',
+    TMS_APP_DEFAULT_UPDATETIME: 'TMS_DEFAULT_UPDATE_TIME',
+    TMS_APP_DATA_ACTION_LOG: 'N'
+  }
+}
 
 class Base {
   mongoClient // mongodb连接客户端
   bucket // 指定的数据空间
   client // 执行操作的用户
-  config // 指定的基础配置信息
   /**
    *
    * @param {object} bucket - 用户存储空间
    */
-  constructor(mongoClient, bucket, client, config) {
+  constructor(mongoClient, bucket, client) {
     this.mongoClient = mongoClient
     this.bucket = bucket
     this.client = client
-    this.config = config
   }
   /**
    * 组装 查询条件
@@ -124,16 +136,16 @@ class Base {
 
     if (type === 'insert') {
       if (
-        typeof data[this.config['TMS_APP_DEFAULT_UPDATETIME']] !== 'undefined'
+        typeof data[TMWCONFIG['TMS_APP_DEFAULT_UPDATETIME']] !== 'undefined'
       )
-        delete data[this.config['TMS_APP_DEFAULT_UPDATETIME']]
-      data[this.config['TMS_APP_DEFAULT_CREATETIME']] = current
+        delete data[TMWCONFIG['TMS_APP_DEFAULT_UPDATETIME']]
+      data[TMWCONFIG['TMS_APP_DEFAULT_CREATETIME']] = current
     } else if (type === 'update') {
       if (
-        typeof data[this.config['TMS_APP_DEFAULT_CREATETIME']] !== 'undefined'
+        typeof data[TMWCONFIG['TMS_APP_DEFAULT_CREATETIME']] !== 'undefined'
       )
-        delete data[this.config['TMS_APP_DEFAULT_CREATETIME']]
-      data[this.config['TMS_APP_DEFAULT_UPDATETIME']] = current
+        delete data[TMWCONFIG['TMS_APP_DEFAULT_CREATETIME']]
+      data[TMWCONFIG['TMS_APP_DEFAULT_UPDATETIME']] = current
     }
 
     return data

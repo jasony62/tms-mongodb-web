@@ -1,9 +1,23 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import DocBase from '../documentBase'
-import _ from 'lodash'
+import * as _ from 'lodash'
 import { ModelCl, ModelDoc } from 'tmw-model'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
+
+import * as path from 'path'
+import * as fs from 'fs'
+let TMWCONFIG
+let cnfpath = path.resolve(process.cwd() + '/config/app.js')
+if (fs.existsSync(cnfpath)) {
+  TMWCONFIG = require(process.cwd() + '/config/app').tmwConfig
+} else {
+  TMWCONFIG = {
+    TMS_APP_DEFAULT_CREATETIME: 'TMS_DEFAULT_CREATE_TIME',
+    TMS_APP_DEFAULT_UPDATETIME: 'TMS_DEFAULT_UPDATE_TIME',
+    TMS_APP_DATA_ACTION_LOG: 'N'
+  }
+}
 
 class Document extends DocBase {
   constructor(...args) {
@@ -78,7 +92,7 @@ class Document extends DocBase {
   async export() {
     let { filter, docIds, columns } = this["request"].body
 
-    let modelDoc = new ModelDoc(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    let modelDoc = new ModelDoc(this["mongoClient"], this["bucket"], this["client"])
 
     let query
     if (docIds && docIds.length > 0) {
@@ -97,7 +111,7 @@ class Document extends DocBase {
 
     const existCl = await this["docHelper"].findRequestCl()
     // 集合列
-    let modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    let modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"])
     columns = columns ? columns : await modelCl.getSchemaByCollection(existCl)
     if (!columns) return new ResultFault('指定的集合没有指定集合列')
 
@@ -147,8 +161,8 @@ class Document extends DocBase {
       return new ResultFault('没有要移动的数据')
     }
 
-    let modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"], this["config"])
-    let modelDoc = new ModelDoc(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    let modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"])
+    let modelDoc = new ModelDoc(this["mongoClient"], this["bucket"], this["client"])
 
     const oldExistCl = await modelCl.byName(oldDb, oldCl)
     let oldDocus, total, operateType
@@ -191,7 +205,7 @@ class Document extends DocBase {
     }
 
     // 记录日志
-    if (this["config"].TMS_APP_DATA_ACTION_LOG === 'Y') {
+    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       let info = rst.logInfo
       await modelDoc.dataActionLog(
         info.newDocs,

@@ -1,5 +1,5 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import _ from 'lodash'
+import * as _ from 'lodash'
 import SchemaBase from '../schemaBase'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId

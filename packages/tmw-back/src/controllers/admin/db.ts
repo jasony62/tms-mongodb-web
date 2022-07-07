@@ -165,8 +165,7 @@ class Db extends DbBase {
     let modelDb = new ModelDb(
       this['mongoClient'],
       this['bucket'],
-      this['client'],
-      this['config']
+      this['client']
     )
     let newName = modelDb.checkDbName(info.name)
     if (newName[0] === false) return new ResultFault(newName[1])

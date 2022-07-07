@@ -5,6 +5,18 @@ let cnfpath = path.resolve(process.cwd()+'/config/log4js.js')
 if (fs.existsSync(cnfpath)) {
   const log4jsConfig = require(process.cwd()+'/config/log4js')
   log4js.configure(log4jsConfig)
+} else {
+  log4js.configure({
+    appenders: {
+      consoleout: { type: 'console' },
+    },
+    categories: {
+      default: {
+        appenders: ['consoleout'],
+        level: 'debug',
+      },
+    },
+  })
 }
 const logger = log4js.getLogger('tmw-replica-watch')
 

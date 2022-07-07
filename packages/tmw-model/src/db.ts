@@ -4,9 +4,9 @@ import Base from './base'
 const DB_NAME_RE = '^[a-zA-Z]+[0-9a-zA-Z_]{0,63}$'
 
 class Db extends Base {
-  constructor(mongoClient, bucket, client, config) {
-    super(mongoClient, bucket, client, config)
-  }
+  // constructor(mongoClient, bucket, client, config) {
+  //   super(mongoClient, bucket, client, config)
+  // }
   /**
    *  检查数据库名
    * @param {string} dbName - 用户指定数据库名称
