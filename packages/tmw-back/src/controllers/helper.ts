@@ -65,7 +65,7 @@ class Helper {
       dbName = this.ctrl.request.query.db
       clName = this.ctrl.request.query.cl
     }
-    const modelCl = new ModelCl(this["mongoClient"], this.ctrl.bucket, this["client"], this["config"])
+    const modelCl = new ModelCl(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
     const cl = await modelCl.byName(dbName, clName)
 
     if (bThrowNotFound && !cl)

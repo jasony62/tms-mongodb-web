@@ -30,7 +30,7 @@ class CollectionHelper extends Helper {
    * 创建集合
    */
   async createCl(existDb, info) {
-    let modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    let modelCl = new ModelCl(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
 
     // 加工数据
     modelCl.beforeProcessByInAndUp(info, 'insert')

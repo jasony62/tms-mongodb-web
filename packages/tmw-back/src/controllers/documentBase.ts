@@ -4,16 +4,31 @@ import DocumentHelper from './documentHelper'
 import unrepeat from './unrepeat'
 import { ModelDoc, ModelCl, ModelSchema } from 'tmw-model'
 
-import _ from 'lodash'
+import * as _ from 'lodash'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
+
+import * as path from 'path'
+import * as fs from 'fs'
+
+let TMWCONFIG
+let cnfpath = path.resolve(process.cwd() + '/config/app.js')
+if (fs.existsSync(cnfpath)) {
+  TMWCONFIG = require(process.cwd() + '/config/app').tmwConfig
+} else {
+  TMWCONFIG = {
+    TMS_APP_DEFAULT_CREATETIME: 'TMS_DEFAULT_CREATE_TIME',
+    TMS_APP_DEFAULT_UPDATETIME: 'TMS_DEFAULT_UPDATE_TIME',
+    TMS_APP_DATA_ACTION_LOG: 'N'
+  }
+}
 
 /**文档对象控制器基类 */
 class DocBase extends Base {
   constructor(...args) {
     super(...args)
     this["docHelper"] = new DocumentHelper(this)
-    this["modelDoc"] = new ModelDoc(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    this["modelDoc"] = new ModelDoc(this["mongoClient"], this["bucket"], this["client"])
   }
   /**
    * 指定数据库指定集合下新建文档
@@ -45,7 +60,7 @@ class DocBase extends Base {
     if (extensionInfo) {
       const { info, schemaId } = extensionInfo
       if (schemaId) {
-        const modelSchema = new ModelSchema(this["mongoClient"], this["bucket"], this["client"], this["config"])
+        const modelSchema = new ModelSchema(this["mongoClient"], this["bucket"], this["client"])
         const publicSchema = await modelSchema.bySchemaId(schemaId)
         Object.keys(publicSchema).forEach((schema) => {
           doc[schema] = info[schema] ? info[schema] : ''
@@ -80,7 +95,7 @@ class DocBase extends Base {
     let existDoc = await this["modelDoc"].byId(existCl, id)
     if (!existDoc) return new ResultFault('要删除的文档不存在')
 
-    if (this["config"].TMS_APP_DATA_ACTION_LOG === 'Y') {
+    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       // 记录操作日志
       await this["modelDoc"].dataActionLog(
         existDoc,
@@ -115,7 +130,7 @@ class DocBase extends Base {
     if (!isOk) return new ResultFault('要更新的文档不存在')
 
     // 日志
-    if (this["config"].TMS_APP_DATA_ACTION_LOG === 'Y') {
+    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       let beforeDoc = {}
       beforeDoc[existDoc._id] = existDoc
       this["modelDoc"].dataActionLog(
@@ -253,7 +268,7 @@ class DocBase extends Base {
     if (total === 0)
       return new ResultFault('没有符合条件的数据，未执行删除操作')
 
-    if (this["config"].TMS_APP_DATA_ACTION_LOG === 'Y') {
+    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       // 记录操作日志
       let sysCl = this["docHelper"].findSysColl(existCl)
       let removedDocs = await sysCl.find(query).toArray()
@@ -299,7 +314,7 @@ class DocBase extends Base {
     return this["modelDoc"]
       .updateMany(existCl, query, updated)
       .then(async (modifiedCount) => {
-        if (this["config"].TMS_APP_DATA_ACTION_LOG === 'Y') {
+        if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
           // 记录操作日志
           updateBeforeDocs.forEach(async (doc) => {
             let afterDoc = Object.assign({}, doc, updated)
@@ -326,7 +341,7 @@ class DocBase extends Base {
     const existCl = await this["docHelper"].findRequestCl()
 
     const { toDb, toCl } = this["request"].query
-    const modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    const modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"])
     const targetCl = await modelCl.byName(toDb, toCl)
     if (!targetCl)
       return new ResultFault(
@@ -343,7 +358,7 @@ class DocBase extends Base {
     return this["modelDoc"].copyMany(existCl, query, targetCl).then(async () => {
       let existSysCl = this["docHelper"].findSysColl(existCl)
       let copyedDocs = await existSysCl.find(query).toArray()
-      if (this["config"].TMS_APP_DATA_ACTION_LOG === 'Y') {
+      if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
         this["modelDoc"].dataActionLog(
           copyedDocs,
           `${operation}复制`,

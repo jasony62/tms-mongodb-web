@@ -60,7 +60,7 @@ class Helper {
    *  检查集合名
    */
   checkClName(clName) {
-    let model = new ModelCl(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    let model = new ModelCl(this["ctrl"].mongoClient, this["ctrl"].bucket, this["ctrl"].client)
     return model.checkClName(clName)
   }
 }

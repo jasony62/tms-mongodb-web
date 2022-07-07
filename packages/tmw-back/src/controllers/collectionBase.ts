@@ -107,7 +107,7 @@ class CollectionBase extends Base {
 
     let info = this["request"].body
     let { cl: clName } = this["request"].query
-    let modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    let modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"])
 
     // 格式化集合名
     let newClName

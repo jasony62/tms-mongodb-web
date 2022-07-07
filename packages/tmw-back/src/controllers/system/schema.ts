@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import * as _ from 'lodash'
 import { ResultData, ResultFault } from 'tms-koa'
 import Base from './base'
 import * as mongodb from 'mongodb'

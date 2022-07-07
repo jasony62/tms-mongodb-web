@@ -6,17 +6,10 @@ const ObjectId = mongodb.ObjectId
 class Collection extends Base {
   /**
    *
-   * @param {object} bucket - 用户存储空间
-   */
-  constructor(mongoClient, bucket, client, config) {
-    super(mongoClient, bucket, client, config)
-  }
-  /**
-   *
    * @param {object} tmwCl
    */
   async getSchemaByCollection(tmwCl) {
-    const client = await this.mongoClient()
+    const client = await this.mongoClient
     const cl = client.db('tms_admin').collection('mongodb_object')
     // 获取表列
     return cl
@@ -46,8 +39,7 @@ class Collection extends Base {
   }
   //
   static async getCollection(existDb, clName) {
-    const baseObj = new Base('', '', '', '')
-    const client = await baseObj.mongoClient()
+    const client = await this["mongoClient"]
     const cl = client.db('tms_admin').collection('mongodb_object')
     //
     return cl
@@ -104,7 +96,7 @@ class Collection extends Base {
 
     if (this.bucket) query.bucket = this.bucket.name
 
-    const client = await this.mongoClient()
+    const client = await this.mongoClient
     const clMongoObj = client.db('tms_admin').collection('mongodb_object')
 
     const cl = await clMongoObj.findOne(query)
@@ -127,7 +119,7 @@ class Collection extends Base {
     }
     if (this.bucket) query.bucket = this.bucket.name
 
-    const client = await this.mongoClient()
+    const client = await this.mongoClient
     const clMongoObj = client.db('tms_admin').collection('mongodb_object')
 
     const cl = await clMongoObj.findOne(query)

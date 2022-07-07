@@ -177,8 +177,7 @@ class Collection extends CollectionBase {
     const modelCl = new ModelCl(
       this['mongoClient'],
       this['bucket'],
-      this['client'],
-      this['config']
+      this['client']
     )
 
     const { sysname } = this['request'].query
