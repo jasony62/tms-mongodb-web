@@ -12,6 +12,9 @@ export default defineConfig({
   },
   plugins: [vue()],
   base: env.VITE_BASE_URL ? env.VITE_BASE_URL : '/',
+  build: {
+    outDir: env.VITE_BASE_URL ? `dist${env.VITE_BASE_URL}/` : 'dist'
+  },
   server: {
     port: 9000,
     proxy: {
