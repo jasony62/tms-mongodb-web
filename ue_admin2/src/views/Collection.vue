@@ -9,7 +9,7 @@
     </template>
     <template v-slot:center>
       <el-table :data="store.documents" highlight-current-row style="width: 100%;" :max-height="dymaicHeight"
-        @current-change="selectDocument">
+        @current-change="handleCurrentChange" @selection-change="handleSelectDocument">
         <el-table-column type="index" width="55"></el-table-column>
         <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
           <template #header>
@@ -86,6 +86,9 @@
         <div>
           <el-button @click="createDocument">添加文档</el-button>
         </div>
+        <div>
+          <el-button @click="exportJSON">导出json【{{ totalChecked }}】</el-button>
+        </div>
         <div v-if="data.jsonItems.length">
           <el-button v-if="data.jsonItems.length === 1" plain @click="configJson(data.jsonItems[0])">编辑【{{
               data.jsonItems[0].title
@@ -149,6 +152,8 @@ const data = reactive({
 })
 
 let currentNames = ref([] as any[])
+let selectedDocuments = ref<Any[]>([])
+let totalChecked = computed(() => selectedDocuments.value.length)
 
 const handleCondition = () => {
   const conditions = store.conditions
@@ -219,8 +224,26 @@ const configJson = (item: any) => {
   }
 }
 
-const selectDocument = (val: any) => {
+const handleCurrentChange = (val: any) => {
   currentRow.value = val
+}
+
+const handleSelectDocument = (rows) => {
+  selectedDocuments.value = rows
+}
+
+const exportJSON = () => {
+  let ids = selectedDocuments.value.map((doc) => doc._id)
+  apiDoc
+    .export(bucketName, dbName, clName, {
+      docIds: ids,
+      columns: data.properties,
+      exportType: 'json',
+    })
+    .then((result: any) => {
+      const access_token = getLocalToken()
+      window.open(`${result}?access_token=${access_token}`)
+    })
 }
 
 const createDocument = () => {
