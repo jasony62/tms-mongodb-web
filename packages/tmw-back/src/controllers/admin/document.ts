@@ -1,4 +1,4 @@
-import DocBase from "../documentBase"
+import DocBase from '../documentBase'
 
 /** 管理段文档对象控制器 */
 class Document extends DocBase {
@@ -368,4 +368,4 @@ class Document extends DocBase {
   }
 }
 
-export default Document
+export = Document

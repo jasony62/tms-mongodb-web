@@ -1,2 +1,3 @@
 dist
-src/config
+_lowdb.json
+.pnpm-debug.log

@@ -12,8 +12,8 @@ class Coworker extends Base {
   }
   /** 执行方法调用前检查 */
   async tmsBeforeEach() {
-    const { url } = this["request"]
-    if (!this["client"])
+    const { url } = this['request']
+    if (!this['client'])
       return new ResultFault('只有通过认证的用户才可以执行该操作')
     if (url.split('?')[0].split('/').pop() === 'accept') return true
     let result = await super.tmsBeforeEach()
@@ -50,28 +50,29 @@ class Coworker extends Base {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async invite() {
-    if (!this["bucket"]) return new ResultFault('没有指定邀请的空间')
-    const { nickname } = this["request"].body
+    if (!this['bucket']) return new ResultFault('没有指定邀请的空间')
+    const { nickname } = this['request'].body
     if (!nickname) return new ResultFault('没有指定被邀请用户的昵称')
 
     /*检查nickname*/
-    const clBkt = this["mongoClient"].db('tms_admin').collection('bucket')
+    const clBkt = this['mongoClient'].db('tms_admin').collection('bucket')
     const coworkerBucket = await clBkt.findOne({
-      name: this["bucket"].name,
+      name: this['bucket'].name,
       'coworkers.nickname': nickname,
     })
     const coworkerInfo = await clBkt.findOne({
-      name: this["bucket"].name
+      name: this['bucket'].name,
     })
-    if (this["client"].id !== coworkerInfo.creator) return new ResultFault(`没有权限`)
+    if (this['client'].id !== coworkerInfo.creator)
+      return new ResultFault(`没有权限`)
     if (coworkerBucket)
       return new ResultFault(`用户【${nickname}】已经是授权用户，不能重复邀请`)
-    const clLog = this["mongoClient"]
+    const clLog = this['mongoClient']
       .db('tms_admin')
       .collection('bucket_invite_log')
 
     const inviteLog = await clLog.findOne({
-      bucket: this["bucket"].name,
+      bucket: this['bucket'].name,
       nickname,
       acceptAt: { $exists: false },
     })
@@ -89,7 +90,7 @@ class Coworker extends Base {
       existInvite
     let code = nanoid(4)
     while (tries <= 2) {
-      existInvite = await clLog.findOne({ bucket: this["bucket"].name, code })
+      existInvite = await clLog.findOne({ bucket: this['bucket'].name, code })
       if (!existInvite) break
       code = nanoid(4)
       tries++
@@ -101,8 +102,8 @@ class Coworker extends Base {
     const expireAt = new Date(createAt.getTime() + 1800 * 1000)
 
     const invite = {
-      inviter: this["client"].id,
-      bucket: this["bucket"].name,
+      inviter: this['client'].id,
+      bucket: this['bucket'].name,
       code,
       createAt,
       expireAt,
@@ -147,16 +148,17 @@ class Coworker extends Base {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async accept() {
-    const { bucket } = this["request"].query
+    const { bucket } = this['request'].query
     if (!bucket) return new ResultFault('没有指定邀请的空间')
 
-    const clLog = this["mongoClient"]
+    const clLog = this['mongoClient']
       .db('tms_admin')
       .collection('bucket_invite_log')
 
-    const { code, nickname } = this["request"].body
+    const { code, nickname } = this['request'].body
     if (!code || !nickname) return new ResultFault('没有提供又有效参数')
-    if (nickname !== (this["client"] && this["client"].id)) return new ResultFault('用户信息不匹配')
+    if (nickname !== (this['client'] && this['client'].id))
+      return new ResultFault('用户信息不匹配')
 
     const invite = await clLog.findOne({
       bucket,
@@ -175,23 +177,28 @@ class Coworker extends Base {
 
     const current = dayjs(new Date(Date.now() + 3600 * 8 * 1000))
     let accept_time = current.format('YYYY-MM-DD HH:mm:ss')
-    const invitee = this["client"].id // 被邀请人
+    const invitee = this['client'].id // 被邀请人
     /*加入bucket授权列表*/
-    const clBucket = this["mongoClient"].db('tms_admin').collection('bucket')
+    const clBucket = this['mongoClient'].db('tms_admin').collection('bucket')
     const coworkerQuery = {
       name: bucket,
-      'coworkers.id': invitee
+      'coworkers.id': invitee,
     }
     const coworkerBucket = await clBucket.findOne(coworkerQuery)
     if (coworkerBucket) {
       await clBucket.updateOne(coworkerQuery, {
-        $set: { 'coworkers.$.nickname': nickname, 'coworkers.$.change_time': accept_time },
+        $set: {
+          'coworkers.$.nickname': nickname,
+          'coworkers.$.change_time': accept_time,
+        },
       })
     } else {
       await clBucket.updateOne(
         { name: bucket },
         {
-          $push: { coworkers: { id: invitee, nickname, accept_time: accept_time } },
+          $push: {
+            coworkers: { id: invitee, nickname, accept_time: accept_time },
+          },
         }
       )
     }
@@ -230,13 +237,13 @@ class Coworker extends Base {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async remove() {
-    if (!this["bucket"]) return new ResultFault('没有指定邀请的空间')
+    if (!this['bucket']) return new ResultFault('没有指定邀请的空间')
 
-    const { coworker } = this["request"].query
+    const { coworker } = this['request'].query
 
-    const clBkt = this["mongoClient"].db('tms_admin').collection('bucket')
+    const clBkt = this['mongoClient'].db('tms_admin').collection('bucket')
     const coworkerBucket = await clBkt.findOne({
-      name: this["bucket"].name,
+      name: this['bucket'].name,
       'coworkers.id': { $in: [coworker, parseInt(coworker)] },
     })
 
@@ -255,4 +262,4 @@ class Coworker extends Base {
   }
 }
 
-export default Coworker
+export = Coworker

@@ -1,4 +1,4 @@
-import ReplicaBase from "../replicaBase"
+import ReplicaBase from '../replicaBase'
 
 /**
  * 集合复制控制器
@@ -262,4 +262,4 @@ class Replica extends ReplicaBase {
   }
 }
 
-export default Replica
+export = Replica

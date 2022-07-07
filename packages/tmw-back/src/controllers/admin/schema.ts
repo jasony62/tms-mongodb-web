@@ -114,12 +114,12 @@ class Schema extends SchemaBase {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async create() {
-    let info = this["request"].body
+    let info = this['request'].body
     info.type = 'schema'
     if (!info.scope) info.scope = 'document'
-    if (this["bucket"]) info.bucket = this["bucket"].name
+    if (this['bucket']) info.bucket = this['bucket'].name
 
-    return this["clMongoObj"].insertOne(info).then((result) => {
+    return this['clMongoObj'].insertOne(info).then((result) => {
       info._id = result.insertedId
       return new ResultData(info)
     })
@@ -160,15 +160,15 @@ class Schema extends SchemaBase {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async update() {
-    const { id } = this["request"].query
-    let info = this["request"].body
+    const { id } = this['request'].query
+    let info = this['request'].body
     const { scope } = info
     info = _.omit(info, ['_id', 'scope', 'bucket'])
 
     const query = { _id: new ObjectId(id), type: 'schema' }
-    if (this["bucket"]) query["bucket"] = this["bucket"].name
+    if (this['bucket']) query['bucket'] = this['bucket'].name
 
-    return this["clMongoObj"]
+    return this['clMongoObj']
       .updateOne(query, { $set: info }, { upsert: true })
       .then(() => {
         info.scope = scope
@@ -192,11 +192,11 @@ class Schema extends SchemaBase {
    *
    */
   async remove() {
-    const { id } = this["request"].query
+    const { id } = this['request'].query
     if (!id) return new ResultFault('参数不完整')
 
     // 是否正在使用
-    let rst = await this["clMongoObj"].findOne({
+    let rst = await this['clMongoObj'].findOne({
       schema_id: id,
       type: 'collection',
     })
@@ -204,9 +204,9 @@ class Schema extends SchemaBase {
       return new ResultFault('文档列定义正在被使用，不能删除')
     }
     const query = { _id: new ObjectId(id), type: 'schema' }
-    if (this["bucket"]) query["bucket"] = this["bucket"].name
-    return this["clMongoObj"].deleteOne(query).then(() => new ResultData('ok'))
+    if (this['bucket']) query['bucket'] = this['bucket'].name
+    return this['clMongoObj'].deleteOne(query).then(() => new ResultData('ok'))
   }
 }
 
-export default Schema
+export = Schema

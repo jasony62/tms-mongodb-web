@@ -78,16 +78,16 @@ class Collection extends CollectionBase {
    *               "$ref": "#/components/schemas/ResponseDataArray"
    */
   async uncontrolled() {
-    const client = this["mongoClient"]
+    const client = this['mongoClient']
     const rawCls = await client
-      .db(this["reqDb"].sysname)
+      .db(this['reqDb'].sysname)
       .listCollections({}, { nameOnly: true })
       .toArray()
 
     let uncontrolled = []
     for (let i = 0, rawCl; i < rawCls.length; i++) {
       rawCl = rawCls[i]
-      let tmwCl = await this["clMongoObj"].findOne({
+      let tmwCl = await this['clMongoObj'].findOne({
         sysname: rawCl.name,
         type: 'collection',
       })
@@ -174,31 +174,36 @@ class Collection extends CollectionBase {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async add() {
-    const modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    const modelCl = new ModelCl(
+      this['mongoClient'],
+      this['bucket'],
+      this['client'],
+      this['config']
+    )
 
-    const { sysname } = this["request"].query
-    const existSysCl = await modelCl.bySysname(this["reqDb"], sysname)
+    const { sysname } = this['request'].query
+    const existSysCl = await modelCl.bySysname(this['reqDb'], sysname)
     if (existSysCl)
       return new ResultFault(`集合[sysname=${sysname}]已经是管理对象`)
 
-    const info = this["request"].body
+    const info = this['request'].body
 
     // 检查指定的集合名
     let [passed, cause] = modelCl.checkClName(info.name)
     if (passed === false) return new ResultFault(cause)
 
     // 查询是否已存在同名集合
-    let existTmwCl = await modelCl.byName(this["reqDb"], info.name)
+    let existTmwCl = await modelCl.byName(this['reqDb'], info.name)
     if (existTmwCl)
       return new ResultFault(
-        `数据库[name=${this["reqDb"].name}]中，已存在同名集合[name=${info.name}]`
+        `数据库[name=${this['reqDb'].name}]中，已存在同名集合[name=${info.name}]`
       )
 
     info.type = 'collection'
     info.sysname = sysname
-    info.database = this["reqDb"].name
-    info.db = { sysname: this["reqDb"].sysname, name: this["reqDb"].name }
-    if (this["bucket"]) info.bucket = this["bucket"].name
+    info.database = this['reqDb'].name
+    info.db = { sysname: this['reqDb'].sysname, name: this['reqDb'].name }
+    if (this['bucket']) info.bucket = this['bucket'].name
 
     // 检查是否指定了用途
     let { usage } = info
@@ -208,7 +213,7 @@ class Collection extends CollectionBase {
       info.usage = parseInt(usage)
     }
 
-    return this["clMongoObj"].insertOne(info).then((result) => {
+    return this['clMongoObj'].insertOne(info).then((result) => {
       info._id = result.insertedId
       return new ResultData(info)
     })
@@ -314,12 +319,12 @@ class Collection extends CollectionBase {
    *
    */
   async discard() {
-    const existCl = await this["clHelper"].findRequestCl()
+    const existCl = await this['clHelper'].findRequestCl()
 
-    return this["clMongoObj"]
+    return this['clMongoObj']
       .deleteOne({ _id: existCl._id })
       .then(() => new ResultData('ok'))
   }
 }
 
-export default Collection
+export = Collection

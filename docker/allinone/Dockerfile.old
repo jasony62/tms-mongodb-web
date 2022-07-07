@@ -15,13 +15,13 @@ WORKDIR /usr/src
 RUN cd /usr/src 
 # RUN git clone -b dev https://github.com/jasony62/tms-mongodb-web.git tmw
 # RUN git clone --depth=1 https://gitee.com/jasony62/tms-mongodb-web.git
-COPY ../../packages/tmw-back /usr/src/tmw/back 
+COPY ../../back /usr/src/tmw/back 
 COPY ../../ue_admin2 /usr/src/tmw/ue_admin2 
 
 # 安装依赖报和编译
 WORKDIR /usr/src/tmw
 # back
-RUN cd /usr/src/tmw/back && pnpm i --strict-peer-dependencies=false && tsc
+RUN cd /usr/src/tmw/back && pnpm i --strict-peer-dependencies=false
 
 # ue_admin2
 WORKDIR /usr/src/tmw/ue_admin2

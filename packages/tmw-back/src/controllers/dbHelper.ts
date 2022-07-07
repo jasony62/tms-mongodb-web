@@ -40,7 +40,12 @@ class DbHelper extends Helper {
     info.type = 'database'
 
     // 检查数据库名
-    let modelDb = new ModelDb(this["mongoClient"], info.bucket, this["client"], this["config"])
+    let modelDb = new ModelDb(
+      this['mongoClient'],
+      info.bucket,
+      this['client'],
+      this['config']
+    )
     let newName = modelDb.checkDbName(info.name)
     if (newName[0] === false) return [false, newName[1]]
     info.name = newName[1]

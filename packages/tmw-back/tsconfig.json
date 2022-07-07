@@ -2,11 +2,13 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "commonjs",
+    "esModuleInterop": false,
     "moduleResolution": "node",
     "noImplicitAny": false,
     "removeComments": true,
     "preserveConstEnums": true,
     "forceConsistentCasingInFileNames": true,
+    "declaration": true,
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {

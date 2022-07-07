@@ -1,4 +1,4 @@
-import DbBase from "../dbBase"
+import DbBase from '../dbBase'
 import { ResultData, ResultFault } from 'tms-koa'
 import { ModelDb } from 'tmw-model'
 
@@ -53,7 +53,7 @@ class Db extends DbBase {
    *               "$ref": "#/components/schemas/ResponseDataArray"
    */
   async uncontrolled() {
-    const result = await this["mongoClient"]
+    const result = await this['mongoClient']
       .db()
       .admin()
       .listDatabases({ nameOnly: true })
@@ -66,7 +66,7 @@ class Db extends DbBase {
     let uncontrolled = []
     for (let i = 0, db; i < dbs.length; i++) {
       db = dbs[i]
-      let tmwDb = await this["clMongoObj"].findOne({
+      let tmwDb = await this['clMongoObj'].findOne({
         sysname: db.name,
         type: 'database',
       })
@@ -152,27 +152,32 @@ class Db extends DbBase {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async add() {
-    const { sysname } = this["request"].query
-    const existDb = await this["dbHelper"].dbBySysname(sysname)
+    const { sysname } = this['request'].query
+    const existDb = await this['dbHelper'].dbBySysname(sysname)
     if (existDb) return new ResultFault(`数据库[${sysname}]已经作为管理对象`)
 
-    let info = this["request"].body
+    let info = this['request'].body
     info.type = 'database'
     info.sysname = sysname
-    if (this["bucket"]) info.bucket = this["bucket"].name
+    if (this['bucket']) info.bucket = this['bucket'].name
 
     // 检查数据库名
-    let modelDb = new ModelDb(this["mongoClient"], this["bucket"], this["client"], this["config"])
+    let modelDb = new ModelDb(
+      this['mongoClient'],
+      this['bucket'],
+      this['client'],
+      this['config']
+    )
     let newName = modelDb.checkDbName(info.name)
     if (newName[0] === false) return new ResultFault(newName[1])
     info.name = newName[1]
 
     // 查询是否存在同名库
-    let existTmwDb = await this["dbHelper"].dbByName(info.name)
+    let existTmwDb = await this['dbHelper'].dbByName(info.name)
     if (existTmwDb)
       return new ResultFault(`已存在同名数据库[name=${info.name}]`)
 
-    return this["clMongoObj"].insertOne(info).then((result) => {
+    return this['clMongoObj'].insertOne(info).then((result) => {
       info._id = result.insertedId
       return new ResultData(info)
     })
@@ -233,14 +238,14 @@ class Db extends DbBase {
    *
    */
   async remove() {
-    const existDb = await this["dbHelper"].findRequestDb()
+    const existDb = await this['dbHelper'].findRequestDb()
 
     if (['admin', 'config', 'local', 'tms_admin'].includes(existDb.sysname))
       return new ResultFault(`不能删除系统自带数据库[${existDb.sysname}]`)
 
-    const cl = this["clMongoObj"]
+    const cl = this['clMongoObj']
     const query = { database: existDb.name, type: 'collection' }
-    if (this["bucket"]) query["bucket"] = this["bucket"].name
+    if (this['bucket']) query['bucket'] = this['bucket'].name
     // 查找数据库下是否有集合，如果有则不能删除
     let colls = await cl.find(query).toArray()
     if (colls.length > 0)
@@ -248,7 +253,7 @@ class Db extends DbBase {
         `删除失败，数据库[${existDb.sysname}]中存在未删除的集合`
       )
 
-    const client = this["mongoClient"]
+    const client = this['mongoClient']
     return cl
       .deleteOne({ _id: existDb._id })
       .then(() => client.db(existDb.sysname).dropDatabase())
@@ -271,14 +276,14 @@ class Db extends DbBase {
    *
    */
   async discard() {
-    const existDb = await this["dbHelper"].findRequestDb()
+    const existDb = await this['dbHelper'].findRequestDb()
 
     if (['admin', 'config', 'local', 'tms_admin'].includes(existDb.sysname))
       return new ResultFault(`不能删除系统自带数据库[${existDb.sysname}]`)
 
-    const cl = this["clMongoObj"]
+    const cl = this['clMongoObj']
     const query = { database: existDb.name, type: 'collection' }
-    if (this["bucket"]) query["bucket"] = this["bucket"].name
+    if (this['bucket']) query['bucket'] = this['bucket'].name
     // 查找数据库下是否有集合，如果有则不能删除
     let colls = await cl.find(query).toArray()
     if (colls.length > 0)
@@ -322,4 +327,4 @@ class Db extends DbBase {
   }
 }
 
-export default Db
+export = Db

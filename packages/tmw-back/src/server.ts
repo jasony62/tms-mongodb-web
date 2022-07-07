@@ -1,10 +1,23 @@
 import * as log4js from 'log4js'
 import * as path from 'path'
 import * as fs from 'fs'
-let cnfpath = path.resolve(process.cwd()+'/config/log4js.js')
+
+let cnfpath = path.resolve(process.cwd() + '/config/log4js.js')
 if (fs.existsSync(cnfpath)) {
-  const log4jsConfig = require(process.cwd()+'/config/log4js')
+  const log4jsConfig = require(process.cwd() + '/config/log4js')
   log4js.configure(log4jsConfig)
+} else {
+  log4js.configure({
+    appenders: {
+      consoleout: { type: 'console' },
+    },
+    categories: {
+      default: {
+        appenders: ['consoleout'],
+        level: 'debug',
+      },
+    },
+  })
 }
 const logger = log4js.getLogger('tms-mongodb-web')
 
