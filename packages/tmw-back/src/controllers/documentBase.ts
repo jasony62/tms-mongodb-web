@@ -452,6 +452,66 @@ class DocBase extends Base {
         return docs
       })
   }
+  /**
+   * 导出数据
+   */
+  async export() {
+    let { filter, docIds, columns, exportType } = this["request"].body
+    if (!exportType) {
+      return new ResultFault("缺少导出的文件类型参数")
+    }
+
+    let modelDoc = new ModelDoc(this["mongoClient"], this["bucket"], this["client"])
+
+    let query
+    if (docIds && docIds.length > 0) {
+      // 按选中修改
+      let docIds2 = docIds.map(id => new ObjectId(id))
+      query = { _id: { $in: docIds2 } }
+    } else if (filter && typeof filter === 'object') {
+      // 按条件修改
+      query = modelDoc.assembleQuery(filter)
+    } else if (typeof filter === 'string' && filter === 'ALL') {
+      //修改全部
+      query = {}
+    } else {
+      return new ResultFault('没有要导出的数据')
+    }
+
+    const existCl = await this["docHelper"].findRequestCl()
+    // 集合列
+    let modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"])
+    columns = columns ? columns : await modelCl.getSchemaByCollection(existCl)
+    if (!columns) return new ResultFault('指定的集合没有指定集合列')
+
+    const client = this["mongoClient"]
+    // 集合数据
+    let data = await client
+      .db(existCl.db.sysname)
+      .collection(existCl.sysname)
+      .find(query)
+      .toArray()
+
+    let rst
+    if (exportType === 'xlsx') {
+      // 数据处理-针对单选多选转化
+      this["docHelper"].transformsCol('toLabel', data, columns)
+
+      const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
+      rst = ExcelCtrl.export(columns, data, existCl.name + '.xlsx')
+
+    } else if (exportType === 'json') {
+      const { ZipCtrl } = require('./zipArchiver')
+      rst = ZipCtrl.export(data, existCl.name + '.zip', { dir: existCl.name })
+
+    }
+    
+    if (rst[0] === false) return new ResultFault(rst[1])
+
+    rst = rst[1]
+
+    return new ResultData(rst)
+  }
 }
 
 export default DocBase
