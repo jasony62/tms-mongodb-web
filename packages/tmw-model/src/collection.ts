@@ -9,7 +9,7 @@ class Collection extends Base {
    * @param {object} tmwCl
    */
   async getSchemaByCollection(tmwCl) {
-    const client = await this.mongoClient
+    const client = this.mongoClient
     const cl = client.db('tms_admin').collection('mongodb_object')
     // 获取表列
     return cl
@@ -96,7 +96,7 @@ class Collection extends Base {
 
     if (this.bucket) query.bucket = this.bucket.name
 
-    const client = await this.mongoClient
+    const client = this.mongoClient
     const clMongoObj = client.db('tms_admin').collection('mongodb_object')
 
     const cl = await clMongoObj.findOne(query)
@@ -119,7 +119,7 @@ class Collection extends Base {
     }
     if (this.bucket) query.bucket = this.bucket.name
 
-    const client = await this.mongoClient
+    const client = this.mongoClient
     const clMongoObj = client.db('tms_admin').collection('mongodb_object')
 
     const cl = await clMongoObj.findOne(query)
