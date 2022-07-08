@@ -31,6 +31,21 @@ importers:
       '@types/node': 18.0.1
       rimraf: 3.0.2
 
+  packages/tmw-model:
+    specifiers:
+      '@types/node': ^18.0.1
+      dayjs: ^1.11.3
+      mongo-escape: ^2.0.6
+      mongodb: ^4.7.0
+      rimraf: ^3.0.2
+    dependencies:
+      dayjs: 1.11.3
+      mongo-escape: 2.0.6
+      mongodb: 4.7.0
+    devDependencies:
+      '@types/node': 18.0.1
+      rimraf: 3.0.2
+
 packages:
 
   /@apidevtools/json-schema-ref-parser/9.0.9:
@@ -899,6 +914,10 @@ packages:
 
   /moment/2.29.3:
     resolution: {integrity: sha512-c6YRvhEo//6T2Jz/vVtYzqBzwvPT95JBQ+smCytzf7c50oMZRsR/a4w88aD34I+/QVSfnoAnSBFPJHItlOMJVw==}
+    dev: false
+
+  /mongo-escape/2.0.6:
+    resolution: {integrity: sha512-QsSsY97bZmCulXoY6gDHW3+LmORyxHATiGO/P9dOzg1CwcSmr+jjKciN+Kp1uw/syVhelgUaT2iZu8cylhXY3g==}
     dev: false
 
   /mongodb-connection-string-url/2.5.2:

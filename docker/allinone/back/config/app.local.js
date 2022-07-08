@@ -1,5 +1,5 @@
 let appConfig = {
-  port: 3000,
+  port: 3020,
   auth: {
     disabled: false,
     client: {

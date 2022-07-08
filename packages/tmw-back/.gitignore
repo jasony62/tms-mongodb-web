@@ -1,3 +1,5 @@
 dist
+storage
+node_modules
 _lowdb.json
 .pnpm-debug.log

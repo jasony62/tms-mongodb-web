@@ -19,10 +19,9 @@
   </el-dialog>
 </template>
 <script setup lang="ts">
-import { ref, reactive, defineEmits } from 'vue';
+import { ref, reactive } from 'vue';
 import apiBkt from '@/apis/bucket'
 import { ElMessage } from 'element-plus'
-//const emit = defineEmits(['submitBucket'])
 
 const props = defineProps({
   dialogVisible: { default: true },
