@@ -26,7 +26,7 @@
             </template>
           </el-table-column>
           <el-table-column prop="description" label="说明"></el-table-column>
-          <el-table-column fixed="right" label="操作" width="180">
+          <el-table-column label="操作" width="180">
             <template #default="scope">
               <el-button @click="editCollection(scope.row, scope.$index)" type="primary" text size="small">修改
               </el-button>

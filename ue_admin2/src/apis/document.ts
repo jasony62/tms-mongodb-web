@@ -93,4 +93,10 @@ export default {
       .post(uploadUrl, fileData, config)
       .then((rst: ApiRst) => rst.data.result)
   },
+  export(bucket: string, dbName: string, clName: string, { docIds, columns, exportType }: any) {
+    const params = { bucket, db: dbName, cl: clName }
+    return TmsAxios.ins('mongodb-api')
+      .post(`${base}/export`, { docIds, columns, exportType }, { params })
+      .then((rst: ApiRst) => rst.data.result)
+  },
 }
