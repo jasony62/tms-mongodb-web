@@ -1,5 +1,5 @@
 <template>
-  <tms-frame class="tmw-collection" :display="{ header: true, footer: true, right: true }" :leftWidth="'20%'">
+  <tms-frame :display="{ header: true, footer: true, right: true }" :leftWidth="'20%'">
     <template v-slot:header>
       <el-breadcrumb separator-class="el-icon-arrow-right">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
@@ -7,9 +7,9 @@
       </el-breadcrumb>
     </template>
     <template v-slot:center>
-      <tms-flex direction="column">
-        <el-table :data="store.collections" stripe style="width: 100%" @selection-change="changeClSelect"
-          :max-height="dymaicHeight">
+      <tms-flex direction="column" class="flex-1 overflow-hidden">
+        <el-table :data="store.collections" stripe class="flex-1" style="overflow-y:auto"
+          @selection-change="changeClSelect">
           <el-table-column type="selection" width="55"></el-table-column>
           <el-table-column label="collection" width="180">
             <template #default="scope">
@@ -24,7 +24,7 @@
             </template>
           </el-table-column>
           <el-table-column prop="description" label="说明"></el-table-column>
-          <el-table-column fixed="right" label="操作" width="180">
+          <el-table-column label="操作" width="180">
             <template #default="scope">
               <el-button @click="editCollection(scope.row, scope.$index)" type="primary" link size="small">修改
               </el-button>
@@ -58,8 +58,6 @@ const store = facStore()
 
 // 查找条件下拉框分页包含记录数
 const LIST_PAGE_SIZE = 100
-
-const dymaicHeight = ref(500)
 
 const props = defineProps(['bucketName', 'dbName'])
 

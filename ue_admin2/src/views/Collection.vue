@@ -8,7 +8,7 @@
       </el-breadcrumb>
     </template>
     <template v-slot:center>
-      <el-table :data="store.documents" highlight-current-row style="width: 100%;" :max-height="dymaicHeight"
+      <el-table :data="store.documents" highlight-current-row class="flex-1" style="overflow-y:auto"
         @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55"></el-table-column>
         <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
@@ -143,8 +143,6 @@ const store = facStore()
 // 查找条件下拉框分页包含记录数
 const LIST_DB_PAGE_SIZE = 100
 
-const dymaicHeight = ref(500)
-let currentRow = ref()
 let collection = reactive({
   schema_tags: [] as any[],
   schema_default_tags: [] as any[],
@@ -227,13 +225,13 @@ const configJson = (row: any, item: any) => {
   openConfigJsonEditor({
     jsonData,
     onBeforeClose: (newJson?: any) => {
-      currentRow.value[item.name] = newJson
+      row[item.name] = newJson
       apiDoc.update(
         bucketName,
         dbName,
         clName,
-        currentRow.value._id,
-        currentRow.value
+        row._id,
+        row
       )
     },
   })
