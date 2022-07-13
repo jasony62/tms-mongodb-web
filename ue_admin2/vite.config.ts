@@ -13,7 +13,7 @@ export default defineConfig({
   plugins: [vue()],
   base: env.VITE_BASE_URL ? env.VITE_BASE_URL : '/',
   server: {
-    port: 9000,
+    port: parseInt(process.env.SERVER_PORT) || 9000,
     proxy: {
       '/api': 'http://localhost:3001',
       '/auth': 'http://localhost:3001',
