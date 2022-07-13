@@ -20,7 +20,7 @@ export default async function unrepeat(ctrl, data, transform) {
       find[v] = doc[v]
     })
 
-    let num = await cl.find(find).count()
+    let num = await cl.countDocuments(find)
     if (num > 0) {
       return false
     } else {

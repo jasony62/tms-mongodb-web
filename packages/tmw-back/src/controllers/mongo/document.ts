@@ -182,7 +182,7 @@ class Document extends DocBase {
         operateType = `批量（按全部）迁移`
       }
       oldDocus = await cl.find(query).limit(parseInt(execNum)).toArray()
-      total = await cl.find(query).count()
+      total = await cl.countDocuments(query)
     }
 
     let rst = await this["docHelper"].cutDocs(oldDb, oldCl, newDb, newCl, oldDocus)
