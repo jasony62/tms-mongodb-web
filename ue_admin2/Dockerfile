@@ -10,6 +10,7 @@ WORKDIR /usr/src/app
 COPY . .
 
 # 生成.env文件
+ARG vite_base_url
 ARG vite_back_auth_base
 ARG vite_back_api_server
 ARG vite_back_api_base
@@ -20,7 +21,8 @@ ARG vite_tmw_require_bucket
 ARG vite_encrypt_secret
 
 
-RUN  echo VITE_BACK_AUTH_BASE=$vite_back_auth_base >> .env && \
+RUN  echo VITE_BASE_URL=$vite_base_url >> .env && \
+  echo VITE_BACK_AUTH_BASE=$vite_back_auth_base >> .env && \
   echo VITE_BACK_API_SERVER=$vite_back_api_server >> .env && \
   echo VITE_BACK_API_BASE=$vite_back_api_base >> .env && \
   echo VITE_BACK_API_FS=$vite_back_api_fs >> .env && \

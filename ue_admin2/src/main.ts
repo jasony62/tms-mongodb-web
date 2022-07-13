@@ -11,6 +11,7 @@ import './index.css'
 import 'element-plus/dist/index.css'
 import 'tms-vue3-ui/dist/es/frame/style/index.css'
 import 'tms-vue3-ui/dist/es/flex/style/index.css'
+import './assets/common.scss'
 
 function initFunc() {
   let token = getLocalToken()

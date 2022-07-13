@@ -6,8 +6,9 @@ import doc from './document'
 import invite from './invite'
 import tag from './tag'
 import replica from './replica'
+import plugin from './plugin'
 
-export { bucket, db, schema, collection, doc, invite, tag }
+export { bucket, db, schema, collection, doc, invite, tag, replica, plugin }
 
 export default {
   bucket,
@@ -18,4 +19,5 @@ export default {
   invite,
   tag,
   replica,
+  plugin,
 }

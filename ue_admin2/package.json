@@ -11,11 +11,11 @@
   "dependencies": {
     "@element-plus/icons-vue": "^1.1.4",
     "add": "^2.0.6",
-    "element-plus": "^2.1.10",
+    "element-plus": "^2.2.8",
     "jsoneditor": "^9.7.4",
     "pinia": "^2.0.13",
     "tms-vue3": "0.0.4",
-    "tms-vue3-ui": "0.0.39",
+    "tms-vue3-ui": "0.0.40",
     "vue": "^3.2.25",
     "vue-router": "4"
   },
