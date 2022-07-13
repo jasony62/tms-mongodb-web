@@ -90,18 +90,10 @@
             <el-button @click="createDocument">添加文档</el-button>
           </div>
           <div v-if="data.jsonItems.length">
-            <el-button v-if="data.jsonItems.length === 1" plain @click="configJson(data.jsonItems[0])">编辑【{{
-                data.jsonItems[0].title
+            <el-button v-for="item in data.jsonItems" plain @click="configJson(item)">编辑【{{
+                item.title
             }}】
             </el-button>
-            <el-dropdown v-else>
-              <el-button>配置json类型<i class="el-icon-arrow-down el-icon--right"></i></el-button>
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item v-for="(item, index) in data.jsonItems" :key="index">
-                  <el-button type="primary" text @click="configJson(item)">编辑【{{ item.title }}】</el-button>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown>
           </div>
         </tms-flex>
       </div>
