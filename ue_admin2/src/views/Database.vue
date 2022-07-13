@@ -26,17 +26,18 @@
           <el-table-column prop="description" label="说明"></el-table-column>
           <el-table-column fixed="right" label="操作" width="180">
             <template #default="scope">
-              <el-button @click="editCollection(scope.row, scope.$index)" type="primary" text size="small">修改</el-button>
-              <el-button @click="removeCollection(scope.row)" type="primary" text size="small">删除</el-button>
+              <el-button @click="editCollection(scope.row, scope.$index)" type="primary" link size="small">修改
+              </el-button>
+              <el-button @click="removeCollection(scope.row)" type="primary" link size="small">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
-        <tms-flex class="tmw-pagination">
-          <span class="tmw-pagination__text">已选中 {{ data.multipleCl.length }} 条数据</span>
+        <div class="flex justify-between">
+          <span>已选中 {{ data.multipleCl.length }} 条数据</span>
           <el-pagination layout="total, sizes, prev, pager, next" background :total="data.clBatch.total"
             :page-sizes="[10, 25, 50, 100]" :current-page="data.clBatch.page" :page-size="data.clBatch.size"
             @current-change="changeClPage" @size-change="changeClSize"></el-pagination>
-        </tms-flex>
+        </div>
       </tms-flex>
     </template>
     <template v-slot:right>

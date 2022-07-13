@@ -1,5 +1,5 @@
 <template>
-  <tms-frame class="tmw-collection" :display="{ header: true, footer: true, right: true }" :leftWidth="'20%'">
+  <tms-frame :display="{ header: true, footer: true, right: true }" :leftWidth="'20%'">
     <template v-slot:header>
       <el-breadcrumb :separator-icon="ArrowRight">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
@@ -9,11 +9,11 @@
     </template>
     <template v-slot:center>
       <el-table :data="store.documents" highlight-current-row style="width: 100%;" :max-height="dymaicHeight"
-        @current-change="handleCurrentChange" @selection-change="handleSelectDocument">
-        <el-table-column type="index" width="55"></el-table-column>
+        @selection-change="handleSelectDocument">
+        <el-table-column fixed="left" type="selection" width="55"></el-table-column>
         <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
           <template #header>
-            <div @click="handleFilter(s, k)" :class="{ 'active': currentNames.includes(k) }">
+            <div @click="handleFilter(s, k)" :class="{ active: currentNames.includes(k) }">
               <i v-if="s.required" style="color: red">*</i>
               <span>{{ s.title }}</span>
               <el-icon class="el-icon__filter">
@@ -69,58 +69,74 @@
         </el-table-column>
         <el-table-column fixed="right" label="操作" width="180">
           <template #default="scope">
-            <el-button type="primary" text size="small" @click="editDocument(scope.row, scope.$index)">修改</el-button>
-            <el-button type="primary" text size="small" @click="removeDocument(scope.row)">删除</el-button>
+            <el-button type="primary" link size="small" @click="editDocument(scope.row, scope.$index)">修改</el-button>
+            <el-button type="primary" link size="small" @click="removeDocument(scope.row)">删除</el-button>
+            <el-dropdown v-if="data.jsonItems.length" size="small" split-button type="success">
+              编辑json类型
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item v-for="(item, index) in data.jsonItems" :key="index">
+                    <el-button type="" text @click="configJson(scope.row, item)">【{{ item.title }}】</el-button>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
-      <tms-flex class="tmw-pagination">
-        <span class="tmw-pagination__text">已选中 {{ data.multipleDoc.length }} 条数据</span>
+      <div class="flex justify-between">
+        <span>已选中 {{ data.multipleDoc.length }} 条数据</span>
         <el-pagination layout="total, sizes, prev, pager, next" background :total="data.docBatch.total"
           :page-sizes="[10, 25, 50, 100]" :current-page="data.docBatch.page" :page-size="data.docBatch.size"
           @current-change="changeDocPage" @size-change="changeDocSize"></el-pagination>
-      </tms-flex>
+      </div>
     </template>
     <template v-slot:right>
-      <tms-flex direction="column" align-items="flex-start">
-        <div>
-          <el-button @click="createDocument">添加文档</el-button>
-        </div>
-        <div>
-          <el-button @click="exportJSON">导出json【{{ totalChecked }}】</el-button>
-        </div>
-        <div v-if="data.jsonItems.length">
-          <el-button v-if="data.jsonItems.length === 1" plain @click="configJson(data.jsonItems[0])">编辑【{{
-              data.jsonItems[0].title
-          }}】
+      <div class="flex flex-col items-start space-y-2">
+        <el-button @click="createDocument">添加文档</el-button>
+        <el-button @click="exportJSON" style="margin-left:0">导出json【{{ totalChecked }}】</el-button>
+        <div v-for="p in data.plugins" :key="p.name">
+          <el-button v-if="p.transData === 'nothing'" type="success" plain @click="handlePlugins(p)">{{ p.title }}
           </el-button>
           <el-dropdown v-else>
-            <el-button>配置json类型<i class="el-icon-arrow-down el-icon--right"></i></el-button>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item v-for="(item, index) in data.jsonItems" :key="index">
-                <el-button type="primary" text @click="configJson(item)">编辑【{{ item.title }}】</el-button>
-              </el-dropdown-item>
-            </el-dropdown-menu>
+            <el-button type="success" plain>
+              {{ p.title }}
+              <el-icon class="el-icon--right">
+                <arrow-down />
+              </el-icon>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item>
+                  <el-button type="" text @click="handlePlugins(p, 'checked')">按选中({{ totalChecked }})</el-button>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
           </el-dropdown>
         </div>
-      </tms-flex>
+      </div>
     </template>
   </tms-frame>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, toRaw } from 'vue'
+import { onMounted, reactive, ref, toRaw, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowRight, Filter } from '@element-plus/icons-vue'
+import { ArrowRight, Filter, ArrowDown } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
 
 import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiDoc from '@/apis/document'
+import apiPlugin from '@/apis/plugin'
 import { getLocalToken } from '@/global'
 
 import facStore from '@/store'
-import { openDocEditor, openConfigJsonEditor, openSelectConditionEditor } from '@/components/editor'
+import {
+  openDocEditor,
+  openConfigJsonEditor,
+  openSelectConditionEditor,
+} from '@/components/editor'
 
 const store = facStore()
 
@@ -149,17 +165,22 @@ const data = reactive({
   jsonItems: [] as any[],
   properties: {} as any,
   documents: [] as any[],
+  plugins: [] as any[]
 })
 
 let currentNames = ref([] as any[])
-let selectedDocuments = ref<Any[]>([])
+let selectedDocuments = ref<any[]>([])
 let totalChecked = computed(() => selectedDocuments.value.length)
+
+const handlePlugins = (plugin: any, type?: string) => {
+
+}
 
 const handleCondition = () => {
   const conditions = store.conditions
   let criterais = {
     filter: {} as any,
-    orderBy: {} as any
+    orderBy: {} as any,
   }
   if (!conditions.length) {
     return criterais
@@ -188,47 +209,37 @@ const handleFilter = (schema: any, name: any) => {
       listDocByKw()
     },
   })
-
 }
 
 const hasJsonItems = () => {
   for (let propertyName in data.properties) {
     let value = data.properties[propertyName]
     if (value.type === 'json') {
-      // 自定义name键值接收原property
+      // 自定义'name'键值接收原property
       value.name = propertyName
       data.jsonItems.push(value)
     }
   }
 }
 
-const configJson = (item: any) => {
-  if (currentRow.value?._id) {
-    let jsonData = currentRow.value[item.name]
-    openConfigJsonEditor({
-      jsonData,
-      onBeforeClose: (newJson?: any) => {
-        currentRow.value[item.name] = newJson
-        apiDoc
-          .update(
-            bucketName,
-            dbName,
-            clName,
-            currentRow.value._id,
-            currentRow.value
-          )
-      },
-    })
-  } else {
-    ElMessage.info({ message: '请选择要配置的数据' })
-  }
+const configJson = (row: any, item: any) => {
+  let jsonData = row[item.name]
+  openConfigJsonEditor({
+    jsonData,
+    onBeforeClose: (newJson?: any) => {
+      currentRow.value[item.name] = newJson
+      apiDoc.update(
+        bucketName,
+        dbName,
+        clName,
+        currentRow.value._id,
+        currentRow.value
+      )
+    },
+  })
 }
 
-const handleCurrentChange = (val: any) => {
-  currentRow.value = val
-}
-
-const handleSelectDocument = (rows) => {
+const handleSelectDocument = (rows: any) => {
   selectedDocuments.value = rows
 }
 
@@ -253,9 +264,8 @@ const createDocument = () => {
     dbName,
     collection,
     onBeforeClose: (newDoc?: any) => {
-      if (newDoc)
-        store.appendDocument({ document: newDoc })
-    }
+      if (newDoc) store.appendDocument({ document: newDoc })
+    },
   })
 }
 
@@ -267,9 +277,8 @@ const editDocument = (document: any, index: number) => {
     collection,
     document: toRaw(document),
     onBeforeClose: (newDoc?: any) => {
-      if (newDoc)
-        store.updateDocument({ document: newDoc, index })
-    }
+      if (newDoc) store.updateDocument({ document: newDoc, index })
+    },
   })
 }
 
@@ -323,7 +332,7 @@ const listTag = (tags: any) => {
       })
       return temp
     })
-    .catch((err) => {
+    .catch((err: any) => {
       throw new Error(err)
     })
 }
@@ -361,19 +370,9 @@ const listDocByKw = () => {
 onMounted(async () => {
   let { bucketName, dbName, clName } = props
   collection = await apiCollection.byName(bucketName, dbName, clName)
+  data.plugins = await apiPlugin.getPlugins(bucketName, dbName, clName)
   await handleProperty()
   hasJsonItems()
   listDocByKw()
 })
 </script>
-
-<style>
-.tms-frame__main__center {
-  width: calc(75% - 16px);
-  background-color: #f0f3f6 !important;
-}
-
-.active {
-  color: red;
-}
-</style>
