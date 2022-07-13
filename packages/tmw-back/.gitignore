@@ -3,3 +3,4 @@ storage
 node_modules
 _lowdb.json
 .pnpm-debug.log
+.env

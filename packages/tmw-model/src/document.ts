@@ -367,7 +367,7 @@ class Document extends Base {
         return docs
       })
 
-    data["total"] = await cl.find(query).count()
+    data["total"] = await cl.countDocuments(query)
 
     return [true, data]
   }
