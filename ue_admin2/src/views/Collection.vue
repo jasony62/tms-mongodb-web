@@ -12,7 +12,7 @@
     <div class="flex flex-row gap-2">
       <div class="w-4/5 flex flex-col gap-4">
         <el-table :data="store.documents" highlight-current-row stripe style="width: 100%;"
-          @current-change="selectDocument">
+          @selection-change="handleSelectDocument">
           <el-table-column type="index" width="55"></el-table-column>
           <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
             <template #header>
@@ -104,7 +104,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, toRaw, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowRight, Filter, ArrowDown } from '@element-plus/icons-vue'
+import { ArrowRight, Filter } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
 
 import apiCollection from '@/apis/collection'
@@ -125,8 +125,6 @@ const store = facStore()
 // 查找条件下拉框分页包含记录数
 const LIST_DB_PAGE_SIZE = 100
 
-// const dymaicHeight = ref(500)
-let currentRow = ref()
 let collection = reactive({
   schema_tags: [] as any[],
   schema_default_tags: [] as any[],

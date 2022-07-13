@@ -71,8 +71,7 @@
             </template>
           </el-table-column>
         </el-table>
-        <el-table v-show="activeTab === 'colSchemas'" :data="store.collectionSchemas" stripe style="width: 100%"
-          :max-height="dymaicHeight">
+        <el-table v-show="activeTab === 'colSchemas'" :data="store.collectionSchemas" stripe style="width: 100%">
           <el-table-column prop="title" label="名称" width="180"></el-table-column>
           <el-table-column prop="description" label="说明"></el-table-column>
           <el-table-column label="操作" width="180">
