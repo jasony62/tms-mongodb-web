@@ -54,8 +54,11 @@ class ReplicaMap {
     // 同步集合中的数据
     const replacedCount = await priSysCl.countDocuments()
     if (replacedCount) {
-      let { limit } = limits
-      limit = limit === undefined ? 10 : parseInt(limit)
+      let limit
+      if (limits) {
+        limit = limits.limit
+        limit = limit === undefined ? 10 : parseInt(limit)
+      }
       // 同步数据
       let skip = 0
       for (let remainder = replacedCount; remainder; ) {
