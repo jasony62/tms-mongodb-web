@@ -1,17 +1,19 @@
 <template>
-  <tms-frame class="tmw-collection" :display="{ header: true, footer: true, right: true }" :leftWidth="'20%'">
-    <template v-slot:header>
+  <div class="flex flex-col gap-2">
+    <!--header-->
+    <div class="h-12 py-4 px-2">
       <el-breadcrumb separator-class="el-icon-arrow-right">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
         <el-breadcrumb-item>{{ dbName }}</el-breadcrumb-item>
       </el-breadcrumb>
-    </template>
-    <template v-slot:center>
-      <tms-flex direction="column">
-        <el-table :data="store.collections" stripe style="width: 100%" @selection-change="changeClSelect"
-          :max-height="dymaicHeight">
+    </div>
+    <!--content-->
+    <div class="flex flex-row gap-2">
+      <!--left-->
+      <div class="w-4/5 flex flex-col gap-4">
+        <el-table :data="store.collections" stripe style="width: 100%" @selection-change="changeClSelect">
           <el-table-column type="selection" width="55"></el-table-column>
-          <el-table-column label="collection" width="180">
+          <el-table-column label="集合名称" width="180">
             <template #default="scope">
               <router-link :to="{ name: 'collection', params: { dbName, clName: scope.row.name } }">{{ scope.row.name }}
               </router-link>
@@ -26,23 +28,25 @@
           <el-table-column prop="description" label="说明"></el-table-column>
           <el-table-column fixed="right" label="操作" width="180">
             <template #default="scope">
-              <el-button @click="editCollection(scope.row, scope.$index)" type="primary" text size="small">修改</el-button>
+              <el-button @click="editCollection(scope.row, scope.$index)" type="primary" text size="small">修改
+              </el-button>
               <el-button @click="removeCollection(scope.row)" type="primary" text size="small">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
-        <tms-flex class="tmw-pagination">
-          <span class="tmw-pagination__text">已选中 {{ data.multipleCl.length }} 条数据</span>
+        <div class="flex flex-row gap-4 p-2 items-center">
+          <span>已选中 {{ data.multipleCl.length }} 条数据</span>
           <el-pagination layout="total, sizes, prev, pager, next" background :total="data.clBatch.total"
             :page-sizes="[10, 25, 50, 100]" :current-page="data.clBatch.page" :page-size="data.clBatch.size"
             @current-change="changeClPage" @size-change="changeClSize"></el-pagination>
-        </tms-flex>
-      </tms-flex>
-    </template>
-    <template v-slot:right>
-      <el-button @click="createCollection">添加集合</el-button>
-    </template>
-  </tms-frame>
+        </div>
+      </div>
+      <!--right-->
+      <div>
+        <el-button @click="createCollection">添加集合</el-button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -57,8 +61,6 @@ const store = facStore()
 
 // 查找条件下拉框分页包含记录数
 const LIST_PAGE_SIZE = 100
-
-const dymaicHeight = ref(500)
 
 const props = defineProps(['bucketName', 'dbName'])
 

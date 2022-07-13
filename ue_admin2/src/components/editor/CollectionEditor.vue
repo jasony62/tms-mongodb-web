@@ -1,5 +1,6 @@
 <template>
-  <el-dialog title="集合" v-model="dialogVisible" :destroy-on-close="true" :close-on-click-modal="false" :before-close="onBeforeClose">
+  <el-dialog title="集合" v-model="dialogVisible" :destroy-on-close="true" :close-on-click-modal="false"
+    :before-close="onBeforeClose">
     <el-tabs v-model="activeTab" type="card">
       <el-tab-pane label="基本信息" name="first"></el-tab-pane>
       <el-tab-pane label="设置" name="second"></el-tab-pane>
@@ -57,17 +58,23 @@
         <el-checkbox v-model="collection.operateRules.scope.unrepeat">添加/导入数据时去重</el-checkbox>
       </el-form-item>
       <el-form-item label="设置去重规则" v-if="collection.operateRules.scope.unrepeat === true" class="tmw-formItem__flex">
-        <el-select v-model="collection.operateRules.unrepeat.database" value-key="sysname" @clear="listDbByKw" @change="changeDb" placeholder="请选择数据库" clearable filterable remote :remote-method="listDbByKw" :loading="criteria.databaseLoading">
+        <el-select v-model="collection.operateRules.unrepeat.database" value-key="sysname" @clear="listDbByKw"
+          @change="changeDb" placeholder="请选择数据库" clearable filterable remote :remote-method="listDbByKw"
+          :loading="criteria.databaseLoading">
           <el-option v-for="item in criteria.databases" :key="item._id" :label="item.label" :value="item"></el-option>
           <el-option :disabled="true" value="" v-if="criteria.dbBatch.pages > 1">
-            <el-pagination :current-page="criteria.dbBatch.page" :total="criteria.dbBatch.total" :page-size="criteria.dbBatch.size" layout="prev, next" @current-change="changeDbPage">
+            <el-pagination :current-page="criteria.dbBatch.page" :total="criteria.dbBatch.total"
+              :page-size="criteria.dbBatch.size" layout="prev, next" @current-change="changeDbPage">
             </el-pagination>
           </el-option>
         </el-select>
-        <el-select v-model="collection.operateRules.unrepeat.collection" value-key="sysname" @clear="listClByKw" @change="changeCl" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw" :loading="criteria.collectionLoading">
+        <el-select v-model="collection.operateRules.unrepeat.collection" value-key="sysname" @clear="listClByKw"
+          @change="changeCl" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw"
+          :loading="criteria.collectionLoading">
           <el-option v-for="item in criteria.collections" :key="item._id" :label="item.label" :value="item"></el-option>
           <el-option :disabled="true" value="" v-if="criteria.clBatch.pages > 1">
-            <el-pagination :current-page="criteria.clBatch.page" :total="criteria.clBatch.total" :page-size="criteria.clBatch.size" layout="prev, next" @current-change="changeClPage">
+            <el-pagination :current-page="criteria.clBatch.page" :total="criteria.clBatch.total"
+              :page-size="criteria.clBatch.size" layout="prev, next" @current-change="changeClPage">
             </el-pagination>
           </el-option>
         </el-select>
@@ -75,7 +82,8 @@
           <el-option v-for="item in criteria.properties" :key="item.value" :label="item.label" :value="item.value">
           </el-option>
         </el-select>
-        <el-select v-model="collection.operateRules.unrepeat.insert" placeholder="是否插入当前表" v-if="collection.operateRules.unrepeat.collection.sysname !== collection.sysname">
+        <el-select v-model="collection.operateRules.unrepeat.insert" placeholder="是否插入当前表"
+          v-if="collection.operateRules.unrepeat.collection.sysname !== collection.sysname">
           <el-option label="是" :value="true"></el-option>
           <el-option label="否" :value="false"></el-option>
         </el-select>
@@ -145,7 +153,7 @@ const props = defineProps({
       }
     },
   },
-  onClose: { type: Function, default: (newCl: any) => {} },
+  onClose: { type: Function, default: (newCl: any) => { } },
 })
 
 const dialogVisible = ref(props.dialogVisible)
@@ -155,10 +163,10 @@ const tags = ref([] as any[])
 const criteria = reactive({
   databaseLoading: false,
   databases: [] as any[],
-  dbBatch: new Batch(() => {}),
+  dbBatch: new Batch(() => { }),
   collectionLoading: false,
   collections: [] as any[],
-  clBatch: new Batch(() => {}),
+  clBatch: new Batch(() => { }),
   properties: {} as { [k: string]: any },
 })
 
@@ -166,6 +174,8 @@ const { mode, bucketName, dbName, onClose } = props
 
 // 编辑的集合对象
 const collection = reactive(props.collection)
+// 集合的原名称，用于更新操作
+const clBeforeName = props.collection.name
 
 onMounted(() => {
   apiSchema.listSimple(bucketName).then((schemas2: any[]) => {
@@ -338,7 +348,7 @@ const onSubmit = () => {
       })
   else if (mode === 'update')
     apiCollection
-      .update(bucketName, dbName, collection.name, collection)
+      .update(bucketName, dbName, clBeforeName, collection)
       .then((newCollection: any) => {
         emit('submit', newCollection)
         closeDialog(newCollection)

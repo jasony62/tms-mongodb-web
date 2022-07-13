@@ -3,6 +3,8 @@ node_modules
 /mongodb/data
 /mongodb-*
 
+*.local.*
+
 *.local.yml
 *.override.yml
 *.mongoweb.yml

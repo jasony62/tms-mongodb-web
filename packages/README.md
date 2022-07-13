@@ -13,3 +13,7 @@
 ```shell
 TMS_KOA_CONFIG_DIR=xxx TMS_KOA_CONTROLLERS_DIR=./dist/controllers node dist/server
 ```
+
+```
+TMS_KOA_CONFIG_DIR=../../docker/allinone/back/config TMS_KOA_CONTROLLERS_DIR=./dist/controllers node dist/server
+```
