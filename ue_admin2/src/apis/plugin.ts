@@ -1,6 +1,8 @@
 import { TmsAxios } from 'tms-vue3'
+import { BACK_API_URL } from '@/global'
 
-const base = (import.meta.env.VITE_BACK_API_BASE || '') + '/plugins'
+const base = BACK_API_URL() + '/plugins'
+
 type ApiRst = {
   data: { result: any }
 }

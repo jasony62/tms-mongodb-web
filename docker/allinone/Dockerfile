@@ -27,10 +27,10 @@ RUN cd /usr/src/tmw/back && pnpm i --strict-peer-dependencies=false && pnpm buil
 ## ue_admin2
 WORKDIR /usr/src/tmw/ue_admin2
 
-# 指定编译需要的环境变量
+# 指定编译ue_admin2需要的环境变量
 RUN echo VITE_BASE_URL=/admin >> .env
-RUN echo VITE_BACK_API_BASE=http://localhost:3077/api >> .env
-RUN echo VITE_BACK_AUTH_BASE=http://localhost:3077 >> .env
+RUN echo VITE_AUTH_API_BASE=http://host.docker.internal:3077/api >> .env
+RUN echo VITE_BACK_AUTH_BASE=http://host.docker.internal:3077 >> .env
 
 # 编译
 RUN cd /usr/src/tmw/ue_admin2 && pnpm i --strict-peer-dependencies=false && pnpm build

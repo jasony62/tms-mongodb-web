@@ -1,7 +1,9 @@
 import { TmsAxios } from 'tms-vue3'
 // @ts-ignore
 import { encodeAccountV1 } from 'tms-koa-account/models/crypto'
-const baseAuth = (import.meta.env.VITE_BACK_AUTH_BASE || '') + '/auth'
+import { AUTH_API_URL } from '@/global'
+
+const baseAuth = AUTH_API_URL()
 
 const APPID = import.meta.env.VITE_LOGIN_CODE_APPID || 'tms-mongodb-web'
 
@@ -21,7 +23,7 @@ export default {
    */
   fnCaptcha() {
     captchaId = genCaptchaId()
-    const url = `${baseAuth}/captcha?appid=${APPID}&captchaid=${captchaId}&background=fff`
+    const url = `${baseAuth}/captcha?appid=${APPID}&captchaid=${captchaId}`
     return TmsAxios.ins('auth-api')
       .get(url)
       .then((rst: any) => {

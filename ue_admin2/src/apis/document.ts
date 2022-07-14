@@ -1,7 +1,8 @@
 import { TmsAxios } from 'tms-vue3'
+import { BACK_API_URL } from '@/global'
 
-const base = (import.meta.env.VITE_BACK_API_BASE || '') + '/admin/document'
-let uploadUrl = (import.meta.env.VITE_BACK_API_BASE || '') + '/upload/plain'
+const base = BACK_API_URL() + '/admin/document'
+const uploadUrl = BACK_API_URL() + '/upload/plain'
 
 type ApiRst = {
   data: { result: any }
@@ -88,12 +89,18 @@ export default {
       .then((rst: ApiRst) => rst.data.result)
   },
   upload(query: any, fileData: any, config: any) {
-    if (query && query.dir) uploadUrl += `?dir=${query.dir}`
+    let url = uploadUrl
+    if (query?.dir) url += `?dir=${query.dir}`
     return TmsAxios.ins('mongodb-api')
-      .post(uploadUrl, fileData, config)
+      .post(url, fileData, config)
       .then((rst: ApiRst) => rst.data.result)
   },
-  export(bucket: string, dbName: string, clName: string, { docIds, columns, exportType }: any) {
+  export(
+    bucket: string,
+    dbName: string,
+    clName: string,
+    { docIds, columns, exportType }: any
+  ) {
     const params = { bucket, db: dbName, cl: clName }
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/export`, { docIds, columns, exportType }, { params })

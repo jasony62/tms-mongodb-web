@@ -4,9 +4,8 @@ import { TmsAxiosPlugin, TmsAxios } from 'tms-vue3'
 import { Frame, Flex } from 'tms-vue3-ui'
 import router from './router'
 import App from './App.vue'
-import ElementPlus from 'element-plus'
+import ElementPlus, { ElMessage } from 'element-plus'
 import { getLocalToken, setLocalToken } from './global'
-import { ElMessage } from 'element-plus'
 import './index.css'
 import 'element-plus/dist/index.css'
 import 'tms-vue3-ui/dist/es/frame/style/index.css'
@@ -48,9 +47,20 @@ function initFunc() {
 
 TmsAxios.ins({ name: 'auth-api' })
 
+TmsAxios.ins({ name: 'master-api' })
+
+const app = createApp(App)
+let settings // 全局设置
+try {
+  let rsp = await TmsAxios.ins('master-api').get('/settings.json')
+  settings = rsp.data
+} catch (e) {
+  settings = {}
+}
+
 localStorage.debug = '*'
 
-createApp(App)
+app
   .use(router)
   .use(createPinia())
   .use(TmsAxiosPlugin)
