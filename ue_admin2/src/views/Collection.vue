@@ -13,8 +13,8 @@
       <div class="w-4/5 flex flex-col gap-4">
         <el-table :data="store.documents" highlight-current-row stripe style="width: 100%;"
           @current-change="handleCurrentChange" @selection-change="handleSelectionChange">
-          <el-table-column type="index" width="55"></el-table-column>
-          <el-table-column type="selection" width="55" />
+          <el-table-column type="index" width="48"></el-table-column>
+          <el-table-column type="selection" width="48" />
           <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
             <template #header>
               <div @click="handleFilter(s, k)" :class="{ 'active': currentNames.includes(k) }">

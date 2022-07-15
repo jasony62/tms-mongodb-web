@@ -1,8 +1,11 @@
 <template>
   <el-dialog title="文档" v-model="dialogVisible" :fullscreen="true" :destroy-on-close="true" :close-on-click-modal="true"
     :before-close="onBeforeClose">
-    <tms-json-doc ref="jsonDocEditor" :schema="collection.schema.body" :value="document" :on-file-select="onFileSelect"
-      :on-file-download="onFileDownload"></tms-json-doc>
+    <div class="flex flex-row gap-4">
+      <tms-json-doc ref="jde" :schema="collection.schema.body" :value="document" :on-file-select="onFileSelect"
+        :on-file-download="onFileDownload" class="w-1/3"></tms-json-doc>
+      <div></div>
+    </div>
     <template #footer>
       <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button @click="onBeforeClose">取消</el-button>
@@ -45,7 +48,7 @@ const props = defineProps({
 })
 
 const { bucketName, dbName, collection, document, onClose } = props
-const jsonDocEditor = ref<{ editing: () => string } | null>(null)
+const jde = ref<{ editing: () => string } | null>(null)
 // const plugins: any[] = []
 
 // 关闭对话框时执行指定的回调方法
@@ -122,7 +125,7 @@ const onSubmit = () => {
     return false
   }
 
-  let newDoc = jsonDocEditor.value?.editing()
+  let newDoc = jde.value?.editing()
   if (newDoc) {
     if (document?._id) {
       apiDoc
@@ -175,3 +178,17 @@ const handleProperty = async () => {
   }
 }
 </script>
+
+<style lang="scss">
+#docEditor {
+
+  .el-dialog.is-fullscreen {
+    @apply flex flex-col;
+
+    .el-dialog__body {
+      @apply flex-grow overflow-auto;
+    }
+  }
+
+}
+</style>

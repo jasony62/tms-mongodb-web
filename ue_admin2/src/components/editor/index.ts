@@ -206,6 +206,7 @@ export function openSchemaEditor(options: SchemaEditorOptions) {
 /***/
 export function openDocEditor(options: DocEditorOptions) {
   const root = document.createElement('div')
+  root.setAttribute('id', 'docEditor')
   document.body.appendChild(root)
 
   const {
