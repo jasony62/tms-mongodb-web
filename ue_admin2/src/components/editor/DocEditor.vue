@@ -1,10 +1,18 @@
 <template>
   <el-dialog title="文档" v-model="dialogVisible" :fullscreen="true" :destroy-on-close="true" :close-on-click-modal="true"
     :before-close="onBeforeClose">
-    <div class="flex flex-row gap-4">
-      <tms-json-doc ref="jde" :schema="collection.schema.body" :value="document" :on-file-select="onFileSelect"
+    <div class="flex flex-row gap-4 h-full overflow-auto">
+      <tms-json-doc ref="$jde" :schema="collection.schema.body" :value="document" :on-file-select="onFileSelect"
         :on-file-download="onFileDownload" class="w-1/3"></tms-json-doc>
-      <div></div>
+      <div class="w-1/3"></div>
+      <div class="w-1/3 h-full flex-grow flex flex-col gap-2 relative">
+        <div class="absolute top-0 right-0">
+          <el-button @click="preview">预览</el-button>
+        </div>
+        <div class="border-2 border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
+          <pre>{{ previewResult }}</pre>
+        </div>
+      </div>
     </div>
     <template #footer>
       <el-button type="primary" @click="onSubmit">提交</el-button>
@@ -48,8 +56,10 @@ const props = defineProps({
 })
 
 const { bucketName, dbName, collection, document, onClose } = props
-const jde = ref<{ editing: () => string } | null>(null)
+const $jde = ref<{ editing: () => string } | null>(null)
 // const plugins: any[] = []
+
+const previewResult = ref('')
 
 // 关闭对话框时执行指定的回调方法
 const closeDialog = (newDoc?: any) => {
@@ -106,6 +116,10 @@ const handleFileSubmit = (ref: string | number, files: any[]) => {
     .catch((err) => Promise.reject(err))
 }
 
+const preview = () => {
+  previewResult.value = JSON.stringify($jde.value?.editing(), null, 2)
+}
+
 const onSubmit = () => {
   let validate = true
   // if (plugins.length) {
@@ -125,7 +139,7 @@ const onSubmit = () => {
     return false
   }
 
-  let newDoc = jde.value?.editing()
+  let newDoc = $jde.value?.editing()
   if (newDoc) {
     if (document?._id) {
       apiDoc
