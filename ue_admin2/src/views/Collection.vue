@@ -12,8 +12,9 @@
     <div class="flex flex-row gap-2">
       <div class="w-4/5 flex flex-col gap-4">
         <el-table :data="store.documents" highlight-current-row stripe style="width: 100%;"
-          @selection-change="handleSelectDocument">
+          @current-change="handleCurrentChange" @selection-change="handleSelectionChange">
           <el-table-column type="index" width="55"></el-table-column>
+          <el-table-column type="selection" width="55" />
           <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
             <template #header>
               <div @click="handleFilter(s, k)" :class="{ 'active': currentNames.includes(k) }">
@@ -89,6 +90,9 @@
           <div>
             <el-button @click="createDocument">添加文档</el-button>
           </div>
+          <div>
+            <el-button @click="exportJSON">导出文档(JSON)</el-button>
+          </div>
           <div v-if="data.jsonItems.length">
             <el-button v-for="item in data.jsonItems" plain @click="configJson(item)">编辑【{{
                 item.title
@@ -149,6 +153,7 @@ const data = reactive({
 })
 
 let currentNames = ref([] as any[])
+let currentDocument = ref<any>(null)
 let selectedDocuments = ref<any[]>([])
 let totalChecked = computed(() => selectedDocuments.value.length)
 
@@ -202,7 +207,9 @@ const hasJsonItems = () => {
   }
 }
 
-const configJson = (row: any, item: any) => {
+const configJson = (item: any) => {
+  let row = currentDocument.value
+  if (!row) return
   let jsonData = row[item.name]
   openConfigJsonEditor({
     jsonData,
@@ -219,21 +226,27 @@ const configJson = (row: any, item: any) => {
   })
 }
 
-const handleSelectDocument = (rows: any) => {
+const handleCurrentChange = (row: any) => {
+  currentDocument.value = row
+}
+
+const handleSelectionChange = (rows: any) => {
   selectedDocuments.value = rows
 }
 
 const exportJSON = () => {
+  if (selectedDocuments.value.length === 0) return
   let ids = selectedDocuments.value.map((doc) => doc._id)
   apiDoc
-    .export(bucketName, dbName, clName, {
+    .export(bucketName ?? '', dbName, clName, {
       docIds: ids,
       columns: data.properties,
       exportType: 'json',
     })
     .then((result: any) => {
       const access_token = getLocalToken()
-      window.open(`${result}?access_token=${access_token}`)
+      let url = `${import.meta.env.BASE_URL.replace(/\/$/, '')}${result}?access_token=${access_token}`
+      window.open(url)
     })
 }
 
