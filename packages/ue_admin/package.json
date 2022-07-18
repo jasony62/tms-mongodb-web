@@ -13,10 +13,11 @@
     "add": "^2.0.6",
     "element-plus": "^2.2.8",
     "jsoneditor": "^9.7.4",
+    "mongodb": "^4.7.0",
     "pinia": "^2.0.13",
-    "tms-koa-account": "^0.0.7",
+    "tms-koa-account": "^0.0.10",
     "tms-vue3": "0.0.4",
-    "tms-vue3-ui": "link:/Users/yangyue/project/tms-vue3-kit/packages/tms-vue3-ui",
+    "tms-vue3-ui": "^0.0.43",
     "vue": "^3.2.25",
     "vue-router": "4"
   },
