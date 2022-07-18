@@ -11,7 +11,7 @@
     <div class="flex flex-row gap-2">
       <!--left-->
       <div class="w-4/5 flex flex-col gap-4">
-        <el-table :data="store.collections" stripe style="width: 100%" @selection-change="changeClSelect">
+        <el-table :data="store.collections" stripe @selection-change="changeClSelect">
           <el-table-column type="selection" width="55"></el-table-column>
           <el-table-column label="集合名称" width="180">
             <template #default="scope">
@@ -28,13 +28,13 @@
           <el-table-column prop="description" label="说明"></el-table-column>
           <el-table-column label="操作" width="180">
             <template #default="scope">
-              <el-button @click="editCollection(scope.row, scope.$index)" type="primary" text size="small">修改
+              <el-button @click="editCollection(scope.row, scope.$index)" type="primary" link size="small">修改
               </el-button>
-              <el-button @click="removeCollection(scope.row)" type="primary" text size="small">删除</el-button>
+              <el-button @click="removeCollection(scope.row)" type="primary" link size="small">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
-        <div class="flex flex-row gap-4 p-2 items-center">
+        <div class="flex flex-row gap-4 p-2 items-center justify-between">
           <span>已选中 {{ data.multipleCl.length }} 条数据</span>
           <el-pagination layout="total, sizes, prev, pager, next" background :total="data.clBatch.total"
             :page-sizes="[10, 25, 50, 100]" :current-page="data.clBatch.page" :page-size="data.clBatch.size"
