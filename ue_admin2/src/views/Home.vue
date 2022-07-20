@@ -71,8 +71,7 @@
             </template>
           </el-table-column>
         </el-table>
-        <el-table v-show="activeTab === 'colSchemas'" :data="store.collectionSchemas" stripe style="width: 100%"
-          :max-height="dymaicHeight">
+        <el-table v-show="activeTab === 'colSchemas'" :data="store.collectionSchemas" stripe style="width: 100%">
           <el-table-column prop="title" label="名称" width="180"></el-table-column>
           <el-table-column prop="description" label="说明"></el-table-column>
           <el-table-column label="操作" width="180">
@@ -150,7 +149,6 @@ const LIST_RP_PAGE_SIZE = 100
 const props = defineProps({ bucketName: String })
 
 const activeTab = ref('database')
-const dymaicHeight = ref(500)
 const criteria = reactive({
   dbBatch: new Batch(() => { }),
   multipleDb: [],
@@ -240,9 +238,19 @@ const editSchema = (schema: any, index: any, isCopy = false) => {
   })
 }
 const removeSchema = (schema: { title: string }) => {
-  // this.$customeConfirm(schema.title, () => {
-  //   return store.removeSchema({ bucket: props.bucketName, schema })
-  // })
+  ElMessageBox.confirm(
+    `是否要删除文档列定义【${schema.title}】?`,
+    `请确认`,
+    {
+      confirmButtonText: '是',
+      cancelButtonText: '取消',
+      type: 'warning',
+
+    }).then(() => {
+      store.removeSchema({ bucket: props.bucketName, schema }).then(() => {
+        ElMessage({ message: '文档列定义已删除', type: 'success' })
+      })
+    }).catch(() => { })
 }
 const createTag = () => {
   openTagEditor({
@@ -343,9 +351,6 @@ const handleSyncAllReplica = () => {
 }
 
 onMounted(() => {
-  //?
-  // dymaicHeight.value = window.innerHeight * 0.8
-  dymaicHeight.value = 300
   let bucket = props.bucketName
   listDbByKw(null)
   store.listSchema({ bucket, scope: 'document' })

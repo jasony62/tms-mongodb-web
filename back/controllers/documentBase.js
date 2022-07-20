@@ -444,7 +444,7 @@ class DocBase extends Base {
   async export() {
     let { filter, docIds, columns, exportType } = this.request.body
     if (!exportType) {
-      return new ResultFault("缺少导出的文件类型参数")
+      return new ResultFault('缺少导出的文件类型参数')
     }
 
     let modelDoc = new ModelDoc(this.bucket)
@@ -452,7 +452,7 @@ class DocBase extends Base {
     let query
     if (docIds && docIds.length > 0) {
       // 按选中修改
-      let docIds2 = docIds.map(id => new ObjectId(id))
+      let docIds2 = docIds.map((id) => new ObjectId(id))
       query = { _id: { $in: docIds2 } }
     } else if (filter && typeof filter === 'object') {
       // 按条件修改
@@ -485,13 +485,11 @@ class DocBase extends Base {
 
       const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
       rst = ExcelCtrl.export(columns, data, existCl.name + '.xlsx')
-
     } else if (exportType === 'json') {
       const { ZipCtrl } = require('./zipArchiver')
       rst = ZipCtrl.export(data, existCl.name + '.zip', { dir: existCl.name })
-
     }
-    
+
     if (rst[0] === false) return new ResultFault(rst[1])
 
     rst = rst[1]

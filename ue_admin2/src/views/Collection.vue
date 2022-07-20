@@ -12,8 +12,9 @@
     <div class="flex flex-row gap-2">
       <div class="w-4/5 flex flex-col gap-4">
         <el-table :data="store.documents" highlight-current-row stripe style="width: 100%;"
-          @current-change="selectDocument">
-          <el-table-column type="index" width="55"></el-table-column>
+          @current-change="handleCurrentChange" @selection-change="handleSelectionChange">
+          <el-table-column type="index" width="48"></el-table-column>
+          <el-table-column type="selection" width="48" />
           <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
             <template #header>
               <div @click="handleFilter(s, k)" :class="{ 'active': currentNames.includes(k) }">
@@ -89,19 +90,14 @@
           <div>
             <el-button @click="createDocument">添加文档</el-button>
           </div>
+          <div>
+            <el-button @click="exportJSON">导出文档(JSON)</el-button>
+          </div>
           <div v-if="data.jsonItems.length">
-            <el-button v-if="data.jsonItems.length === 1" plain @click="configJson(data.jsonItems[0])">编辑【{{
-                data.jsonItems[0].title
+            <el-button v-for="item in data.jsonItems" plain @click="configJson(item)">编辑【{{
+                item.title
             }}】
             </el-button>
-            <el-dropdown v-else>
-              <el-button>配置json类型<i class="el-icon-arrow-down el-icon--right"></i></el-button>
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item v-for="(item, index) in data.jsonItems" :key="index">
-                  <el-button type="primary" text @click="configJson(item)">编辑【{{ item.title }}】</el-button>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown>
           </div>
         </tms-flex>
       </div>
@@ -110,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, toRaw } from 'vue'
+import { onMounted, reactive, ref, toRaw, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowRight, Filter } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
@@ -118,18 +114,21 @@ import { Batch } from 'tms-vue3'
 import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiDoc from '@/apis/document'
+import apiPlugin from '@/apis/plugin'
 import { getLocalToken } from '@/global'
 
 import facStore from '@/store'
-import { openDocEditor, openConfigJsonEditor, openSelectConditionEditor } from '@/components/editor'
+import {
+  openDocEditor,
+  openConfigJsonEditor,
+  openSelectConditionEditor,
+} from '@/components/editor'
 
 const store = facStore()
 
 // 查找条件下拉框分页包含记录数
 const LIST_DB_PAGE_SIZE = 100
 
-// const dymaicHeight = ref(500)
-let currentRow = ref()
 let collection = reactive({
   schema_tags: [] as any[],
   schema_default_tags: [] as any[],
@@ -150,15 +149,23 @@ const data = reactive({
   jsonItems: [] as any[],
   properties: {} as any,
   documents: [] as any[],
+  plugins: [] as any[]
 })
 
 let currentNames = ref([] as any[])
+let currentDocument = ref<any>(null)
+let selectedDocuments = ref<any[]>([])
+let totalChecked = computed(() => selectedDocuments.value.length)
+
+const handlePlugins = (plugin: any, type?: string) => {
+
+}
 
 const handleCondition = () => {
   const conditions = store.conditions
   let criterais = {
     filter: {} as any,
-    orderBy: {} as any
+    orderBy: {} as any,
   }
   if (!conditions.length) {
     return criterais
@@ -187,14 +194,13 @@ const handleFilter = (schema: any, name: any) => {
       listDocByKw()
     },
   })
-
 }
 
 const hasJsonItems = () => {
   for (let propertyName in data.properties) {
     let value = data.properties[propertyName]
     if (value.type === 'json') {
-      // 自定义name键值接收原property
+      // 自定义'name'键值接收原property
       value.name = propertyName
       data.jsonItems.push(value)
     }
@@ -202,29 +208,46 @@ const hasJsonItems = () => {
 }
 
 const configJson = (item: any) => {
-  if (currentRow.value?._id) {
-    let jsonData = currentRow.value[item.name]
-    openConfigJsonEditor({
-      jsonData,
-      onBeforeClose: (newJson?: any) => {
-        currentRow.value[item.name] = newJson
-        apiDoc
-          .update(
-            bucketName,
-            dbName,
-            clName,
-            currentRow.value._id,
-            currentRow.value
-          )
-      },
-    })
-  } else {
-    ElMessage.info({ message: '请选择要配置的数据' })
-  }
+  let row = currentDocument.value
+  if (!row) return
+  let jsonData = row[item.name]
+  openConfigJsonEditor({
+    jsonData,
+    onBeforeClose: (newJson?: any) => {
+      row[item.name] = newJson
+      apiDoc.update(
+        bucketName,
+        dbName,
+        clName,
+        row._id,
+        row
+      )
+    },
+  })
 }
 
-const selectDocument = (val: any) => {
-  currentRow.value = val
+const handleCurrentChange = (row: any) => {
+  currentDocument.value = row
+}
+
+const handleSelectionChange = (rows: any) => {
+  selectedDocuments.value = rows
+}
+
+const exportJSON = () => {
+  if (selectedDocuments.value.length === 0) return
+  let ids = selectedDocuments.value.map((doc) => doc._id)
+  apiDoc
+    .export(bucketName ?? '', dbName, clName, {
+      docIds: ids,
+      columns: data.properties,
+      exportType: 'json',
+    })
+    .then((result: any) => {
+      const access_token = getLocalToken()
+      let url = `${import.meta.env.BASE_URL.replace(/\/$/, '')}${result}?access_token=${access_token}`
+      window.open(url)
+    })
 }
 
 const createDocument = () => {
@@ -234,9 +257,8 @@ const createDocument = () => {
     dbName,
     collection,
     onBeforeClose: (newDoc?: any) => {
-      if (newDoc)
-        store.appendDocument({ document: newDoc })
-    }
+      if (newDoc) store.appendDocument({ document: newDoc })
+    },
   })
 }
 
@@ -248,9 +270,8 @@ const editDocument = (document: any, index: number) => {
     collection,
     document: toRaw(document),
     onBeforeClose: (newDoc?: any) => {
-      if (newDoc)
-        store.updateDocument({ document: newDoc, index })
-    }
+      if (newDoc) store.updateDocument({ document: newDoc, index })
+    },
   })
 }
 
@@ -304,7 +325,7 @@ const listTag = (tags: any) => {
       })
       return temp
     })
-    .catch((err) => {
+    .catch((err: any) => {
       throw new Error(err)
     })
 }
@@ -342,19 +363,9 @@ const listDocByKw = () => {
 onMounted(async () => {
   let { bucketName, dbName, clName } = props
   collection = await apiCollection.byName(bucketName, dbName, clName)
+  data.plugins = await apiPlugin.getPlugins(bucketName, dbName, clName)
   await handleProperty()
   hasJsonItems()
   listDocByKw()
 })
 </script>
-
-<style>
-.tms-frame__main__center {
-  width: calc(75% - 16px);
-  background-color: #f0f3f6 !important;
-}
-
-.active {
-  color: red;
-}
-</style>

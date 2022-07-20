@@ -19,7 +19,7 @@ if (fs.existsSync(cnfpath)) {
   TMWCONFIG = {
     TMS_APP_DEFAULT_CREATETIME: 'TMS_DEFAULT_CREATE_TIME',
     TMS_APP_DEFAULT_UPDATETIME: 'TMS_DEFAULT_UPDATE_TIME',
-    TMS_APP_DATA_ACTION_LOG: 'N'
+    TMS_APP_DATA_ACTION_LOG: 'N',
   }
 }
 
@@ -27,20 +27,24 @@ if (fs.existsSync(cnfpath)) {
 class DocBase extends Base {
   constructor(...args) {
     super(...args)
-    this["docHelper"] = new DocumentHelper(this)
-    this["modelDoc"] = new ModelDoc(this["mongoClient"], this["bucket"], this["client"])
+    this['docHelper'] = new DocumentHelper(this)
+    this['modelDoc'] = new ModelDoc(
+      this['mongoClient'],
+      this['bucket'],
+      this['client']
+    )
   }
   /**
    * 指定数据库指定集合下新建文档
    */
   async create() {
-    const existCl = await this["docHelper"].findRequestCl()
+    const existCl = await this['docHelper'].findRequestCl()
 
     const { name: clName, extensionInfo } = existCl
-    let doc = this["request"].body
+    let doc = this['request'].body
 
     // 去重校验
-    const result = this["modelDoc"].findUnRepeatRule(existCl)
+    const result = this['modelDoc'].findUnRepeatRule(existCl)
     if (result[0]) {
       const { dbName, clName: collName, keys, insert } = result[1]
       const curDoc = [doc]
@@ -60,7 +64,11 @@ class DocBase extends Base {
     if (extensionInfo) {
       const { info, schemaId } = extensionInfo
       if (schemaId) {
-        const modelSchema = new ModelSchema(this["mongoClient"], this["bucket"], this["client"])
+        const modelSchema = new ModelSchema(
+          this['mongoClient'],
+          this['bucket'],
+          this['client']
+        )
         const publicSchema = await modelSchema.bySchemaId(schemaId)
         Object.keys(publicSchema).forEach((schema) => {
           doc[schema] = info[schema] ? info[schema] : ''
@@ -69,13 +77,13 @@ class DocBase extends Base {
     }
 
     // 加工数据
-    this["modelDoc"].beforeProcessByInAndUp(doc, 'insert')
+    this['modelDoc'].beforeProcessByInAndUp(doc, 'insert')
 
-    return this["docHelper"]
+    return this['docHelper']
       .findSysColl(existCl)
       .insertOne(doc)
       .then(async (r) => {
-        await this["modelDoc"].dataActionLog(
+        await this['modelDoc'].dataActionLog(
           r.ops,
           '创建',
           existCl.db.name,
@@ -88,16 +96,16 @@ class DocBase extends Base {
    * 删除文档
    */
   async remove() {
-    const existCl = await this["docHelper"].findRequestCl()
+    const existCl = await this['docHelper'].findRequestCl()
 
-    const { id } = this["request"].query
+    const { id } = this['request'].query
 
-    let existDoc = await this["modelDoc"].byId(existCl, id)
+    let existDoc = await this['modelDoc'].byId(existCl, id)
     if (!existDoc) return new ResultFault('要删除的文档不存在')
 
     if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       // 记录操作日志
-      await this["modelDoc"].dataActionLog(
+      await this['modelDoc'].dataActionLog(
         existDoc,
         '删除',
         existCl.db.name,
@@ -105,7 +113,7 @@ class DocBase extends Base {
       )
     }
 
-    const isOk = await this["modelDoc"].remove(existCl, id)
+    const isOk = await this['modelDoc'].remove(existCl, id)
 
     return new ResultData(isOk)
   }
@@ -113,19 +121,19 @@ class DocBase extends Base {
    * 更新指定数据库指定集合下的文档
    */
   async update() {
-    const existCl = await this["docHelper"].findRequestCl()
+    const existCl = await this['docHelper'].findRequestCl()
 
-    const { id } = this["request"].query
+    const { id } = this['request'].query
 
-    let existDoc = await this["modelDoc"].byId(existCl, id)
+    let existDoc = await this['modelDoc'].byId(existCl, id)
     if (!existDoc) return new ResultFault('要更新的文档不存在')
 
-    let newDoc = this["request"].body
+    let newDoc = this['request'].body
     // 加工数据
-    this["modelDoc"].beforeProcessByInAndUp(newDoc, 'update')
+    this['modelDoc'].beforeProcessByInAndUp(newDoc, 'update')
 
     let updated = _.omit(newDoc, ['_id', 'bucket'])
-    const isOk = await this["modelDoc"].update(existCl, id, updated)
+    const isOk = await this['modelDoc'].update(existCl, id, updated)
 
     if (!isOk) return new ResultFault('要更新的文档不存在')
 
@@ -133,7 +141,7 @@ class DocBase extends Base {
     if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       let beforeDoc = {}
       beforeDoc[existDoc._id] = existDoc
-      this["modelDoc"].dataActionLog(
+      this['modelDoc'].dataActionLog(
         newDoc,
         '修改',
         existCl.db.name,
@@ -150,11 +158,11 @@ class DocBase extends Base {
    * 指定数据库指定集合下的文档
    */
   async list() {
-    const existCl = await this["docHelper"].findRequestCl()
+    const existCl = await this['docHelper'].findRequestCl()
 
-    const { page, size } = this["request"].query
-    const { filter, orderBy } = this["request"].body
-    let data = await this["modelDoc"].list(
+    const { page, size } = this['request'].query
+    const { filter, orderBy } = this['request'].body
+    let data = await this['modelDoc'].list(
       existCl,
       { filter, orderBy },
       { page, size }
@@ -169,9 +177,9 @@ class DocBase extends Base {
    * 按指定的列进行分组，并显示每个分组的记录数
    */
   async group() {
-    const existCl = await this["docHelper"].findRequestCl()
+    const existCl = await this['docHelper'].findRequestCl()
 
-    let { groupBy, filter } = this["request"].body
+    let { groupBy, filter } = this['request'].body
     if (!groupBy || !Array.isArray(groupBy) || groupBy.length === 0)
       return new ResultFault('参数[groupBy]无效，没有指定用于分组的列')
 
@@ -182,8 +190,8 @@ class DocBase extends Base {
     if (Object.keys(groupId).length === 0)
       return new ResultFault('参数[groupBy]包含的列名称类型错误，不是字符串')
 
-    let cl = this["docHelper"].findSysColl(existCl)
-    let query = filter ? this["modelDoc"].assembleQuery(filter) : {}
+    let cl = this['docHelper'].findSysColl(existCl)
+    let query = filter ? this['modelDoc'].assembleQuery(filter) : {}
     let pipeline = [
       {
         $match: query,
@@ -198,7 +206,7 @@ class DocBase extends Base {
       },
     ]
 
-    let { skip, limit } = this["docHelper"].requestPage()
+    let { skip, limit } = this['docHelper'].requestPage()
     if (typeof skip === 'number') {
       skip = { $skip: skip }
       limit = { $limit: limit }
@@ -259,20 +267,21 @@ class DocBase extends Base {
    * 批量删除
    */
   async removeMany() {
-    const existCl = await this["docHelper"].findRequestCl()
+    const existCl = await this['docHelper'].findRequestCl()
 
-    const { query, operation, errCause } = this["docHelper"].getRequestBatchQuery()
+    const { query, operation, errCause } =
+      this['docHelper'].getRequestBatchQuery()
     if (errCause) return new ResultFault(errCause)
 
-    let total = await this["modelDoc"].count(existCl, query)
+    let total = await this['modelDoc'].count(existCl, query)
     if (total === 0)
       return new ResultFault('没有符合条件的数据，未执行删除操作')
 
     if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
       // 记录操作日志
-      let sysCl = this["docHelper"].findSysColl(existCl)
+      let sysCl = this['docHelper'].findSysColl(existCl)
       let removedDocs = await sysCl.find(query).toArray()
-      await this["modelDoc"].dataActionLog(
+      await this['modelDoc'].dataActionLog(
         removedDocs,
         `${operation}删除`,
         existCl.db.name,
@@ -280,7 +289,7 @@ class DocBase extends Base {
       )
     }
 
-    return this["modelDoc"]
+    return this['modelDoc']
       .removeMany(existCl, query)
       .then((deletedCount) => new ResultData({ total, deletedCount }))
   }
@@ -288,20 +297,21 @@ class DocBase extends Base {
    * 批量修改数据
    */
   async updateMany() {
-    const existCl = await this["docHelper"].findRequestCl()
+    const existCl = await this['docHelper'].findRequestCl()
 
-    let { columns } = this["request"].body
+    let { columns } = this['request'].body
     if (!columns || Object.keys(columns).length === 0)
       return new ResultFault('没有指定要修改的列，未执行更新操作')
 
-    const { query, operation, errCause } = this["docHelper"].getRequestBatchQuery()
+    const { query, operation, errCause } =
+      this['docHelper'].getRequestBatchQuery()
     if (errCause) return new ResultFault(errCause)
 
-    let total = await this["modelDoc"].count(existCl, query)
+    let total = await this['modelDoc'].count(existCl, query)
     if (total === 0)
       return new ResultFault('没有符合条件的数据，未执行更新操作')
     //更新前的数据记录
-    let sysCl = this["docHelper"].findSysColl(existCl)
+    let sysCl = this['docHelper'].findSysColl(existCl)
     let updateBeforeDocs = await sysCl.find(query).toArray()
 
     let updated = {}
@@ -309,9 +319,9 @@ class DocBase extends Base {
       updated[key] = columns[key]
     }
     // 加工数据
-    this["modelDoc"].beforeProcessByInAndUp(updated, 'update')
+    this['modelDoc'].beforeProcessByInAndUp(updated, 'update')
 
-    return this["modelDoc"]
+    return this['modelDoc']
       .updateMany(existCl, query, updated)
       .then(async (modifiedCount) => {
         if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
@@ -320,7 +330,7 @@ class DocBase extends Base {
             let afterDoc = Object.assign({}, doc, updated)
             let beforeDoc = {}
             beforeDoc[doc._id] = doc
-            await this["modelDoc"].dataActionLog(
+            await this['modelDoc'].dataActionLog(
               afterDoc,
               `${operation}修改`,
               existCl.db.name,
@@ -338,53 +348,60 @@ class DocBase extends Base {
    * 批量复制数据
    */
   async copyMany() {
-    const existCl = await this["docHelper"].findRequestCl()
+    const existCl = await this['docHelper'].findRequestCl()
 
-    const { toDb, toCl } = this["request"].query
-    const modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"])
+    const { toDb, toCl } = this['request'].query
+    const modelCl = new ModelCl(
+      this['mongoClient'],
+      this['bucket'],
+      this['client']
+    )
     const targetCl = await modelCl.byName(toDb, toCl)
     if (!targetCl)
       return new ResultFault(
         `指定的目标集合[db=${toDb}][cl=${targetCl}]不可访问`
       )
 
-    const { query, operation, errCause } = this["docHelper"].getRequestBatchQuery()
+    const { query, operation, errCause } =
+      this['docHelper'].getRequestBatchQuery()
     if (errCause) return new ResultFault(errCause)
 
-    let total = await this["modelDoc"].count(existCl, query)
+    let total = await this['modelDoc'].count(existCl, query)
     if (total === 0)
       return new ResultFault('没有符合条件的数据，未执行复制操作')
 
-    return this["modelDoc"].copyMany(existCl, query, targetCl).then(async () => {
-      let existSysCl = this["docHelper"].findSysColl(existCl)
-      let copyedDocs = await existSysCl.find(query).toArray()
-      if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
-        this["modelDoc"].dataActionLog(
-          copyedDocs,
-          `${operation}复制`,
-          existCl.db.name,
-          existCl.name,
-          targetCl.db.name,
-          targetCl.name
-        )
-      }
-      return new ResultData(total)
-    })
+    return this['modelDoc']
+      .copyMany(existCl, query, targetCl)
+      .then(async () => {
+        let existSysCl = this['docHelper'].findSysColl(existCl)
+        let copyedDocs = await existSysCl.find(query).toArray()
+        if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
+          this['modelDoc'].dataActionLog(
+            copyedDocs,
+            `${operation}复制`,
+            existCl.db.name,
+            existCl.name,
+            targetCl.db.name,
+            targetCl.name
+          )
+        }
+        return new ResultData(total)
+      })
   }
   /**
    *  根据某一列的值分组
    */
   async getGroupByColumnVal() {
-    const existCl = await this["docHelper"].findRequestCl()
+    const existCl = await this['docHelper'].findRequestCl()
 
-    let { column, page = null, size = null } = this["request"].query
-    let { filter } = this["request"].body
+    let { column, page = null, size = null } = this['request'].query
+    let { filter } = this['request'].body
 
-    let cl = this["docHelper"].findSysColl(existCl)
+    let cl = this['docHelper'].findSysColl(existCl)
 
     let find = {}
     if (filter) {
-      find = this["modelDoc"].assembleQuery(filter)
+      find = this['modelDoc'].assembleQuery(filter)
     }
     let group = [
       {
@@ -422,8 +439,8 @@ class DocBase extends Base {
         let data = []
         arr.forEach((a) => {
           let d = {}
-          d["title"] = a._id
-          d["sum"] = a.num_tutorial
+          d['title'] = a._id
+          d['sum'] = a.num_tutorial
           data.push(d)
         })
 
@@ -434,21 +451,21 @@ class DocBase extends Base {
    * 返回指定文档的完成度
    */
   async getDocCompleteStatusById() {
-    const existCl = await this["docHelper"].findRequestCl()
+    const existCl = await this['docHelper'].findRequestCl()
 
-    let { docIds } = this["request"].body
+    let { docIds } = this['request'].body
     if (!Array.isArray(docIds) || docIds.length === 0)
       return new ResultFault('没有要查询的数据')
 
     const docIds2 = docIds.map((id) => new ObjectId(id))
     const find = { _id: { $in: docIds2 } }
 
-    return this["docHelper"]
+    return this['docHelper']
       .findSysColl(existCl)
       .find(find)
       .toArray()
       .then(async (docs) => {
-        await this["modelDoc"].getDocCompleteStatus(existCl, docs)
+        await this['modelDoc'].getDocCompleteStatus(existCl, docs)
         return docs
       })
   }
@@ -456,17 +473,21 @@ class DocBase extends Base {
    * 导出数据
    */
   async export() {
-    let { filter, docIds, columns, exportType } = this["request"].body
+    let { filter, docIds, columns, exportType } = this['request'].body
     if (!exportType) {
-      return new ResultFault("缺少导出的文件类型参数")
+      return new ResultFault('缺少导出的文件类型参数')
     }
 
-    let modelDoc = new ModelDoc(this["mongoClient"], this["bucket"], this["client"])
+    let modelDoc = new ModelDoc(
+      this['mongoClient'],
+      this['bucket'],
+      this['client']
+    )
 
     let query
     if (docIds && docIds.length > 0) {
       // 按选中修改
-      let docIds2 = docIds.map(id => new ObjectId(id))
+      let docIds2 = docIds.map((id) => new ObjectId(id))
       query = { _id: { $in: docIds2 } }
     } else if (filter && typeof filter === 'object') {
       // 按条件修改
@@ -478,13 +499,17 @@ class DocBase extends Base {
       return new ResultFault('没有要导出的数据')
     }
 
-    const existCl = await this["docHelper"].findRequestCl()
+    const existCl = await this['docHelper'].findRequestCl()
     // 集合列
-    let modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"])
+    let modelCl = new ModelCl(
+      this['mongoClient'],
+      this['bucket'],
+      this['client']
+    )
     columns = columns ? columns : await modelCl.getSchemaByCollection(existCl)
     if (!columns) return new ResultFault('指定的集合没有指定集合列')
 
-    const client = this["mongoClient"]
+    const client = this['mongoClient']
     // 集合数据
     let data = await client
       .db(existCl.db.sysname)
@@ -495,17 +520,16 @@ class DocBase extends Base {
     let rst
     if (exportType === 'xlsx') {
       // 数据处理-针对单选多选转化
-      this["docHelper"].transformsCol('toLabel', data, columns)
+      this['docHelper'].transformsCol('toLabel', data, columns)
 
       const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
       rst = ExcelCtrl.export(columns, data, existCl.name + '.xlsx')
-
     } else if (exportType === 'json') {
-      const { ZipCtrl } = require('./zipArchiver')
+      const { ZipCtrl } = await import('./zipArchiver')
+      //@ts-ignore
       rst = ZipCtrl.export(data, existCl.name + '.zip', { dir: existCl.name })
-
     }
-    
+
     if (rst[0] === false) return new ResultFault(rst[1])
 
     rst = rst[1]

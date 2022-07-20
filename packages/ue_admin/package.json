@@ -1,0 +1,38 @@
+{
+  "name": "ue_admin2",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build.eslint": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^1.1.4",
+    "add": "^2.0.6",
+    "element-plus": "^2.2.8",
+    "jsoneditor": "^9.7.4",
+    "mongodb": "^4.7.0",
+    "pinia": "^2.0.13",
+    "tms-koa-account": "^0.0.10",
+    "tms-vue3": "0.0.4",
+    "tms-vue3-ui": "0.0.44",
+    "vue": "^3.2.25",
+    "vue-router": "4"
+  },
+  "devDependencies": {
+    "@types/jsoneditor": "^9.5.1",
+    "@types/node": "^17.0.25",
+    "@vitejs/plugin-vue": "^2.3.1",
+    "autoprefixer": "^10.4.5",
+    "postcss": "^8.4.12",
+    "sass": "^1.50.1",
+    "stylelint": "^14.8.0",
+    "stylelint-config-standard": "^25.0.0",
+    "tailwindcss": "^3.0.24",
+    "typescript": "^4.5.4",
+    "vite": "^2.9.5",
+    "vue-tsc": "^0.34.7"
+  }
+}
