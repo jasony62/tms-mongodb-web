@@ -92,11 +92,6 @@
         <div>
           <el-button @click="exportJSON">导出文档(JSON)</el-button>
         </div>
-        <div v-if="data.jsonItems.length" class="flex flex-col items-start space-y-3">
-          <div v-for="item in data.jsonItems">
-            <el-button plain @click="configJson(item)">编辑【{{ item.title }}】</el-button>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -117,7 +112,6 @@ import { getLocalToken } from '@/global'
 import facStore from '@/store'
 import {
   openDocEditor,
-  openConfigJsonEditor,
   openSelectConditionEditor,
 } from '@/components/editor'
 
@@ -143,7 +137,6 @@ const { bucketName, dbName, clName } = props
 const data = reactive({
   docBatch: new Batch(() => { }),
   multipleDoc: [] as any[],
-  jsonItems: [] as any[],
   properties: {} as any,
   documents: [] as any[],
   plugins: [] as any[]
@@ -154,9 +147,7 @@ let currentDocument = ref<any>(null)
 let selectedDocuments = ref<any[]>([])
 let totalChecked = computed(() => selectedDocuments.value.length)
 
-const handlePlugins = (plugin: any, type?: string) => {
-
-}
+const handlePlugins = (plugin: any, type?: string) => { }
 
 const handleCondition = () => {
   const conditions = store.conditions
@@ -189,36 +180,6 @@ const handleFilter = (schema: any, name: any) => {
       if (isClear) store.conditionDelColumn({ condition })
       // 待处理：排序降序后的图标颜色不变；是因为点击的target不一定是哪个元素；
       listDocByKw()
-    },
-  })
-}
-
-const hasJsonItems = () => {
-  for (let propertyName in data.properties) {
-    let value = data.properties[propertyName]
-    if (value.type === 'json') {
-      // 自定义'name'键值接收原property
-      value.name = propertyName
-      data.jsonItems.push(value)
-    }
-  }
-}
-
-const configJson = (item: any) => {
-  let row = currentDocument.value
-  if (!row) return
-  let jsonData = row[item.name]
-  openConfigJsonEditor({
-    jsonData,
-    onBeforeClose: (newJson?: any) => {
-      row[item.name] = newJson
-      apiDoc.update(
-        bucketName,
-        dbName,
-        clName,
-        row._id,
-        row
-      )
     },
   })
 }
@@ -362,7 +323,6 @@ onMounted(async () => {
   collection = await apiCollection.byName(bucketName, dbName, clName)
   data.plugins = await apiPlugin.getPlugins(bucketName, dbName, clName)
   await handleProperty()
-  hasJsonItems()
   listDocByKw()
 })
 </script>

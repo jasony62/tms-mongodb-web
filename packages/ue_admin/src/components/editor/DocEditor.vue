@@ -2,10 +2,16 @@
   <el-dialog title="文档" v-model="dialogVisible" :fullscreen="true" :destroy-on-close="true" :close-on-click-modal="true"
     :before-close="onBeforeClose">
     <div class="flex flex-row gap-4 h-full overflow-auto">
-      <tms-json-doc ref="$jde" :schema="collection.schema.body" :value="document" :on-file-select="onFileSelect"
-        :on-file-download="onFileDownload" class="w-1/3"></tms-json-doc>
-      <div class="w-1/3"></div>
-      <div class="w-1/3 h-full flex-grow flex flex-col gap-2 relative">
+      <tms-json-doc ref="$jde" class="w-1/3 h-full overflow-auto" :schema="collection.schema.body" :value="document"
+        :on-file-select="onFileSelect" :on-file-download="onFileDownload" :show-field-fullname="true"
+        @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
+      <div v-if="activeField?.schemaType === 'json'" class="w-1/3 h-full flex flex-col">
+        <div>
+          <el-button @click="updateFieldJson">更新数据【{{ activeField.fullname }}】</el-button>
+        </div>
+        <div ref="elJsonEditor" class="flex-grow"></div>
+      </div>
+      <div class="h-full w-1/3 flex flex-col gap-2 relative">
         <div class="absolute top-0 right-0">
           <el-button @click="preview">预览</el-button>
         </div>
@@ -22,12 +28,14 @@
 </template>
 
 <script setup lang="ts">
-import { PropType, ref } from 'vue'
-import { JsonDoc as TmsJsonDoc } from 'tms-vue3-ui'
+import { nextTick, PropType, ref } from 'vue'
+import TmsJsonDoc, { Field, DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
 import apiDoc from '@/apis/document'
 import apiSchema from '@/apis/schema'
 import { getLocalToken } from '@/global'
 import { openPickFileEditor } from '@/components/editor'
+import JSONEditor from 'jsoneditor'
+import 'jsoneditor/dist/jsoneditor.css'
 
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 
@@ -56,8 +64,10 @@ const props = defineProps({
 })
 
 const { bucketName, dbName, collection, document, onClose } = props
-const $jde = ref<{ editing: () => string } | null>(null)
+const $jde = ref<{ editing: () => string, editDoc: DocAsArray } | null>(null)
 // const plugins: any[] = []
+
+const elJsonEditor = ref<HTMLElement | null>(null)
 
 const previewResult = ref('')
 
@@ -69,6 +79,43 @@ const closeDialog = (newDoc?: any) => {
 // 对话框关闭前触发
 const onBeforeClose = () => {
   closeDialog(null)
+}
+
+const activeField = ref<Field>() // 正在编辑的字段
+
+const options = {
+  mode: 'code',
+  search: false,
+  transform: false,
+}
+
+let jsonEditor: any = null
+
+const onJdocFocus = (field: Field) => {
+  console.log('xxxxx', field)
+  if (activeField.value !== field) {
+    activeField.value = field
+    if (field.schemaType === 'json') {
+      nextTick(() => {
+        if (elJsonEditor.value) {
+          let child = elJsonEditor.value.querySelector('.jsoneditor')
+          if (child) elJsonEditor.value.removeChild(child)
+          // @ts-ignore
+          jsonEditor = new JSONEditor(elJsonEditor.value, options)
+          jsonEditor.set($jde.value?.editDoc.get(field.fullname))
+        }
+      })
+    }
+  }
+}
+
+const onJdocBlur = (field: Field) => { }
+
+const updateFieldJson = () => {
+  if (activeField.value) {
+    let newVal = jsonEditor.get()
+    $jde.value?.editDoc.set(activeField.value.fullname, newVal)
+  }
 }
 
 const onFileSelect = async (params: any) => {
@@ -204,5 +251,13 @@ const handleProperty = async () => {
     }
   }
 
+  .jsoneditor {
+
+    .jsoneditor-transform,
+    .jsoneditor-repair,
+    .jsoneditor-poweredBy {
+      display: none;
+    }
+  }
 }
 </style>
