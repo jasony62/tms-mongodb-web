@@ -11,9 +11,9 @@
     <!--content-->
     <div class="flex flex-row gap-2">
       <div class="w-4/5 flex flex-col gap-4">
-        <el-table :data="store.documents" highlight-current-row stripe style="width: 100%;"
-          @current-change="handleCurrentChange" @selection-change="handleSelectionChange">
-          <el-table-column type="index" width="48"></el-table-column>
+        <el-table :data="store.documents" highlight-current-row stripe @current-change="handleCurrentChange"
+          @selection-change="handleSelectionChange">
+          <el-table-column fixed="left" type="index" width="48"></el-table-column>
           <el-table-column type="selection" width="48" />
           <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
             <template #header>
@@ -73,33 +73,30 @@
           </el-table-column>
           <el-table-column fixed="right" label="操作" width="180">
             <template #default="scope">
-              <el-button type="primary" text size="small" @click="editDocument(scope.row, scope.$index)">修改</el-button>
-              <el-button type="primary" text size="small" @click="removeDocument(scope.row)">删除</el-button>
+              <el-button type="primary" link size="small" @click="editDocument(scope.row, scope.$index)">修改</el-button>
+              <el-button type="primary" link size="small" @click="removeDocument(scope.row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
-        <div class="flex flex-row gap-4 p-2 items-center">
+        <div class="flex flex-row gap-4 p-2 items-center justify-between">
           <span>已选中 {{ data.multipleDoc.length }} 条数据</span>
           <el-pagination layout="total, sizes, prev, pager, next" background :total="data.docBatch.total"
             :page-sizes="[10, 25, 50, 100]" :current-page="data.docBatch.page" :page-size="data.docBatch.size"
             @current-change="changeDocPage" @size-change="changeDocSize"></el-pagination>
         </div>
       </div>
-      <div>
-        <tms-flex direction="column" align-items="flex-start">
-          <div>
-            <el-button @click="createDocument">添加文档</el-button>
+      <div class="flex flex-col items-start space-y-3">
+        <div>
+          <el-button @click="createDocument">添加文档</el-button>
+        </div>
+        <div>
+          <el-button @click="exportJSON">导出文档(JSON)</el-button>
+        </div>
+        <div v-if="data.jsonItems.length" class="flex flex-col items-start space-y-3">
+          <div v-for="item in data.jsonItems">
+            <el-button plain @click="configJson(item)">编辑【{{ item.title }}】</el-button>
           </div>
-          <div>
-            <el-button @click="exportJSON">导出文档(JSON)</el-button>
-          </div>
-          <div v-if="data.jsonItems.length">
-            <el-button v-for="item in data.jsonItems" plain @click="configJson(item)">编辑【{{
-                item.title
-            }}】
-            </el-button>
-          </div>
-        </tms-flex>
+        </div>
       </div>
     </div>
   </div>

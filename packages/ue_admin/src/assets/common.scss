@@ -1,15 +1,3 @@
 html, body, #app {
   @apply h-full w-full;
 }
-.tms-frame__header {
-  @apply flex items-center
-}
-.tms-frame__main {
-  @apply overflow-hidden;
-
-  .tms-frame__main__center {
-    width: calc(75% - 16px);
-    background-color: #f0f3f6 !important;
-    @apply flex flex-col;
-  }
-}

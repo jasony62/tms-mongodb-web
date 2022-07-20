@@ -15,7 +15,7 @@
     <div class="flex flex-row gap-2">
       <div class="w-4/5">
         <div v-show="activeTab === 'database'" class="flex flex-col gap-2">
-          <el-table :data="store.dbs" stripe style="width: 100%" @selection-change="changeDbSelect">
+          <el-table :data="store.dbs" stripe @selection-change="changeDbSelect">
             <el-table-column type="selection" width="55"></el-table-column>
             <el-table-column label="数据库" width="180">
               <template #default="scope">
@@ -27,73 +27,70 @@
             <el-table-column prop="description" label="说明"></el-table-column>
             <el-table-column label="操作" width="120">
               <template #default="scope">
-                <div class="flex">
-                  <el-button type="primary" text size="small" @click="editDb(scope.row, scope.$index)">修改</el-button>
-                  <el-button type="primary" text size="small" @click="removeDb(scope.row)">删除</el-button>
-                </div>
+                <el-button type="primary" link size="small" @click="editDb(scope.row, scope.$index)">修改</el-button>
+                <el-button type="primary" link size="small" @click="removeDb(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
-          <div class="flex flex-row gap-4 p-2 items-center">
+          <div class="flex flex-row gap-4 p-2 items-center justify-between">
             <span>已选中 {{ criteria.multipleDb.length }} 条数据</span>
             <el-pagination layout="total, sizes, prev, pager, next" background :total="criteria.dbBatch.total"
               :page-sizes="[10, 25, 50, 100]" :current-page="criteria.dbBatch.page" :page-size="criteria.dbBatch.size"
               @current-change="changeDbPage" @size-change="changeDbSize"></el-pagination>
           </div>
         </div>
-        <el-table v-show="activeTab === 'docSchemas'" :data="store.documentSchemas" stripe style="width: 100%">
-          <el-table-column prop="title" label="名称" width="180"></el-table-column>
-          <el-table-column prop="description" label="说明"></el-table-column>
-          <el-table-column label="操作" width="180">
-            <template #default="scope">
-              <div class="flex">
-                <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index, true)">复制
+        <div v-show="activeTab === 'docSchemas'" class="flex flex-col gap-2">
+          <el-table :data="store.documentSchemas" stripe>
+            <el-table-column prop="title" label="名称" width="180"></el-table-column>
+            <el-table-column prop="description" label="说明"></el-table-column>
+            <el-table-column label="操作" width="180">
+              <template #default="scope">
+                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
                 </el-button>
-                <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index)">修改
+                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
+                <el-button type="primary" link size="small" @click="removeSchema(scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        <div v-show="activeTab === 'dbSchemas'" class="flex flex-col gap-2">
+          <el-table :data="store.dbSchemas" stripe>
+            <el-table-column prop="title" label="名称" width="180"></el-table-column>
+            <el-table-column prop="description" label="说明"></el-table-column>
+            <el-table-column label="操作" width="180">
+              <template #default="scope">
+                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
                 </el-button>
-                <el-button type="primary" text size="small" @click="removeSchema(scope.row)">删除</el-button>
-              </div>
-            </template>
-          </el-table-column>
-        </el-table>
-        <el-table v-show="activeTab === 'dbSchemas'" :data="store.dbSchemas" stripe style="width: 100%">
-          <el-table-column prop="title" label="名称" width="180"></el-table-column>
-          <el-table-column prop="description" label="说明"></el-table-column>
-          <el-table-column label="操作" width="180">
-            <template #default="scope">
-              <div class="flex">
-                <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index, true)">复制
+                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
+                <el-button type="primary" link size="small" @click="removeSchema(scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        <div v-show="activeTab === 'colSchemas'" class="flex flex-col gap-2">
+          <el-table :data="store.collectionSchemas" stripe>
+            <el-table-column prop="title" label="名称" width="180"></el-table-column>
+            <el-table-column prop="description" label="说明"></el-table-column>
+            <el-table-column label="操作" width="180">
+              <template #default="scope">
+                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
                 </el-button>
-                <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index)">修改
-                </el-button>
-                <el-button type="primary" text size="small" @click="removeSchema(scope.row)">删除</el-button>
-              </div>
-            </template>
-          </el-table-column>
-        </el-table>
-        <el-table v-show="activeTab === 'colSchemas'" :data="store.collectionSchemas" stripe style="width: 100%">
-          <el-table-column prop="title" label="名称" width="180"></el-table-column>
-          <el-table-column prop="description" label="说明"></el-table-column>
-          <el-table-column label="操作" width="180">
-            <template #default="scope">
-              <div class="flex">
-                <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index, true)">复制
-                </el-button>
-                <el-button type="primary" text size="small" @click="editSchema(scope.row, scope.$index)">修改
-                </el-button>
-                <el-button type="primary" text size="small" @click="removeSchema(scope.row)">删除</el-button>
-              </div>
-            </template>
-          </el-table-column>
-        </el-table>
-        <el-table v-show="activeTab === 'tag'" :data="store.tags" stripe style="width: 100%">
-          <el-table-column prop="name" label="名称"></el-table-column>
-          <el-table-column label="操作" width="120">
-            <template #default="scope">
-              <el-button type="primary" text size="small" @click="removeTag(scope.row)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
+                <el-button type="primary" link size="small" @click="removeSchema(scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        <div v-show="activeTab === 'tag'" class="flex flex-col gap-2">
+          <el-table :data="store.tags" stripe>
+            <el-table-column prop="name" label="名称"></el-table-column>
+            <el-table-column label="操作" width="120">
+              <template #default="scope">
+                <el-button type="primary" link size="small" @click="removeTag(scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
         <div v-show="activeTab === 'replica'">
           <el-table :data="store.replicas" stripe style="width: 100%" @selection-change="changeReplicaSelect">
             <el-table-column type="selection" width="55"></el-table-column>
@@ -103,14 +100,12 @@
             <el-table-column prop="secondary.cl.label" label="从集合名称"></el-table-column>
             <el-table-column label="操作" width="120">
               <template #default="scope">
-                <div class="flex">
-                  <el-button type="primary" text size="small" @click="handleSyncReplica(scope.row)">同步</el-button>
-                  <el-button type="primary" text size="small" @click="removeReplica(scope.row)">删除</el-button>
-                </div>
+                <el-button type="primary" link size="small" @click="handleSyncReplica(scope.row)">同步</el-button>
+                <el-button type="primary" link size="small" @click="removeReplica(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
-          <div class="flex flex-row gap-4 p-2 items-center">
+          <div class="flex flex-row gap-4 p-2 items-center justify-between">
             <span>已选中 {{ criteria.multipleReplica.length }} 条数据</span>
             <el-pagination layout="total, sizes, prev, pager, next" background :total="criteria.replicaBatch.total"
               :page-sizes="[10, 25, 50, 100]" :current-page="criteria.replicaBatch.page"
