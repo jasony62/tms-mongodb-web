@@ -43,7 +43,7 @@ const {
   VITE_SCHEMA_TAGS,
   VITE_FRONT_DOCEDITOR_ADD,
   VITE_FRONT_DOCEDITOR_MODIFY,
-  VITE_EXTRAFILESYSTEM_URL,
+  VITE_EXTERNAL_FILESYSTEM_URL,
 } = import.meta.env
 
 const emit = defineEmits(['submit'])
@@ -92,7 +92,6 @@ const options = {
 let jsonEditor: any = null
 
 const onJdocFocus = (field: Field) => {
-  console.log('xxxxx', field)
   if (activeField.value !== field) {
     activeField.value = field
     if (field.schemaType === 'json') {
@@ -119,16 +118,13 @@ const updateFieldJson = () => {
 }
 
 const onFileSelect = async (params: any) => {
-  const openUrl = VITE_EXTRAFILESYSTEM_URL + '?access_token=' + getLocalToken()
+  const openUrl = VITE_EXTERNAL_FILESYSTEM_URL + '?access_token=' + getLocalToken()
   return new Promise((resolve) => {
     /**这里需要返回文件属性中items.properties中定义的内容*/
     openPickFileEditor({
       url: openUrl,
-      onBeforeClose: (newJson?: any) => {
-        resolve({
-          name: newJson.name,
-          url: newJson.url,
-        })
+      onBeforeClose: (file?: any) => {
+        resolve(file)
       },
     })
   })

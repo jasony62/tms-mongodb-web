@@ -1,9 +1,5 @@
-import { UploadCtrl } from 'tms-koa/lib/controller/fs'
+import { UploadCtrl } from 'tms-koa/dist/controller/fs'
 
-class Upload extends UploadCtrl {
-  constructor(...args) {
-    super(...args)
-  }
-}
+class Upload extends UploadCtrl {}
 
 export default Upload

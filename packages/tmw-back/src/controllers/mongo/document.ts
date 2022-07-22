@@ -15,7 +15,7 @@ if (fs.existsSync(cnfpath)) {
   TMWCONFIG = {
     TMS_APP_DEFAULT_CREATETIME: 'TMS_DEFAULT_CREATE_TIME',
     TMS_APP_DEFAULT_UPDATETIME: 'TMS_DEFAULT_UPDATE_TIME',
-    TMS_APP_DATA_ACTION_LOG: 'N'
+    TMS_APP_DATA_ACTION_LOG: 'N',
   }
 }
 
@@ -27,15 +27,15 @@ class Document extends DocBase {
    * 上传并导入单个文件
    */
   async uploadToImport() {
-    if (!this["request"].files || !this["request"].files.file) {
+    if (!this['request'].files || !this['request'].files.file) {
       return new ResultFault('没有上传文件')
     }
-    const existCl = await this["docHelper"].findRequestCl()
-    const { UploadPlain } = require('tms-koa/lib/model/fs/upload')
-    const { LocalFS } = require('tms-koa/lib/model/fs/local')
+    const existCl = await this['docHelper'].findRequestCl()
+    const { UploadPlain } = require('tms-koa/dist/model/fs/upload')
+    const { LocalFS } = require('tms-koa/dist/model/fs/local')
     const { FsContext } = require('tms-koa').Context
 
-    const file = this["request"].files.file
+    const file = this['request'].files.file
     const fsContextIns = FsContext.insSync()
     const domain = fsContextIns.getDomain(fsContextIns.defaultDomain)
     const tmsFs = new LocalFS(domain)
@@ -66,7 +66,7 @@ class Document extends DocBase {
       }
     }
 
-    let rst = await this["docHelper"].importToColl(
+    let rst = await this['docHelper'].importToColl(
       existCl,
       filepath,
       noRepeatConfig
@@ -90,9 +90,13 @@ class Document extends DocBase {
    * 导出数据
    */
   async export() {
-    let { filter, docIds, columns } = this["request"].body
+    let { filter, docIds, columns } = this['request'].body
 
-    let modelDoc = new ModelDoc(this["mongoClient"], this["bucket"], this["client"])
+    let modelDoc = new ModelDoc(
+      this['mongoClient'],
+      this['bucket'],
+      this['client']
+    )
 
     let query
     if (docIds && docIds.length > 0) {
@@ -109,13 +113,17 @@ class Document extends DocBase {
       return new ResultFault('没有要导出的数据')
     }
 
-    const existCl = await this["docHelper"].findRequestCl()
+    const existCl = await this['docHelper'].findRequestCl()
     // 集合列
-    let modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"])
+    let modelCl = new ModelCl(
+      this['mongoClient'],
+      this['bucket'],
+      this['client']
+    )
     columns = columns ? columns : await modelCl.getSchemaByCollection(existCl)
     if (!columns) return new ResultFault('指定的集合没有指定集合列')
 
-    const client = this["mongoClient"]
+    const client = this['mongoClient']
     // 集合数据
     let data = await client
       .db(existCl.db.sysname)
@@ -124,9 +132,9 @@ class Document extends DocBase {
       .toArray()
 
     // 数据处理-针对单选多选转化
-    this["docHelper"].transformsCol('toLabel', data, columns)
+    this['docHelper'].transformsCol('toLabel', data, columns)
 
-    const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
+    const { ExcelCtrl } = require('tms-koa/dist/controller/fs')
     let rst = ExcelCtrl.export(columns, data, existCl.name + '.xlsx')
 
     if (rst[0] === false) return new ResultFault(rst[1])
@@ -153,16 +161,24 @@ class Document extends DocBase {
       planTotal = 0,
       alreadyMoveTotal = 0,
       alreadyMovePassTotal = 0,
-    } = this["request"].query
+    } = this['request'].query
 
-    let { docIds, filter } = this["request"].body
+    let { docIds, filter } = this['request'].body
 
     if (!filter && (!Array.isArray(docIds) || docIds.length == 0)) {
       return new ResultFault('没有要移动的数据')
     }
 
-    let modelCl = new ModelCl(this["mongoClient"], this["bucket"], this["client"])
-    let modelDoc = new ModelDoc(this["mongoClient"], this["bucket"], this["client"])
+    let modelCl = new ModelCl(
+      this['mongoClient'],
+      this['bucket'],
+      this['client']
+    )
+    let modelDoc = new ModelDoc(
+      this['mongoClient'],
+      this['bucket'],
+      this['client']
+    )
 
     const oldExistCl = await modelCl.byName(oldDb, oldCl)
     let oldDocus, total, operateType
@@ -174,7 +190,7 @@ class Document extends DocBase {
       operateType = `批量（按选中）迁移`
     } else {
       let query = {}
-      let cl = this["docHelper"].findSysColl(oldExistCl)
+      let cl = this['docHelper'].findSysColl(oldExistCl)
       if (_.toUpper(filter) !== 'ALL') {
         query = modelDoc.assembleQuery(filter)
         operateType = `批量（按筛选）迁移`
@@ -185,7 +201,13 @@ class Document extends DocBase {
       total = await cl.countDocuments(query)
     }
 
-    let rst = await this["docHelper"].cutDocs(oldDb, oldCl, newDb, newCl, oldDocus)
+    let rst = await this['docHelper'].cutDocs(
+      oldDb,
+      oldCl,
+      newDb,
+      newCl,
+      oldDocus
+    )
     if (rst[0] === false) return new ResultFault(rst[1])
     rst = rst[1]
 

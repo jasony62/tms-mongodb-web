@@ -1,16 +1,8 @@
-// const _ = require('lodash')
-// const fs = require('fs')
-// const PATH = require('path')
-// const { LocalFS } = require('tms-koa/lib/model/fs/local')
-// const { Upload } = require('tms-koa/lib/model/fs/upload')
-// const { AppContext, FsContext } = require('tms-koa').Context
-// const archiver = require('archiver')
-
 import * as _ from 'lodash'
 import * as fs from 'fs'
 import * as PATH from 'path'
-import { LocalFS } from 'tms-koa/lib/model/fs/local'
-import { Upload } from 'tms-koa/lib/model/fs/upload'
+import { LocalFS } from 'tms-koa/dist/model/fs/local'
+import { Upload } from 'tms-koa/dist/model/fs/upload'
 import { Context } from 'tms-koa'
 import * as archiver from 'archiver'
 

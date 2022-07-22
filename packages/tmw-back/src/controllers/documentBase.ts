@@ -522,7 +522,7 @@ class DocBase extends Base {
       // 数据处理-针对单选多选转化
       this['docHelper'].transformsCol('toLabel', data, columns)
 
-      const { ExcelCtrl } = require('tms-koa/lib/controller/fs')
+      const { ExcelCtrl } = require('tms-koa/dist/controller/fs')
       rst = ExcelCtrl.export(columns, data, existCl.name + '.xlsx')
     } else if (exportType === 'json') {
       const { ZipCtrl } = await import('./zipArchiver')

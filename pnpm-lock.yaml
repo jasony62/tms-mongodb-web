@@ -14,7 +14,7 @@ importers:
       nanoid: ^3.1.4
       redis: ^4.2.0
       rimraf: ^3.0.2
-      tms-koa: ^0.0.86
+      tms-koa: 0.0.88
       tms-koa-account: ^0.0.10
       tmw-model: workspace:*
     dependencies:
@@ -25,8 +25,8 @@ importers:
       mongodb: 4.8.0
       nanoid: 3.3.4
       redis: 4.2.0
-      tms-koa: 0.0.86_mongodb@4.8.0+redis@4.2.0
-      tms-koa-account: 0.0.10_redis@4.2.0+tms-koa@0.0.86
+      tms-koa: 0.0.88_mongodb@4.8.0+redis@4.2.0
+      tms-koa-account: 0.0.10_redis@4.2.0+tms-koa@0.0.88
       tmw-model: link:../tmw-model
     devDependencies:
       '@types/lodash': 4.14.182
@@ -820,7 +820,7 @@ packages:
     dev: false
 
   /buffer-equal-constant-time/1.0.1:
-    resolution: {integrity: sha512-zRpUiDwd/xk6ADqPMATG8vc9VPrkck7T07OIx0gnjmJAnHnTVXNQG3vfvWNuiZIkwu9KrKdA1iJKfsfTVxE6NA==}
+    resolution: {integrity: sha1-+OcRMvf/5uAaXJaXpMbz5I1cyBk=}
     dev: false
 
   /buffer/5.7.1:
@@ -1096,6 +1096,11 @@ packages:
 
   /debug/3.2.7:
     resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
     dependencies:
       ms: 2.1.2
     dev: false
@@ -3378,7 +3383,7 @@ packages:
       - supports-color
     dev: false
 
-  /tms-koa-account/0.0.10_redis@4.2.0+tms-koa@0.0.86:
+  /tms-koa-account/0.0.10_redis@4.2.0+tms-koa@0.0.88:
     resolution: {integrity: sha512-5MOdqFmZJu+PCXlbivQCYmqDtXaQmbpk2hltLWyAqyaMGrVUI90qbjMoo7c+YG9cm1khTfxTlxvGzmls9DBAaQ==}
     peerDependencies:
       redis: 4.1.0
@@ -3400,16 +3405,17 @@ packages:
       path: 0.12.7
       redis: 4.2.0
       svg-captcha: 1.4.0
-      tms-koa: 0.0.86_mongodb@4.8.0+redis@4.2.0
+      tms-koa: 0.0.88_mongodb@4.8.0+redis@4.2.0
     transitivePeerDependencies:
       - supports-color
     dev: false
 
-  /tms-koa/0.0.86_mongodb@4.8.0+redis@4.2.0:
-    resolution: {integrity: sha512-p6XdhnLulCzXtJ9pWIUCXhbbsF43q9ow5mTWJcp48spq3sMtx7c3S16s4vgB4ea8ka6+ooPGj3B1PMws674kqw==}
+  /tms-koa/0.0.88_mongodb@4.8.0+redis@4.2.0:
+    resolution: {integrity: sha512-+j9e3VHeetWQXAwI/BV+U14+FK5Cuhx3jQApARtij/Avj5X533BbwXoPv1etaPWpptXM3c7p7g7EQn4+FCXGzg==}
     engines: {node: '>=16.15.0'}
     peerDependencies:
       mongodb: 4.5.0
+      neo4j-driver: ^4.4.2
       prom-client: ^13.1.0
       redis: 4.1.0
       sharp: ^0.25.3
