@@ -1,7 +1,7 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import DocBase from '../documentBase'
 import * as _ from 'lodash'
-import { ModelCl, ModelDoc } from 'tmw-model'
+import { ModelCl, ModelDoc } from 'tmw-kit'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 

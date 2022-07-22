@@ -1,5 +1,5 @@
 import * as _ from 'lodash'
-import Helper from './helper'
+import Helper from 'tmw-kit/dist/ctrl/helper'
 import unrepeatByArray from '../tms/utilities'
 
 export default async function unrepeat(ctrl, data, transform) {
@@ -14,9 +14,9 @@ export default async function unrepeat(ctrl, data, transform) {
 
   // 去除重复数据
   let docs = unrepeatByArray(data, columns)
-  let docs2 = await docs.map(async doc => {
+  let docs2 = await docs.map(async (doc) => {
     let find = {}
-    columns.forEach(v => {
+    columns.forEach((v) => {
       find[v] = doc[v]
     })
 
@@ -30,8 +30,8 @@ export default async function unrepeat(ctrl, data, transform) {
         delete newDoc._id
         let rst2 = await cl
           .insertOne(newDoc)
-          .then(rst => doc)
-          .catch(err => false)
+          .then((rst) => doc)
+          .catch((err) => false)
         return rst2
       } else {
         return doc
@@ -39,8 +39,8 @@ export default async function unrepeat(ctrl, data, transform) {
     }
   })
 
-  return Promise.all(docs2).then(docs3 => {
-    return _.filter(docs3, d => {
+  return Promise.all(docs2).then((docs3) => {
+    return _.filter(docs3, (d) => {
       if (d == false) {
         return false
       } else {

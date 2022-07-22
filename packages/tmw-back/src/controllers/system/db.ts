@@ -1,6 +1,6 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import Base from './base'
-import { ModelDb } from 'tmw-model'
+import Base from 'tmw-kit/dist/ctrl/base'
+import { ModelDb } from 'tmw-kit'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
@@ -44,20 +44,20 @@ class Db extends Base {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async create() {
-    let info = this["request"].body
+    let info = this['request'].body
     info.type = 'database'
 
     // 检查数据库名
-    let model = new ModelDb(this["mongoClient"], this["bucket"], this["client"])
+    let model = new ModelDb(this['mongoClient'], this['bucket'], this['client'])
     let newName = model.checkDbName(info.name)
     if (newName[0] === false) return new ResultFault(newName[1])
     info.name = newName[1]
 
     // 查询是否存在同名库
-    let existDb = await this["helper"].dbByName(info.name)
+    let existDb = await this['helper'].dbByName(info.name)
     if (existDb) return new ResultFault('已存在同名预制数据库')
 
-    return this["clPreset"].insertOne(info).then((result) => {
+    return this['clPreset'].insertOne(info).then((result) => {
       info._id = result.insertedId
       return new ResultData(info)
     })
@@ -99,17 +99,17 @@ class Db extends Base {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async update() {
-    const beforeDb = await this["helper"].findRequestDb()
+    const beforeDb = await this['helper'].findRequestDb()
 
-    let info = this["request"].body
+    let info = this['request'].body
     let { _id, ...updatedInfo } = info
 
-    let existDb = await this["helper"].dbByName(info.name)
+    let existDb = await this['helper'].dbByName(info.name)
     if (existDb) return new ResultFault('已存在同名预制数据库')
 
     const query = { _id: new ObjectId(beforeDb._id) }
 
-    return this["clPreset"]
+    return this['clPreset']
       .updateOne(query, { $set: updatedInfo })
       .then(() => new ResultData(info))
   }
@@ -137,9 +137,9 @@ class Db extends Base {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async remove() {
-    const existDb = await this["helper"].findRequestDb()
+    const existDb = await this['helper'].findRequestDb()
 
-    const cl = this["clPreset"]
+    const cl = this['clPreset']
 
     // 查找数据库下是否有集合，如果有则不能删除
     const query = { database: existDb.name, type: 'collection' }
@@ -169,7 +169,7 @@ class Db extends Base {
    */
   async list() {
     const query = { type: 'database' }
-    const tmsDbs = await this["clPreset"]
+    const tmsDbs = await this['clPreset']
       .find(query, { projection: { _id: 0, type: 0 } })
       .toArray()
 

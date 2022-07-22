@@ -1,7 +1,7 @@
 {
-  "name": "tmw-model",
+  "name": "tmw-kit",
   "version": "0.0.1",
-  "description": "tms-monogodb-web数据库操作",
+  "description": "tms-monogodb-web开发工具包",
   "main": "./dist/index.js",
   "scripts": {
     "build": "rimraf ./dist && tsc",
@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@types/node": "^18.0.1",
-    "rimraf": "^3.0.2"
+    "rimraf": "^3.0.2",
+    "tms-koa": "0.0.88"
   }
 }

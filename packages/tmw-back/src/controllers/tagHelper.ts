@@ -1,4 +1,4 @@
-import Helper from "./helper"
+import Helper from 'tmw-kit/dist/ctrl/helper'
 
 /**
  * 标签控制器辅助类
@@ -9,14 +9,14 @@ class TagHelper extends Helper {
    *
    * @param {string} name
    */
-	async tagByName(name) {
-		const query = { name, type: 'tag' }
-		if (this.ctrl.bucket) query["bucket"] = this.ctrl.bucket.name
+  async tagByName(name) {
+    const query = { name, type: 'tag' }
+    if (this.ctrl.bucket) query['bucket'] = this.ctrl.bucket.name
 
-		const tag = await this.clMongoObj.findOne(query)
+    const tag = await this.clMongoObj.findOne(query)
 
-		return tag
-	}
+    return tag
+  }
 }
 
 export default TagHelper

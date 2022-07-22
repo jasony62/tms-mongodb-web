@@ -1,5 +1,5 @@
-import { ModelCl } from 'tmw-model'
-import Helper from './helper'
+import { ModelCl } from 'tmw-kit'
+import Helper from 'tmw-kit/dist/ctrl/helper'
 import { nanoid } from 'nanoid'
 
 /** 数据库控制器辅助类 */
@@ -11,9 +11,12 @@ class CollectionHelper extends Helper {
     const { name: dbName, sysname } = db
     const client = this.ctrl.mongoClient
     // 检查是否已存在同名集合
-    let equalNameSum = await this.clMongoObj
-      .countDocuments({ name: newName, database: dbName, type: 'collection' })
-      
+    let equalNameSum = await this.clMongoObj.countDocuments({
+      name: newName,
+      database: dbName,
+      type: 'collection',
+    })
+
     if (equalNameSum !== 0) return [false, '集合名修改失败！已存在同名集合']
 
     // 修改集合名
@@ -30,7 +33,11 @@ class CollectionHelper extends Helper {
    * 创建集合
    */
   async createCl(existDb, info) {
-    let modelCl = new ModelCl(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
+    let modelCl = new ModelCl(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
 
     // 加工数据
     modelCl.beforeProcessByInAndUp(info, 'insert')

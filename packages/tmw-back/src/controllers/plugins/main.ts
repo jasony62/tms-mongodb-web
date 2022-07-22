@@ -1,8 +1,8 @@
 const _ = require('lodash')
 import { ResultFault, ResultData } from 'tms-koa'
-import Base from '../base'
+import Base from 'tmw-kit/dist/ctrl/base'
 import PluginHelper from './pluginHelper'
-import { Context as PluginContext } from 'tmw-model/dist/plugin'
+import { Context as PluginContext } from 'tmw-kit/dist/model/plugin'
 
 /** 插件控制器类 */
 class Plugin extends Base {

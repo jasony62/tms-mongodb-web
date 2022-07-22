@@ -1,6 +1,6 @@
 import * as _ from 'lodash'
 import { ResultData, ResultFault } from 'tms-koa'
-import Base from './base'
+import Base from 'tmw-kit/dist/ctrl/base'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
@@ -52,11 +52,11 @@ class Schema extends Base {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async create() {
-    let info = this["request"].body
+    let info = this['request'].body
     info.type = 'schema'
     if (!info.scope) return new ResultData('没有指定属性定义适用对象类型')
 
-    return this["clPreset"].insertOne(info).then((result) => {
+    return this['clPreset'].insertOne(info).then((result) => {
       info._id = result.insertedId
       return new ResultData(info)
     })
@@ -104,13 +104,13 @@ class Schema extends Base {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async update() {
-    const { id } = this["request"].query
-    let info = this["request"].body
+    const { id } = this['request'].query
+    let info = this['request'].body
     info = _.omit(info, ['_id', 'scope', 'type'])
 
     const query = { _id: new ObjectId(id), type: 'schema' }
 
-    return this["clPreset"]
+    return this['clPreset']
       .updateOne(query, { $set: info }, { upsert: true })
       .then(() => new ResultData(info))
   }
@@ -138,12 +138,12 @@ class Schema extends Base {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async remove() {
-    const { id } = this["request"].query
+    const { id } = this['request'].query
     if (!id) return new ResultFault('参数不完整')
 
     // 是否正在使用
     // 为什么不检查数据库和文档对象？
-    let rst = await this["clPreset"].findOne({
+    let rst = await this['clPreset'].findOne({
       schema_id: id,
       type: 'collection',
     })
@@ -151,7 +151,7 @@ class Schema extends Base {
 
     const query = { _id: new ObjectId(id), type: 'schema' }
 
-    return this["clPreset"].deleteOne(query).then(() => new ResultData('ok'))
+    return this['clPreset'].deleteOne(query).then(() => new ResultData('ok'))
   }
   /**
    * @swagger
@@ -177,13 +177,13 @@ class Schema extends Base {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async list() {
-    const { scope } = this["request"].query
+    const { scope } = this['request'].query
     if (!/db|collection|document/.test(scope))
       return new ResultData('没有指定有效的属性定义适用对象类型')
 
     const query = { type: 'schema', scope }
 
-    return this["clPreset"]
+    return this['clPreset']
       .find(query, { projection: { type: 0, scope: 0 } })
       .toArray()
       .then((schemas) => new ResultData(schemas))
@@ -213,13 +213,13 @@ class Schema extends Base {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async listSimple() {
-    const { scope } = this["request"].query
+    const { scope } = this['request'].query
     if (!/db|collection|document/.test(scope))
       return new ResultData('没有指定有效的属性定义适用对象类型')
 
     const query = { type: 'schema', scope }
 
-    return this["clPreset"]
+    return this['clPreset']
       .find(query, {
         projection: { _id: 1, title: 1, description: 1, scope: 1 },
       })

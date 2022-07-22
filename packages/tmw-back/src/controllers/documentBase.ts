@@ -1,8 +1,8 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import Base from './base'
+import Base from 'tmw-kit/dist/ctrl/base'
 import DocumentHelper from './documentHelper'
 import unrepeat from './unrepeat'
-import { ModelDoc, ModelCl, ModelSchema } from 'tmw-model'
+import { ModelDoc, ModelCl, ModelSchema } from 'tmw-kit'
 
 import * as _ from 'lodash'
 import * as mongodb from 'mongodb'

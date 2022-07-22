@@ -7,8 +7,8 @@ const ObjectId = mongodb.ObjectId
 import * as log4js from 'log4js'
 const logger = log4js.getLogger('tms-mongodb-web')
 
-import { ModelDoc, ModelCl, ModelSchema } from 'tmw-model'
-import Helper from "./helper"
+import { ModelDoc, ModelCl, ModelSchema } from 'tmw-kit'
+import Helper from 'tmw-kit/dist/ctrl/helper'
 
 let TMWCONFIG
 let cnfpath = path.resolve(process.cwd() + '/config/app.js')
@@ -18,7 +18,7 @@ if (fs.existsSync(cnfpath)) {
   TMWCONFIG = {
     TMS_APP_DEFAULT_CREATETIME: 'TMS_DEFAULT_CREATE_TIME',
     TMS_APP_DEFAULT_UPDATETIME: 'TMS_DEFAULT_UPDATE_TIME',
-    TMS_APP_DATA_ACTION_LOG: 'N'
+    TMS_APP_DATA_ACTION_LOG: 'N',
   }
 }
 
@@ -52,7 +52,11 @@ class DocumentHelper extends Helper {
       operation = '批量（按全部）'
     } else if (typeof filter === 'object' && Object.keys(filter).length) {
       // 按条件删除
-      const modelDoc = new ModelDoc(this["mongoClient"], this["bucket"], this["client"])
+      const modelDoc = new ModelDoc(
+        this['mongoClient'],
+        this['bucket'],
+        this['client']
+      )
       query = modelDoc.assembleQuery(filter)
       operation = '批量（按条件）'
     } else {
@@ -66,7 +70,11 @@ class DocumentHelper extends Helper {
    *  noRepeatconfig 数据去重配置
    */
   async importToColl(existCl, filename, noRepeatconfig, rowsJson = []) {
-    const modelDoc = new ModelDoc(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
+    const modelDoc = new ModelDoc(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
     if (!rowsJson.length) {
       if (!fs.existsSync(filename)) return [false, '指定的文件不存在']
       const xlsx = require('tms-koa/node_modules/xlsx')
@@ -75,7 +83,11 @@ class DocumentHelper extends Helper {
       const sh = wb.Sheets[firstSheetName]
       rowsJson = xlsx.utils.sheet_to_json(sh)
     }
-    let collModel = new ModelCl(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
+    let collModel = new ModelCl(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
     let columns = await collModel.getSchemaByCollection(existCl)
     if (!columns) return [false, '指定的集合没有指定集合列']
 
@@ -84,7 +96,11 @@ class DocumentHelper extends Helper {
     if (extensionInfo) {
       const { info, schemaId } = extensionInfo
       if (schemaId) {
-        const modelSchema = new ModelSchema(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
+        const modelSchema = new ModelSchema(
+          this.ctrl.mongoClient,
+          this.ctrl.bucket,
+          this.ctrl.client
+        )
         const publicSchema = await modelSchema.bySchemaId(schemaId)
         Object.keys(publicSchema).forEach((schema) => {
           publicDoc[schema] = info[schema] ? info[schema] : ''
@@ -314,13 +330,25 @@ class DocumentHelper extends Helper {
     }
     if (!oldDocus || oldDocus.length === 0) return [false, '没有要移动的数据']
 
-    let collModel = new ModelCl(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
+    let collModel = new ModelCl(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
     const oldExistCl = await collModel.byName(oldDbName, oldClName)
     const newExistCl = await collModel.byName(newDbName, newClName)
 
     //获取document、schema的实例
-    const modelDoc = new ModelDoc(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
-    const modelSchema = new ModelSchema(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
+    const modelDoc = new ModelDoc(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
+    const modelSchema = new ModelSchema(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
 
     //获取新集合列定义
     let newClSchema = await collModel.getSchemaByCollection(newExistCl)

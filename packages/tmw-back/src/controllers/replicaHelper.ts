@@ -1,5 +1,5 @@
-import Helper from './helper'
-import { ModelDb, ModelCl, ModelReplicaMap } from 'tmw-model'
+import Helper from 'tmw-kit/dist/ctrl/helper'
+import { ModelDb, ModelCl, ModelReplicaMap } from 'tmw-kit'
 
 /**
  * 集合复制控制器辅助类
@@ -28,11 +28,19 @@ class ReplicaHelper extends Helper {
     if (!clName || typeof clName !== 'string')
       return [false, '没有指定参数[cl]']
 
-    const modelDb = new ModelDb(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
+    const modelDb = new ModelDb(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
     const db = await modelDb.byName(dbName)
     if (!db) return [false, `指定的集合所属数据库[db=${dbName}]不存在`]
 
-    const modelCl = new ModelCl(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
+    const modelCl = new ModelCl(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
     const cl = await modelCl.byName(db, clName)
     if (!cl) return [false, `指定的集合[db=${dbName}][cl=${clName}]不存在`]
 
@@ -56,8 +64,16 @@ class ReplicaHelper extends Helper {
     })
     if (passed === false) return [false, cause]
 
-    const modelDb = new ModelDb(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
-    const modelCl = new ModelCl(this.ctrl.mongoClient, this.ctrl.bucket, this.ctrl.client)
+    const modelDb = new ModelDb(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
+    const modelCl = new ModelCl(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
 
     const priDb = await modelDb.byName(primary.db)
     if (!priDb)

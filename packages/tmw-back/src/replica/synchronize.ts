@@ -26,7 +26,7 @@ const logger = log4js.getLogger('tmw-replica-sync')
 import { loadConfig, Context } from 'tms-koa'
 const { MongodbContext } = Context
 
-import { ModelReplicaMap } from 'tmw-model'
+import { ModelReplicaMap } from 'tmw-kit'
 
 function getMongoClient() {
   const config = loadConfig('mongodb')
