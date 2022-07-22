@@ -1,13 +1,13 @@
 import { Ctrl } from 'tms-koa'
-import Helper from './helper'
+import Helper from 'tmw-kit/dist/ctrl/helper'
 
 class Base extends Ctrl {
   constructor(...args) {
     super(...args)
-    this["helper"] = new Helper(this)
+    this['helper'] = new Helper(this)
   }
   async tmsBeforeEach() {
-    this["clPreset"] = this["helper"].clPreset
+    this['clPreset'] = this['helper'].clPreset
   }
 }
 

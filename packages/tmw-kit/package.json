@@ -1,0 +1,26 @@
+{
+  "name": "tmw-kit",
+  "version": "0.0.1",
+  "description": "tms-monogodb-web开发工具包",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "rimraf ./dist && tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "jasony62",
+  "license": "MIT",
+  "dependencies": {
+    "@log4js-node/log4js-api": "^1.0.2",
+    "axios": "^0.27.2",
+    "dayjs": "^1.11.3",
+    "glob": "^8.0.3",
+    "mongo-escape": "^2.0.6",
+    "mongodb": "^4.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.1",
+    "rimraf": "^3.0.2",
+    "tms-koa": "0.0.88"
+  }
+}

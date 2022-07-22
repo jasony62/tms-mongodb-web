@@ -18,8 +18,8 @@ const props = defineProps({
 
 const { onClose } = props
 // 关闭对话框时执行指定的回调方法
-const closeDialog = (newDoc?: any) => {
-  onClose(newDoc)
+const closeDialog = (file?: any) => {
+  onClose(file)
 }
 
 // 对话框关闭前触发

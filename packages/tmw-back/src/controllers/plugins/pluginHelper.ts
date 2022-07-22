@@ -1,4 +1,4 @@
-import Helper from '../helper'
+import Helper from 'tmw-kit/dist/ctrl/helper'
 /**
  *
  */

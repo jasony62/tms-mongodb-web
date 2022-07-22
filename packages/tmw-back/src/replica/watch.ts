@@ -1,9 +1,9 @@
 import * as log4js from 'log4js'
 import * as path from 'path'
 import * as fs from 'fs'
-let cnfpath = path.resolve(process.cwd()+'/config/log4js.js')
+let cnfpath = path.resolve(process.cwd() + '/config/log4js.js')
 if (fs.existsSync(cnfpath)) {
-  const log4jsConfig = require(process.cwd()+'/config/log4js')
+  const log4jsConfig = require(process.cwd() + '/config/log4js')
   log4js.configure(log4jsConfig)
 } else {
   log4js.configure({
@@ -20,8 +20,7 @@ if (fs.existsSync(cnfpath)) {
 }
 const logger = log4js.getLogger('tmw-replica-watch')
 
-import { loadConfig } from 'tms-koa'
-import Context from 'tms-koa/lib/context/mongodb'
+import { loadConfig, Context } from 'tms-koa'
 const { MongodbContext } = Context
 
 // 记录正在执行复制
@@ -44,7 +43,7 @@ async function newReplicaWatcher(mongoClient, pri, sec) {
 
   logger.debug(`开始监听[${pri.db}.${pri.cl}][${sec.db}.${sec.cl}]`)
 
-  priCs.on('change', csEvent => {
+  priCs.on('change', (csEvent) => {
     const { operationType, ns } = csEvent
     if (operationType === 'insert') {
       let { _id, ...doc } = csEvent.fullDocument
@@ -80,12 +79,12 @@ async function watchReplicaMap(mongoClient) {
   logger.info('开始监听[replica_map]')
   const cl = mongoClient.db('tms_admin').collection('replica_map')
   ReplicaMapWatcher = cl.watch([], { fullDocument: 'updateLookup' })
-  ReplicaMapWatcher.on('change', async csEvent => {
+  ReplicaMapWatcher.on('change', async (csEvent) => {
     const { operationType } = csEvent
     let strId = csEvent.documentKey._id.toHexString()
     if (operationType === 'insert') {
       let { primary, secondary } = csEvent.fullDocument
-      newReplicaWatcher(mongoClient, primary, secondary).then(watcher => {
+      newReplicaWatcher(mongoClient, primary, secondary).then((watcher) => {
         ChangeStreamByReplicaId.set(strId, watcher)
       })
     } else if (operationType === 'update' || operationType === 'replace') {
@@ -113,11 +112,11 @@ async function watchReplicaMap(mongoClient) {
 async function startReplicaMap(mongoClient) {
   const cl = mongoClient.db('tms_admin').collection('replica_map')
   const replicas = await cl.find().toArray()
-  replicas.forEach(replica => {
+  replicas.forEach((replica) => {
     let strId = replica._id.toHexString()
     if (!ChangeStreamByReplicaId.has(strId)) {
       newReplicaWatcher(mongoClient, replica.primary, replica.secondary).then(
-        watcher => {
+        (watcher) => {
           ChangeStreamByReplicaId.set(strId, watcher)
         }
       )
@@ -127,7 +126,7 @@ async function startReplicaMap(mongoClient) {
 }
 
 function startup() {
-  getMongoClient().then(mongoClient => {
+  getMongoClient().then((mongoClient) => {
     watchReplicaMap(mongoClient).then(() => {
       startReplicaMap(mongoClient)
     })
@@ -140,7 +139,7 @@ function cleanWatchers() {
     ReplicaMapWatcher = null
   }
   if (ChangeStreamByReplicaId.size) {
-    ChangeStreamByReplicaId.forEach(watcher => watcher.close())
+    ChangeStreamByReplicaId.forEach((watcher) => watcher.close())
     ChangeStreamByReplicaId.clear()
   }
 }

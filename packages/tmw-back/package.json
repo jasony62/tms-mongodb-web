@@ -1,8 +1,8 @@
 {
-  "name": "tmw-back",
+  "name": "tms-mongodb-back",
   "version": "0.0.1",
+  "private": true,
   "description": "",
-  "main": "index.js",
   "scripts": {
     "build": "rimraf ./dist && tsc",
     "start": "node ./dist/server"
@@ -18,9 +18,9 @@
     "mongodb": "^4.7.0",
     "nanoid": "^3.1.4",
     "redis": "^4.2.0",
-    "tms-koa": "^0.0.86",
+    "tms-koa": "0.0.88",
     "tms-koa-account": "^0.0.10",
-    "tmw-model": "workspace:*"
+    "tmw-kit": "workspace:*"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.182",

@@ -1,5 +1,5 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import Base from '@/controllers/base'
+import Base from 'tmw-kit/dist/ctrl/base'
 import { nanoid } from 'nanoid'
 import * as dayjs from 'dayjs'
 import * as mongodb from 'mongodb'

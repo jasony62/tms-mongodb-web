@@ -1,6 +1,6 @@
 import DbBase from '../dbBase'
 import { ResultData, ResultFault } from 'tms-koa'
-import { ModelDb } from 'tmw-model'
+import { ModelDb } from 'tmw-kit'
 
 class Db extends DbBase {
   constructor(...args) {

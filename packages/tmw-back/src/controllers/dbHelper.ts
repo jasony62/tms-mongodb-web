@@ -1,5 +1,5 @@
-import Helper from './helper'
-import { ModelDb } from 'tmw-model'
+import Helper from 'tmw-kit/dist/ctrl/helper'
+import { ModelDb } from 'tmw-kit'
 import { nanoid } from 'nanoid'
 
 /**
@@ -40,11 +40,7 @@ class DbHelper extends Helper {
     info.type = 'database'
 
     // 检查数据库名
-    let modelDb = new ModelDb(
-      this['mongoClient'],
-      info.bucket,
-      this['client']
-    )
+    let modelDb = new ModelDb(this['mongoClient'], info.bucket, this['client'])
     let newName = modelDb.checkDbName(info.name)
     if (newName[0] === false) return [false, newName[1]]
     info.name = newName[1]

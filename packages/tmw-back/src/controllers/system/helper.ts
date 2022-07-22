@@ -1,17 +1,17 @@
-import { ModelCl } from 'tmw-model'
+import { ModelCl } from 'tmw-kit'
 
 /**
  * 控制器辅助类
  */
 class Helper {
   constructor(ctrl) {
-    this["ctrl"] = ctrl
+    this['ctrl'] = ctrl
   }
   /**
    * 存储管理对象的结合
    */
   get clPreset() {
-    const client = this["ctrl"].mongoClient
+    const client = this['ctrl'].mongoClient
     const cl = client.db('tms_admin').collection('bucket_preset_object')
 
     return cl
@@ -47,7 +47,7 @@ class Helper {
    * @param {boolean} bThrowNotFound 如果不可访问是否抛出异常
    */
   async findRequestDb(bThrowNotFound = true) {
-    const dbName = this["ctrl"].request.query.db
+    const dbName = this['ctrl'].request.query.db
     const query = { name: dbName, type: 'database' }
 
     const db = await this.clPreset.findOne(query)
@@ -60,7 +60,11 @@ class Helper {
    *  检查集合名
    */
   checkClName(clName) {
-    let model = new ModelCl(this["ctrl"].mongoClient, this["ctrl"].bucket, this["ctrl"].client)
+    let model = new ModelCl(
+      this['ctrl'].mongoClient,
+      this['ctrl'].bucket,
+      this['ctrl'].client
+    )
     return model.checkClName(clName)
   }
 }
