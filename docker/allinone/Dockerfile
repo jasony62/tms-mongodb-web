@@ -7,35 +7,27 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 # 安装基础包
 RUN npm install -g pnpm typescript
 
-# 下载源代码
-WORKDIR /usr/src
-RUN cd /usr/src 
-COPY ../../packages/tmw-model /usr/src/tmw/model
+# 复制源代码
+COPY ../../packages/tmw-kit /usr/src/tmw/kit
 COPY ../../packages/tmw-back /usr/src/tmw/back
-RUN sed -i 's/"tmw-model": "workspace:\*"/"tmw-model": "file:\.\.\/model"/g' /usr/src/tmw/back/package.json
-COPY ../../ue_admin2 /usr/src/tmw/ue_admin2
+RUN sed -i 's/"tmw-kit": "workspace:\*"/"tmw-kit": "file:\.\.\/kit"/g' /usr/src/tmw/back/package.json
+COPY ../../packages/ue_admin /usr/src/tmw/ue_admin
 
-# 安装依赖报和编译
-WORKDIR /usr/src/tmw
+# 编译源代码
 
-## model 
-RUN cd /usr/src/tmw/model && pnpm i --strict-peer-dependencies=false && pnpm build 
-
+# ## kit
+RUN cd /usr/src/tmw/kit && pnpm i --strict-peer-dependencies=false && pnpm build 
 ## back
 RUN cd /usr/src/tmw/back && pnpm i --strict-peer-dependencies=false && pnpm build 
+## ue_admin
+ARG vite_base_url
+RUN echo VITE_BASE_URL=$vite_base_url >> /usr/src/tmw/ue_admin/.env
+RUN cd /usr/src/tmw/ue_admin && pnpm i --strict-peer-dependencies=false && pnpm build
 
-## ue_admin2
-WORKDIR /usr/src/tmw/ue_admin2
+# WORKDIR /usr/src/packages
 
-# 指定编译ue_admin2需要的环境变量
-RUN echo VITE_BASE_URL=/admin >> .env
-RUN echo VITE_AUTH_API_BASE=http://host.docker.internal:3077/api >> .env
-RUN echo VITE_BACK_AUTH_BASE=http://host.docker.internal:3077 >> .env
+# 生成运行镜像
 
-# 编译
-RUN cd /usr/src/tmw/ue_admin2 && pnpm i --strict-peer-dependencies=false && pnpm build
-
-# 生成服务镜像
 FROM node:16.15-alpine3.15 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
   && apk update && apk add bash tzdata \
@@ -43,22 +35,20 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 RUN apk add nginx gettext
 
 # ue_admin
-COPY --from=builder /usr/src/tmw/ue_admin2/dist /usr/share/nginx/html/admin
-COPY --from=builder /usr/src/tmw/ue_admin2/nginx.conf.template /etc/nginx/nginx.conf.template
-COPY --from=builder /usr/src/tmw/ue_admin2/start_nginx.sh /usr/local/bin/start_nginx.sh
+COPY --from=builder /usr/src/tmw/ue_admin/dist /usr/share/nginx/html
+COPY --from=builder /usr/src/tmw/ue_admin/nginx.conf.template /etc/nginx/nginx.conf.template
+COPY --from=builder /usr/src/tmw/ue_admin/start_nginx.sh /usr/local/bin/start_nginx.sh
 RUN chmod +x /usr/local/bin/start_nginx.sh
 
 # back
-WORKDIR /usr/app
 COPY --from=builder /usr/src/tmw/back/node_modules /usr/app/node_modules
 COPY --from=builder /usr/src/tmw/back/dist /usr/app/dist
 COPY --from=builder /usr/src/tmw/back/package.json /usr/app/package.json
-RUN sed -i 's/"tmw-model": "file:\.\.\/model"/"tmw-model": "\*"/g' /usr/app/package.json
+RUN sed -i 's/"tmw-kit": "file:\.\.\/kit"/"tmw-kit": "\*"/g' /usr/app/package.json
 COPY ../../docker/allinone/back/start_back.sh /usr/app/start_back.sh
 RUN chmod +x /usr/app/start_back.sh
 
-EXPOSE 3000
-EXPOSE 80
+WORKDIR /usr/app
 
 # all in one
 COPY ../../docker/allinone/start_all.sh /usr/local/bin/start_all.sh 

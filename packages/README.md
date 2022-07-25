@@ -1,12 +1,12 @@
 `tms-mongodb-web`功能模块
 
-# tmw-sdk
+# tmw-kit
 
-对数据库操作进行封装。
+封装`tms-mongodb-web`的通用操作。作为独立的包`tmw-kit`发布。
 
 # tms-back
 
-基于`tms-koa`进行二次开发，实现`controller`，提供 API。
+基于`tms-koa`进行二次开发，`controller`，提供 API。
 
 在本地启动启动服务。通过环境变量指定配置文件和控制器位置（支持相对路径）。
 
@@ -17,3 +17,34 @@ TMS_KOA_CONFIG_DIR=xxx TMS_KOA_CONTROLLERS_DIR=./dist/controllers node dist/serv
 ```
 TMS_KOA_CONFIG_DIR=../../docker/allinone/back/config TMS_KOA_CONTROLLERS_DIR=./dist/controllers node dist/server
 ```
+
+# ue_admin
+
+全功能的管理客户端。
+
+客户端会从起始访问地址获取后端服务信息。需要在前端页面根目录下放置`settings.json`文件。例如：
+
+```json
+  "authApiBase": "auth",
+  "authApiPort": 3020,
+  "backApiBase": "api",
+  "backApiPort": 3020
+```
+
+运行在`nginx`中。
+
+`start_nginx.sh`中包含的`nginx`环境变量的默认值。
+
+`nginx.conf`中已经设置了转发规则
+
+```
+location / {
+    proxy_pass $NGINX_BACK_BASE_URL;
+}
+```
+
+# 添加插件
+
+## 后端扩展
+
+利用`tms-koa`的控制器插件机制进行扩展。

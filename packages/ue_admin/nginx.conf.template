@@ -54,11 +54,12 @@ http {
         server_name  localhost;
         root   /usr/share/nginx/html;
 
-        location $NGINX_WEB_BASE_URL {
+        location $NGINX_UE_ADMIN_BASE_URL {
             index index.html;
-            try_files $uri $uri/ $NGINX_WEB_BASE_URL/index.html;
+            try_files $uri $uri/ $NGINX_UE_ADMIN_BASE_URL/index.html;
         }
-
+        
+        # 转发前端的API请求到本地服务
         location / {
             proxy_pass $NGINX_BACK_BASE_URL;
         }

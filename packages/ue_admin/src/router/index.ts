@@ -9,10 +9,9 @@ import Register from '../views/Register.vue'
 import Smscode from '../views/Smscode.vue'
 import Invite from '../views/Invite.vue'
 
-const VITE_BASE_URL =
-  typeof import.meta.env.VITE_BASE_URL === 'string'
-    ? import.meta.env.VITE_BASE_URL
-    : '/'
+const BASE_URL = import.meta.env.VITE_BASE_URL
+  ? import.meta.env.VITE_BASE_URL
+  : '/admin'
 
 const BucketPart = /yes|true/i.test(import.meta.env.VITE_TMW_REQUIRE_BUCKET)
   ? '/b/:bucketName'
@@ -71,7 +70,7 @@ const routes: RouteRecordRaw[] = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(VITE_BASE_URL),
+  history: createWebHistory(BASE_URL),
   routes,
 })
 
