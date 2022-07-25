@@ -94,7 +94,7 @@ export class PluginHttpSendDocs extends PluginHttpSend {
       } else if (typeof filter === 'object' && Object.keys(filter).length) {
         query = filter
       }
-      let [success, docsOrCause] = await modelDoc.list(tmwCl, { filter: query })
+      let [success, docsOrCause] = await modelDoc.list(tmwCl, { filter: query, orderBy: null })
       //@ts-ignore
       if (success === true) docs = docsOrCause.docs
       else return [false, docsOrCause]
