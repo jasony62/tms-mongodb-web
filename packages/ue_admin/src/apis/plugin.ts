@@ -1,13 +1,12 @@
 import { TmsAxios } from 'tms-vue3'
 import { BACK_API_URL } from '@/global'
 
-const base = BACK_API_URL() + '/plugins'
-
 type ApiRst = {
   data: { result: any }
 }
 export default {
   getPlugins(bucket: any, db: string, cl: string) {
+    const base = BACK_API_URL() + '/plugins'
     const params = { bucket, db, cl }
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/list?scope=document`, { params })
@@ -19,6 +18,7 @@ export default {
    * @param {object} body - http请求消息体
    */
   execute(params: any, body: any) {
+    const base = BACK_API_URL() + '/plugins'
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/execute`, body, { params })
       .then((rst: ApiRst) => rst.data.result)
@@ -38,6 +38,7 @@ export default {
     plugin: string,
     criteria = {}
   ) {
+    const base = BACK_API_URL() + '/plugins'
     return TmsAxios.ins('mongodb-api')
       .post(
         `${base}/remoteWidgetOptions`,

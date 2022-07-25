@@ -1,20 +1,39 @@
-/back/config/_.local.js
-/packages/tmw-model/node_modules
-/packages/tmw-model/test
-/packages/tmw-back/node_modules
-/packages/tmw-back/test
+# tms-kit
+
+# tms-back
+
 /packages/tmw-back/storage
-/packages/tmw-back/\_lowdb.json
-/ue_admin2/node_modules/_
-/ue*admin2/.env.*
-/ue*admin2/.env
+/packages/tmw-back/_lowdb.json
+
+# ue_admin
+
+/packages/ue_admin/public/settings.json
+
+# common
+
+**/node_modules
+**/dist
+**/test
+**/README.md
+**/Dockerfile
+**/.git
+**/.gitignore
+**/.pnpm-debug.log
+**/pnpm-lock.yaml
+**/.vscode
+**/.env
+**/.env.*
+
+# other
+
+/back/config/*.local.js
+
+/ue_admin2/node_modules/*
+/ue_admin2/.env.*
+/ue_admin2/.env
 /ue_admin/node_modules/*
-/ue*admin/.env.*
-/ue*admin/.env
+/ue_admin/.env.*
+/ue_admin/.env
 /ue_mongo/node_modules/*
-/ue_mongo/.env.\*
+/ue_mongo/.env.*
 /ue_mongo/.env
-README.md
-.git
-.gitignore
-.vscode

@@ -3,8 +3,6 @@ import { TmsAxios } from 'tms-vue3'
 import { encodeAccountV1 } from 'tms-koa-account/models/crypto'
 import { AUTH_API_URL } from '@/global'
 
-const baseAuth = AUTH_API_URL()
-
 const APPID = import.meta.env.VITE_LOGIN_CODE_APPID || 'tms-mongodb-web'
 
 const ISCRYPTO = import.meta.env.VITE_ENCRYPT_SECRET || 'no'
@@ -22,6 +20,7 @@ export default {
    * 获取验证码
    */
   fnCaptcha() {
+    const baseAuth = AUTH_API_URL()
     captchaId = genCaptchaId()
     const url = `${baseAuth}/captcha?appid=${APPID}&captchaid=${captchaId}`
     return TmsAxios.ins('auth-api')
@@ -40,6 +39,7 @@ export default {
    * @returns
    */
   fnRegister(userArg: any) {
+    const baseAuth = AUTH_API_URL()
     let params = { ...userArg }
     let url = `${baseAuth}/register`
     if (ISCRYPTO === 'yes') {
@@ -67,6 +67,7 @@ export default {
    * 获取token
    */
   fnLogin(userArg: any) {
+    const baseAuth = AUTH_API_URL()
     let params = { ...userArg }
     let url = `${baseAuth}/authenticate`
     if (ISCRYPTO === 'yes') {

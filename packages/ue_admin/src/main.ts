@@ -5,7 +5,11 @@ import { Frame, Flex } from 'tms-vue3-ui'
 import router from './router'
 import App from './App.vue'
 import ElementPlus, { ElMessage } from 'element-plus'
-import { getLocalToken, setLocalToken } from './global'
+import {
+  init as initGlobalSettings,
+  getLocalToken,
+  setLocalToken,
+} from './global'
 import './index.css'
 import 'element-plus/dist/index.css'
 import 'tms-vue3-ui/dist/es/frame/style/index.css'
@@ -49,23 +53,29 @@ TmsAxios.ins({ name: 'auth-api' })
 
 TmsAxios.ins({ name: 'master-api' })
 
-const app = createApp(App)
-let settings // 全局设置
-try {
-  let rsp = await TmsAxios.ins('master-api').get('/settings.json')
-  settings = rsp.data
-} catch (e) {
-  settings = {}
+function afterLoadSettings() {
+  const app = createApp(App)
+  app
+    .use(router)
+    .use(createPinia())
+    .use(TmsAxiosPlugin)
+    .use(Frame)
+    .use(Flex)
+    .use(initFunc)
+    .use(ElementPlus)
+    .mount('#app')
 }
 
-localStorage.debug = '*'
+const { VITE_BASE_URL } = import.meta.env
+const UrlSettings =
+  (VITE_BASE_URL && VITE_BASE_URL !== '/' ? VITE_BASE_URL : '/admin') +
+  '/settings.json'
 
-app
-  .use(router)
-  .use(createPinia())
-  .use(TmsAxiosPlugin)
-  .use(Frame)
-  .use(Flex)
-  .use(initFunc)
-  .use(ElementPlus)
-  .mount('#app')
+TmsAxios.ins('master-api')
+  .get(UrlSettings)
+  .then((rsp: any) => {
+    let settings = rsp.data
+    initGlobalSettings(settings)
+    afterLoadSettings()
+  })
+  .catch(afterLoadSettings)

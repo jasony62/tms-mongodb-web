@@ -1,9 +1,6 @@
 import { TmsAxios } from 'tms-vue3'
 import { BACK_API_URL } from '@/global'
 
-const base = BACK_API_URL() + '/admin/document'
-const uploadUrl = BACK_API_URL() + '/upload/plain'
-
 type ApiRst = {
   data: { result: any }
 }
@@ -27,6 +24,7 @@ export default {
       page: page,
       size: size,
     }
+    const base = BACK_API_URL() + '/admin/document'
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/getGroupByColumnVal`, { filter, orderBy }, { params })
       .then((rst: ApiRst) => rst.data.result)
@@ -44,6 +42,7 @@ export default {
       cl: clName,
       ...batchArg,
     }
+    const base = BACK_API_URL() + '/admin/document'
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/list`, gatherArgs, {
         params,
@@ -56,6 +55,7 @@ export default {
       db: dbName,
       cl: clName,
     }
+    const base = BACK_API_URL() + '/admin/document'
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/create`, proto, { params })
       .then((rst: ApiRst) => rst.data.result)
@@ -73,6 +73,7 @@ export default {
       cl: clName,
       id,
     }
+    const base = BACK_API_URL() + '/admin/document'
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/update`, updated, { params })
       .then((rst: ApiRst) => rst.data.result)
@@ -84,11 +85,13 @@ export default {
       cl: clName,
       id,
     }
+    const base = BACK_API_URL() + '/admin/document'
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/remove`, { params })
       .then((rst: ApiRst) => rst.data.result)
   },
   upload(query: any, fileData: any, config: any) {
+    const uploadUrl = BACK_API_URL() + '/upload/plain'
     let url = uploadUrl
     if (query?.dir) url += `?dir=${query.dir}`
     return TmsAxios.ins('mongodb-api')
@@ -102,6 +105,7 @@ export default {
     { docIds, columns, exportType }: any
   ) {
     const params = { bucket, db: dbName, cl: clName }
+    const base = BACK_API_URL() + '/admin/document'
     return TmsAxios.ins('mongodb-api')
       .post(`${base}/export`, { docIds, columns, exportType }, { params })
       .then((rst: ApiRst) => rst.data.result)

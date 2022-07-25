@@ -5,10 +5,12 @@ import { resolve } from 'path'
 export default ({ mode }) => {
   const env = loadEnv(mode, process.cwd())
 
+  const BASE_URL = env.VITE_BASE_URL ? env.VITE_BASE_URL : '/admin'
+
   return defineConfig({
-    base: env.VITE_BASE_URL ? env.VITE_BASE_URL : '/',
+    base: BASE_URL,
     build: {
-      outDir: env.VITE_BASE_URL ? `dist${env.VITE_BASE_URL}/` : 'dist',
+      outDir: `dist${BASE_URL}`,
     },
     resolve: {
       alias: {
