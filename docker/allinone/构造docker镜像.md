@@ -60,6 +60,12 @@ location / {
 
 后端服务的地址在`nginx.conf.template`文件中通过环境变量`$NGINX_BACK_BASE_URL`指定，在容器运行时，通过`envsubst`命令替换，生成在`nginx.conf`文件。
 
+## 配置信息
+
+默认配置文件。
+
+支持的环境变量。
+
 # 构造镜像
 
 在项目根目录执行命令。
@@ -69,6 +75,10 @@ docker build -f ./docker/allinone/Dockerfile -t tms/tmw-aio .
 ```
 
 # 运行镜像
+
+```bash
+docker run -it --rm --name tmw-test -p 3070:3000 -p 7077:80 tms/tmw-aio
+```
 
 指定后端服务配置信息，前端 nginx 代理访问后端 API。
 

@@ -1,6 +1,5 @@
 import unrepeat from './unrepeat'
 import * as _ from 'lodash'
-import * as path from 'path'
 import * as fs from 'fs'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
@@ -9,26 +8,11 @@ const logger = log4js.getLogger('tms-mongodb-web')
 
 import { ModelDoc, ModelCl, ModelSchema } from 'tmw-kit'
 import Helper from 'tmw-kit/dist/ctrl/helper'
-
-let TMWCONFIG
-let cnfpath = path.resolve(process.cwd() + '/config/app.js')
-if (fs.existsSync(cnfpath)) {
-  TMWCONFIG = require(process.cwd() + '/config/app').tmwConfig
-} else {
-  TMWCONFIG = {
-    TMS_APP_DEFAULT_CREATETIME: 'TMS_DEFAULT_CREATE_TIME',
-    TMS_APP_DEFAULT_UPDATETIME: 'TMS_DEFAULT_UPDATE_TIME',
-    TMS_APP_DATA_ACTION_LOG: 'N',
-  }
-}
-
+import { TMW_CONFIG } from '@/global'
 /**
  * 数据库控制器辅助类
  */
 class DocumentHelper extends Helper {
-  // constructor(ctrl) {
-  //   super(ctrl)
-  // }
   /**
    * 获得请求的批量更新/删除条件
    *
@@ -190,7 +174,7 @@ class DocumentHelper extends Helper {
       return this.findSysColl(existCl)
         .insertMany(jsonFinishRows)
         .then(() => {
-          if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
+          if (TMW_CONFIG.TMW_APP_DATA_ACTION_LOG === 'Y') {
             // 记录日志
             modelDoc.dataActionLog(
               jsonFinishRows,

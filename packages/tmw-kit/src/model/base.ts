@@ -2,15 +2,15 @@ import * as dayjs from 'dayjs'
 import * as path from 'path'
 import * as fs from 'fs'
 
-let TMWCONFIG
+let TMW_CONFIG
 let cnfpath = path.resolve(process.cwd() + '/config/app.js')
 if (fs.existsSync(cnfpath)) {
-  TMWCONFIG = require(process.cwd() + '/config/app').tmwConfig
+  TMW_CONFIG = require(process.cwd() + '/config/app').tmwConfig
 } else {
-  TMWCONFIG = {
-    TMS_APP_DEFAULT_CREATETIME: 'TMS_DEFAULT_CREATE_TIME',
-    TMS_APP_DEFAULT_UPDATETIME: 'TMS_DEFAULT_UPDATE_TIME',
-    TMS_APP_DATA_ACTION_LOG: 'N'
+  TMW_CONFIG = {
+    TMW_APP_DEFAULT_CREATETIME: 'TMW_DEFAULT_CREATE_TIME',
+    TMW_APP_DEFAULT_UPDATETIME: 'TMW_DEFAULT_UPDATE_TIME',
+    TMW_APP_DATA_ACTION_LOG: 'N',
   }
 }
 
@@ -26,6 +26,9 @@ class Base {
     this.mongoClient = mongoClient
     this.bucket = bucket
     this.client = client
+  }
+  get tmwConfig() {
+    return TMW_CONFIG
   }
   /**
    * 组装 查询条件
@@ -133,19 +136,15 @@ class Base {
    */
   beforeProcessByInAndUp(data, type) {
     let current = dayjs().format('YYYY-MM-DD HH:mm:ss')
-
+    let { tmwConfig } = this
     if (type === 'insert') {
-      if (
-        typeof data[TMWCONFIG['TMS_APP_DEFAULT_UPDATETIME']] !== 'undefined'
-      )
-        delete data[TMWCONFIG['TMS_APP_DEFAULT_UPDATETIME']]
-      data[TMWCONFIG['TMS_APP_DEFAULT_CREATETIME']] = current
+      if (typeof data[tmwConfig.TMW_APP_DEFAULT_UPDATETIME] !== 'undefined')
+        delete data[tmwConfig.TMW_APP_DEFAULT_UPDATETIME]
+      data[tmwConfig.TMW_APP_DEFAULT_CREATETIME] = current
     } else if (type === 'update') {
-      if (
-        typeof data[TMWCONFIG['TMS_APP_DEFAULT_CREATETIME']] !== 'undefined'
-      )
-        delete data[TMWCONFIG['TMS_APP_DEFAULT_CREATETIME']]
-      data[TMWCONFIG['TMS_APP_DEFAULT_UPDATETIME']] = current
+      if (typeof data[tmwConfig.TMW_APP_DEFAULT_CREATETIME] !== 'undefined')
+        delete data[this.tmwConfig.TMW_APP_DEFAULT_CREATETIME]
+      data[tmwConfig.TMW_APP_DEFAULT_UPDATETIME] = current
     }
 
     return data

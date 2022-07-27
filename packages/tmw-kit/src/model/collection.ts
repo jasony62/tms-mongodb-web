@@ -39,7 +39,7 @@ class Collection extends Base {
   }
   //
   static async getCollection(existDb, clName) {
-    const client = await this["mongoClient"]
+    const client = await this['mongoClient']
     const cl = client.db('tms_admin').collection('mongodb_object')
     //
     return cl

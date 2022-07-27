@@ -50,10 +50,11 @@ RUN chmod +x /usr/app/start_back.sh
 
 WORKDIR /usr/app
 
-# all in one
+# 配置文件
+COPY ../../docker/allinone/back/config /usr/app/config
+
+# 启动服务
 COPY ../../docker/allinone/start_all.sh /usr/local/bin/start_all.sh 
 RUN chmod +x /usr/local/bin/start_all.sh 
 
 CMD ["start_all.sh"]
-
-

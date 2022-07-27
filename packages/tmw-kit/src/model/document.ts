@@ -4,21 +4,6 @@ import ModelColl from './collection'
 import * as dayjs from 'dayjs'
 const ObjectId = mongodb.ObjectId
 
-import * as path from 'path'
-import * as fs from 'fs'
-
-let TMWCONFIG
-let cnfpath = path.resolve(process.cwd() + '/config/app.js')
-if (fs.existsSync(cnfpath)) {
-  TMWCONFIG = require(process.cwd() + '/config/app').tmwConfig
-} else {
-  TMWCONFIG = {
-    TMS_APP_DEFAULT_CREATETIME: 'TMS_DEFAULT_CREATE_TIME',
-    TMS_APP_DEFAULT_UPDATETIME: 'TMS_DEFAULT_UPDATE_TIME',
-    TMS_APP_DATA_ACTION_LOG: 'N'
-  }
-}
-
 /**文档模型类基类 */
 class Document extends Base {
   /**
@@ -75,10 +60,10 @@ class Document extends Base {
     }
 
     const result = this.findUnRepeatRule(existCl)
-    if (result[0] && result[1]["insert"]) {
-      const dbSysName = result[1]["dbSysName"]
-      const clSysName = result[1]["clSysName"]
-      const keys = result[1]["keys"]
+    if (result[0] && result[1]['insert']) {
+      const dbSysName = result[1]['dbSysName']
+      const clSysName = result[1]['clSysName']
+      const keys = result[1]['keys']
       const { targetSysCl, targetQuery } = await this.getUnRepeatSQ(
         removeSysCl,
         removeQuery,
@@ -112,10 +97,10 @@ class Document extends Base {
 
     if (existCl.usage !== 1) {
       const result = this.findUnRepeatRule(existCl)
-      if (result[0] && result[1]["insert"]) {
-        const dbSysName = result[1]["dbSysName"]
-        const clSysName = result[1]["clSysName"]
-        const keys = result[1]["keys"]
+      if (result[0] && result[1]['insert']) {
+        const dbSysName = result[1]['dbSysName']
+        const clSysName = result[1]['clSysName']
+        const keys = result[1]['keys']
         const { targetSysCl, targetQuery } = await this.getUnRepeatSQ(
           sysCl,
           query,
@@ -148,11 +133,11 @@ class Document extends Base {
         let tmwCl = await modelCl.bySysname({ sysname: db }, cl)
         const result = this.findUnRepeatRule(tmwCl)
 
-        if (result[0]["flag"] && "insert") {
-          const dbSysName = result[1]["dbSysName"]
-          const clSysName = result[1]["clSysName"]
-          const keys = result[1]["keys"]
-          const insert = result[1]["insert"]
+        if (result[0]['flag'] && 'insert') {
+          const dbSysName = result[1]['dbSysName']
+          const clSysName = result[1]['clSysName']
+          const keys = result[1]['keys']
+          const insert = result[1]['insert']
           const { targetSysCl, targetQuery } = await this.getUnRepeatSQ(
             sysCl,
             { _id: { $in: ids } },
@@ -207,12 +192,13 @@ class Document extends Base {
       .collection(targetCl.sysname)
 
     let bulkOp = targetSysCl.initializeUnorderedBulkOp()
+    let { tmwConfig } = this
     for (let doc of copyedDocs) {
       let { _id, ...info } = doc
-      typeof info[TMWCONFIG['TMS_APP_DEFAULT_CREATETIME']] !== 'undefined' &&
-        delete info[TMWCONFIG['TMS_APP_DEFAULT_UPDATETIME']]
-      typeof info[TMWCONFIG['TMS_APP_DEFAULT_UPDATETIME']] !== 'undefined' &&
-        delete info[TMWCONFIG['TMS_APP_DEFAULT_CREATETIME']]
+      typeof info[tmwConfig.TMW_APP_DEFAULT_CREATETIME] !== 'undefined' &&
+        delete info[tmwConfig.TMW_APP_DEFAULT_UPDATETIME]
+      typeof info[tmwConfig.TMW_APP_DEFAULT_UPDATETIME] !== 'undefined' &&
+        delete info[tmwConfig.TMW_APP_DEFAULT_CREATETIME]
       let isExistDoc = await targetSysCl.findOne({ _id: doc._id })
       if (isExistDoc) {
         this.beforeProcessByInAndUp(info, 'update')
@@ -334,7 +320,7 @@ class Document extends Base {
   async list(
     existCl,
     { filter, orderBy } = { filter: null, orderBy: null },
-    { page, size } = { page: 0, size: 0},
+    { page, size } = { page: 0, size: 0 },
     like = true
   ) {
     let query = filter ? this.assembleQuery(filter, like) : {}
@@ -350,11 +336,11 @@ class Document extends Base {
     if (orderBy && typeof orderBy === 'object' && Object.keys(orderBy).length) {
       for (const key in orderBy) sort[key] = orderBy[key] === 'desc' ? -1 : 1
     } else {
-      sort["_id"] = -1
+      sort['_id'] = -1
     }
 
     let data = {}
-    data["docs"] = await cl
+    data['docs'] = await cl
       .find(query)
       .skip(skip)
       .limit(limit)
@@ -365,7 +351,7 @@ class Document extends Base {
         return docs
       })
 
-    data["total"] = await cl.countDocuments(query)
+    data['total'] = await cl.countDocuments(query)
 
     return [true, data]
   }
@@ -422,7 +408,7 @@ class Document extends Base {
     client_info = null
   ) {
     if (!operate_type || !dbname || !clname) return false
-    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG !== 'Y') return true
+    if (this.tmwConfig.TMW_APP_DATA_ACTION_LOG !== 'Y') return true
     if (dbname === 'tms_admin' && clname === 'tms_app_data_action_log')
       return false
 

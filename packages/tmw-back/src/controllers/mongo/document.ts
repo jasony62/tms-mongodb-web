@@ -5,20 +5,6 @@ import { ModelCl, ModelDoc } from 'tmw-kit'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
-import * as path from 'path'
-import * as fs from 'fs'
-let TMWCONFIG
-let cnfpath = path.resolve(process.cwd() + '/config/app.js')
-if (fs.existsSync(cnfpath)) {
-  TMWCONFIG = require(process.cwd() + '/config/app').tmwConfig
-} else {
-  TMWCONFIG = {
-    TMS_APP_DEFAULT_CREATETIME: 'TMS_DEFAULT_CREATE_TIME',
-    TMS_APP_DEFAULT_UPDATETIME: 'TMS_DEFAULT_UPDATE_TIME',
-    TMS_APP_DATA_ACTION_LOG: 'N',
-  }
-}
-
 class Document extends DocBase {
   constructor(...args) {
     super(...args)
@@ -27,7 +13,7 @@ class Document extends DocBase {
    * 上传并导入单个文件
    */
   async uploadToImport() {
-    if (!this['request'].files || !this['request'].files.file) {
+    if (!this.request.files || !this.request.files.file) {
       return new ResultFault('没有上传文件')
     }
     const existCl = await this['docHelper'].findRequestCl()
@@ -169,16 +155,8 @@ class Document extends DocBase {
       return new ResultFault('没有要移动的数据')
     }
 
-    let modelCl = new ModelCl(
-      this['mongoClient'],
-      this['bucket'],
-      this['client']
-    )
-    let modelDoc = new ModelDoc(
-      this['mongoClient'],
-      this['bucket'],
-      this['client']
-    )
+    let modelCl = new ModelCl(this.mongoClient, this.bucket, this.client)
+    let modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
 
     const oldExistCl = await modelCl.byName(oldDb, oldCl)
     let oldDocus, total, operateType
@@ -227,7 +205,7 @@ class Document extends DocBase {
     }
 
     // 记录日志
-    if (TMWCONFIG.TMS_APP_DATA_ACTION_LOG === 'Y') {
+    if (this.tmwConfig.TMW_APP_DATA_ACTION_LOG === 'Y') {
       let info = rst.logInfo
       await modelDoc.dataActionLog(
         info.newDocs,

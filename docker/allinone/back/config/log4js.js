@@ -3,15 +3,14 @@ module.exports = {
     consoleout: { type: 'console' },
     fileout: {
       type: 'file',
-      filename: './logs/back-logs.log',
+      filename: './logs/tmw-logs.log',
       maxLogSize: 1024 * 1024,
     },
   },
   categories: {
     default: {
       appenders: ['consoleout', 'fileout'],
-      level: process.env.TMS_APP_LOG4JS_LEVEL || 'debug',
+      level: process.env.TMW_APP_LOG4JS_LEVEL || 'info',
     },
   },
-  pm2: true,
 }
