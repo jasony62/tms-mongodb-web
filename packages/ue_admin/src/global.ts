@@ -20,14 +20,12 @@ export function init(settings: Globalsettings) {
   if (settings.authApiPort) _globalsettings.authApiPort = settings.authApiPort
   if (settings.backApiBase) _globalsettings.backApiBase = settings.backApiBase
   if (settings.backApiPort) _globalsettings.backApiPort = settings.backApiPort
-  console.log('jjjj111111', _globalsettings)
 }
 /**
  * 根据环境变量设置认证服务起始地址
  */
 let _AUTH_API_URL: string
 export const AUTH_API_URL = () => {
-  console.log('jjjj', _globalsettings)
   if (_AUTH_API_URL) return _AUTH_API_URL
 
   let base = _globalsettings.authApiBase
