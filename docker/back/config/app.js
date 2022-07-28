@@ -13,6 +13,9 @@ let appConfig = {
       prefix: env.TMW_APP_ROUTER_PLUGIN || 'plugin', // 插件接口调用url的前缀
     },
   },
+  cors: {
+    credentials: true,
+  },
   auth: {
     // 内置账号
     client: {

@@ -8,9 +8,9 @@
 
 ## 后端服务
 
-后端服务`tmw-back`基于`tms-koa`框架实现，主要是通过配置文件进行设置。镜像不包含配置文件，需要在生成容器时指定要使用的配置文件。
+后端服务`tmw-back`基于`tms-koa`框架实现，主要是通过配置文件进行设置。镜像包含基础配置文件，部分配置可通过环境变量调整。
 
-后端服务分为两个包：`tms-kit`和`tms-back`，`tms-back`依赖`tms-kit`。为了开发方便，代码仓库中使用了`pnpm`的`workspace`，实现了依赖包的本地引用。在构造镜像时没有复制整个`packages`目录，而是单独的复制的各个包，通过改写`tmw-back`的`package.json`文件，将依赖关系变为本地依赖，方法如下：
+后端服务分为两个包：`tmw-kit`和`tmw-back`，`tmw-back`依赖`tmw-kit`。为了开发方便，代码仓库中使用了`pnpm`的`workspace`，实现了依赖包的本地引用。在构造镜像时没有复制整个`packages`目录，而是单独的复制的各个包，通过改写`tmw-back`的`package.json`文件，将依赖关系变为本地依赖，方法如下：
 
 ```Dockerfile
 RUN sed -i 's/"tmw-kit": "workspace:\*"/"tmw-kit": "file:\.\.\/kit"/g' /usr/src/tmw/back/package.json
@@ -73,7 +73,7 @@ location / {
 在项目根目录执行命令。
 
 ```shell
-docker build -f ./docker/allinone/Dockerfile -t tms/tmw-aio .
+docker build -f ./docker/Dockerfile -t tms/tmw-aio .
 ```
 
 # 运行镜像

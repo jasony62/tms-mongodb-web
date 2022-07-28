@@ -54,8 +54,7 @@ TmsAxios.ins({ name: 'auth-api' })
 TmsAxios.ins({ name: 'master-api' })
 
 function afterLoadSettings() {
-  const app = createApp(App)
-  app
+  createApp(App)
     .use(router)
     .use(createPinia())
     .use(TmsAxiosPlugin)

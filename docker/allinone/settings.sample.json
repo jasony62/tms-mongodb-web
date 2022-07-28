@@ -1,6 +1,0 @@
-{
-  "authApiBase": "auth",
-  "authApiPort": 3070,
-  "backApiBase": "api",
-  "backApiPort": 3070
-}
