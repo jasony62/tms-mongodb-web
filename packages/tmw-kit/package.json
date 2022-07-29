@@ -19,11 +19,11 @@
     "dayjs": "^1.11.3",
     "glob": "^8.0.3",
     "mongo-escape": "^2.0.6",
-    "mongodb": "^4.7.0"
+    "mongodb": "^4.8.1"
   },
   "devDependencies": {
     "@types/node": "^18.0.1",
     "rimraf": "^3.0.2",
-    "tms-koa": "0.0.89"
+    "tms-koa": "0.0.94"
   }
 }

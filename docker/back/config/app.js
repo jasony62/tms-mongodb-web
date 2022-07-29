@@ -23,13 +23,15 @@ let appConfig = {
     },
     // 保存鉴权信息
     jwt: {
-      privateKey: 'tms-mongodb-web',
+      privateKey:
+        env.TMW_APP_AUTH_JWT_KEY ||
+        `TMW${Date.now()}${parseInt(Math.random() * 100)}`,
       expiresIn: 3600,
     },
     // 验证码
     captcha: {
       npm: {
-        disabled: false,
+        disabled: /true|yes/i.test(env.TMW_APP_AUTH_CAPTCHA_DISABLED),
         id: 'tms-koa-account',
         module: 'models/captcha',
         checker: 'checkCaptcha',
