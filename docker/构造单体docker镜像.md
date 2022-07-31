@@ -41,14 +41,15 @@ location /admin {
 
 该配置中的`/admin`是通过启动脚本`start_nginx.sh`通过`envsubst`通过环境变量`NGINX_UE_ADMIN_BASE_URL`（默认值为`/admin`）替换，通过模板文件`nginx.conf.template`生成`nginx.conf`实现。该环境变量生效于容器阶段，因此可以通过`--env NGINX_UE_ADMIN_BASE_URL=xxx`进行设置。
 
-前端页面需要访问后端的 API 可以采用两种方式：1、前端直接访问 API 的地址；2、前端通过 nginx 代理访问 API。访问方式 1 有两种实现方式：1、在编译阶段通过环境变量指定，具体说明参见`docs/环境变量.md`中的说明；2、通过配置文件在运行时指定。前端页面打开时首先会请求根地址下的`settings.json`文件，根据其中的内容获取后端 API 的访问地址，`settings.json`内容如下：
+前端页面需要访问后端的 API 可以采用两种方式：1、前端直接访问 API 的地址；2、前端通过 nginx 代理访问 API。访问方式 1 有两种实现方式：1、在编译阶段通过环境变量指定，具体说明参见`docs/环境变量.md`中的说明；2、通过配置文件在运行时指定。前端页面打开时首先会请求根地址（`/usr/share/nginx/html/admin`）下的`settings.json`文件，根据其中的内容获取后端 API 的访问地址，`settings.json`内容如下：
 
 ```json
 {
   "authApiBase": "auth",
   "authApiPort": 3000,
   "backApiBase": "api",
-  "backApiPort": 3000
+  "backApiPort": 3000,
+  "loginCaptchaDisabled": false
 }
 ```
 

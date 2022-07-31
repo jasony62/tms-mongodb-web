@@ -1,7 +1,7 @@
 <template>
   <div class="grid place-items-center h-screen">
     <div class="border-2 rounded w-1/4">
-      <register :schema="schema" :fn-captcha="fnCaptcha" :fn-register="fnRegister" :on-success="fnSuccessToken"
+      <register :schema="schema()" :fn-captcha="fnCaptcha" :fn-register="fnRegister" :on-success="fnSuccessToken"
         :on-fail="fnFailToken">
       </register>
     </div>
@@ -16,10 +16,9 @@ import 'tms-vue3-ui/dist/es/register/style/tailwind.scss'
 import { schema } from '@/data/register'
 import apiLogin from '@/apis/login'
 import router from '@/router/index'
+
 const { fnCaptcha, fnRegister } = apiLogin
-const showRegisterDialog = () => {
-  Register.open({ schema, fnCaptcha, fnRegister })
-}
+
 const fnSuccessToken = (token: string) => {
   if (token) {
     ElMessage({

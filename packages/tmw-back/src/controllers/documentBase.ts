@@ -3,7 +3,7 @@ import Base from 'tmw-kit/dist/ctrl/base'
 import DocumentHelper from './documentHelper'
 import unrepeat from './unrepeat'
 import { ModelDoc, ModelCl, ModelSchema } from 'tmw-kit'
-import { TMW_CONFIG } from '@/global'
+import { TMW_CONFIG } from '../global'
 import * as _ from 'lodash'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId

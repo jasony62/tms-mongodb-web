@@ -323,6 +323,8 @@ class Document extends Base {
     { page, size } = { page: 0, size: 0 },
     like = true
   ) {
+    if (!existCl) return [false, '没有指定存在的集合']
+
     let query = filter ? this.assembleQuery(filter, like) : {}
 
     const client = this.mongoClient

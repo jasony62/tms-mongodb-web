@@ -7,22 +7,38 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 # 安装基础包
 RUN npm install -g pnpm typescript
 
+# 安装Python3，为安装sharp做准备
+RUN apk add --update --no-cache py3-pip python3
+# 解决sharp依赖的libvips包下载慢的问题
+COPY ../docker/back/npmlibs/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br /root/.npm/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br
+
 # 复制源代码
 ## kit
 COPY ../packages/tmw-kit /usr/src/tmw/kit
 RUN cd /usr/src/tmw/kit && pnpm i --strict-peer-dependencies=false && pnpm build 
-## back
+### 去掉不必要的依赖包
+RUN rm -rf /usr/src/tmw/kit/node_modules
+RUN cd /usr/src/tmw/kit && pnpm i --production --strict-peer-dependencies=false
+
+## back安装依赖包
 COPY ../packages/tmw-back/package.json /usr/src/tmw/back/package.json
 RUN sed -i 's/"tmw-kit": "workspace:\*"/"tmw-kit": "file:\.\.\/kit"/g' /usr/src/tmw/back/package.json
 RUN cd /usr/src/tmw/back && pnpm i --strict-peer-dependencies=false
-## ue_admin
+## ue_admin安装依赖包
 COPY ../packages/ue_admin/package.json /usr/src/tmw/ue_admin/package.json
 RUN cd /usr/src/tmw/ue_admin && pnpm i --strict-peer-dependencies=false
 
 # 编译源代码
 ## back
 COPY ../packages/tmw-back /usr/src/tmw/back
+RUN sed -i 's/"tmw-kit": "workspace:\*"/"tmw-kit": "file:\.\.\/kit"/g' /usr/src/tmw/back/package.json
 RUN cd /usr/src/tmw/back && pnpm build 
+
+### 去掉不必要的包，重新安装生产版本的包
+RUN rm -rf /usr/src/tmw/back/node_modules
+RUN cd /usr/src/tmw/back && pnpm i --production --strict-peer-dependencies=false
+RUN cd /usr/src/tmw/back/node_modules/tmw-kit && pnpm i --production --strict-peer-dependencies=false
+
 ## ue_admin
 COPY ../packages/ue_admin /usr/src/tmw/ue_admin
 ARG vite_base_url

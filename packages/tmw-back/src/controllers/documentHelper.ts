@@ -8,7 +8,7 @@ const logger = log4js.getLogger('tms-mongodb-web')
 
 import { ModelDoc, ModelCl, ModelSchema } from 'tmw-kit'
 import Helper from 'tmw-kit/dist/ctrl/helper'
-import { TMW_CONFIG } from '@/global'
+import { TMW_CONFIG } from '../global'
 /**
  * 数据库控制器辅助类
  */

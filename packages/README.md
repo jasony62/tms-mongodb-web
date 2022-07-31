@@ -28,7 +28,9 @@ TMS_KOA_CONFIG_DIR=../../docker/allinone/back/config TMS_KOA_CONTROLLERS_DIR=./d
   "authApiBase": "auth",
   "authApiPort": 3020,
   "backApiBase": "api",
-  "backApiPort": 3020
+  "backApiPort": 3020,
+  "loginCaptchaDisabled": false
+
 ```
 
 运行在`nginx`中。
