@@ -1,0 +1,61 @@
+[
+  {
+    "dbName": "e2e5gmx_1",
+    "clName": "contact_1",
+    "dbTitle": "",
+    "clTitle": "",
+    "schTitle": "",
+    "dbDescription": "",
+    "clDescription": "",
+    "schDescription": "",
+    "bucket": "",
+    "schema": {
+      "userid": {
+        "type": "string",
+        "required": false,
+        "groupable": false,
+        "dependencies": {},
+        "eventDependencies": {},
+        "readonly": false,
+        "default": "",
+        "title": "用户ID"
+      },
+      "name": {
+        "type": "string",
+        "required": true,
+        "groupable": false,
+        "dependencies": {},
+        "eventDependencies": {},
+        "readonly": false,
+        "default": "",
+        "title": "姓名"
+      }
+    }
+  },
+  {
+    "dbName": "e2e5gmx_1",
+    "clName": "chatbot_2",
+    "schema": {
+      "id": {
+        "type": "string",
+        "required": false,
+        "groupable": false,
+        "dependencies": {},
+        "eventDependencies": {},
+        "readonly": false,
+        "default": "",
+        "title": "chatbot_id"
+      },
+      "name": {
+        "type": "string",
+        "required": false,
+        "groupable": false,
+        "dependencies": {},
+        "eventDependencies": {},
+        "readonly": false,
+        "default": "",
+        "title": "name"
+      }
+    }
+  }
+]
