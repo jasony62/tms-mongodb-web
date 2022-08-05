@@ -1,5 +1,5 @@
 const { MongoClient, MongoError } = require('mongodb')
-const dayjs = require('dayjs')
+const moment = require('moment')
 const fs = require('fs')
 const { nanoid } = require('nanoid')
 const path = require('path')
@@ -63,7 +63,9 @@ class Init {
     if (info.bucket) query.bucket = info.bucket
 
     const existDb = await cl.findOne(query)
-    if (!existDb) {
+    if (existDb) {
+      return [true, existDb]
+    } else {
       cl.insertOne(db_info)
     }
   
@@ -72,7 +74,7 @@ class Init {
 
   // 创建集合
   async clBase(info, client, cl) {
-    const DEFAULT_CREATE_TIME = dayjs().format('YYYY-MM-DD HH:mm:ss')
+    const DEFAULT_CREATE_TIME = moment().format('YYYY-MM-DD HH:mm:ss')
     const db_info = {
       type: "database",
       sysname: nanoid(10),
@@ -127,11 +129,13 @@ class Init {
       type: "schema",
       TMS_DEFAULT_CREATE_TIME: DEFAULT_CREATE_TIME
     }
+    
     const [dbState, dbMsg] = await this.dbBase(db_info, info, cl)
     if (!dbState) {
       logger.warn(dbMsg)
       return
     }
+    if (dbMsg.sysname) db_info.sysname = dbMsg.sysname
 
     cl_info.database = db_info.name
     cl_info.db = {
