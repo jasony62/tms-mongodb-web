@@ -1,5 +1,5 @@
 const { MongoContext } = require('tms-koa').Context
-const moment = require('moment')
+const dayjs = require('dayjs')
 const APPCONTEXT = require('tms-koa').Context.AppContext
 const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
 
@@ -123,7 +123,7 @@ class Base {
    * 对插入到表中的数据进行加工
    */
   beforeProcessByInAndUp(data, type) {
-    let today = moment()
+    let today = dayjs()
     let current = today.format('YYYY-MM-DD HH:mm:ss')
 
     if (type === 'insert') {

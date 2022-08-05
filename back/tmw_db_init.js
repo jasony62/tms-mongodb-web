@@ -1,5 +1,5 @@
 const { MongoClient, MongoError } = require('mongodb')
-const moment = require('moment')
+const dayjs = require('dayjs')
 const fs = require('fs')
 const { nanoid } = require('nanoid')
 const path = require('path')
@@ -74,7 +74,7 @@ class Init {
 
   // 创建集合
   async clBase(info, client, cl) {
-    const DEFAULT_CREATE_TIME = moment().format('YYYY-MM-DD HH:mm:ss')
+    const DEFAULT_CREATE_TIME = dayjs().format('YYYY-MM-DD HH:mm:ss')
     const db_info = {
       type: "database",
       sysname: nanoid(10),
@@ -129,7 +129,7 @@ class Init {
       type: "schema",
       TMS_DEFAULT_CREATE_TIME: DEFAULT_CREATE_TIME
     }
-    
+
     const [dbState, dbMsg] = await this.dbBase(db_info, info, cl)
     if (!dbState) {
       logger.warn(dbMsg)
