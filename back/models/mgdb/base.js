@@ -94,7 +94,7 @@ class Base {
         query[column] = filter[column]
       }
     }
-
+    
     return query
   }
   /**
