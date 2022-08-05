@@ -21,7 +21,7 @@
     "mongo-escape": "^2.0.6",
     "mongodb": "^3.7.3",
     "nanoid": "^3.1.4",
-    "redis": "^3.1.2",
+    "redis": "^4.2.0",
     "tms-koa": "0.0.86",
     "tms-koa-account": "^0.0.9"
   }
