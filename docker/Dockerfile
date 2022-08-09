@@ -7,8 +7,6 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 # 安装基础包
 RUN npm install -g pnpm typescript
 
-# 安装Python3，为安装sharp做准备
-RUN apk add --update --no-cache py3-pip python3
 # 解决sharp依赖的libvips包下载慢的问题
 COPY ../docker/back/npmlibs/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br /root/.npm/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br
 
@@ -78,4 +76,10 @@ RUN chmod +x /usr/local/bin/start_all.sh
 # 配置文件
 COPY ../docker/back/config /usr/app/tmw/config
 
-CMD ["start_all.sh"]
+# 为了后续安装扩展插件做准备。
+## 基础工具
+RUN npm install -g pnpm typescript
+## 解决sharp依赖的libvips包下载慢的问题
+COPY ../docker/back/npmlibs/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br /root/.npm/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br
+
+ENTRYPOINT ["start_all.sh"]

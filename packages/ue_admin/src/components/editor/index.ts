@@ -3,7 +3,6 @@ import CollectionEditor from './CollectionEditor.vue'
 import DocEditor from './DocEditor.vue'
 import TagEditor from './TagEditor.vue'
 import ReplicaEditor from './ReplicaEditor.vue'
-import ConfigJsonEditor from './ConfigJSON.vue'
 import SelectCondition from './SelectCondition.vue'
 import SchemaEditor from './SchemaEditor.vue'
 import BucketEditor from './BucketEditor.vue'
@@ -52,11 +51,6 @@ type ReplicaEditorOptions = {
 type SchemaEditorOptions = {
   bucketName?: any
   schema?: any
-  onBeforeClose: Function
-}
-
-type ConfigJsonEditorOptions = {
-  jsonData?: any
   onBeforeClose: Function
 }
 
@@ -140,22 +134,6 @@ export function openReplicaEditor(options: ReplicaEditorOptions) {
     replica,
     onClose: (newReplica: any) => {
       if (newReplica && onBeforeClose) onBeforeClose(newReplica)
-      app.unmount()
-      document.body.removeChild(root)
-    },
-  })
-  app.use(ElementPlus).mount(root)
-}
-/***/
-export function openConfigJsonEditor(options: ConfigJsonEditorOptions) {
-  const root = document.createElement('div')
-  root.setAttribute('id', 'configJsonEditor')
-  document.body.appendChild(root)
-  const { jsonData, onBeforeClose } = options
-  let app = createApp(ConfigJsonEditor, {
-    jsonData,
-    onClose: (newJson: any) => {
-      if (newJson && onBeforeClose) onBeforeClose(newJson)
       app.unmount()
       document.body.removeChild(root)
     },

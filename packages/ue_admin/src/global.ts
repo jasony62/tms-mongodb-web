@@ -4,6 +4,7 @@ type Globalsettings = {
   backApiBase: string
   backApiPort: number
   loginCaptchaDisabled: boolean
+  externalFsUrl: string
 }
 
 let _globalsettings: Globalsettings = {
@@ -14,6 +15,7 @@ let _globalsettings: Globalsettings = {
   loginCaptchaDisabled: /yes|true/i.test(
     import.meta.env.VITE_LOGIN_CAPTCHA_DISABLED
   ),
+  externalFsUrl: import.meta.env.VITE_EXTERNAL_FS_URL,
 }
 /**
  * 根据在线获取的全局设置
@@ -26,6 +28,8 @@ export function init(settings: Globalsettings) {
   if (settings.backApiPort) _globalsettings.backApiPort = settings.backApiPort
   if (settings.loginCaptchaDisabled)
     _globalsettings.loginCaptchaDisabled = settings.loginCaptchaDisabled
+  if (settings.externalFsUrl)
+    _globalsettings.externalFsUrl = settings.externalFsUrl
 }
 /**
  * 根据环境变量设置认证服务起始地址
@@ -82,6 +86,11 @@ export const BACK_API_URL = () => {
  * 关闭验证码
  */
 export const LOGIN_CAPTCHA_DISABLED = () => _globalsettings.loginCaptchaDisabled
+
+/**
+ * 外部文件服务地址
+ */
+export const EXTERNAL_FS_URL = () => _globalsettings.externalFsUrl
 
 const way = import.meta.env.VITE_STORETOKEN_WAY
 

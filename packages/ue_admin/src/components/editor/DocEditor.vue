@@ -32,7 +32,7 @@ import { nextTick, PropType, ref } from 'vue'
 import TmsJsonDoc, { Field, DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
 import apiDoc from '@/apis/document'
 import apiSchema from '@/apis/schema'
-import { getLocalToken } from '@/global'
+import { EXTERNAL_FS_URL, getLocalToken } from '@/global'
 import { openPickFileEditor } from '@/components/editor'
 import JSONEditor from 'jsoneditor'
 import 'jsoneditor/dist/jsoneditor.css'
@@ -43,7 +43,6 @@ const {
   VITE_SCHEMA_TAGS,
   VITE_FRONT_DOCEDITOR_ADD,
   VITE_FRONT_DOCEDITOR_MODIFY,
-  VITE_EXTERNAL_FILESYSTEM_URL,
 } = import.meta.env
 
 const emit = defineEmits(['submit'])
@@ -116,13 +115,15 @@ const updateFieldJson = () => {
     $jde.value?.editDoc.set(activeField.value.fullname, newVal)
   }
 }
-
-const onFileSelect = async (params: any) => {
-  const openUrl = VITE_EXTERNAL_FILESYSTEM_URL + '?access_token=' + getLocalToken()
+/**
+ * 表单通过外部文件服务选取文件
+ * @param params 
+ */
+const onFileSelect = async () => {
+  const fsUrl = `${EXTERNAL_FS_URL()}?access_token=${getLocalToken()}`
   return new Promise((resolve) => {
-    /**这里需要返回文件属性中items.properties中定义的内容*/
     openPickFileEditor({
-      url: openUrl,
+      url: fsUrl,
       onBeforeClose: (file?: any) => {
         resolve(file)
       },
