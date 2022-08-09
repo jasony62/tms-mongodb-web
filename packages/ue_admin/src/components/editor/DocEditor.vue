@@ -120,7 +120,9 @@ const updateFieldJson = () => {
  * @param params 
  */
 const onFileSelect = async () => {
-  const fsUrl = `${EXTERNAL_FS_URL()}?access_token=${getLocalToken()}`
+  let fsUrl = EXTERNAL_FS_URL()
+  fsUrl += fsUrl.indexOf('?') === -1 ? '?' : '&'
+  fsUrl += `access_token=${getLocalToken()}`
   return new Promise((resolve) => {
     openPickFileEditor({
       url: fsUrl,
@@ -132,8 +134,10 @@ const onFileSelect = async () => {
 }
 
 const onFileDownload = (name: string, url: string) => {
-  const access_token = getLocalToken()
-  window.open(`${url}?access_token=${access_token}`)
+  let dlUrl = url
+  dlUrl += dlUrl.indexOf('?') === -1 ? '?' : '&'
+  dlUrl += `access_token=${getLocalToken()}`
+  window.open(dlUrl)
 }
 
 const handleFileSubmit = (ref: string | number, files: any[]) => {
