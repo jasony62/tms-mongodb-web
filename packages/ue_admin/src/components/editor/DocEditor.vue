@@ -122,7 +122,7 @@ const updateFieldJson = () => {
 const onFileSelect = async () => {
   let fsUrl = EXTERNAL_FS_URL()
   fsUrl += fsUrl.indexOf('?') === -1 ? '?' : '&'
-  fsUrl += `access_token=${getLocalToken()}`
+  fsUrl += `access_token=${getLocalToken()}&pickFile=yes`
   return new Promise((resolve) => {
     openPickFileEditor({
       url: fsUrl,
