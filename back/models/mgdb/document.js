@@ -1,7 +1,7 @@
 const ObjectId = require('mongodb').ObjectId
 const Base = require('./base')
 const ModelColl = require('./collection')
-const moment = require('moment')
+const dayjs = require('dayjs')
 const APPCONTEXT = require('tms-koa').Context.AppContext
 const TMWCONFIG = APPCONTEXT.insSync().appConfig.tmwConfig
 
@@ -417,7 +417,7 @@ class Document extends Base {
     const client = await this.mongoClient()
     const cl = client.db('tms_admin')
     // 插入日志表中
-    let today = moment()
+    let today = dayjs()
     let current = today.format('YYYY-MM-DD HH:mm:ss')
     const cl2 = cl.collection('tms_app_data_action_log')
     if (operate_before_data && Array.isArray(operate_before_data)) {

@@ -3,7 +3,7 @@ const Base = require('../../base')
 const { nanoid } = require('nanoid')
 const ObjectId = require('mongodb').ObjectId
 const log4js = require('log4js')
-const moment = require('moment')
+const dayjs = require('dayjs')
 const logger = log4js.getLogger('tms-mongodb-web')
 /** 空间用户管理控制器 */
 class Coworker extends Base {
@@ -173,7 +173,7 @@ class Coworker extends Base {
     if (invite.acceptAt)
       return new ResultFault('邀请码已经使用，不允许重复使用')
 
-    const current = moment(new Date(Date.now() + 3600 * 8 * 1000))
+    const current = dayjs(new Date(Date.now() + 3600 * 8 * 1000))
     let accept_time = current.format('YYYY-MM-DD HH:mm:ss')
     const invitee = this.client.id // 被邀请人
     /*加入bucket授权列表*/
