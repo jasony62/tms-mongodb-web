@@ -14,8 +14,11 @@
       <div class="h-full w-1/3 flex flex-col gap-2 relative">
         <div class="absolute top-0 right-0">
           <el-button @click="preview">预览</el-button>
+          <el-tooltip effect="dark" content="复制" placement="bottom" :visible="copyTooltipVisible">
+            <el-button @click="copy" :disabled="!previewResult">复制</el-button>
+          </el-tooltip>
         </div>
-        <div class="border-2 border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
+        <div class="border border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
           <pre>{{ previewResult }}</pre>
         </div>
       </div>
@@ -36,6 +39,7 @@ import { EXTERNAL_FS_URL, getLocalToken } from '@/global'
 import { openPickFileEditor } from '@/components/editor'
 import JSONEditor from 'jsoneditor'
 import 'jsoneditor/dist/jsoneditor.css'
+import useClipboard from 'vue-clipboard3'
 
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 
@@ -65,6 +69,8 @@ const $jde = ref<{ editing: () => string, editDoc: DocAsArray } | null>(null)
 const elJsonEditor = ref<HTMLElement | null>(null)
 
 const previewResult = ref('')
+
+const { toClipboard } = useClipboard()
 
 // 关闭对话框时执行指定的回调方法
 const closeDialog = (newDoc?: any) => {
@@ -163,6 +169,16 @@ const handleFileSubmit = (ref: string | number, files: any[]) => {
 
 const preview = () => {
   previewResult.value = JSON.stringify($jde.value?.editing(), null, 2)
+}
+
+const copyTooltipVisible = ref(false)
+
+const copy = async () => {
+  try {
+    await toClipboard(previewResult.value)
+    copyTooltipVisible.value = true
+    setTimeout(() => { copyTooltipVisible.value = false }, 1000)
+  } catch (e) { }
 }
 
 const onSubmit = () => {
