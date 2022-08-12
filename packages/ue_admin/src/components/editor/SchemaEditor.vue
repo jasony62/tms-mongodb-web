@@ -32,6 +32,9 @@
           <div class="h-full flex-grow flex flex-col gap-2 relative" style="max-width:50%;">
             <div class="absolute top-0 right-0">
               <el-button @click="preview">预览</el-button>
+              <el-tooltip effect="dark" content="复制" placement="bottom" :visible="copyTooltipVisible">
+                <el-button @click="copy" :disabled="!previewResult">复制</el-button>
+              </el-tooltip>
             </div>
             <div class="border-2 border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
               <pre>{{ previewResult }}</pre>
@@ -51,6 +54,7 @@ import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
 import apiDoc from '@/apis/document'
 import { onMounted, reactive, ref } from 'vue'
+import useClipboard from 'vue-clipboard3'
 
 const emit = defineEmits(['submit'])
 
@@ -111,6 +115,18 @@ const onUploadFile = (file: any) => {
 
 const preview = () => {
   previewResult.value = JSON.stringify($jse.value?.editing(), null, 2)
+}
+
+const { toClipboard } = useClipboard()
+
+const copyTooltipVisible = ref(false)
+
+const copy = async () => {
+  try {
+    await toClipboard(previewResult.value)
+    copyTooltipVisible.value = true
+    setTimeout(() => { copyTooltipVisible.value = false }, 1000)
+  } catch (e) { }
 }
 
 const onSubmit = () => {

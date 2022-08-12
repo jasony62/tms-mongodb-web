@@ -5,9 +5,11 @@
       <tms-json-doc ref="$jde" class="w-1/3 h-full overflow-auto" :schema="collection.schema.body" :value="document"
         :on-file-select="onFileSelect" :on-file-download="onFileDownload" :show-field-fullname="true"
         @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
-      <div v-if="activeField?.schemaType === 'json'" class="w-1/3 h-full flex flex-col">
+      <div v-if="activeField?.schemaType === 'json'" class="w-1/3 h-full flex flex-col gap-2">
         <div>
-          <el-button type="primary" @click="updateFieldJson">更新数据【{{ activeField.fullname }}】</el-button>
+          <el-button type="primary" @click="updateFieldJson" :disabled="!jsonFieldValueChanged">更新【{{
+              activeField.fullname
+          }}】</el-button>
         </div>
         <div ref="elJsonEditor" class="flex-grow"></div>
       </div>
@@ -84,10 +86,14 @@ const onBeforeClose = () => {
 
 const activeField = ref<Field>() // 正在编辑的字段
 
+const jsonFieldValueChanged = ref(false)
+
 const options = {
   mode: 'code',
   search: false,
-  transform: false,
+  onChange: () => {
+    jsonFieldValueChanged.value = true
+  },
 }
 
 let jsonEditor: any = null
