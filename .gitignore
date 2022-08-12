@@ -13,3 +13,6 @@
 .pnpm-debug.log
 
 docker/standalone/back
+
+/node_modules
+/packages
