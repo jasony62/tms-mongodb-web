@@ -46,10 +46,10 @@
             <el-table-column prop="description" label="说明"></el-table-column>
             <el-table-column label="操作" width="180">
               <template #default="scope">
-                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
-                </el-button>
                 <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
                 <el-button type="primary" link size="small" @click="removeSchema(scope.row)">删除</el-button>
+                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -60,10 +60,10 @@
             <el-table-column prop="description" label="说明"></el-table-column>
             <el-table-column label="操作" width="180">
               <template #default="scope">
-                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
-                </el-button>
                 <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
                 <el-button type="primary" link size="small" @click="removeSchema(scope.row)">删除</el-button>
+                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -74,10 +74,10 @@
             <el-table-column prop="description" label="说明"></el-table-column>
             <el-table-column label="操作" width="180">
               <template #default="scope">
-                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
-                </el-button>
                 <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
                 <el-button type="primary" link size="small" @click="removeSchema(scope.row)">删除</el-button>
+                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -238,7 +238,7 @@ const editSchema = (schema: any, index: any, isCopy = false) => {
   }
   openSchemaEditor({
     bucketName: props.bucketName,
-    schema: JSON.parse(JSON.stringify(toRaw(schema))),
+    schema: JSON.parse(JSON.stringify(toRaw(newObj))),
     onBeforeClose: (newSchema?: any) => {
       if (newSchema)
         if (isCopy) {

@@ -3,7 +3,7 @@ const dayjs = require('dayjs')
 const fs = require('fs')
 const { nanoid } = require('nanoid')
 const path = require('path')
-const log4js = require("log4js")
+const log4js = require('log4js')
 const logger = log4js.getLogger('tmw-back-db_init')
 
 const host = process.env.TMS_MONGODB_HOST || 'localhost'
@@ -12,7 +12,7 @@ const user = process.env.TMS_MONGODB_USER || false
 const password = process.env.TMS_MONGODB_PASSWORD || false
 
 class Mongo {
-  connect (url) {
+  connect(url) {
     return MongoClient.connect(url, {
       useUnifiedTopology: true,
       keepAliveInitialDelay: 1,
@@ -26,7 +26,12 @@ class Mongo {
   }
   async client() {
     let url = `mongodb://${host}:${port}`
-    if (user && typeof user === 'string' && password && typeof password === 'string') {
+    if (
+      user &&
+      typeof user === 'string' &&
+      password &&
+      typeof password === 'string'
+    ) {
       url = `mongodb://${user}:${password}@${host}:${port}`
     }
     return await this.connect(url)
@@ -36,7 +41,7 @@ class Mongo {
 class Init {
   // 创建文档列定义
   async schemaBase(schema_info, info, cl) {
-    if (!info.schema && info.schema !== "object") {
+    if (!info.schema && info.schema !== 'object') {
       return [false, '缺少要创建的schema列定义']
     }
     schema_info.body.properties = info.schema
@@ -66,7 +71,7 @@ class Init {
     if (!existDb) {
       cl.insertOne(db_info)
     }
-  
+
     return [true, 'success']
   }
 
@@ -74,7 +79,7 @@ class Init {
   async clBase(info, client, cl) {
     const DEFAULT_CREATE_TIME = dayjs().format('YYYY-MM-DD HH:mm:ss')
     const db_info = {
-      type: "database",
+      type: 'database',
       sysname: nanoid(10),
       TMS_DEFAULT_CREATE_TIME: DEFAULT_CREATE_TIME,
     }
@@ -93,26 +98,26 @@ class Init {
           transferMany: true,
           import: true,
           export: true,
-          copyMany: true
-        }
+          copyMany: true,
+        },
       },
       operateRules: {
         scope: {
-          unrepeat: false
+          unrepeat: false,
         },
         unrepeat: {
-            database: {},
-            collection: {},
-            primaryKeys: [],
-            insert: false
-        }
+          database: {},
+          collection: {},
+          primaryKeys: [],
+          insert: false,
+        },
       },
-      type: "collection",
+      type: 'collection',
       sysname: nanoid(10),
       TMS_DEFAULT_CREATE_TIME: DEFAULT_CREATE_TIME,
     }
     const schema_info = {
-      scope: "document",
+      scope: 'document',
       tags: [],
       body: {
         required: false,
@@ -120,12 +125,12 @@ class Init {
         dependencies: {},
         eventDependencies: {},
         readonly: false,
-        default: "",
-        type: "object",
-        properties: {}
+        default: '',
+        type: 'object',
+        properties: {},
       },
-      type: "schema",
-      TMS_DEFAULT_CREATE_TIME: DEFAULT_CREATE_TIME
+      type: 'schema',
+      TMS_DEFAULT_CREATE_TIME: DEFAULT_CREATE_TIME,
     }
     const [dbState, dbMsg] = await this.dbBase(db_info, info, cl)
     if (!dbState) {
@@ -136,7 +141,7 @@ class Init {
     cl_info.database = db_info.name
     cl_info.db = {
       sysname: db_info.sysname,
-      name: db_info.name
+      name: db_info.name,
     }
 
     if (!info.clName) {
@@ -150,28 +155,41 @@ class Init {
     if (info.bucket) cl_info.bucket = info.bucket
 
     // 检查集合名
-    if (new RegExp('^[a-zA-Z]+[0-9a-zA-Z_]{0,63}$').test(cl_info.name) !== true) {
-      logger.warn('集合名必须以英文字母开头，仅限英文字母或_或数字组合，且最长64位')
+    if (
+      new RegExp('^[a-zA-Z]+[0-9a-zA-Z_]{0,63}$').test(cl_info.name) !== true
+    ) {
+      logger.warn(
+        '集合名必须以英文字母开头，仅限英文字母或_或数字组合，且最长64位'
+      )
       return
     }
     // 查询是否存在同名集合
     // let query = { name: cl_info.name, type: 'collection' }
-    let query = {"$and": [{name: cl_info.name}, {type: 'collection'}]}
-    
-    if (info.bucket) query["$and"].push({bucket: info.bucket})
-    
+    let query = { $and: [{ name: cl_info.name }, { type: 'collection' }] }
+
+    if (info.bucket) query['$and'].push({ bucket: info.bucket })
+
     if (typeof cl_info.db === 'object') {
-      query["$and"].push({"$or": [{database: cl_info.database}, {'db.sysname': cl_info.db.sysname}]})
-    }else if (typeof cl_info.db === 'string') {
-      query["$and"].push({"$or": [{database: cl_info.database}, {'db.name': cl_info.db}]})
+      query['$and'].push({
+        $or: [
+          { database: cl_info.database },
+          { 'db.sysname': cl_info.db.sysname },
+        ],
+      })
+    } else if (typeof cl_info.db === 'string') {
+      query['$and'].push({
+        $or: [{ database: cl_info.database }, { 'db.name': cl_info.db }],
+      })
     }
 
     const existCl = await cl.findOne(query)
     if (existCl) {
-      logger.warn(`数据库[name=${db_info.name}]中，已存在同名集合[name=${cl_info.name}]`)
+      logger.warn(
+        `数据库[name=${db_info.name}]中，已存在同名集合[name=${cl_info.name}]`
+      )
       return
     }
-    
+
     // 创建schema
     const [schState, schMsg] = await this.schemaBase(schema_info, info, cl)
     if (!schState) {
@@ -183,13 +201,15 @@ class Init {
     const mgdb = client.db(db_info.sysname)
     return mgdb.createCollection(cl_info.sysname).then(() => {
       return cl.insertOne(cl_info).then(() => {
-        logger.info(`数据库[name=${db_info.name}]、集合[name=${cl_info.name}]初始化完成`)
+        logger.info(
+          `数据库[name=${db_info.name}]、集合[name=${cl_info.name}]初始化完成`
+        )
       })
     })
   }
 }
 
-(async function() {
+;(async function () {
   let cnfpath = path.resolve(process.cwd() + '/tmw_db_init_config.json')
   let data_init
   if (fs.existsSync(cnfpath)) {
@@ -198,7 +218,7 @@ class Init {
     logger.warn(`[初始化数据库、集合的配置文件[${cnfpath}]不存在`)
     return
   }
-  
+
   const mongoObj = new Mongo()
   const client = await mongoObj.client()
   const cl = client.db('tms_admin').collection('mongodb_object')
@@ -207,5 +227,4 @@ class Init {
   for (const data of data_init) {
     await init.clBase(data, client, cl)
   }
-
 })()

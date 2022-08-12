@@ -7,7 +7,7 @@
         @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
       <div v-if="activeField?.schemaType === 'json'" class="w-1/3 h-full flex flex-col">
         <div>
-          <el-button @click="updateFieldJson">更新数据【{{ activeField.fullname }}】</el-button>
+          <el-button type="primary" @click="updateFieldJson">更新数据【{{ activeField.fullname }}】</el-button>
         </div>
         <div ref="elJsonEditor" class="flex-grow"></div>
       </div>
@@ -39,11 +39,7 @@ import 'jsoneditor/dist/jsoneditor.css'
 
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 
-const {
-  VITE_SCHEMA_TAGS,
-  VITE_FRONT_DOCEDITOR_ADD,
-  VITE_FRONT_DOCEDITOR_MODIFY,
-} = import.meta.env
+const { VITE_SCHEMA_TAGS } = import.meta.env
 
 const emit = defineEmits(['submit'])
 
@@ -100,7 +96,8 @@ const onJdocFocus = (field: Field) => {
           if (child) elJsonEditor.value.removeChild(child)
           // @ts-ignore
           jsonEditor = new JSONEditor(elJsonEditor.value, options)
-          jsonEditor.set($jde.value?.editDoc.get(field.fullname))
+          let fieldValue = $jde.value?.editDoc.get(field.fullname)
+          jsonEditor.set(fieldValue ?? '')
         }
       })
     }
