@@ -68,7 +68,9 @@ class Init {
     if (info.bucket) query.bucket = info.bucket
 
     const existDb = await cl.findOne(query)
-    if (!existDb) {
+    if (existDb) {
+      return [true, existDb]
+    } else {
       cl.insertOne(db_info)
     }
 
@@ -132,11 +134,13 @@ class Init {
       type: 'schema',
       TMS_DEFAULT_CREATE_TIME: DEFAULT_CREATE_TIME,
     }
+
     const [dbState, dbMsg] = await this.dbBase(db_info, info, cl)
     if (!dbState) {
       logger.warn(dbMsg)
       return
     }
+    if (dbMsg.sysname) db_info.sysname = dbMsg.sysname
 
     cl_info.database = db_info.name
     cl_info.db = {
