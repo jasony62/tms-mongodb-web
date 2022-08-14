@@ -21,8 +21,16 @@ if (fs.existsSync(cnfpath)) {
 }
 const logger = log4js.getLogger('tms-mongodb-web')
 
-import { TmsKoa } from 'tms-koa'
+import { TmsKoa, loadConfig } from 'tms-koa'
+import { PluginContext } from 'tmw-kit'
+
 const tmsKoa = new TmsKoa()
+
+/**初始化配置上下文对象*/
+function loadPlugins() {
+  let config = loadConfig('plugin')
+  PluginContext.init(config)
+}
 
 let Replica_Child_Process // 执行集合复制的子进程
 /**
@@ -30,6 +38,10 @@ let Replica_Child_Process // 执行集合复制的子进程
  */
 function afterInit() {
   logger.info('已完成框架初始化')
+  /**
+   * 加载插件
+   */
+  loadPlugins()
   /**
    * 启动集合实时复制
    */

@@ -3,6 +3,7 @@
   "version": "0.0.2",
   "description": "tms-monogodb-web开发工具包",
   "main": "./dist/index.js",
+  "types": "/dist/index.d.ts",
   "scripts": {
     "build": "rimraf ./dist && tsc",
     "test": "echo \"Error: no test specified\" && exit 1"

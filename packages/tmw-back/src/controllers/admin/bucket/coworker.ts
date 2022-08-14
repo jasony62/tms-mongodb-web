@@ -7,10 +7,9 @@ const ObjectId = mongodb.ObjectId
 
 /** 空间用户管理控制器 */
 class Coworker extends Base {
-  constructor(...args) {
-    super(...args)
-  }
-  /** 执行方法调用前检查 */
+  /**
+   * 执行方法调用前检查
+   */
   async tmsBeforeEach() {
     const { url } = this['request']
     if (!this['client'])

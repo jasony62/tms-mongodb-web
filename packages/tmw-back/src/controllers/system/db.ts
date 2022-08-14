@@ -6,9 +6,6 @@ const ObjectId = mongodb.ObjectId
 
 /** 预制数据库 */
 class Db extends Base {
-  constructor(...args) {
-    super(...args)
-  }
   /**
    * @swagger
    *

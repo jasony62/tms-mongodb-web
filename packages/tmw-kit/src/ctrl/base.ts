@@ -13,11 +13,6 @@ function allowAccessBucket(bucket, clientId) {
 const isRequireBucket = /yes|true/i.test(process.env.TMW_REQUIRE_BUCKET)
 
 class Base extends Ctrl {
-  /**
-   * 创建控制器
-   *
-   * @param  {...any} args
-   */
   constructor(...args) {
     super(...args)
   }

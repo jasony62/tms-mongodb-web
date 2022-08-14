@@ -3,20 +3,20 @@ const logger = log4js.getLogger('tms-mongodb-web')
 const path = require('path')
 const glob = require('glob')
 
-import { PluginBase } from './base'
+import { PluginBase, PluginProfile } from './base'
 
-let _pluginsByName = new Map() // 插件名称到插件示例
+let _pluginsByName = new Map<string, PluginBase>() // 插件名称到插件示例
 
-let _dbProfiles = [] // 数据库插件简要描述
-let _clProfiles = [] // 集合插件简要描述
-let _docProfiles = [] // 文档插件简要描述
+let _dbProfiles: PluginProfile[] = [] // 数据库插件简要描述
+let _clProfiles: PluginProfile[] = [] // 集合插件简要描述
+let _docProfiles: PluginProfile[] = [] // 文档插件简要描述
 
 /**
  * 检查插件信息是否设置正确
  *
- * @param {object} plugin
+ * @param {PluginBase} plugin
  */
-function validatePlugin(plugin) {
+function validatePlugin(plugin: PluginBase) {
   return plugin
     .validate()
     .then(() => {
@@ -47,7 +47,7 @@ export class Context {
 
   static init = (function () {
     let _instance
-    return async function (pluginConfig?) {
+    return async function (pluginConfig?): Promise<Context> {
       if (_instance) return _instance
 
       if (!pluginConfig?.dir) {

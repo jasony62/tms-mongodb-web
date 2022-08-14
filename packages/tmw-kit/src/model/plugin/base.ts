@@ -1,10 +1,25 @@
 // 必须提供的属性
 const RequiredProps = ['name', 'scope', 'title', 'description']
+/**
+ * 插件说明
+ */
+export interface PluginProfile {
+  name: string
+  scope: string
+  title: string
+  description: string
+  excludeTags?: string[]
+  everyTags?: string[]
+  someTags?: string[]
+  transData?: string
+  beforeWidget?: any
+  visible?: boolean
+}
 
 /**
  * 插件基类
  */
-export class PluginBase {
+export class PluginBase implements PluginProfile {
   file: string
   name: string // 插件名
   scope: string // 适用管理对象，支持：database，collection，document
@@ -18,6 +33,7 @@ export class PluginBase {
   transData?
   visible?
   disabled?: boolean
+  remoteWidgetOptions?: Function
   /**
    * 创建插件
    * @param {string} file - 文件名
@@ -55,7 +71,7 @@ export class PluginBase {
    *
    * @returns {object} 插件的描述信息
    */
-  get profile() {
+  get profile(): PluginProfile {
     const {
       name,
       scope,

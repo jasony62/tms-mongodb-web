@@ -1,5 +1,11 @@
-import { Context } from './context'
-import { PluginBase } from './base'
+import { Context as PluginContext } from './context'
+import { PluginBase, PluginProfile } from './base'
 import { PluginHttpSend, PluginHttpSendDocs } from './http'
 
-export { Context, PluginBase, PluginHttpSend, PluginHttpSendDocs }
+export {
+  PluginContext,
+  PluginBase,
+  PluginProfile,
+  PluginHttpSend,
+  PluginHttpSendDocs,
+}
