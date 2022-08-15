@@ -1,7 +1,8 @@
 const _ = require('lodash')
 import { ResultFault, ResultData } from 'tms-koa'
 import PluginHelper from './pluginHelper'
-import { CtrlBase, PluginContext } from 'tmw-kit'
+import { PluginContext } from 'tmw-kit'
+import { Base as CtrlBase } from 'tmw-kit/dist/ctrl'
 
 /**
  * 插件控制器类

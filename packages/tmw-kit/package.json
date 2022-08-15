@@ -1,6 +1,6 @@
 {
   "name": "tmw-kit",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "tms-monogodb-web开发工具包",
   "main": "./dist/index.js",
   "types": "/dist/index.d.ts",
