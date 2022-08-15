@@ -179,7 +179,6 @@ services:
         vite_back_api_server: http://localhost:3000
         vite_back_api_base: /api
         vite_back_api_fs: /fs
-        vite_back_api_server: http://localhost:3000
         vite_storetoken_way: session
         vite_tmw_require_bucket: 'no'
         vite_encrypt_secret: 'no'

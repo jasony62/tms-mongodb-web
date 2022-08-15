@@ -75,7 +75,7 @@ importers:
       tailwindcss: ^3.0.24
       tms-koa-account: ^0.0.10
       tms-vue3: ^0.0.5
-      tms-vue3-ui: ^0.0.52
+      tms-vue3-ui: ^0.0.53
       typescript: ^4.5.4
       vite: ^3.0.4
       vue: ^3.2.25
@@ -91,7 +91,7 @@ importers:
       pinia: 2.0.16_j6bzmzd4ujpabbp5objtwxyjp4
       tms-koa-account: 0.0.10
       tms-vue3: 0.0.5
-      tms-vue3-ui: 0.0.52_vue@3.2.37
+      tms-vue3-ui: 0.0.53_vue@3.2.37
       vue: 3.2.37
       vue-clipboard3: 2.0.0
       vue-router: 4.1.2_vue@3.2.37
@@ -3576,8 +3576,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /tms-vue3-ui/0.0.52_vue@3.2.37:
-    resolution: {integrity: sha512-cQrE721FS63JrltcTNG4SAXTbwYquCTQuaBLpL8zTUekO2UAJEefgcHAaJOVahzE7ULOqnEoHMN+sluEX/365g==}
+  /tms-vue3-ui/0.0.53_vue@3.2.37:
+    resolution: {integrity: sha512-1DTKStRiwVCy+zzqhWkWSxhrc6rFHKCYexLu9nNvtnYQMCvittuPSZUOgeYiFmOW+zjjnb13BjQkwKUjuF/uHA==}
     dependencies:
       '@types/debug': 4.1.7
       debug: 4.3.4

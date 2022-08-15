@@ -1,7 +1,7 @@
 const { env } = process
 let appConfig = {
   name: env.TMW_APP_NAME || 'tms-mongodb-web',
-  port: env.TMW_TMS_APP_PORT || 3000,
+  port: env.TMW_APP_PORT || 3000,
   router: {
     auth: {
       prefix: env.TMW_APP_ROUTER_AUTH || 'auth', // 鉴权接口调用url的前缀
