@@ -1,4 +1,4 @@
-import { CtrlHelperBase } from 'tmw-kit'
+import CtrlHelperBase from 'tmw-kit/dist/ctrl/helper'
 /**
  *
  */
