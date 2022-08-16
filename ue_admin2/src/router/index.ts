@@ -8,6 +8,8 @@ import Collection from '../views/Collection.vue'
 import Register from '../views/Register.vue'
 import Smscode from '../views/Smscode.vue'
 import Invite from '../views/Invite.vue'
+import { TmsRouterHistory } from 'tms-vue3'
+import { getLocalToken } from '../global'
 
 const VITE_BASE_URL =
   typeof import.meta.env.VITE_BASE_URL === 'string'
@@ -73,6 +75,18 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(VITE_BASE_URL),
   routes,
+})
+
+router.beforeEach((to, from, next) => {
+  // 进入页面前检查是否已经通过用户认证
+  if (to.name !== 'login') {
+    let token = getLocalToken()
+    if (!token) {
+      new TmsRouterHistory().push(to.path)
+      return next({ name: 'login' })
+    }
+  }
+  next()
 })
 
 export default router
