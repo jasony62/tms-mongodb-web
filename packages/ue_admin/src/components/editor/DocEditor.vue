@@ -3,8 +3,8 @@
     :before-close="onBeforeClose">
     <div class="flex flex-row gap-4 h-full overflow-auto">
       <tms-json-doc ref="$jde" class="w-1/3 h-full overflow-auto" :schema="collection.schema.body" :value="document"
-        :on-file-select="onFileSelect" :on-file-download="onFileDownload" :show-field-fullname="true"
-        @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
+        :enable-paste="true" :on-paste="onJdocPaste" :on-file-select="onFileSelect" :on-file-download="onFileDownload"
+        :show-field-fullname="true" @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
       <div v-if="activeField?.schemaType === 'json'" class="w-1/3 h-full flex flex-col gap-2">
         <div>
           <el-button type="primary" @click="updateFieldJson" :disabled="!jsonFieldValueChanged">更新【{{
@@ -122,6 +122,20 @@ const updateFieldJson = () => {
   if (activeField.value) {
     let newVal = jsonEditor.get()
     $jde.value?.editDoc.set(activeField.value.fullname, newVal)
+  }
+}
+/**
+ * 对指定字段执行黏贴操作，快速添加子字段
+ * @param field 指定的字段
+ */
+const onJdocPaste = async (field: Field) => {
+  /**从粘贴板中获取数据，添加到文档中*/
+  const clipText = await navigator.clipboard.readText()
+  try {
+    let clipData = JSON.parse(clipText)
+    return clipData
+  } catch (e: any) {
+    let msg = `粘贴内容填充字段【${field.fullname}】失败：` + e.message
   }
 }
 /**

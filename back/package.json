@@ -22,7 +22,12 @@
     "mongodb": "^3.7.3",
     "nanoid": "^3.1.4",
     "redis": "^4.2.0",
+<<<<<<< HEAD
     "tms-koa": "0.0.86",
     "tms-koa-account": "^0.0.9"
+=======
+    "tms-koa": "^0.0.97",
+    "tms-koa-account": "^0.0.10"
+>>>>>>> origin/dev
   }
 }
