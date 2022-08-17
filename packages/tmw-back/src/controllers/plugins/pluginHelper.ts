@@ -1,7 +1,11 @@
-import Helper from 'tmw-kit/dist/ctrl/helper'
+import CtrlHelperBase from 'tmw-kit/dist/ctrl/helper'
 /**
  *
  */
-class PluginHelper extends Helper {}
+class PluginHelper extends CtrlHelperBase {
+  constructor(ctrl) {
+    super(ctrl)
+  }
+}
 
 export default PluginHelper

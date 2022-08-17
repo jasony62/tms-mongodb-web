@@ -6,9 +6,6 @@ const ObjectId = mongodb.ObjectId
 
 /** 管理对象（数据库、集合和文档）的扩展属性定义 */
 class Schema extends Base {
-  constructor(...args) {
-    super(...args)
-  }
   /**
    * @swagger
    *

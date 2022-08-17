@@ -5,9 +5,6 @@ const ObjectId = mongodb.ObjectId
 
 /** 预计集合 */
 class Collection extends Base {
-  constructor(...args) {
-    super(...args)
-  }
   /**
    * @swagger
    *

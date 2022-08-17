@@ -23,7 +23,7 @@ export class ZipCtrl {
     if (!datas) return [false, '参数错误']
     let { forceReplace = 'Y', dir = '' } = options
 
-    const tmsFs = new LocalFS(this['domain'])
+    const tmsFs = new LocalFS(Context, this['domain'])
     const uploadObj = new Upload(tmsFs)
 
     dir = dir ? tmsFs.fullpath(dir) : ''

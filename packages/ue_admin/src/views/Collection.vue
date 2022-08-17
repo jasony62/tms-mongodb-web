@@ -92,6 +92,27 @@
         <div>
           <el-button @click="exportJSON">导出文档(JSON)</el-button>
         </div>
+        <div v-for="p in data.plugins" :key="p.name">
+          <el-button v-if="p.transData === 'nothing'" type="success" plain @click="handlePlugins(p)">{{ p.title }}
+          </el-button>
+          <el-dropdown v-else>
+            <el-button type="success" plain>{{ p.title }}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item>
+                <el-button type="text" @click="handlePlugins(p, 'all')">按全部
+                </el-button>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <el-button type="text" @click="handlePlugins(p, 'filter')">
+                  按筛选</el-button>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <el-button type="text" @click="handlePlugins(p, 'checked')">
+                  按选中</el-button>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </div>
       </div>
     </div>
   </div>
@@ -321,7 +342,7 @@ const listDocByKw = () => {
 onMounted(async () => {
   let { bucketName, dbName, clName } = props
   collection = await apiCollection.byName(bucketName, dbName, clName)
-  data.plugins = await apiPlugin.getPlugins(bucketName, dbName, clName)
+  data.plugins = await apiPlugin.getCollectionDocPlugins(bucketName, dbName, clName)
   await handleProperty()
   listDocByKw()
 })

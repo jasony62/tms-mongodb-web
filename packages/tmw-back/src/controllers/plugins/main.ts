@@ -1,11 +1,13 @@
 const _ = require('lodash')
 import { ResultFault, ResultData } from 'tms-koa'
-import Base from 'tmw-kit/dist/ctrl/base'
 import PluginHelper from './pluginHelper'
-import { Context as PluginContext } from 'tmw-kit/dist/model/plugin'
+import { PluginContext } from 'tmw-kit'
+import { Base as CtrlBase } from 'tmw-kit/dist/ctrl'
 
-/** 插件控制器类 */
-class Plugin extends Base {
+/**
+ * 插件控制器类
+ */
+class Plugin extends CtrlBase {
   pluginHelper
 
   constructor(...args) {
@@ -39,12 +41,13 @@ class Plugin extends Base {
    *               "$ref": "#/components/schemas/ResponseDataArray"
    */
   async list() {
-    const { scope } = this['request'].query
+    const { scope } = this.request.query
     if (!['document', 'collection', 'database'].includes(scope))
       return new ResultFault(`参数错误[scope=${scope}]`)
 
     const ins = await PluginContext.ins()
 
+    // 适用于指定管理对象类型的所有插件
     let plugins =
       scope === 'document'
         ? ins.docPlugins
@@ -60,7 +63,7 @@ class Plugin extends Base {
     } else {
       objTags = []
     }
-
+    /**根据标签进行筛选*/
     plugins = plugins.filter((plugin) => {
       let { excludeTags, everyTags, someTags } = plugin
       // 集合标签中不能包括指定的标签
@@ -132,7 +135,7 @@ class Plugin extends Base {
       bucket,
       db,
       cl,
-      this['request'].body
+      this.request.body
     )
 
     return new ResultData(condition)
@@ -197,7 +200,7 @@ class Plugin extends Base {
    *                 value: "执行完毕"
    */
   async execute() {
-    let { plugin: pluginName } = this['request'].query
+    let { plugin: pluginName } = this.request.query
 
     if (!pluginName) return new ResultFault('缺少plugin参数')
 

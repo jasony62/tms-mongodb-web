@@ -3,19 +3,24 @@
     :before-close="onBeforeClose">
     <div class="flex flex-row gap-4 h-full overflow-auto">
       <tms-json-doc ref="$jde" class="w-1/3 h-full overflow-auto" :schema="collection.schema.body" :value="document"
-        :on-file-select="onFileSelect" :on-file-download="onFileDownload" :show-field-fullname="true"
-        @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
-      <div v-if="activeField?.schemaType === 'json'" class="w-1/3 h-full flex flex-col">
+        :enable-paste="true" :on-paste="onJdocPaste" :on-file-select="onFileSelect" :on-file-download="onFileDownload"
+        :show-field-fullname="true" @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
+      <div v-if="activeField?.schemaType === 'json'" class="w-1/3 h-full flex flex-col gap-2">
         <div>
-          <el-button @click="updateFieldJson">更新数据【{{ activeField.fullname }}】</el-button>
+          <el-button type="primary" @click="updateFieldJson" :disabled="!jsonFieldValueChanged">更新【{{
+              activeField.fullname
+          }}】</el-button>
         </div>
         <div ref="elJsonEditor" class="flex-grow"></div>
       </div>
       <div class="h-full w-1/3 flex flex-col gap-2 relative">
         <div class="absolute top-0 right-0">
           <el-button @click="preview">预览</el-button>
+          <el-tooltip effect="dark" content="复制" placement="bottom" :visible="copyTooltipVisible">
+            <el-button @click="copy" :disabled="!previewResult">复制</el-button>
+          </el-tooltip>
         </div>
-        <div class="border-2 border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
+        <div class="border border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
           <pre>{{ previewResult }}</pre>
         </div>
       </div>
@@ -32,19 +37,19 @@ import { nextTick, PropType, ref } from 'vue'
 import TmsJsonDoc, { Field, DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
 import apiDoc from '@/apis/document'
 import apiSchema from '@/apis/schema'
-import { getLocalToken } from '@/global'
+import { EXTERNAL_FS_URL, getLocalToken } from '@/global'
 import { openPickFileEditor } from '@/components/editor'
 import JSONEditor from 'jsoneditor'
 import 'jsoneditor/dist/jsoneditor.css'
+import useClipboard from 'vue-clipboard3'
+import * as _ from 'lodash'
+import * as Debug from 'debug'
 
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 
-const {
-  VITE_SCHEMA_TAGS,
-  VITE_FRONT_DOCEDITOR_ADD,
-  VITE_FRONT_DOCEDITOR_MODIFY,
-  VITE_EXTERNAL_FILESYSTEM_URL,
-} = import.meta.env
+const debug = Debug('tmw:doc-editor')
+
+const { VITE_SCHEMA_TAGS } = import.meta.env
 
 const emit = defineEmits(['submit'])
 
@@ -67,9 +72,14 @@ const { bucketName, dbName, collection, document, onClose } = props
 const $jde = ref<{ editing: () => string, editDoc: DocAsArray } | null>(null)
 // const plugins: any[] = []
 
+// 文档字段转化规则
+const DocFieldConvertRules = (collection.docFieldConvertRules && typeof collection.docFieldConvertRules === 'object') ? collection.docFieldConvertRules : {}
+
 const elJsonEditor = ref<HTMLElement | null>(null)
 
 const previewResult = ref('')
+
+const { toClipboard } = useClipboard()
 
 // 关闭对话框时执行指定的回调方法
 const closeDialog = (newDoc?: any) => {
@@ -83,10 +93,14 @@ const onBeforeClose = () => {
 
 const activeField = ref<Field>() // 正在编辑的字段
 
+const jsonFieldValueChanged = ref(false)
+
 const options = {
   mode: 'code',
   search: false,
-  transform: false,
+  onChange: () => {
+    jsonFieldValueChanged.value = true
+  },
 }
 
 let jsonEditor: any = null
@@ -101,7 +115,8 @@ const onJdocFocus = (field: Field) => {
           if (child) elJsonEditor.value.removeChild(child)
           // @ts-ignore
           jsonEditor = new JSONEditor(elJsonEditor.value, options)
-          jsonEditor.set($jde.value?.editDoc.get(field.fullname))
+          let fieldValue = $jde.value?.editDoc.get(field.fullname)
+          jsonEditor.set(fieldValue ?? '')
         }
       })
     }
@@ -116,23 +131,91 @@ const updateFieldJson = () => {
     $jde.value?.editDoc.set(activeField.value.fullname, newVal)
   }
 }
+/**
+ * 将传入的外部数据转换为与field属性定义匹配的数据
+ * @param field 指定的文档字段
+ * @param source 外部数据来源
+ * @param data 外部数据
+ */
+function convertExternalData(field: Field, source: string, data: any): any {
+  const log = debug.extend('convertExternalData')
+  const dataType = field.schemaType
+  const newData = dataType === 'object' ? {} : (dataType === 'array' ? [] : undefined)
+  if (!newData) return newData
 
-const onFileSelect = async (params: any) => {
-  const openUrl = VITE_EXTERNAL_FILESYSTEM_URL + '?access_token=' + getLocalToken()
+  log(`字段【${field.fullname}】从【${source}】获得外部数据\n` + JSON.stringify(data, null, 2))
+
+  let rules = DocFieldConvertRules[source] ? DocFieldConvertRules[source][field.fullname] : null
+  if (Array.isArray(rules) && rules.length) {
+    // 如何确定哪个规则更匹配？
+  } else if (rules && typeof rules === 'object') {
+    log(`字段【${field.fullname}】有【${source}】数据转换规则\n` + JSON.stringify(rules, null, 2))
+    let converted = _.transform(rules, (result: any, dataDef: any, docKey: string) => {
+      if (dataDef) {
+        if (typeof dataDef === 'string') {
+          // 定义的是外部数据的key
+          let val = _.get(data, dataDef)
+          _.set(result, docKey, val)
+        } else if (Array.isArray(dataDef) && dataDef.length) {
+          // 不支持
+        } else if (typeof dataDef === 'object') {
+          // 定义的是固定的值
+          if (dataDef.value ?? false) {
+            _.set(result, docKey, dataDef.value)
+          }
+        }
+      }
+    }, {})
+
+    log(`字段【${field.fullname}】获得【${source}】转换后数据\n` + JSON.stringify(converted, null, 2))
+    if (dataType === 'object' && typeof data === 'object')
+      _.assign(newData, data, converted)
+    else _.assign(newData, converted)
+  }
+
+  return newData
+}
+/**
+ * 对指定字段执行黏贴操作，快速添加子字段
+ * @param field 指定的字段
+ */
+const onJdocPaste = async (field: Field) => {
+  const log = debug.extend('onJdocPaste')
+  /**从粘贴板中获取数据，添加到文档中*/
+  const clipText = await navigator.clipboard.readText()
+  try {
+    let clipData = JSON.parse(clipText)
+    let newData = convertExternalData(field, 'onPaste', clipData)
+    return newData
+  } catch (e: any) {
+    let msg = `粘贴内容填充字段【${field.fullname}】失败：` + e.message
+    log(msg)
+  }
+}
+/**
+ * 通过外部文件服务选取文件
+ */
+const onFileSelect = async (field: Field) => {
+  const log = debug.extend('onFileSelect')
+  let fsUrl = EXTERNAL_FS_URL()
+  fsUrl += fsUrl.indexOf('?') === -1 ? '?' : '&'
+  fsUrl += `access_token=${getLocalToken()}&pickFile=yes`
   return new Promise((resolve) => {
-    /**这里需要返回文件属性中items.properties中定义的内容*/
     openPickFileEditor({
-      url: openUrl,
-      onBeforeClose: (file?: any) => {
-        resolve(file)
+      url: fsUrl,
+      onBeforeClose: (fileInfo?: any) => {
+        let newData = convertExternalData(field, 'onFileSelect', fileInfo)
+        resolve(newData)
       },
     })
   })
 }
 
 const onFileDownload = (name: string, url: string) => {
-  const access_token = getLocalToken()
-  window.open(`${url}?access_token=${access_token}`)
+  let dlUrl = url
+  dlUrl += dlUrl.indexOf('?') === -1 ? '?' : '&'
+  dlUrl += `access_token=${getLocalToken()}`
+  window.open(dlUrl)
 }
 
 const handleFileSubmit = (ref: string | number, files: any[]) => {
@@ -161,6 +244,16 @@ const handleFileSubmit = (ref: string | number, files: any[]) => {
 
 const preview = () => {
   previewResult.value = JSON.stringify($jde.value?.editing(), null, 2)
+}
+
+const copyTooltipVisible = ref(false)
+
+const copy = async () => {
+  try {
+    await toClipboard(previewResult.value)
+    copyTooltipVisible.value = true
+    setTimeout(() => { copyTooltipVisible.value = false }, 1000)
+  } catch (e) { }
 }
 
 const onSubmit = () => {

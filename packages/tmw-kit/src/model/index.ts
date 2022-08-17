@@ -6,4 +6,14 @@ import ModelTag from './tag'
 import ModelReplicaMap from './replicaMap'
 import ModelSchema from './schema'
 
-export { ModelBkt, ModelDb, ModelCl, ModelDoc, ModelTag, ModelReplicaMap, ModelSchema }
+export {
+  ModelBkt,
+  ModelDb,
+  ModelCl,
+  ModelDoc,
+  ModelTag,
+  ModelReplicaMap,
+  ModelSchema,
+}
+
+export * from './plugin'

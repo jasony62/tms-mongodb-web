@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-2 mt-4 mx-4">
+  <div class="flex flex-col gap-2 mt-4 mx-4 h-full">
     <!--header-->
     <el-form>
       <el-radio-group v-model="activeTab">
@@ -9,10 +9,11 @@
         <el-radio-button label="colSchemas">集合属性定义</el-radio-button>
         <el-radio-button label="tag">标签</el-radio-button>
         <el-radio-button label="replica">全量复制定义</el-radio-button>
+        <el-radio-button label="files" v-if="externalFsUrl">文件管理</el-radio-button>
       </el-radio-group>
     </el-form>
     <!--content-->
-    <div class="flex flex-row gap-2">
+    <div class="flex flex-row flex-grow gap-2 pb-4">
       <div class="w-4/5">
         <div v-show="activeTab === 'database'" class="flex flex-col gap-2">
           <el-table :data="store.dbs" stripe @selection-change="changeDbSelect">
@@ -45,10 +46,10 @@
             <el-table-column prop="description" label="说明"></el-table-column>
             <el-table-column label="操作" width="180">
               <template #default="scope">
-                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
-                </el-button>
                 <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
                 <el-button type="primary" link size="small" @click="removeSchema(scope.row)">删除</el-button>
+                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -59,10 +60,10 @@
             <el-table-column prop="description" label="说明"></el-table-column>
             <el-table-column label="操作" width="180">
               <template #default="scope">
-                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
-                </el-button>
                 <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
                 <el-button type="primary" link size="small" @click="removeSchema(scope.row)">删除</el-button>
+                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -73,10 +74,10 @@
             <el-table-column prop="description" label="说明"></el-table-column>
             <el-table-column label="操作" width="180">
               <template #default="scope">
-                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
-                </el-button>
                 <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
                 <el-button type="primary" link size="small" @click="removeSchema(scope.row)">删除</el-button>
+                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -114,6 +115,10 @@
             </el-pagination>
           </div>
         </div>
+        <div v-if="externalFsUrl" v-show="activeTab === 'files'" class="flex flex-col gap-2 h-full">
+          <iframe id="iframe" width="100%" height="100%" frameborder="0" :src="externalFsUrl" marginwidth="0"
+            marginheight="0" scrolling="no"></iframe>
+        </div>
       </div>
       <!--right-->
       <div>
@@ -128,18 +133,30 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onMounted, reactive, ref, toRaw } from 'vue'
+import { computed, onMounted, reactive, ref, toRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Batch } from 'tms-vue3'
 
 import facStore from '@/store'
 import { openDbEditor, openTagEditor, openReplicaEditor, openSchemaEditor } from '@/components/editor'
+import { EXTERNAL_FS_URL, getLocalToken } from '@/global'
 
 const store = facStore()
 
 // 查找条件下拉框分页包含记录数
 const LIST_DB_PAGE_SIZE = 100
 const LIST_RP_PAGE_SIZE = 100
+
+// 文件服务地址
+const externalFsUrl = computed(() => {
+  let fsUrl = EXTERNAL_FS_URL()
+  if (fsUrl) {
+    fsUrl += fsUrl.indexOf('?') === -1 ? '?' : '&'
+    fsUrl += `access_token=${getLocalToken()}`
+    fsUrl += '&pickFile=no'
+  }
+  return fsUrl
+})
 
 const props = defineProps({ bucketName: String })
 
@@ -206,7 +223,7 @@ const changeDbSelect = (value: never[]) => {
 const createSchema = (scope: string) => {
   openSchemaEditor({
     bucketName: props.bucketName,
-    schema: { scope, body: {} },
+    schema: { scope, body: { type: 'object' } },
     onBeforeClose: (newSchema?: any) => {
       if (newSchema)
         store.appendSchema({ schema: newSchema })
@@ -221,7 +238,7 @@ const editSchema = (schema: any, index: any, isCopy = false) => {
   }
   openSchemaEditor({
     bucketName: props.bucketName,
-    schema: JSON.parse(JSON.stringify(toRaw(schema))),
+    schema: JSON.parse(JSON.stringify(toRaw(newObj))),
     onBeforeClose: (newSchema?: any) => {
       if (newSchema)
         if (isCopy) {

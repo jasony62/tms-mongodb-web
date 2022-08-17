@@ -2,20 +2,26 @@
 
 # tmw-kit
 
-封装`tms-mongodb-web`的通用操作。作为独立的包`tmw-kit`发布。
+封装`tms-mongodb-web`的通用操作，为开发插件提供支持。作为独立的包`tmw-kit`发布。
 
+```bash
+npm run build
+```
 # tms-back
 
 基于`tms-koa`进行二次开发，`controller`，提供 API。
 
 在本地启动启动服务。通过环境变量指定配置文件和控制器位置（支持相对路径）。
 
-```shell
-TMS_KOA_CONFIG_DIR=xxx TMS_KOA_CONTROLLERS_DIR=./dist/controllers node dist/server
-```
+```bash
+TMW_APP_PORT=3020 
+TMW_APP_AUTH_CAPTCHA_DISABLED=yes 
+TMS_KOA_CONFIG_DIR=../../docker/back/config 
+TMS_KOA_CONTROLLERS_DIR=./dist/controllers 
 
-```
-TMS_KOA_CONFIG_DIR=../../docker/allinone/back/config TMS_KOA_CONTROLLERS_DIR=./dist/controllers node dist/server
+npm run build 
+
+node dist/server
 ```
 
 # ue_admin
@@ -25,12 +31,13 @@ TMS_KOA_CONFIG_DIR=../../docker/allinone/back/config TMS_KOA_CONTROLLERS_DIR=./d
 客户端会从起始访问地址获取后端服务信息。需要在前端页面根目录下放置`settings.json`文件。例如：
 
 ```json
+{
   "authApiBase": "auth",
   "authApiPort": 3020,
   "backApiBase": "api",
   "backApiPort": 3020,
   "loginCaptchaDisabled": false
-
+}
 ```
 
 运行在`nginx`中。
@@ -49,4 +56,6 @@ location / {
 
 ## 后端扩展
 
-利用`tms-koa`的控制器插件机制进行扩展。
+利用`tms-koa`的控制器插件机制扩展扩展后端服务。
+
+## 前端插件

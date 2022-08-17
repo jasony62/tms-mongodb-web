@@ -5,10 +5,10 @@ FROM node:16.15-alpine3.15 AS builder
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
 
 # 安装基础包
-RUN npm install -g pnpm typescript
+RUN npm install --location=global pnpm typescript
 
-# 安装Python3，为安装sharp做准备
-RUN apk add --update --no-cache py3-pip python3
+# 安装sharp包需要的工具
+RUN apk add python3 make
 # 解决sharp依赖的libvips包下载慢的问题
 COPY ../docker/back/npmlibs/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br /root/.npm/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br
 
@@ -78,4 +78,4 @@ RUN chmod +x /usr/local/bin/start_all.sh
 # 配置文件
 COPY ../docker/back/config /usr/app/tmw/config
 
-CMD ["start_all.sh"]
+ENTRYPOINT ["start_all.sh"]

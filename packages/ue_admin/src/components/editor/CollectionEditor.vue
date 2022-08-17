@@ -2,10 +2,11 @@
   <el-dialog title="集合" v-model="dialogVisible" :destroy-on-close="true" :close-on-click-modal="false"
     :before-close="onBeforeClose">
     <el-tabs v-model="activeTab" type="card">
-      <el-tab-pane label="基本信息" name="first"></el-tab-pane>
-      <el-tab-pane label="设置" name="second"></el-tab-pane>
+      <el-tab-pane label="基本信息" name="info"></el-tab-pane>
+      <el-tab-pane label="设置" name="setting"></el-tab-pane>
+      <el-tab-pane label="数据转换" name="convert"></el-tab-pane>
     </el-tabs>
-    <el-form ref="form" :model="collection" label-position="top" v-show="activeTab === 'first'" :rules="rules">
+    <el-form :model="collection" label-position="top" v-show="activeTab === 'info'" :rules="rules">
       <el-form-item label="集合名称（英文）" prop="name">
         <el-input v-model="collection.name"></el-input>
       </el-form-item>
@@ -42,7 +43,7 @@
         <el-input type="textarea" v-model="collection.description"></el-input>
       </el-form-item>
     </el-form>
-    <el-form ref="form" :model="collection.custom" label-position="top" v-show="activeTab === 'second'">
+    <el-form :model="collection.custom" label-position="top" v-show="activeTab === 'setting'">
       <el-form-item label="文档操作">
         <el-checkbox v-model="collection.custom.docOperations.create">添加数据</el-checkbox>
         <el-checkbox v-model="collection.custom.docOperations.edit">修改</el-checkbox>
@@ -89,6 +90,10 @@
         </el-select>
       </el-form-item>
     </el-form>
+    <div v-show="activeTab === 'convert'" class="h-96">
+      <textarea ref="elConvEditor" class="h-full w-full border border-gray-200 p-2"
+        v-model="docFieldConvertRules"></textarea>
+    </div>
     <template #footer>
       <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button @click="onBeforeClose">取消</el-button>
@@ -101,7 +106,7 @@ import apiDb from '@/apis/database'
 import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { FormRules, ElMessage, ElMessageBox } from 'element-plus'
 
 // 查找条件下拉框分页包含记录数
@@ -150,6 +155,7 @@ const props = defineProps({
             insert: false,
           },
         },
+        docFieldConvertRules: {}
       }
     },
   },
@@ -157,7 +163,7 @@ const props = defineProps({
 })
 
 const dialogVisible = ref(props.dialogVisible)
-const activeTab = ref('first')
+const activeTab = ref('info')
 const schemas = ref([] as any[])
 const tags = ref([] as any[])
 const criteria = reactive({
@@ -176,6 +182,26 @@ const { mode, bucketName, dbName, onClose } = props
 const collection = reactive(props.collection)
 // 集合的原名称，用于更新操作
 const clBeforeName = props.collection.name
+// 文档字段映射规则
+const docFieldConvertRules = computed({
+  get: () => {
+    let jsonStr
+    try {
+      jsonStr = JSON.stringify(collection.docFieldConvertRules, null, 2)
+    } catch (e) {
+      jsonStr = ''
+    }
+    return jsonStr
+  },
+  set: (val) => {
+    try {
+      let json = JSON.parse(val)
+      collection.docFieldConvertRules = json
+    } catch (e) {
+      // 什么也不做
+    }
+  }
+})
 
 onMounted(() => {
   apiSchema.listSimple(bucketName).then((schemas2: any[]) => {

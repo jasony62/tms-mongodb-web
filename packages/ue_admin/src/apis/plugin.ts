@@ -5,7 +5,14 @@ type ApiRst = {
   data: { result: any }
 }
 export default {
-  getPlugins(bucket: any, db: string, cl: string) {
+  /**
+   * 针对指定集合中的文档的插件
+   * @param bucket 存储空间名称
+   * @param db 数据库名称
+   * @param cl 集合名称
+   * @returns 可用插件列表
+   */
+  getCollectionDocPlugins(bucket: string | undefined, db: string, cl: string) {
     const base = BACK_API_URL() + '/plugins'
     const params = { bucket, db, cl }
     return TmsAxios.ins('mongodb-api')

@@ -1,5 +1,5 @@
 <template>
-  <el-dialog title="文档内容定义" v-model="dialogVisible" :fullscreen="true" :destroy-on-close="true"
+  <el-dialog :title="title" v-model="dialogVisible" :fullscreen="true" :destroy-on-close="true"
     :close-on-click-modal="false" :before-close="onBeforeClose">
     <div class="h-full flex flex-col">
       <el-tabs v-model="activeTab" type="card">
@@ -29,11 +29,14 @@
               </el-form-item>
             </template>
           </tms-json-schema>
-          <div class="h-full flex-grow flex flex-col gap-2 relative">
+          <div class="h-full flex-grow flex flex-col gap-2 relative" style="max-width:50%;">
             <div class="absolute top-0 right-0">
               <el-button @click="preview">预览</el-button>
+              <el-tooltip effect="dark" content="复制" placement="bottom" :visible="copyTooltipVisible">
+                <el-button @click="copy" :disabled="!previewResult">复制</el-button>
+              </el-tooltip>
             </div>
-            <div class="border-2 border-gray-300 rounded-md p-2 h-full overflow-auto">
+            <div class="border-2 border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
               <pre>{{ previewResult }}</pre>
             </div>
           </div>
@@ -51,6 +54,7 @@ import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
 import apiDoc from '@/apis/document'
 import { onMounted, reactive, ref } from 'vue'
+import useClipboard from 'vue-clipboard3'
 
 const emit = defineEmits(['submit'])
 
@@ -73,6 +77,7 @@ const dialogVisible = ref(props.dialogVisible)
 const schema = reactive(props.schema)
 const { onClose, bucketName } = props
 
+const title = schema.scope === document ? '文档内容定义' : (schema.scope === 'db' ? '数据库属性定义' : '集合属性定义')
 const activeTab = ref('first')
 const tags = ref([] as any[])
 
@@ -110,6 +115,18 @@ const onUploadFile = (file: any) => {
 
 const preview = () => {
   previewResult.value = JSON.stringify($jse.value?.editing(), null, 2)
+}
+
+const { toClipboard } = useClipboard()
+
+const copyTooltipVisible = ref(false)
+
+const copy = async () => {
+  try {
+    await toClipboard(previewResult.value)
+    copyTooltipVisible.value = true
+    setTimeout(() => { copyTooltipVisible.value = false }, 1000)
+  } catch (e) { }
 }
 
 const onSubmit = () => {
