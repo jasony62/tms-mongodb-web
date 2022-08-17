@@ -4,6 +4,9 @@
 
 封装`tms-mongodb-web`的通用操作，为开发插件提供支持。作为独立的包`tmw-kit`发布。
 
+```bash
+npm run build
+```
 # tms-back
 
 基于`tms-koa`进行二次开发，`controller`，提供 API。
@@ -11,7 +14,14 @@
 在本地启动启动服务。通过环境变量指定配置文件和控制器位置（支持相对路径）。
 
 ```bash
-TMW_TMS_APP_PORT=3020 TMW_APP_AUTH_CAPTCHA_DISABLED=yes TMS_KOA_CONFIG_DIR=../../docker/back/config TMS_KOA_CONTROLLERS_DIR=./dist/controllers node dist/server
+TMW_APP_PORT=3020 
+TMW_APP_AUTH_CAPTCHA_DISABLED=yes 
+TMS_KOA_CONFIG_DIR=../../docker/back/config 
+TMS_KOA_CONTROLLERS_DIR=./dist/controllers 
+
+npm run build 
+
+node dist/server
 ```
 
 # ue_admin
