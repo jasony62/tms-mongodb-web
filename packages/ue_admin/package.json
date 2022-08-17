@@ -18,7 +18,7 @@
     "pinia": "^2.0.13",
     "tms-koa-account": "^0.0.10",
     "tms-vue3": "^0.0.5",
-    "tms-vue3-ui": "file:/Users/yangyue/project/tms-vue3-kit/packages/tms-vue3-ui",
+    "tms-vue3-ui": "^0.0.54",
     "vue": "^3.2.25",
     "vue-clipboard3": "^2.0.0",
     "vue-router": "4"
