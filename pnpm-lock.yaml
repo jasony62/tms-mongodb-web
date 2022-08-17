@@ -59,13 +59,17 @@ importers:
   packages/ue_admin:
     specifiers:
       '@element-plus/icons-vue': ^2.0.6
+      '@types/debug': ^4.1.7
       '@types/jsoneditor': ^9.5.1
+      '@types/lodash': ^4.14.182
       '@types/node': ^18.6.5
       '@vitejs/plugin-vue': ^3.0.1
       add: ^2.0.6
       autoprefixer: ^10.4.5
+      debug: ^4.3.4
       element-plus: ^2.2.8
       jsoneditor: ^9.7.4
+      lodash: ^4.17.21
       mongodb: ^4.7.0
       pinia: ^2.0.13
       postcss: ^8.4.12
@@ -85,18 +89,22 @@ importers:
     dependencies:
       '@element-plus/icons-vue': 2.0.6_vue@3.2.37
       add: 2.0.6
+      debug: 4.3.4
       element-plus: 2.2.9_vue@3.2.37
       jsoneditor: 9.9.0
+      lodash: 4.17.21
       mongodb: 4.8.0
       pinia: 2.0.16_j6bzmzd4ujpabbp5objtwxyjp4
       tms-koa-account: 0.0.10
-      tms-vue3: 0.0.5
+      tms-vue3: 0.0.5_debug@4.3.4
       tms-vue3-ui: file:../tms-vue3-kit/packages/tms-vue3-ui_vue@3.2.37
       vue: 3.2.37
       vue-clipboard3: 2.0.0
       vue-router: 4.1.2_vue@3.2.37
     devDependencies:
+      '@types/debug': 4.1.7
       '@types/jsoneditor': 9.5.1
+      '@types/lodash': 4.14.182
       '@types/node': 18.6.5
       '@vitejs/plugin-vue': 3.0.1_vite@3.0.4+vue@3.2.37
       autoprefixer: 10.4.7_postcss@8.4.14
@@ -334,7 +342,6 @@ packages:
     resolution: {integrity: sha512-9AonUzyTjXXhEOa0DnqpzZi6VHlqKMswga9EXjpXnnqxwLtdvPPtlO8evrI5D9S6asFRCQ6v+wpiUKbw+vKqyg==}
     dependencies:
       '@types/ms': 0.7.31
-    dev: false
 
   /@types/formidable/1.2.5:
     resolution: {integrity: sha512-zu3mQJa4hDNubEMViSj937602XdDGzK7Q5pJ5QmLUbNxclbo9tZGt5jtwM352ssZ+pqo5V4H14TBvT/ALqQQcA==}
@@ -371,7 +378,6 @@ packages:
 
   /@types/ms/0.7.31:
     resolution: {integrity: sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==}
-    dev: false
 
   /@types/node/17.0.45:
     resolution: {integrity: sha512-w+tIMs3rq2afQdsPJlODhoUEKzFP1ayaoyl1CcnwtIlsVe7K7bA1NGm4s3PraqTLlXnbIN84zuBlxBWo1u9BLw==}
@@ -3577,10 +3583,10 @@ packages:
       - debug
     dev: false
 
-  /tms-vue3/0.0.5:
+  /tms-vue3/0.0.5_debug@4.3.4:
     resolution: {integrity: sha512-djzmchp3U17EKWuwKvtk1cKqUUfitcR//+L6jpNfCiUyfZxASD56szd+kmKV+qRnUJBHlY17hFaS9p4SkXc4uw==}
     dependencies:
-      axios: 0.27.2
+      axios: 0.27.2_debug@4.3.4
     transitivePeerDependencies:
       - debug
     dev: false

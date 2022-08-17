@@ -42,8 +42,12 @@ import { openPickFileEditor } from '@/components/editor'
 import JSONEditor from 'jsoneditor'
 import 'jsoneditor/dist/jsoneditor.css'
 import useClipboard from 'vue-clipboard3'
+import * as _ from 'lodash'
+import * as Debug from 'debug'
 
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
+
+const debug = Debug('tmw:doc-editor')
 
 const { VITE_SCHEMA_TAGS } = import.meta.env
 
@@ -67,6 +71,9 @@ const props = defineProps({
 const { bucketName, dbName, collection, document, onClose } = props
 const $jde = ref<{ editing: () => string, editDoc: DocAsArray } | null>(null)
 // const plugins: any[] = []
+
+// 文档字段转化规则
+const DocFieldConvertRules = (collection.docFieldConvertRules && typeof collection.docFieldConvertRules === 'object') ? collection.docFieldConvertRules : {}
 
 const elJsonEditor = ref<HTMLElement | null>(null)
 
@@ -125,32 +132,80 @@ const updateFieldJson = () => {
   }
 }
 /**
+ * 将传入的外部数据转换为与field属性定义匹配的数据
+ * @param field 指定的文档字段
+ * @param source 外部数据来源
+ * @param data 外部数据
+ */
+function convertExternalData(field: Field, source: string, data: any): any {
+  const log = debug.extend('convertExternalData')
+  const dataType = field.schemaType
+  const newData = dataType === 'object' ? {} : (dataType === 'array' ? [] : undefined)
+  if (!newData) return newData
+
+  log(`字段【${field.fullname}】从【${source}】获得外部数据\n` + JSON.stringify(data, null, 2))
+
+  let rules = DocFieldConvertRules[source] ? DocFieldConvertRules[source][field.fullname] : null
+  if (Array.isArray(rules) && rules.length) {
+    // 如何确定哪个规则更匹配？
+  } else if (rules && typeof rules === 'object') {
+    log(`字段【${field.fullname}】有【${source}】数据转换规则\n` + JSON.stringify(rules, null, 2))
+    let converted = _.transform(rules, (result: any, dataDef: any, docKey: string) => {
+      if (dataDef) {
+        if (typeof dataDef === 'string') {
+          // 定义的是外部数据的key
+          let val = _.get(data, dataDef)
+          _.set(result, docKey, val)
+        } else if (Array.isArray(dataDef) && dataDef.length) {
+          // 不支持
+        } else if (typeof dataDef === 'object') {
+          // 定义的是固定的值
+          if (dataDef.value ?? false) {
+            _.set(result, docKey, dataDef.value)
+          }
+        }
+      }
+    }, {})
+
+    log(`字段【${field.fullname}】获得【${source}】转换后数据\n` + JSON.stringify(converted, null, 2))
+    if (dataType === 'object' && typeof data === 'object')
+      _.assign(newData, data, converted)
+    else _.assign(newData, converted)
+  }
+
+  return newData
+}
+/**
  * 对指定字段执行黏贴操作，快速添加子字段
  * @param field 指定的字段
  */
 const onJdocPaste = async (field: Field) => {
+  const log = debug.extend('onJdocPaste')
   /**从粘贴板中获取数据，添加到文档中*/
   const clipText = await navigator.clipboard.readText()
   try {
     let clipData = JSON.parse(clipText)
-    return clipData
+    let newData = convertExternalData(field, 'onPaste', clipData)
+    return newData
   } catch (e: any) {
     let msg = `粘贴内容填充字段【${field.fullname}】失败：` + e.message
+    log(msg)
   }
 }
 /**
- * 表单通过外部文件服务选取文件
- * @param params 
+ * 通过外部文件服务选取文件
  */
-const onFileSelect = async () => {
+const onFileSelect = async (field: Field) => {
+  const log = debug.extend('onFileSelect')
   let fsUrl = EXTERNAL_FS_URL()
   fsUrl += fsUrl.indexOf('?') === -1 ? '?' : '&'
   fsUrl += `access_token=${getLocalToken()}&pickFile=yes`
   return new Promise((resolve) => {
     openPickFileEditor({
       url: fsUrl,
-      onBeforeClose: (file?: any) => {
-        resolve(file)
+      onBeforeClose: (fileInfo?: any) => {
+        let newData = convertExternalData(field, 'onFileSelect', fileInfo)
+        resolve(newData)
       },
     })
   })

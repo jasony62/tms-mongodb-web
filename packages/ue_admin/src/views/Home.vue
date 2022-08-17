@@ -223,7 +223,7 @@ const changeDbSelect = (value: never[]) => {
 const createSchema = (scope: string) => {
   openSchemaEditor({
     bucketName: props.bucketName,
-    schema: { scope, body: {} },
+    schema: { scope, body: { type: 'object' } },
     onBeforeClose: (newSchema?: any) => {
       if (newSchema)
         store.appendSchema({ schema: newSchema })
