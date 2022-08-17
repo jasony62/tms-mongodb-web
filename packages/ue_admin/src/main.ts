@@ -8,7 +8,7 @@ import {
   TmsLockPromise,
   TmsRouterHistoryPlugin,
 } from 'tms-vue3'
-import { Frame, Flex, Login, SubmitDataItem, LoginResponse } from 'tms-vue3-ui'
+import { Frame, Flex, Login, LoginResponse } from 'tms-vue3-ui'
 import router from './router'
 import App from './App.vue'
 import ElementPlus, { ElMessage } from 'element-plus'
@@ -23,6 +23,7 @@ import 'tms-vue3-ui/dist/es/frame/style/index.css'
 import 'tms-vue3-ui/dist/es/flex/style/index.css'
 import './assets/common.scss'
 import apiAuth from '@/apis/login'
+import { schema } from '@/data/login'
 const { fnCaptcha, fnLogin } = apiAuth
 
 const LoginSchema: SubmitDataItem[] = [
@@ -59,7 +60,7 @@ const LoginPromise = (function () {
   }
   let ins = new TmsLockPromise(function () {
     return Login.open({
-      schema: LoginSchema,
+      schema: schema(),
       fnCaptcha,
       fnLogin,
       onSuccess: fnSuccessLogin,
