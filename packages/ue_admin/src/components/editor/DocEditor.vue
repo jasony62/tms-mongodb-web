@@ -133,6 +133,14 @@ const updateFieldJson = () => {
 }
 /**
  * 将传入的外部数据转换为与field属性定义匹配的数据
+ * 
+ * 用'__'代表根节点（两个下划线）
+ * 
+ * 如果指定了多条映射，按如下原则匹配：
+ * 外部数组字段匹配的百分比越高，比配的数量越多，越靠前，优先级越高
+ * 
+ * 内部数据字段对应的可以是字符串或对象。字符串代表外部数据对象的path；对象中的value代表内部字段的值
+ * 
  * @param field 指定的文档字段
  * @param source 外部数据来源
  * @param data 外部数据
@@ -145,33 +153,54 @@ function convertExternalData(field: Field, source: string, data: any): any {
 
   log(`字段【${field.fullname}】从【${source}】获得外部数据\n` + JSON.stringify(data, null, 2))
 
-  let rules = DocFieldConvertRules[source] ? DocFieldConvertRules[source][field.fullname] : null
+  let usedRule
+  let rules = DocFieldConvertRules[source] ? DocFieldConvertRules[source][field.fullname || '__'] : null
+
   if (Array.isArray(rules) && rules.length) {
-    // 如何确定哪个规则更匹配？
+    log(`字段【${field.fullname}】有【${source}】数据转换规则，共【${rules.length}】条`)
+    const [matchIndex, score] = rules.reduce((result, rule, index) => {
+      // 规则中指定的外部数据需要提供的字段
+      let externalPaths: string[] = []
+      Object.values(rule).forEach(v => {
+        if (v && typeof v === 'string') externalPaths.push(v)
+      })
+      // 外部数据中包含的指定字段的数量
+      let matchedNum = 0
+      externalPaths.forEach((p) => { if (Object.hasOwn(data, p)) matchedNum++ })
+      // 分数分为3段
+      let score = Math.floor(matchedNum / externalPaths.length * 100) * 100000 + (matchedNum * 100) + (99 - index)
+      log(`字段【${field.fullname}】有【${source}】数据转换规则中，第【${index}】条得分【${score}】`)
+      return score > result[1] ? [index, score] : result
+    }, [-1, -1])
+    log(`字段【${field.fullname}】有【${source}】数据转换规则中，第【${matchIndex}】条匹配`)
+    if (matchIndex !== -1) usedRule = rules[matchIndex]
   } else if (rules && typeof rules === 'object') {
-    log(`字段【${field.fullname}】有【${source}】数据转换规则\n` + JSON.stringify(rules, null, 2))
-    let converted = _.transform(rules, (result: any, dataDef: any, docKey: string) => {
-      if (dataDef) {
-        if (typeof dataDef === 'string') {
-          // 定义的是外部数据的key
-          let val = _.get(data, dataDef)
-          _.set(result, docKey, val)
-        } else if (Array.isArray(dataDef) && dataDef.length) {
-          // 不支持
-        } else if (typeof dataDef === 'object') {
-          // 定义的是固定的值
-          if (dataDef.value ?? false) {
-            _.set(result, docKey, dataDef.value)
-          }
+    usedRule = rules
+  }
+  if (!usedRule) return undefined
+
+  log(`字段【${field.fullname}】有【${source}】数据转换规则\n` + JSON.stringify(usedRule, null, 2))
+  let converted = _.transform(usedRule, (result: any, dataDef: any, docKey: string) => {
+    if (dataDef) {
+      if (typeof dataDef === 'string') {
+        // 定义的是外部数据的key
+        let val = _.get(data, dataDef)
+        _.set(result, docKey, val)
+      } else if (Array.isArray(dataDef) && dataDef.length) {
+        // 不支持
+      } else if (typeof dataDef === 'object') {
+        // 定义的是固定的值
+        if (dataDef.value ?? false) {
+          _.set(result, docKey, dataDef.value)
         }
       }
-    }, {})
+    }
+  }, {})
 
-    log(`字段【${field.fullname}】获得【${source}】转换后数据\n` + JSON.stringify(converted, null, 2))
-    if (dataType === 'object' && typeof data === 'object')
-      _.assign(newData, data, converted)
-    else _.assign(newData, converted)
-  }
+  log(`字段【${field.fullname}】获得【${source}】转换后数据\n` + JSON.stringify(converted, null, 2))
+  if (dataType === 'object' && typeof data === 'object')
+    _.assign(newData, data, converted)
+  else _.assign(newData, converted)
 
   return newData
 }
