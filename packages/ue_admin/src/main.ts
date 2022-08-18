@@ -26,24 +26,6 @@ import apiAuth from '@/apis/login'
 import { schema } from '@/data/login'
 const { fnCaptcha, fnLogin } = apiAuth
 
-const LoginSchema: SubmitDataItem[] = [
-  {
-    key: import.meta.env.VITE_APP_LOGIN_KEY_USERNAME || 'uname',
-    type: 'text',
-    placeholder: '用户名',
-  },
-  {
-    key: import.meta.env.VITE_APP_LOGIN_KEY_PASSWORD || 'password',
-    type: 'password',
-    placeholder: '密码',
-  },
-  {
-    key: import.meta.env.VITE_APP_LOGIN_KEY_PIN || 'pin',
-    type: 'captcha',
-    placeholder: '验证码',
-  },
-]
-
 const LoginPromise = (function () {
   const fnSuccessLogin = function (response: LoginResponse) {
     const token = response.result.access_token

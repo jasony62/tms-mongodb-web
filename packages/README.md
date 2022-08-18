@@ -18,11 +18,16 @@ TMW_APP_PORT=3020
 TMW_APP_AUTH_CAPTCHA_DISABLED=yes 
 TMS_KOA_CONFIG_DIR=../../docker/back/config 
 TMS_KOA_CONTROLLERS_DIR=./dist/controllers 
+TMW_APP_PLUGIN_DIR=./dist/plugins
 
 npm run build 
 
 node dist/server
 ```
+
+新增插件时，需要在tmw-back/src下新建plugins文件夹
+
+每次更改后，需要重新执行```npm run build```
 
 # ue_admin
 
