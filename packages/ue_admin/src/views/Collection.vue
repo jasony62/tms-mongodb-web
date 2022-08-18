@@ -11,8 +11,7 @@
     <!--content-->
     <div class="flex flex-row gap-2">
       <div class="w-4/5 flex flex-col gap-4">
-        <el-table :data="store.documents" highlight-current-row stripe @current-change="handleCurrentChange"
-          @selection-change="handleSelectionChange">
+        <el-table :data="store.documents" highlight-current-row stripe @selection-change="handleSelectionChange">
           <el-table-column fixed="left" type="index" width="48"></el-table-column>
           <el-table-column type="selection" width="48" />
           <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
@@ -96,21 +95,24 @@
           <el-button v-if="p.transData === 'nothing'" type="success" plain @click="handlePlugins(p)">{{ p.title }}
           </el-button>
           <el-dropdown v-else>
-            <el-button type="success" plain>{{ p.title }}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(p, 'all')">按全部
-                </el-button>
-              </el-dropdown-item>
-              <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(p, 'filter')">
-                  按筛选</el-button>
-              </el-dropdown-item>
-              <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(p, 'checked')">
-                  按选中</el-button>
-              </el-dropdown-item>
-            </el-dropdown-menu>
+            <el-button type="success" plain>{{ p.title }}
+              <el-icon class="el-icon--right">
+                <arrow-down />
+              </el-icon>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item>
+                  <el-button type="" text @click="handlePlugins(p, 'all')">按全部({{ data.docBatch.total }})</el-button>
+                </el-dropdown-item>
+                <el-dropdown-item>
+                  <el-button type="" text @click="handlePlugins(p, 'filter')">按筛选</el-button>
+                </el-dropdown-item>
+                <el-dropdown-item>
+                  <el-button type="" text @click="handlePlugins(p, 'checked')">按选中({{ totalChecked }})</el-button>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
           </el-dropdown>
         </div>
       </div>
@@ -121,7 +123,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, toRaw, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowRight, Filter } from '@element-plus/icons-vue'
+import { ArrowRight, Filter, ArrowDown } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
 
 import apiCollection from '@/apis/collection'
@@ -152,6 +154,7 @@ const props = defineProps({
   bucketName: { type: String, defalut: '' },
   dbName: { type: String, default: '' },
   clName: { type: String, default: '' },
+  tmsAxiosName: { type: String, default: 'mongodb-api' }
 })
 const { bucketName, dbName, clName } = props
 
@@ -164,11 +167,8 @@ const data = reactive({
 })
 
 let currentNames = ref([] as any[])
-let currentDocument = ref<any>(null)
 let selectedDocuments = ref<any[]>([])
 let totalChecked = computed(() => selectedDocuments.value.length)
-
-const handlePlugins = (plugin: any, type?: string) => { }
 
 const handleCondition = () => {
   const conditions = store.conditions
@@ -203,10 +203,6 @@ const handleFilter = (schema: any, name: any) => {
       listDocByKw()
     },
   })
-}
-
-const handleCurrentChange = (row: any) => {
-  currentDocument.value = row
 }
 
 const handleSelectionChange = (rows: any) => {
@@ -279,6 +275,108 @@ const removeDocument = (document: any) => {
 const downLoadFile = (file: any) => {
   const access_token = getLocalToken()
   window.open(`${file.url}?access_token=${access_token}`)
+}
+
+const fnSetReqParam = (command: string) => {
+  if (command === 'all') {
+    return { filter: 'ALL' }
+  } else if (command === 'filter') {
+  } else if (command === 'checked') {
+    let ids = selectedDocuments.value.map((document: any) => document._id)
+    return { docIds: ids }
+  }
+}
+
+const handlePlugins = (plugin: any, type: string = "") => {
+  let postBody = {} as any
+  if (plugin.transData && plugin.transData === 'one') {
+    postBody = type
+  } else {
+    if (['All', 'filter', 'checked'].includes(type))
+      postBody = fnSetReqParam(type)
+  }
+  new Promise((resolve) => {
+    resolve({})
+  }).then((beforeResult) => {
+    if (beforeResult) {
+      postBody.widget = beforeResult
+    }
+    let queryParams = {
+      db: dbName,
+      cl: clName,
+      plugin: plugin.name,
+      // name: plugin.name,
+      // type: plugin.type, // 这个参数应该去掉，插件自己知道自己的类型
+    }
+    apiPlugin
+      .execute(queryParams, postBody)
+      .then((result: any) => {
+        if (typeof result === 'string') {
+          ElMessage.success({
+            message: result, showClose: true,
+          })
+          listDocByKw()
+        } else if (result && typeof result === 'object' && result.type === 'documents') {
+          /**返回操作结果——数据 */
+          let nInserted = 0, nModified = 0, nRemoved = 0
+          let { inserted, modified, removed } = result
+          /**在当前文档列表中移除删除的记录 */
+          if (Array.isArray(removed) && (nRemoved = removed.length)) {
+            let documents = data.documents.filter((doc) => !removed.includes(doc._id))
+            store.documents = documents
+          }
+          /**在当前文档列表中更新修改的记录 */
+          if (Array.isArray(modified) && (nModified = modified.length)) {
+            let map = modified.reduce((m, doc) => {
+              if (doc._id && typeof doc._id === 'string') m[doc._id] = doc
+              return m
+            }, {})
+            data.documents.forEach((doc: any, index: number) => {
+              let newDoc = map[doc._id]
+              if (newDoc) Object.assign(doc, newDoc)
+              store.updateDocument({ index, document: doc })
+            })
+          }
+          /**在当前文档列表中添加插入的记录 */
+          if (Array.isArray(inserted) && (nInserted = inserted.length)) {
+            inserted.forEach((newDoc) => {
+              if (newDoc._id && typeof newDoc._id === 'string')
+                data.documents.unshift(newDoc)
+            })
+          }
+          let msg = `插件[${plugin.title}]执行完毕，添加[${parseInt(nInserted) || 0
+            }]条，修改[${parseInt(nModified) || 0}]条，删除[${parseInt(nRemoved) || 0
+            }]条记录。`
+          ElMessage.success({ message: msg })
+        } else if (
+          result &&
+          typeof result === 'object' &&
+          result.type === 'numbers'
+        ) {
+          /**返回操作结果——数量 */
+          let { nInserted, nModified, nRemoved } = result
+          let message = `插件[${plugin.title}]执行完毕，添加[${parseInt(nInserted) || 0
+            }]条，修改[${parseInt(nModified) || 0}]条，删除[${parseInt(nRemoved) || 0
+            }]条记录。`
+          ElMessageBox.confirm(message, '提示', {
+            confirmButtonText: '关闭',
+            cancelButtonText: '刷新数据',
+            showClose: false,
+          }).catch(() => {
+            listDocByKw()
+          })
+        } else {
+          ElMessage.success({
+            message: `插件[${plugin.title}]执行完毕。`,
+            showClose: true,
+          })
+          listDocByKw()
+        }
+      })
+      .catch((err: any) => {
+        ElMessage.error(err.msg)
+      })
+  })
 }
 
 const changeDocPage = (page: number) => {

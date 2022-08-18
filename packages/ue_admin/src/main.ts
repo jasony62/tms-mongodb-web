@@ -8,7 +8,7 @@ import {
   TmsLockPromise,
   TmsRouterHistoryPlugin,
 } from 'tms-vue3'
-import { Frame, Flex, Login, SubmitDataItem, LoginResponse } from 'tms-vue3-ui'
+import { Frame, Flex, Login, LoginResponse } from 'tms-vue3-ui'
 import router from './router'
 import App from './App.vue'
 import ElementPlus, { ElMessage } from 'element-plus'
@@ -23,25 +23,8 @@ import 'tms-vue3-ui/dist/es/frame/style/index.css'
 import 'tms-vue3-ui/dist/es/flex/style/index.css'
 import './assets/common.scss'
 import apiAuth from '@/apis/login'
+import { schema } from '@/data/login'
 const { fnCaptcha, fnLogin } = apiAuth
-
-const LoginSchema: SubmitDataItem[] = [
-  {
-    key: import.meta.env.VITE_APP_LOGIN_KEY_USERNAME || 'uname',
-    type: 'text',
-    placeholder: '用户名',
-  },
-  {
-    key: import.meta.env.VITE_APP_LOGIN_KEY_PASSWORD || 'password',
-    type: 'password',
-    placeholder: '密码',
-  },
-  {
-    key: import.meta.env.VITE_APP_LOGIN_KEY_PIN || 'pin',
-    type: 'captcha',
-    placeholder: '验证码',
-  },
-]
 
 const LoginPromise = (function () {
   const fnSuccessLogin = function (response: LoginResponse) {
@@ -59,7 +42,7 @@ const LoginPromise = (function () {
   }
   let ins = new TmsLockPromise(function () {
     return Login.open({
-      schema: LoginSchema,
+      schema: schema(),
       fnCaptcha,
       fnLogin,
       onSuccess: fnSuccessLogin,
