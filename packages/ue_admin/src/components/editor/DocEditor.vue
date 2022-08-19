@@ -1,6 +1,7 @@
 <template>
   <el-dialog title="文档" v-model="dialogVisible" :fullscreen="true" :destroy-on-close="true" :close-on-click-modal="true"
     :before-close="onBeforeClose">
+    <div v-if="document?._id" class="p-2 border border-gray-200 mb-2 rounded-md"><span>{{ DocSearchUrl }}</span></div>
     <div class="flex flex-row gap-4 h-full overflow-auto">
       <tms-json-doc ref="$jde" class="w-1/3 h-full overflow-auto" :schema="collection.schema.body" :value="document"
         :enable-paste="true" :on-paste="onJdocPaste" :on-file-select="onFileSelect" :on-file-download="onFileDownload"
@@ -61,7 +62,7 @@ type TMWDocument = {
 const props = defineProps({
   mode: { default: '' },
   dialogVisible: { default: true },
-  bucketName: { type: String },
+  bucketName: { type: String, default: '' },
   dbName: { type: String, required: true },
   collection: { type: Object, required: true },
   document: { type: Object as PropType<TMWDocument> },
@@ -71,6 +72,9 @@ const props = defineProps({
 const { bucketName, dbName, collection, document, onClose } = props
 const $jde = ref<{ editing: () => string, editDoc: DocAsArray } | null>(null)
 // const plugins: any[] = []
+
+// 文档对象参数信息
+const DocSearchUrl = document?._id ? `bucket=${bucketName}&db=${dbName}&cl=${collection.name}&id=${document._id}` : ''
 
 // 文档字段转化规则
 const DocFieldConvertRules = (collection.docFieldConvertRules && typeof collection.docFieldConvertRules === 'object') ? collection.docFieldConvertRules : {}

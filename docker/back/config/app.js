@@ -26,7 +26,7 @@ let appConfig = {
       privateKey:
         env.TMW_APP_AUTH_JWT_KEY ||
         `TMW${Date.now()}${parseInt(Math.random() * 100)}`,
-      expiresIn: 3600,
+      expiresIn: parseInt(env.TMW_APP_AUTH_JWT_EXPIRESIN) || 3600,
     },
     // 验证码
     captcha: {

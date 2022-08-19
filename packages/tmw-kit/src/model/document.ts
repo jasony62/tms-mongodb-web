@@ -10,15 +10,24 @@ class Document extends Base {
    * 获得指定id的文档
    * @param {object} existCl - 文档所在集合
    * @param {string} id - 文档id
+   * @param {object} projection - 显示哪些列
    *
    * @returns {object} 文档对象
    */
-  async byId(existCl, id) {
+  async byId(existCl, id, projection = null) {
     let mongoClient = this.mongoClient
     let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
-    let existDoc = await sysCl.findOne({
-      _id: new ObjectId(id),
-    })
+
+    let options: any = {}
+    if (projection && typeof projection === 'object')
+      options.projection = projection
+
+    let existDoc = await sysCl.findOne(
+      {
+        _id: new ObjectId(id),
+      },
+      options
+    )
 
     return existDoc
   }
@@ -321,7 +330,8 @@ class Document extends Base {
     existCl,
     { filter, orderBy } = { filter: null, orderBy: null },
     { page, size } = { page: 0, size: 0 },
-    like = true
+    like = true,
+    projection = null
   ) {
     if (!existCl) return [false, '没有指定存在的集合']
 
@@ -341,19 +351,19 @@ class Document extends Base {
       sort['_id'] = -1
     }
 
-    let data = {}
-    data['docs'] = await cl
+    let data: any = {}
+    data.docs = await cl
       .find(query)
+      .project(projection)
       .skip(skip)
       .limit(limit)
       .sort(sort)
       .toArray()
       .then(async (docs) => {
-        //await this.getDocCompleteStatus(existCl, docs)
         return docs
       })
 
-    data['total'] = await cl.countDocuments(query)
+    data.total = await cl.countDocuments(query)
 
     return [true, data]
   }
