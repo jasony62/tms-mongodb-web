@@ -131,9 +131,9 @@ const copy = async () => {
 
 const onSubmit = () => {
   let newBody = $jse.value?.editing()
-  if (newBody) {
-    schema.body = newBody
-  }
+  if (newBody)
+    Object.assign(schema.body, newBody)
+
   if (schema._id) {
     apiSchema
       .update(bucketName, schema, schema)
