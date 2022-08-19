@@ -20,7 +20,7 @@
               <div @click="handleFilter(s, k)">
                 <span v-if="s.required" class="text-red-400">*</span>
                 <span>{{ s.title }}</span>
-                <img :data-id="k" class="icon_filter w-4 h-4 inline-block" src="../assets/imgs/icon_filter.png">
+                <img :data-id="k" class="w-4 h-4 inline-block" src="../assets/imgs/icon_filter.png">
               </div>
             </template>
             <template #default="scope">
@@ -102,13 +102,16 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item>
-                  <el-button type="" text @click="handlePlugins(p, 'all')">按全部({{ data.docBatch.total }})</el-button>
+                  <el-button text @click="handlePlugins(p, 'all')" :disabled="totalByAll == 0">
+                    按全部({{ totalByAll }})</el-button>
                 </el-dropdown-item>
                 <el-dropdown-item>
-                  <el-button type="" text @click="handlePlugins(p, 'filter')">按筛选</el-button>
+                  <el-button text @click="handlePlugins(p, 'filter')" :disabled="totalByFilter == 0">
+                    按筛选({{ totalByFilter }})</el-button>
                 </el-dropdown-item>
                 <el-dropdown-item>
-                  <el-button type="" text @click="handlePlugins(p, 'checked')">按选中({{ totalChecked }})</el-button>
+                  <el-button text @click="handlePlugins(p, 'checked')" :disabled="totalByChecked == 0">
+                    按选中({{ totalByChecked }})</el-button>
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -122,7 +125,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, toRaw, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowRight, Filter, ArrowDown } from '@element-plus/icons-vue'
+import { ArrowRight, ArrowDown } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
 
 import apiCollection from '@/apis/collection'
@@ -162,12 +165,14 @@ const data = reactive({
   multipleDoc: [] as any[],
   properties: {} as any,
   documents: [] as any[],
-  plugins: [] as any[]
+  plugins: [] as any[],
+  filter: reactive({})
 })
 
-let currentNames = ref([] as any[])
 let selectedDocuments = ref<any[]>([])
-let totalChecked = computed(() => selectedDocuments.value.length)
+const totalByAll = computed(() => Object.keys(data.filter).length ? 0 : data.docBatch.total)
+const totalByFilter = computed(() => Object.keys(data.filter).length ? data.docBatch.total : 0)
+const totalByChecked = computed(() => selectedDocuments.value.length)
 
 const handleCondition = () => {
   const conditions = store.conditions
@@ -182,7 +187,19 @@ const handleCondition = () => {
     Object.assign(criterais.filter, ele.rule.filter)
     Object.assign(criterais.orderBy, ele.rule.orderBy)
   })
+  data.filter = criterais.filter
   return criterais
+}
+
+const handleSetReqParam = (command: string) => {
+  if (command === 'all') {
+    return { filter: 'ALL' }
+  } else if (command === 'filter') {
+    return { filter: handleCondition().filter }
+  } else if (command === 'checked') {
+    let ids = selectedDocuments.value.map((document: any) => document._id)
+    return { docIds: ids }
+  }
 }
 
 const handleFilter = (schema: any, name: any) => {
@@ -306,23 +323,13 @@ const downLoadFile = (file: any) => {
   window.open(`${file.url}?access_token=${access_token}`)
 }
 
-const fnSetReqParam = (command: string) => {
-  if (command === 'all') {
-    return { filter: 'ALL' }
-  } else if (command === 'filter') {
-  } else if (command === 'checked') {
-    let ids = selectedDocuments.value.map((document: any) => document._id)
-    return { docIds: ids }
-  }
-}
-
 const handlePlugins = (plugin: any, type: string = "") => {
   let postBody = {} as any
   if (plugin.transData && plugin.transData === 'one') {
     postBody = type
   } else {
     if (['All', 'filter', 'checked'].includes(type))
-      postBody = fnSetReqParam(type)
+      postBody = handleSetReqParam(type)
   }
   new Promise((resolve) => {
     resolve({})
