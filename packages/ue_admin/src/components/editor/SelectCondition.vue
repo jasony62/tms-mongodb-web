@@ -294,7 +294,7 @@ onMounted(async () => {
       condition.rule = result.rule
     }
   }
-  updateByColumn(false)
+  if (props.schema.groupable === true) updateByColumn(false)
   nextTick(() => {
     // const $wrap = multipleTableRef.value!.$refs.scrollBarRef.wrap$
     // $wrap.addEventListener('scroll', () => {

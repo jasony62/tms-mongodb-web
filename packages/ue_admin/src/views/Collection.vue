@@ -11,17 +11,16 @@
     <!--content-->
     <div class="flex flex-row gap-2">
       <div class="w-4/5 flex flex-col gap-4">
-        <el-table :data="store.documents" highlight-current-row stripe @selection-change="handleSelectionChange">
+        <el-table id="tables" :data="store.documents" highlight-current-row stripe
+          @selection-change="handleSelectionChange">
           <el-table-column fixed="left" type="index" width="48"></el-table-column>
           <el-table-column type="selection" width="48" />
           <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
             <template #header>
-              <div @click="handleFilter(s, k)" :class="{ 'active': currentNames.includes(k) }">
-                <i v-if="s.required" style="color: red">*</i>
+              <div @click="handleFilter(s, k)">
+                <span v-if="s.required" class="text-red-400">*</span>
                 <span>{{ s.title }}</span>
-                <el-icon class="el-icon__filter">
-                  <Filter />
-                </el-icon>
+                <img :data-id="k" class="w-4 h-4 inline-block" src="../assets/imgs/icon_filter.png">
               </div>
             </template>
             <template #default="scope">
@@ -103,13 +102,16 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item>
-                  <el-button type="" text @click="handlePlugins(p, 'all')">按全部({{ data.docBatch.total }})</el-button>
+                  <el-button text @click="handlePlugins(p, 'all')" :disabled="totalByAll == 0">
+                    按全部({{ totalByAll }})</el-button>
                 </el-dropdown-item>
                 <el-dropdown-item>
-                  <el-button type="" text @click="handlePlugins(p, 'filter')">按筛选</el-button>
+                  <el-button text @click="handlePlugins(p, 'filter')" :disabled="totalByFilter == 0">
+                    按筛选({{ totalByFilter }})</el-button>
                 </el-dropdown-item>
                 <el-dropdown-item>
-                  <el-button type="" text @click="handlePlugins(p, 'checked')">按选中({{ totalChecked }})</el-button>
+                  <el-button text @click="handlePlugins(p, 'checked')" :disabled="totalByChecked == 0">
+                    按选中({{ totalByChecked }})</el-button>
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -123,7 +125,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, toRaw, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowRight, Filter, ArrowDown } from '@element-plus/icons-vue'
+import { ArrowRight, ArrowDown } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
 
 import apiCollection from '@/apis/collection'
@@ -163,12 +165,14 @@ const data = reactive({
   multipleDoc: [] as any[],
   properties: {} as any,
   documents: [] as any[],
-  plugins: [] as any[]
+  plugins: [] as any[],
+  filter: reactive({})
 })
 
-let currentNames = ref([] as any[])
 let selectedDocuments = ref<any[]>([])
-let totalChecked = computed(() => selectedDocuments.value.length)
+const totalByAll = computed(() => Object.keys(data.filter).length ? 0 : data.docBatch.total)
+const totalByFilter = computed(() => Object.keys(data.filter).length ? data.docBatch.total : 0)
+const totalByChecked = computed(() => selectedDocuments.value.length)
 
 const handleCondition = () => {
   const conditions = store.conditions
@@ -183,7 +187,19 @@ const handleCondition = () => {
     Object.assign(criterais.filter, ele.rule.filter)
     Object.assign(criterais.orderBy, ele.rule.orderBy)
   })
+  data.filter = criterais.filter
   return criterais
+}
+
+const handleSetReqParam = (command: string) => {
+  if (command === 'all') {
+    return { filter: 'ALL' }
+  } else if (command === 'filter') {
+    return { filter: handleCondition().filter }
+  } else if (command === 'checked') {
+    let ids = selectedDocuments.value.map((document: any) => document._id)
+    return { docIds: ids }
+  }
 }
 
 const handleFilter = (schema: any, name: any) => {
@@ -197,9 +213,39 @@ const handleFilter = (schema: any, name: any) => {
     onBeforeClose: (result?: any) => {
       const { condition, isClear, isCheckBtn } = result
       store.conditionAddColumn({ condition })
-      if (isCheckBtn) store.conditionDelBtn({ columnName: name })
-      if (isClear) store.conditionDelColumn({ condition })
-      // 待处理：排序降序后的图标颜色不变；是因为点击的target不一定是哪个元素；
+      // 获取界面所有元素
+      const elementImgs: any = document.querySelectorAll('#tables thead img')
+      let currentEle: any = Array.from(elementImgs).find((ele: any) => ele.getAttribute('data-id') === name)
+      if (isClear) {
+        store.conditionDelColumn({ condition })
+        currentEle.src = new URL('../assets/imgs/icon_filter.png', import.meta.url).href
+      } else if (isCheckBtn) {
+        store.conditionDelBtn({ columnName: name })
+        const filename = '../assets/imgs/icon_' + condition.rule.orderBy[name] + '_active.png'
+        currentEle.src = new URL(filename, import.meta.url).href
+      } else {
+        currentEle.src = new URL('../assets/imgs/icon_filter_active.png', import.meta.url).href
+      }
+      // 如果选择升降序规则，则需重置其他图标
+      if (isCheckBtn) {
+        store.conditions.forEach((conEle: any) => {
+          const name = conEle.columnName
+          let currentEle: any = Array.from(elementImgs).find((ele: any) => ele.getAttribute('data-id') === name)
+          if (
+            conEle.rule &&
+            conEle.rule.filter &&
+            conEle.rule.filter[name] &&
+            conEle.rule.filter[name].keyword
+          ) {
+            currentEle.src = new URL('../assets/imgs/icon_filter_active.png', import.meta.url).href
+          } else if (conEle.bySort) {
+            const filename = '../assets/imgs/icon_' + condition.rule.orderBy[name] + '_active.png'
+            currentEle.src = new URL(filename, import.meta.url).href
+          } else {
+            currentEle.src = new URL('../assets/imgs/icon_filter.png', import.meta.url).href
+          }
+        })
+      }
       listDocByKw()
     },
   })
@@ -277,23 +323,13 @@ const downLoadFile = (file: any) => {
   window.open(`${file.url}?access_token=${access_token}`)
 }
 
-const fnSetReqParam = (command: string) => {
-  if (command === 'all') {
-    return { filter: 'ALL' }
-  } else if (command === 'filter') {
-  } else if (command === 'checked') {
-    let ids = selectedDocuments.value.map((document: any) => document._id)
-    return { docIds: ids }
-  }
-}
-
 const handlePlugins = (plugin: any, type: string = "") => {
   let postBody = {} as any
   if (plugin.transData && plugin.transData === 'one') {
     postBody = type
   } else {
     if (['All', 'filter', 'checked'].includes(type))
-      postBody = fnSetReqParam(type)
+      postBody = handleSetReqParam(type)
   }
   new Promise((resolve) => {
     resolve({})
@@ -443,3 +479,11 @@ onMounted(async () => {
   listDocByKw()
 })
 </script>
+
+<style>
+.icon_filter {
+  /* width: 14px;
+  height: 14px;
+  display: inline-block; */
+}
+</style>
