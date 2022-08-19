@@ -44,7 +44,7 @@
       </div>
     </div>
     <template #footer>
-      <el-button type="primary" @click="onSubmit">提交</el-button>
+      <el-button type="primary" @click="onSubmit">{{ submitTitle }}</el-button>
       <el-button @click="onBeforeClose">取消</el-button>
     </template>
   </el-dialog>
@@ -53,7 +53,7 @@
 import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
 import apiDoc from '@/apis/document'
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import useClipboard from 'vue-clipboard3'
 
 const emit = defineEmits(['submit'])
@@ -74,10 +74,20 @@ const props = defineProps({
 })
 
 const dialogVisible = ref(props.dialogVisible)
+
 const schema = reactive(props.schema)
+
 const { onClose, bucketName } = props
 
-const title = schema.scope === document ? '文档内容定义' : (schema.scope === 'db' ? '数据库属性定义' : '集合属性定义')
+const submitTitle = computed(() => {
+  return schema._id ? '修改' : '新建'
+})
+
+const title = computed(() => {
+  let t = schema.scope === document ? '文档内容定义' : (schema.scope === 'db' ? '数据库属性定义' : '集合属性定义')
+  t += '-' + (schema._id ? '修改' : '新建')
+  return t
+})
 const activeTab = ref('first')
 const tags = ref([] as any[])
 

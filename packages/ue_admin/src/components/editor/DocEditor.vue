@@ -77,7 +77,7 @@ const $jde = ref<{ editing: () => string, editDoc: DocAsArray } | null>(null)
 const DocSearchUrl = document?._id ? `bucket=${bucketName}&db=${dbName}&cl=${collection.name}&id=${document._id}` : ''
 
 // 文档字段转化规则
-const DocFieldConvertRules = (collection.docFieldConvertRules && typeof collection.docFieldConvertRules === 'object') ? collection.docFieldConvertRules : {}
+const DocFieldConvertRules = (collection.docFieldConvertRules && typeof collection.docFieldConvertRules === 'object' && Object.keys(collection.docFieldConvertRules).length) ? collection.docFieldConvertRules : null
 
 const elJsonEditor = ref<HTMLElement | null>(null)
 
@@ -156,6 +156,11 @@ function convertExternalData(field: Field, source: string, data: any): any {
   if (!newData) return newData
 
   log(`字段【${field.fullname}】从【${source}】获得外部数据\n` + JSON.stringify(data, null, 2))
+
+  if (DocFieldConvertRules ?? true) {
+    log(`字段【${field.fullname}】获得【${source}】数据没有指定转换规则，直接使用`)
+    return data
+  }
 
   let usedRule
   let rules = DocFieldConvertRules[source] ? DocFieldConvertRules[source][field.fullname || '__'] : null
