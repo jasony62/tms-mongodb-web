@@ -344,9 +344,7 @@ const handlePlugins = (plugin: any, type: string = "") => {
                 data.documents.unshift(newDoc)
             })
           }
-          let msg = `插件[${plugin.title}]执行完毕，添加[${parseInt(nInserted) || 0
-            }]条，修改[${parseInt(nModified) || 0}]条，删除[${parseInt(nRemoved) || 0
-            }]条记录。`
+          let msg = `插件[${plugin.title}]执行完毕，添加[${nInserted}]条，修改[${nModified}]条，删除[${nRemoved}]条记录。`
           ElMessage.success({ message: msg })
         } else if (
           result &&
