@@ -11,17 +11,16 @@
     <!--content-->
     <div class="flex flex-row gap-2">
       <div class="w-4/5 flex flex-col gap-4">
-        <el-table :data="store.documents" highlight-current-row stripe @selection-change="handleSelectionChange">
+        <el-table id="tables" :data="store.documents" highlight-current-row stripe
+          @selection-change="handleSelectionChange">
           <el-table-column fixed="left" type="index" width="48"></el-table-column>
           <el-table-column type="selection" width="48" />
           <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
             <template #header>
-              <div @click="handleFilter(s, k)" :class="{ 'active': currentNames.includes(k) }">
-                <i v-if="s.required" style="color: red">*</i>
+              <div @click="handleFilter(s, k)">
+                <span v-if="s.required" class="text-red-400">*</span>
                 <span>{{ s.title }}</span>
-                <el-icon class="el-icon__filter">
-                  <Filter />
-                </el-icon>
+                <img :data-id="k" class="icon_filter w-4 h-4 inline-block" src="../assets/imgs/icon_filter.png">
               </div>
             </template>
             <template #default="scope">
@@ -197,9 +196,39 @@ const handleFilter = (schema: any, name: any) => {
     onBeforeClose: (result?: any) => {
       const { condition, isClear, isCheckBtn } = result
       store.conditionAddColumn({ condition })
-      if (isCheckBtn) store.conditionDelBtn({ columnName: name })
-      if (isClear) store.conditionDelColumn({ condition })
-      // 待处理：排序降序后的图标颜色不变；是因为点击的target不一定是哪个元素；
+      // 获取界面所有元素
+      const elementImgs: any = document.querySelectorAll('#tables thead img')
+      let currentEle: any = Array.from(elementImgs).find((ele: any) => ele.getAttribute('data-id') === name)
+      if (isClear) {
+        store.conditionDelColumn({ condition })
+        currentEle.src = new URL('../assets/imgs/icon_filter.png', import.meta.url).href
+      } else if (isCheckBtn) {
+        store.conditionDelBtn({ columnName: name })
+        const filename = '../assets/imgs/icon_' + condition.rule.orderBy[name] + '_active.png'
+        currentEle.src = new URL(filename, import.meta.url).href
+      } else {
+        currentEle.src = new URL('../assets/imgs/icon_filter_active.png', import.meta.url).href
+      }
+      // 如果选择升降序规则，则需重置其他图标
+      if (isCheckBtn) {
+        store.conditions.forEach((conEle: any) => {
+          const name = conEle.columnName
+          let currentEle: any = Array.from(elementImgs).find((ele: any) => ele.getAttribute('data-id') === name)
+          if (
+            conEle.rule &&
+            conEle.rule.filter &&
+            conEle.rule.filter[name] &&
+            conEle.rule.filter[name].keyword
+          ) {
+            currentEle.src = new URL('../assets/imgs/icon_filter_active.png', import.meta.url).href
+          } else if (conEle.bySort) {
+            const filename = '../assets/imgs/icon_' + condition.rule.orderBy[name] + '_active.png'
+            currentEle.src = new URL(filename, import.meta.url).href
+          } else {
+            currentEle.src = new URL('../assets/imgs/icon_filter.png', import.meta.url).href
+          }
+        })
+      }
       listDocByKw()
     },
   })
@@ -445,3 +474,11 @@ onMounted(async () => {
   listDocByKw()
 })
 </script>
+
+<style>
+.icon_filter {
+  /* width: 14px;
+  height: 14px;
+  display: inline-block; */
+}
+</style>
