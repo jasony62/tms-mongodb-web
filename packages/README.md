@@ -7,6 +7,7 @@
 ```bash
 npm run build
 ```
+
 # tms-back
 
 基于`tms-koa`进行二次开发，`controller`，提供 API。
@@ -14,20 +15,24 @@ npm run build
 在本地启动启动服务。通过环境变量指定配置文件和控制器位置（支持相对路径）。
 
 ```bash
-TMW_APP_PORT=3020 
-TMW_APP_AUTH_CAPTCHA_DISABLED=yes 
-TMS_KOA_CONFIG_DIR=../../docker/back/config 
-TMS_KOA_CONTROLLERS_DIR=./dist/controllers 
+TMW_APP_PORT=3020
+TMW_APP_AUTH_CAPTCHA_DISABLED=yes
+TMS_KOA_CONFIG_DIR=../../docker/back/config
+TMS_KOA_CONTROLLERS_DIR=./dist/controllers
 TMW_APP_PLUGIN_DIR=./dist/plugins
-
-npm run build 
+TMW_APP_AUTH_JWT_KEY
+TMW_APP_AUTH_JWT_EXPIRESIN
 
 node dist/server
 ```
 
-新增插件时，需要在tmw-back/src下新建plugins文件夹
+```
+TMW_APP_PORT=3020 TMW_APP_AUTH_CAPTCHA_DISABLED=yes TMS_KOA_CONFIG_DIR=../../docker/back/config TMS_KOA_CONTROLLERS_DIR=./dist/controllers TMW_APP_PLUGIN_DIR=./dist/plugins TMW_APP_AUTH_JWT_KEY=xxxxx TMW_APP_AUTH_JWT_EXPIRESIN=3600 node dist/server
+```
 
-每次更改后，需要重新执行```npm run build```
+新增插件时，需要在 tmw-back/src 下新建 plugins 文件夹
+
+每次更改后，需要重新执行`npm run build`
 
 # ue_admin
 

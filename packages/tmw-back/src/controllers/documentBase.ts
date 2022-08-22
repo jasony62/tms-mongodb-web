@@ -12,15 +12,26 @@ const ObjectId = mongodb.ObjectId
 class DocBase extends Base {
   constructor(...args) {
     super(...args)
-    this['docHelper'] = new DocumentHelper(this)
-    this['modelDoc'] = new ModelDoc(
-      this['mongoClient'],
-      this['bucket'],
-      this['client']
-    )
+    this.docHelper = new DocumentHelper(this)
+    this.modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
   }
   get tmwConfig() {
     return TMW_CONFIG
+  }
+  /**
+   * 根据ID返回单个文档的数据
+   * @returns
+   */
+  async get() {
+    const existCl = await this.docHelper.findRequestCl()
+
+    const { id, fields } = this.request.query
+
+    let projection = {}
+    let existDoc = await this.modelDoc.byId(existCl, id, projection)
+    if (!existDoc) return new ResultFault('指定的文档不存在')
+
+    return new ResultData(existDoc)
   }
   /**
    * 指定数据库指定集合下新建文档

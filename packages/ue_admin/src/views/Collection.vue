@@ -15,6 +15,7 @@
           @selection-change="handleSelectionChange">
           <el-table-column fixed="left" type="index" width="48"></el-table-column>
           <el-table-column type="selection" width="48" />
+          <el-table-column label="id" prop="_id" />
           <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
             <template #header>
               <div @click="handleFilter(s, k)">
@@ -139,6 +140,7 @@ import {
   openDocEditor,
   openSelectConditionEditor,
 } from '@/components/editor'
+import { useRouter } from 'vue-router'
 
 const store = facStore()
 
@@ -271,29 +273,15 @@ const exportJSON = () => {
     })
 }
 
+const router = useRouter()
+
 const createDocument = () => {
-  openDocEditor({
-    mode: 'create',
-    bucketName,
-    dbName,
-    collection,
-    onBeforeClose: (newDoc?: any) => {
-      if (newDoc) store.appendDocument({ document: newDoc })
-    },
-  })
+  router.push({ name: 'docEditor', params: { dbName, clName } })
 }
 
 const editDocument = (document: any, index: number) => {
-  openDocEditor({
-    mode: 'update',
-    bucketName,
-    dbName,
-    collection,
-    document: toRaw(document),
-    onBeforeClose: (newDoc?: any) => {
-      if (newDoc) store.updateDocument({ document: newDoc, index })
-    },
-  })
+  const docId = document._id
+  router.push({ name: 'docEditor', params: { dbName, clName, docId } })
 }
 
 const removeDocument = (document: any) => {

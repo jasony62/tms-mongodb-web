@@ -49,6 +49,18 @@ export default {
       })
       .then((rst: ApiRst) => rst.data.result)
   },
+  get(bucket: any, dbName: string, clName: string, docId: string) {
+    const params = {
+      bucket,
+      db: dbName,
+      cl: clName,
+      id: docId,
+    }
+    const base = BACK_API_URL() + '/admin/document'
+    return TmsAxios.ins('mongodb-api')
+      .get(`${base}/get`, { params })
+      .then((rst: ApiRst) => rst.data.result)
+  },
   create(bucket: any, dbName: string, clName: string, proto: any) {
     const params = {
       bucket,

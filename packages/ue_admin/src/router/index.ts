@@ -8,6 +8,8 @@ import Collection from '../views/Collection.vue'
 import Register from '../views/Register.vue'
 import Smscode from '../views/Smscode.vue'
 import Invite from '../views/Invite.vue'
+import DocEditor from '../views/editor/Document.vue'
+
 import { TmsRouterHistory } from 'tms-vue3'
 import { getLocalToken } from '../global'
 
@@ -63,6 +65,12 @@ const routes: RouteRecordRaw[] = [
     path: `${BucketPart}/collection/:dbName/:clName`,
     name: 'collection',
     component: Collection,
+    props: true,
+  },
+  {
+    path: `${BucketPart}/document/:dbName/:clName/:docId?`,
+    name: 'docEditor',
+    component: DocEditor,
     props: true,
   },
   {
