@@ -126,6 +126,7 @@ TmsAxios.ins('master-api')
   .get(UrlSettings)
   .then((rsp: any) => {
     let settings = rsp.data
+    settings.compact = /compact=Y/i.test(location.search)
     initGlobalSettings(settings)
     afterLoadSettings()
   })

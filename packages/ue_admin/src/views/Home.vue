@@ -14,7 +14,7 @@
     </el-form>
     <!--content-->
     <div class="flex flex-row flex-grow gap-2 pb-4">
-      <div class="w-4/5">
+      <div :class="COMPACT ? 'w-full' : 'w-4/5'">
         <div v-show="activeTab === 'database'" class="flex flex-col gap-2">
           <el-table :data="store.dbs" stripe @selection-change="changeDbSelect">
             <el-table-column type="selection" width="55"></el-table-column>
@@ -121,7 +121,7 @@
         </div>
       </div>
       <!--right-->
-      <div>
+      <div v-if="!COMPACT">
         <el-button @click="createDb" v-if="activeTab === 'database'">添加数据库</el-button>
         <el-button @click="createSchema('document')" v-else-if="activeTab === 'docSchemas'">添加文档列定义</el-button>
         <el-button @click="createSchema('db')" v-else-if="activeTab === 'dbSchemas'">添加数据库属性定义</el-button>
@@ -139,7 +139,9 @@ import { Batch } from 'tms-vue3'
 
 import facStore from '@/store'
 import { openDbEditor, openTagEditor, openReplicaEditor, openSchemaEditor } from '@/components/editor'
-import { EXTERNAL_FS_URL, getLocalToken } from '@/global'
+import { EXTERNAL_FS_URL, getLocalToken, COMPACT_MODE } from '@/global'
+
+const COMPACT = computed(() => COMPACT_MODE())
 
 const store = facStore()
 

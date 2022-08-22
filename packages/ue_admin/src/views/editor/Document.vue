@@ -11,8 +11,9 @@
     </div>
     <div class="p-2 border border-gray-200 mb-2 rounded-md">
       <el-button type="primary" @click="onSubmit">提交</el-button>
+      <el-button type="default" @click="openDrawer" v-if="!COMPACT">分屏</el-button>
     </div>
-    <div class="flex flex-row gap-4 h-full overflow-auto" v-if="collection._id">
+    <div class="flex flex-row gap-4 h-full overflow-auto px-4 pb-4" v-if="collection._id">
       <tms-json-doc ref="$jde" class="w-1/3 h-full overflow-auto" :schema="collection.schema.body" :value="document"
         :enable-paste="true" :on-paste="onJdocPaste" :on-file-select="onFileSelect" :on-file-download="onFileDownload"
         :show-field-fullname="true" @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
@@ -36,13 +37,18 @@
         </div>
       </div>
     </div>
+    <el-drawer v-model="assistant" size="60%">
+      <div class="h-full w-full relative">
+        <iframe class="assistant" src="/admin/home?compact=Y"></iframe>
+      </div>
+    </el-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue';
 import TmsJsonDoc, { Field, DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
-import { EXTERNAL_FS_URL, getLocalToken } from '@/global'
+import { EXTERNAL_FS_URL, getLocalToken, COMPACT_MODE } from '@/global'
 import apiDoc from '@/apis/document'
 import apiCl from '@/apis/collection'
 import apiSchema from '@/apis/schema'
@@ -53,6 +59,8 @@ import { openPickFileEditor } from '@/components/editor';
 import { ArrowRight } from '@element-plus/icons-vue'
 import JSONEditor from 'jsoneditor'
 import 'jsoneditor/dist/jsoneditor.css'
+
+const COMPACT = computed(() => COMPACT_MODE())
 
 const debug = Debug('tmw:doc-editor')
 
@@ -145,14 +153,13 @@ function convertExternalData(field: Field, source: string, data: any): any {
   if (!newData) return newData
 
   log(`字段【${field.fullname}】从【${source}】获得外部数据\n` + JSON.stringify(data, null, 2))
-
-  if (DocFieldConvertRules ?? true) {
-    log(`字段【${field.fullname}】获得【${source}】数据没有指定转换规则，直接使用`)
+  if (DocFieldConvertRules.value === null) {
+    log(`字段【${field.fullname}】获得【${source}】数据，集合没有指定转换规则，直接使用粘贴数据`)
     return data
   }
 
   let usedRule
-  let rules = DocFieldConvertRules[source] ? DocFieldConvertRules[source][field.fullname || '__'] : []
+  let rules = DocFieldConvertRules.value[source] ? DocFieldConvertRules.value[source][field.fullname || '__'] : []
 
   if (Array.isArray(rules) && rules.length) {
     log(`字段【${field.fullname}】有【${source}】数据转换规则，共【${rules.length}】条`)
@@ -350,6 +357,12 @@ const handleProperty = async () => {
   }
 }
 
+const assistant = ref(false)
+
+const openDrawer = () => {
+  assistant.value = true
+}
+
 
 apiCl.byName(bucketName, dbName, clName).then((cl: any) => {
   collection.value = cl
@@ -365,7 +378,7 @@ if (docId)
 <style lang="scss">
 #docEditor {
 
-  @apply w-full h-full overflow-auto p-4 flex flex-col;
+  @apply w-full h-full overflow-auto flex flex-col gap-2;
 
   .jsoneditor {
 
@@ -374,6 +387,19 @@ if (docId)
     .jsoneditor-poweredBy {
       display: none;
     }
+  }
+
+  .el-drawer__header {
+    margin-bottom: 0;
+  }
+
+  .el-drawer__body {
+    padding-top: 0;
+  }
+
+  .assistant {
+    border: 0;
+    @apply h-full w-full;
   }
 }
 </style>

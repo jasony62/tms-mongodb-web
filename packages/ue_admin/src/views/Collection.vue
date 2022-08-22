@@ -10,12 +10,23 @@
     </div>
     <!--content-->
     <div class="flex flex-row gap-2">
-      <div class="w-4/5 flex flex-col gap-4">
+      <div class="flex flex-col gap-4" :class="COMPACT ? 'w-full' : 'w-4/5'">
         <el-table id="tables" :data="store.documents" highlight-current-row stripe
           @selection-change="handleSelectionChange">
           <el-table-column fixed="left" type="index" width="48"></el-table-column>
-          <el-table-column type="selection" width="48" />
-          <el-table-column label="id" prop="_id" />
+          <el-table-column type="selection" width="40" />
+          <el-table-column type="expand" width="40">
+            <template #default="props">
+              <div class="p-4 flex flex-col gap-2">
+                <div>ID: {{ props.row._id }}</div>
+                <div>URL:
+                  {{ `/open/document/get?bucket=${bucketName ? bucketName :
+                      ''}&db=${dbName}&cl=${clName}&id=${props.row._id}`
+                  }}
+                </div>
+              </div>
+            </template>
+          </el-table-column>
           <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
             <template #header>
               <div @click="handleFilter(s, k)">
@@ -84,7 +95,7 @@
             @current-change="changeDocPage" @size-change="changeDocSize"></el-pagination>
         </div>
       </div>
-      <div class="flex flex-col items-start space-y-3">
+      <div class="flex flex-col items-start space-y-3" v-if="!COMPACT">
         <div>
           <el-button @click="createDocument">添加文档</el-button>
         </div>
@@ -124,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, toRaw, computed } from 'vue'
+import { onMounted, reactive, ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowRight, ArrowDown } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
@@ -133,14 +144,15 @@ import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiDoc from '@/apis/document'
 import apiPlugin from '@/apis/plugin'
-import { getLocalToken } from '@/global'
+import { getLocalToken, COMPACT_MODE } from '@/global'
 
 import facStore from '@/store'
 import {
-  openDocEditor,
   openSelectConditionEditor,
 } from '@/components/editor'
 import { useRouter } from 'vue-router'
+
+const COMPACT = computed(() => COMPACT_MODE())
 
 const store = facStore()
 

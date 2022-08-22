@@ -10,7 +10,7 @@
     <!--content-->
     <div class="flex flex-row gap-2">
       <!--left-->
-      <div class="w-4/5 flex flex-col gap-4">
+      <div class="flex flex-col gap-4" :class="COMPACT ? 'w-full' : 'w-4/5'">
         <el-table :data="store.collections" stripe @selection-change="changeClSelect">
           <el-table-column type="selection" width="55"></el-table-column>
           <el-table-column label="集合名称" width="180">
@@ -42,7 +42,7 @@
         </div>
       </div>
       <!--right-->
-      <div>
+      <div v-if="!COMPACT">
         <el-button @click="createCollection">添加集合</el-button>
       </div>
     </div>
@@ -50,12 +50,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
+import { onMounted, reactive, computed } from 'vue'
 import { Batch } from 'tms-vue3'
 
 import facStore from '@/store'
 import { openCollectionEditor, } from '@/components/editor'
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { COMPACT_MODE } from '@/global'
+
+const COMPACT = computed(() => COMPACT_MODE())
 
 const store = facStore()
 
