@@ -9,7 +9,7 @@
         <el-breadcrumb-item>{{ document._id ? document._id : '新建文档' }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
-    <div class="p-2 border border-gray-200 mb-2 rounded-md">
+    <div class="p-2 border border-gray-200 mb-2 rounded-md text-center">
       <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button type="default" @click="openDrawer" v-if="!COMPACT">分屏</el-button>
     </div>
