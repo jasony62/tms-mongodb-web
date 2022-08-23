@@ -1,0 +1,19 @@
+{
+  "name": "plugins",
+  "version": "0.0.1",
+  "private": true,
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "rimraf ./dist && tsc"
+  },
+  "keywords": [],
+  "author": "jasony62",
+  "license": "MIT",
+  "dependencies": {
+    "tmw-kit": "workspace:*"
+  },
+  "devDependencies": {
+    "rimraf": "^3.0.2"
+  }
+}

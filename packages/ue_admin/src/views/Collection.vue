@@ -83,7 +83,7 @@
           </el-table-column>
           <el-table-column fixed="right" label="操作" width="180">
             <template #default="scope">
-              <el-button type="primary" link size="small" @click="editDocument(scope.row, scope.$index)">修改</el-button>
+              <el-button type="primary" link size="small" @click="editDocument(scope.row)">修改</el-button>
               <el-button type="primary" link size="small" @click="removeDocument(scope.row)">删除</el-button>
             </template>
           </el-table-column>
@@ -98,9 +98,6 @@
       <div class="flex flex-col items-start space-y-3" v-if="!COMPACT">
         <div>
           <el-button @click="createDocument">添加文档</el-button>
-        </div>
-        <div>
-          <el-button @click="exportJSON">导出文档(JSON)</el-button>
         </div>
         <div v-for="p in data.plugins" :key="p.name">
           <el-button v-if="p.transData === 'nothing'" type="success" plain @click="handlePlugin(p)">{{ p.title }}
@@ -142,9 +139,8 @@ import { Batch } from 'tms-vue3'
 
 import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
-import apiDoc from '@/apis/document'
 import apiPlugin from '@/apis/plugin'
-import { getLocalToken, COMPACT_MODE } from '@/global'
+import { getLocalToken, COMPACT_MODE, FS_BASE_URL } from '@/global'
 
 import facStore from '@/store'
 import {
@@ -258,29 +254,13 @@ const handleSelectionChange = (rows: any) => {
   selectedDocuments.value = rows
 }
 
-const exportJSON = () => {
-  if (selectedDocuments.value.length === 0) return
-  let ids = selectedDocuments.value.map((doc) => doc._id)
-  apiDoc
-    .export(bucketName ?? '', dbName, clName, {
-      docIds: ids,
-      columns: data.properties,
-      exportType: 'json',
-    })
-    .then((result: any) => {
-      const access_token = getLocalToken()
-      let url = `${import.meta.env.BASE_URL.replace(/\/$/, '')}${result}?access_token=${access_token}`
-      window.open(url)
-    })
-}
-
 const router = useRouter()
 
 const createDocument = () => {
   router.push({ name: 'docEditor', params: { dbName, clName } })
 }
 
-const editDocument = (document: any, index: number) => {
+const editDocument = (document: any) => {
   const docId = document._id
   router.push({ name: 'docEditor', params: { dbName, clName, docId } })
 }
@@ -335,16 +315,16 @@ const handlePlugin = (plugin: any, docScope: string = "") => {
   if (plugin.transData && plugin.transData === 'one') {
     postBody = docScope
   } else {
-    if (['All', 'filter', 'checked'].includes(docScope))
+    if (['all', 'filter', 'checked'].includes(docScope))
       postBody = setPluginDocParam(docScope)
     else postBody = {}
   }
   new Promise((resolve) => {
     resolve({})
   }).then((beforeResult) => {
-    if (beforeResult) {
-      postBody.widget = beforeResult
-    }
+    // if (beforeResult) {
+    //   postBody.widget = beforeResult
+    // }
     let queryParams = {
       db: dbName,
       cl: clName,
@@ -405,6 +385,10 @@ const handlePlugin = (plugin: any, docScope: string = "") => {
           }).catch(() => {
             listDocByKw()
           })
+        } else if (result && typeof result === 'object' && typeof result.url === 'string') {
+          /**下载文件*/
+          let url = FS_BASE_URL() + result.url
+          window.open(url)
         } else {
           ElMessage.success({
             message: `插件[${plugin.title}]执行完毕。`,
@@ -485,11 +469,3 @@ onMounted(async () => {
   listDocByKw()
 })
 </script>
-
-<style>
-.icon_filter {
-  /* width: 14px;
-  height: 14px;
-  display: inline-block; */
-}
-</style>

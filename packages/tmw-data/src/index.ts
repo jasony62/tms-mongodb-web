@@ -26,7 +26,7 @@ export interface PluginProfile {
   /**
    * 是否显示插件
    */
-  visible?: boolean
+  visible?: any
   /**
    * 需要的数据
    * nothing/one

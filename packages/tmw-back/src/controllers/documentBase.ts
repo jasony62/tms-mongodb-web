@@ -472,16 +472,12 @@ class DocBase extends Base {
    * 导出数据
    */
   async export() {
-    let { filter, docIds, columns, exportType } = this['request'].body
+    let { filter, docIds, columns, exportType } = this.request.body
     if (!exportType) {
       return new ResultFault('缺少导出的文件类型参数')
     }
 
-    let modelDoc = new ModelDoc(
-      this['mongoClient'],
-      this['bucket'],
-      this['client']
-    )
+    let modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
 
     let query
     if (docIds && docIds.length > 0) {
@@ -500,11 +496,7 @@ class DocBase extends Base {
 
     const existCl = await this['docHelper'].findRequestCl()
     // 集合列
-    let modelCl = new ModelCl(
-      this['mongoClient'],
-      this['bucket'],
-      this['client']
-    )
+    let modelCl = new ModelCl(this.mongoClient, this.bucket, this.client)
     columns = columns ? columns : await modelCl.getSchemaByCollection(existCl)
     if (!columns) return new ResultFault('指定的集合没有指定集合列')
 

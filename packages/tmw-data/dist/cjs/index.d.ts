@@ -4,13 +4,13 @@ export interface PluginProfile {
     title: string;
     description: string;
     disabled?: boolean;
-    visible?: boolean;
+    visible?: any;
     transData?: string;
     excludeTags?: string[];
     everyTags?: string[];
     someTags?: string[];
     beforeWidget?: {
         name: string;
+        remoteWidgetOptions?: any;
     };
-    remoteWidgetOptions?: any;
 }

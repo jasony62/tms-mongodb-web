@@ -12,6 +12,9 @@ let appConfig = {
     plugins: {
       prefix: env.TMW_APP_ROUTER_PLUGIN || 'plugin', // 插件接口调用url的前缀
     },
+    fsdomain: {
+      prefix: env.TMW_APP_ROUTER_FSDOMAIN || 'fs', // 文件下载地址前缀
+    },
   },
   cors: {
     credentials: true,
