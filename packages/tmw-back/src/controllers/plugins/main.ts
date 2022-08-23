@@ -2,6 +2,7 @@ const _ = require('lodash')
 import { ResultFault, ResultData } from 'tms-koa'
 import PluginHelper from './pluginHelper'
 import { PluginContext } from 'tmw-kit'
+import { PluginProfile } from 'tmw-data'
 import { Base as CtrlBase } from 'tmw-kit/dist/ctrl'
 
 /**
@@ -48,7 +49,7 @@ class Plugin extends CtrlBase {
     const ins = await PluginContext.ins()
 
     // 适用于指定管理对象类型的所有插件
-    let plugins =
+    let plugins: PluginProfile[] =
       scope === 'document'
         ? ins.docPlugins
         : scope === 'collection'

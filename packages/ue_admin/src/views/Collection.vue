@@ -103,7 +103,7 @@
           <el-button @click="exportJSON">导出文档(JSON)</el-button>
         </div>
         <div v-for="p in data.plugins" :key="p.name">
-          <el-button v-if="p.transData === 'nothing'" type="success" plain @click="handlePlugins(p)">{{ p.title }}
+          <el-button v-if="p.transData === 'nothing'" type="success" plain @click="handlePlugin(p)">{{ p.title }}
           </el-button>
           <el-dropdown v-else>
             <el-button type="success" plain>{{ p.title }}
@@ -114,15 +114,15 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item>
-                  <el-button text @click="handlePlugins(p, 'all')" :disabled="totalByAll == 0">
+                  <el-button text @click="handlePlugin(p, 'all')" :disabled="totalByAll == 0">
                     按全部({{ totalByAll }})</el-button>
                 </el-dropdown-item>
                 <el-dropdown-item>
-                  <el-button text @click="handlePlugins(p, 'filter')" :disabled="totalByFilter == 0">
+                  <el-button text @click="handlePlugin(p, 'filter')" :disabled="totalByFilter == 0">
                     按筛选({{ totalByFilter }})</el-button>
                 </el-dropdown-item>
                 <el-dropdown-item>
-                  <el-button text @click="handlePlugins(p, 'checked')" :disabled="totalByChecked == 0">
+                  <el-button text @click="handlePlugin(p, 'checked')" :disabled="totalByChecked == 0">
                     按选中({{ totalByChecked }})</el-button>
                 </el-dropdown-item>
               </el-dropdown-menu>
@@ -183,7 +183,7 @@ const data = reactive({
   filter: reactive({})
 })
 
-let selectedDocuments = ref<any[]>([])
+const selectedDocuments = ref<any[]>([])
 const totalByAll = computed(() => Object.keys(data.filter).length ? 0 : data.docBatch.total)
 const totalByFilter = computed(() => Object.keys(data.filter).length ? data.docBatch.total : 0)
 const totalByChecked = computed(() => selectedDocuments.value.length)
@@ -203,17 +203,6 @@ const handleCondition = () => {
   })
   data.filter = criterais.filter
   return criterais
-}
-
-const handleSetReqParam = (command: string) => {
-  if (command === 'all') {
-    return { filter: 'ALL' }
-  } else if (command === 'filter') {
-    return { filter: handleCondition().filter }
-  } else if (command === 'checked') {
-    let ids = selectedDocuments.value.map((document: any) => document._id)
-    return { docIds: ids }
-  }
 }
 
 const handleFilter = (schema: any, name: any) => {
@@ -322,14 +311,33 @@ const downLoadFile = (file: any) => {
   const access_token = getLocalToken()
   window.open(`${file.url}?access_token=${access_token}`)
 }
-
-const handlePlugins = (plugin: any, type: string = "") => {
-  let postBody = {} as any
+/**
+ * 设置插件操作的文档参数
+ */
+const setPluginDocParam = (docScope: string) => {
+  if (docScope === 'all') {
+    return { filter: 'ALL' }
+  } else if (docScope === 'filter') {
+    return { filter: handleCondition().filter }
+  } else if (docScope === 'checked') {
+    let ids = selectedDocuments.value.map((document: any) => document._id)
+    return { docIds: ids }
+  }
+}
+/**
+ * 执行插件
+ * 
+ * @param plugin 要执行的插件 
+ * @param docScope 插件操作数据的范围
+ */
+const handlePlugin = (plugin: any, docScope: string = "") => {
+  let postBody: any
   if (plugin.transData && plugin.transData === 'one') {
-    postBody = type
+    postBody = docScope
   } else {
-    if (['All', 'filter', 'checked'].includes(type))
-      postBody = handleSetReqParam(type)
+    if (['All', 'filter', 'checked'].includes(docScope))
+      postBody = setPluginDocParam(docScope)
+    else postBody = {}
   }
   new Promise((resolve) => {
     resolve({})
@@ -341,8 +349,6 @@ const handlePlugins = (plugin: any, type: string = "") => {
       db: dbName,
       cl: clName,
       plugin: plugin.name,
-      // name: plugin.name,
-      // type: plugin.type, // 这个参数应该去掉，插件自己知道自己的类型
     }
     apiPlugin
       .execute(queryParams, postBody)
@@ -421,8 +427,11 @@ const changeDocSize = (size: number) => {
   data.docBatch.size = size
   data.docBatch.goto(1)
 }
-
-const listTag = (tags: any) => {
+/**
+ * 根据标签获得匹配的schema
+ * @param tags 
+ */
+const listSchemaByTag = (tags: any) => {
   let temp = {}
   const arrPromise = tags.map((item: string) =>
     apiSchema.listByTag(bucketName, item)
@@ -440,24 +449,22 @@ const listTag = (tags: any) => {
       throw new Error(err)
     })
 }
-
-const handleProperty = async () => {
-  let temp = {}
+/**
+ * 获得集合文档定义的顶层属性，作为表格的列
+ */
+const setTableColumnsFromSchema = async () => {
+  let matchedSchema = {}
   let properties = collection.schema.body.properties
 
   if (collection.schema_default_tags && collection.schema_default_tags.length) {
-    temp = await listTag(collection.schema_default_tags)
+    matchedSchema = await listSchemaByTag(collection.schema_default_tags)
   } else if (collection.schema_tags && collection.schema_tags.length) {
-    temp = await listTag(collection.schema_tags)
-  } else if (
-    properties &&
-    Object.prototype.toString.call(properties).toLowerCase() ==
-    '[object object]'
-  ) {
-    Object.assign(temp, properties)
+    matchedSchema = await listSchemaByTag(collection.schema_tags)
+  } else if (properties && typeof properties === 'object') {
+    Object.assign(matchedSchema, properties)
   }
 
-  data.properties = Object.freeze(temp)
+  data.properties = Object.freeze(matchedSchema)
 }
 
 const listDocByKw = () => {
@@ -472,10 +479,9 @@ const listDocByKw = () => {
 }
 
 onMounted(async () => {
-  let { bucketName, dbName, clName } = props
   collection = await apiCollection.byName(bucketName, dbName, clName)
   data.plugins = await apiPlugin.getCollectionDocPlugins(bucketName, dbName, clName)
-  await handleProperty()
+  await setTableColumnsFromSchema()
   listDocByKw()
 })
 </script>

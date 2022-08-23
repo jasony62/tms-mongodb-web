@@ -1,20 +1,7 @@
+import { PluginProfile } from 'tmw-data'
+
 // 必须提供的属性
 const RequiredProps = ['name', 'scope', 'title', 'description']
-/**
- * 插件说明
- */
-export interface PluginProfile {
-  name: string
-  scope: string
-  title: string
-  description: string
-  excludeTags?: string[]
-  everyTags?: string[]
-  someTags?: string[]
-  transData?: string
-  beforeWidget?: any
-  visible?: boolean
-}
 
 /**
  * 插件基类
@@ -82,8 +69,10 @@ export class PluginBase implements PluginProfile {
       someTags,
       beforeWidget,
       transData,
+      disabled,
       visible,
     } = this
+
     return {
       name,
       scope,
@@ -94,6 +83,7 @@ export class PluginBase implements PluginProfile {
       someTags,
       beforeWidget,
       transData,
+      disabled,
       visible,
     }
   }
