@@ -1,8 +1,17 @@
 <template>
-  <el-dialog :title="title" v-model="dialogVisible" :fullscreen="true" :destroy-on-close="true"
-    :close-on-click-modal="false" :before-close="onBeforeClose">
-    <div class="h-full flex flex-col">
-      <el-tabs v-model="activeTab" type="card">
+  <div id="schemaEditor">
+    <!--header-->
+    <div class="h-12 py-4 px-2">
+      <el-breadcrumb :separator-icon="ArrowRight">
+        <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ title }}</el-breadcrumb-item>
+      </el-breadcrumb>
+    </div>
+    <div class="p-2 border border-gray-200 mb-2 rounded-md text-center">
+      <el-button type="primary" @click="onSubmit">{{ submitTitle }}</el-button>
+    </div>
+    <div class="h-full flex flex-row">
+      <el-tabs tab-position="left" v-model="activeTab">
         <el-tab-pane label="基本信息" name="first"></el-tab-pane>
         <el-tab-pane label="列定义" name="second"></el-tab-pane>
       </el-tabs>
@@ -22,7 +31,7 @@
         </el-form>
         <div v-show="activeTab === 'second'" class="flex flex-row gap-4 h-full overflow-auto">
           <tms-json-schema ref="$jse" :schema="schema.body" :root-name="'$'" :on-upload="onUploadFile"
-            class="h-full overflow-auto">
+            class="h-full overflow-auto" :on-message="onMessage">
             <template #extattrs="{ attrs }">
               <el-form-item label="不可修改">
                 <el-switch v-model="attrs.readonly"></el-switch>
@@ -43,71 +52,44 @@
         </div>
       </div>
     </div>
-    <template #footer>
-      <el-button type="primary" @click="onSubmit">{{ submitTitle }}</el-button>
-      <el-button @click="onBeforeClose">取消</el-button>
-    </template>
-  </el-dialog>
+  </div>
 </template>
 <script setup lang="ts">
 import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
 import apiDoc from '@/apis/document'
-import { computed, onMounted, reactive, ref } from 'vue'
-import useClipboard from 'vue-clipboard3'
+import { ArrowRight } from '@element-plus/icons-vue'
+import { computed, onMounted, ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 
-const emit = defineEmits(['submit'])
+import useClipboard from 'vue-clipboard3'
+import { ElMessage } from 'element-plus'
+
+const router = useRouter()
 
 // JSONSchema编辑器
 const $jse = ref(null as unknown as { editing: () => any })
 
 const props = defineProps({
-  dialogVisible: { default: true },
-  bucketName: { type: String },
-  schema: {
-    type: Object,
-    default() {
-      return { title: '', description: '', scope: '', tags: [], body: {} }
-    }
-  },
-  onClose: { type: Function, default: (newSchema: any) => { } }
+  bucketName: { type: String, default: '' },
+  scope: { type: String, default: '' },
+  schemaId: { type: String, default: '' },
 })
-
-const dialogVisible = ref(props.dialogVisible)
-
-const schema = reactive(props.schema)
-
-const { onClose, bucketName } = props
+const { bucketName, scope, schemaId } = props
 
 const submitTitle = computed(() => {
-  return schema._id ? '修改' : '新建'
+  return schemaId ? '修改' : '新建'
 })
-
 const title = computed(() => {
-  let t = schema.scope === 'document' ? '文档内容定义' : (schema.scope === 'db' ? '数据库属性定义' : '集合属性定义')
-  t += '-' + (schema._id ? '修改' : '新建')
+  let t = scope === 'document' ? '文档内容定义' : (scope === 'db' ? '数据库属性定义' : '集合属性定义')
+  t += '-' + (schemaId ? '修改' : '新建')
   return t
 })
 const activeTab = ref('first')
-const tags = ref([] as any[])
+const tags = reactive([] as any[])
 
+let schema = ref({ title: '', description: '', scope: scope, tags: [], body: {} })
 const previewResult = ref('')
-
-// 关闭对话框时执行指定的回调方法
-const closeDialog = (newSchema?: any) => {
-  onClose(newSchema)
-}
-
-// 对话框关闭前触发
-const onBeforeClose = () => {
-  closeDialog(null)
-}
-
-onMounted(() => {
-  apiTag.list(bucketName).then((tags: any) => {
-    tags.value = tags
-  })
-})
 
 const onUploadFile = (file: any) => {
   let fileData = new FormData()
@@ -139,39 +121,45 @@ const copy = async () => {
   } catch (e) { }
 }
 
+const onMessage = (msg: string) => {
+  alert(`报错了:${msg}`,)
+}
+
 const onSubmit = () => {
   let newBody = $jse.value?.editing()
   if (newBody)
-    Object.assign(schema.body, newBody)
-
-  if (schema._id) {
+    Object.assign(schema.value.body, newBody)
+  if (schemaId) {
     apiSchema
-      .update(bucketName, schema, schema)
-      .then((newSchema: any) => {
-        emit('submit', { ...newSchema, _id: schema._id })
-        closeDialog(newSchema)
+      .update(bucketName, schemaId, schema.value)
+      .then(() => {
+        ElMessage.success({ message: '修改成功' })
+        router.push({ name: 'home' })
+      })
+      .catch(() => {
+        ElMessage.error({ message: '修改失败' })
       })
   } else {
     apiSchema
-      .create(bucketName, schema)
-      .then((newSchema: any) => {
-        emit('submit', newSchema)
-        closeDialog(newSchema)
+      .create(bucketName, schema.value)
+      .then(() => {
+        ElMessage.success({ message: '创建成功' })
+        router.push({ name: 'home' })
+      })
+      .catch(() => {
+        ElMessage.error({ message: '创建失败' })
       })
   }
 }
+
+apiTag.list(bucketName).then((datas: any) => {
+  tags.push(...datas)
+})
+if (schemaId) {
+  apiSchema.get(bucketName, schemaId).then((data: any) => {
+    schema.value = data
+  })
+}
 </script>
 
-<style lang="scss">
-#schemaEditor {
 
-  .el-dialog.is-fullscreen {
-    @apply flex flex-col;
-
-    .el-dialog__body {
-      @apply flex-grow overflow-auto;
-    }
-  }
-
-}
-</style>

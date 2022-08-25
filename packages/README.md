@@ -14,18 +14,6 @@ npm run build
 
 在本地启动启动服务。通过环境变量指定配置文件和控制器位置（支持相对路径）。
 
-```bash
-TMW_APP_PORT=3020
-TMW_APP_AUTH_CAPTCHA_DISABLED=yes
-TMS_KOA_CONFIG_DIR=../../docker/back/config
-TMS_KOA_CONTROLLERS_DIR=./dist/controllers
-TMW_APP_PLUGIN_DIR=./dist/plugins
-TMW_APP_AUTH_JWT_KEY
-TMW_APP_AUTH_JWT_EXPIRESIN
-
-node dist/server
-```
-
 ```
 TMW_APP_PORT=3020 TMW_APP_AUTH_CAPTCHA_DISABLED=yes TMS_KOA_CONFIG_DIR=../../docker/back/config TMS_KOA_CONTROLLERS_DIR=./dist/controllers TMW_APP_PLUGIN_DIR=./dist/plugins TMW_APP_AUTH_JWT_KEY=xxxxx TMW_APP_AUTH_JWT_EXPIRESIN=3600 node dist/server
 ```

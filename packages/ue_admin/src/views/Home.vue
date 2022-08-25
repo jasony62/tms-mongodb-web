@@ -46,9 +46,9 @@
             <el-table-column prop="description" label="说明"></el-table-column>
             <el-table-column label="操作" width="180">
               <template #default="scope">
-                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
+                <el-button type="primary" link size="small" @click="editSchema(scope.row, 'document')">修改</el-button>
                 <el-button type="primary" link size="small" @click="removeSchema(scope.row)">删除</el-button>
-                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
+                <el-button type="primary" link size="small" @click="copySchema(scope.row, scope.$index, true)">复制
                 </el-button>
               </template>
             </el-table-column>
@@ -60,9 +60,9 @@
             <el-table-column prop="description" label="说明"></el-table-column>
             <el-table-column label="操作" width="180">
               <template #default="scope">
-                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
+                <el-button type="primary" link size="small" @click="editSchema(scope.row, 'dbSchemas')">修改</el-button>
                 <el-button type="primary" link size="small" @click="removeSchema(scope.row)">删除</el-button>
-                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
+                <el-button type="primary" link size="small" @click="copySchema(scope.row, scope.$index, true)">复制
                 </el-button>
               </template>
             </el-table-column>
@@ -74,9 +74,9 @@
             <el-table-column prop="description" label="说明"></el-table-column>
             <el-table-column label="操作" width="180">
               <template #default="scope">
-                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index)">修改</el-button>
+                <el-button type="primary" link size="small" @click="editSchema(scope.row, 'colSchemas')">修改</el-button>
                 <el-button type="primary" link size="small" @click="removeSchema(scope.row)">删除</el-button>
-                <el-button type="primary" link size="small" @click="editSchema(scope.row, scope.$index, true)">复制
+                <el-button type="primary" link size="small" @click="copySchema(scope.row, scope.$index, true)">复制
                 </el-button>
               </template>
             </el-table-column>
@@ -136,6 +136,7 @@
 import { computed, onMounted, reactive, ref, toRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Batch } from 'tms-vue3'
+import { useRouter } from 'vue-router'
 
 import facStore from '@/store'
 import { openDbEditor, openTagEditor, openReplicaEditor, openSchemaEditor } from '@/components/editor'
@@ -144,6 +145,8 @@ import { EXTERNAL_FS_URL, getLocalToken, COMPACT_MODE } from '@/global'
 const COMPACT = computed(() => COMPACT_MODE())
 
 const store = facStore()
+
+const router = useRouter()
 
 // 查找条件下拉框分页包含记录数
 const LIST_DB_PAGE_SIZE = 100
@@ -223,16 +226,21 @@ const changeDbSelect = (value: never[]) => {
   criteria.multipleDb = value
 }
 const createSchema = (scope: string) => {
-  openSchemaEditor({
-    bucketName: props.bucketName,
-    schema: { scope, body: { type: 'object' } },
-    onBeforeClose: (newSchema?: any) => {
-      if (newSchema)
-        store.appendSchema({ schema: newSchema })
-    }
-  })
+  // openSchemaEditor({
+  //   bucketName: props.bucketName,
+  //   schema: { scope, body: { type: 'object' } },
+  //   onBeforeClose: (newSchema?: any) => {
+  //     if (newSchema)
+  //       store.appendSchema({ schema: newSchema })
+  //   }
+  // })
+  router.push({ name: 'schemaEditor', params: { bucketName: props.bucketName, scope: scope } })
 }
-const editSchema = (schema: any, index: any, isCopy = false) => {
+const editSchema = (schema: any, scope: string) => {
+  store.documentSchemas = [schema]
+  router.push({ name: 'schemaEditor', params: { bucketName: props.bucketName, scope: scope, schemaId: schema._id } })
+}
+const copySchema = (schema: any, index: any, isCopy = false) => {
   let newObj = { ...schema }
   if (isCopy) {
     newObj.title = newObj.title + '-复制'

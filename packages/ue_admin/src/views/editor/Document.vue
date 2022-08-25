@@ -14,6 +14,10 @@
       <el-button type="default" @click="openDrawer" v-if="!COMPACT">分屏</el-button>
     </div>
     <div class="flex flex-row gap-4 h-full overflow-auto px-4 pb-4" v-if="collection._id">
+    <tms-json-schema ref="$jse" :schema="schema.body" :root-name="'$'" 
+            class="h-full overflow-auto">
+            
+          </tms-json-schema>
       <tms-json-doc ref="$jde" class="w-1/3 h-full overflow-auto" :schema="collection.schema.body" :value="document"
         :enable-paste="true" :on-paste="onJdocPaste" :on-file-select="onFileSelect" :on-file-download="onFileDownload"
         :show-field-fullname="true" @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
@@ -81,6 +85,7 @@ const collection = ref<any>({ schema: { body: {} } })
 
 const document = ref({ _id: '' })
 
+const schema = ref({body: {}})
 // 文档字段转化规则
 const DocFieldConvertRules = computed(() =>
   (collection.value.docFieldConvertRules && typeof collection.value.docFieldConvertRules === 'object' && Object.keys(collection.value.docFieldConvertRules).length) ? collection.value.docFieldConvertRules : null
@@ -371,6 +376,10 @@ apiCl.byName(bucketName, dbName, clName).then((cl: any) => {
 if (docId)
   apiDoc.get(bucketName, dbName, clName, docId).then((doc: any) => {
     document.value = doc
+  })
+
+  apiSchema.get(bucketName, '61efb47d5f07154a781e04b6').then(data => {
+    schema.value = data
   })
 
 </script>
