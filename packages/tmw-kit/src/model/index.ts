@@ -17,3 +17,5 @@ export {
 }
 
 export * from './plugin'
+
+export * from './zipArchive'

@@ -85,6 +85,21 @@ export const BACK_API_URL = () => {
 
   return _BACK_API_URL
 }
+
+/**
+ * 文件下载起始地址
+ * @returns
+ */
+export const FS_BASE_URL = () => {
+  let url
+  let { protocol, hostname } = location
+  url = `${protocol}//${hostname}`
+  let port = _globalsettings.backApiPort
+  if (port && port !== 80 && port !== 443) url += `:${port}`
+
+  return url
+}
+
 /**
  * 关闭验证码
  */

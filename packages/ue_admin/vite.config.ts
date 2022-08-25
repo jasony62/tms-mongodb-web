@@ -19,7 +19,7 @@ export default ({ mode }) => {
     },
     plugins: [vue()],
     server: {
-      port: parseInt(process.env.SERVER_PORT) || 9000,
+      port: parseInt(process.env.DEV_SERVER_PORT) || 9000,
       fs: {
         strict: false,
         allow: [],

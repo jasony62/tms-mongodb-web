@@ -3,7 +3,8 @@ const logger = log4js.getLogger('tms-mongodb-web')
 const path = require('path')
 const glob = require('glob')
 
-import { PluginBase, PluginProfile } from './base'
+import { PluginBase } from './base'
+import { PluginProfile } from 'tmw-data'
 
 let _pluginsByName = new Map<string, PluginBase>() // 插件名称到插件示例
 
@@ -69,13 +70,17 @@ export class Context {
           let { createPlugin } = require(file)
           if (typeof createPlugin !== 'function') {
             logger.warn(
-              `插件文件[${path.basename(file)}]不可用，没有导出[createPlugin]方法`
+              `插件文件[${path.basename(
+                file
+              )}]不可用，没有导出[createPlugin]方法`
             )
             continue
           }
-          let plugin = createPlugin(path.basename(file))
+          let plugin: PluginProfile = createPlugin(path.basename(file))
           if (!plugin || !(plugin instanceof PluginBase)) {
-            logger.warn(`插件文件[${path.basename(file)}]不可用，未创建插件对象`)
+            logger.warn(
+              `插件文件[${path.basename(file)}]不可用，未创建插件对象`
+            )
             continue
           }
           if (plugin.disabled === true) {

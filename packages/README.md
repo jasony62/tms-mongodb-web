@@ -1,5 +1,9 @@
 `tms-mongodb-web`功能模块
 
+# tmw-data
+
+数据类型定义。
+
 # tmw-kit
 
 封装`tms-mongodb-web`的通用操作，为开发插件提供支持。作为独立的包`tmw-kit`发布。
@@ -10,9 +14,7 @@ npm run build
 
 # tms-back
 
-基于`tms-koa`进行二次开发，`controller`，提供 API。
-
-在本地启动启动服务。通过环境变量指定配置文件和控制器位置（支持相对路径）。
+本地启动服务
 
 ```
 TMW_APP_PORT=3020 TMW_APP_AUTH_CAPTCHA_DISABLED=yes TMS_KOA_CONFIG_DIR=../../docker/back/config TMS_KOA_CONTROLLERS_DIR=./dist/controllers TMW_APP_PLUGIN_DIR=./dist/plugins TMW_APP_AUTH_JWT_KEY=xxxxx TMW_APP_AUTH_JWT_EXPIRESIN=3600 node dist/server
@@ -50,10 +52,14 @@ location / {
 }
 ```
 
-# 添加插件
+启动测试服务
 
-## 后端扩展
+```
+DEV_SERVER_PORT=7077 pnpm dev
+```
 
-利用`tms-koa`的控制器插件机制扩展扩展后端服务。
+# plugins
 
-## 前端插件
+功能插件。
+
+通过环境变量`TMW_APP_PLUGIN_DIR`指定插件位置。
