@@ -29,7 +29,7 @@
             </el-select>
           </el-form-item>
         </el-form>
-        <div v-show="activeTab === 'second'" class="flex flex-row gap-4 h-full overflow-auto">
+        <div v-if="activeTab === 'second'" class="flex flex-row gap-4 h-full overflow-auto">
           <tms-json-schema ref="$jse" :schema="schema.body" :root-name="'$'" :on-upload="onUploadFile"
             class="h-full overflow-auto" :on-message="onMessage">
             <template #extattrs="{ attrs }">
@@ -59,7 +59,7 @@ import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
 import apiDoc from '@/apis/document'
 import { ArrowRight } from '@element-plus/icons-vue'
-import { computed, onMounted, ref, reactive } from 'vue'
+import { computed, ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 
 import useClipboard from 'vue-clipboard3'
@@ -88,7 +88,7 @@ const title = computed(() => {
 const activeTab = ref('first')
 const tags = reactive([] as any[])
 
-let schema = ref({ title: '', description: '', scope: scope, tags: [], body: {} })
+const schema = ref({ title: '', description: '', scope: scope, tags: [], body: {} })
 const previewResult = ref('')
 
 const onUploadFile = (file: any) => {
@@ -155,6 +155,7 @@ const onSubmit = () => {
 apiTag.list(bucketName).then((datas: any) => {
   tags.push(...datas)
 })
+
 if (schemaId) {
   apiSchema.get(bucketName, schemaId).then((data: any) => {
     schema.value = data
