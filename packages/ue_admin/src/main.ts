@@ -8,7 +8,7 @@ import {
   TmsLockPromise,
   TmsRouterHistoryPlugin,
 } from 'tms-vue3'
-import { Frame, Flex, Login, LoginResponse } from 'tms-vue3-ui'
+import { Frame, Flex, Login, LoginResponse, JsonSchema } from 'tms-vue3-ui'
 import router from './router'
 import App from './App.vue'
 import ElementPlus, { ElMessage } from 'element-plus'
@@ -113,6 +113,7 @@ function afterLoadSettings() {
     .use(TmsRouterHistoryPlugin, { router })
     .use(Frame)
     .use(Flex)
+    .use(JsonSchema.install)
     .use(ElementPlus)
     .mount('#app')
 }

@@ -9,6 +9,7 @@ import Register from '../views/Register.vue'
 import Smscode from '../views/Smscode.vue'
 import Invite from '../views/Invite.vue'
 import DocEditor from '../views/editor/Document.vue'
+import SchemaEditor from '../views/editor/Schema.vue'
 
 import { TmsRouterHistory } from 'tms-vue3'
 import { getLocalToken } from '../global'
@@ -71,6 +72,12 @@ const routes: RouteRecordRaw[] = [
     path: `${BucketPart}/document/:dbName/:clName/:docId?`,
     name: 'docEditor',
     component: DocEditor,
+    props: true,
+  },
+  {
+    path: `${BucketPart}/schema/:scope/:schemaId?`,
+    name: 'schemaEditor',
+    component: SchemaEditor,
     props: true,
   },
   {
