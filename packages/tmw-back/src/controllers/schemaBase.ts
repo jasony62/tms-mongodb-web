@@ -1,6 +1,8 @@
-import { ResultData } from 'tms-koa'
+import { ResultData, ResultFault } from 'tms-koa'
 import Base from 'tmw-kit/dist/ctrl/base'
 import SchemaHelper from './schemaHelper'
+import * as mongodb from 'mongodb'
+const ObjectId = mongodb.ObjectId
 
 /**
  * 集合列定义控制器基类
@@ -72,6 +74,20 @@ class SchemaBase extends Base {
       .find(find)
       .toArray()
       .then((schemas) => new ResultData(schemas))
+  }
+  /**
+   * 根据id查找schema
+   */
+  async get() {
+    const { id } = this['request'].query
+    if (!id) return new ResultFault('参数不完整')
+
+    const query = { _id: new ObjectId(id), type: 'schema' }
+    if (this['bucket']) query['bucket'] = this['bucket'].name
+
+    return this['clMongoObj']
+      .findOne(query)
+      .then((schema) => new ResultData(schema))
   }
 }
 

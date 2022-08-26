@@ -27,11 +27,11 @@ export default {
       .post(`${base}/create`, proto, { params })
       .then((rst: ApiRst) => rst.data.result)
   },
-  update(bucket: any, schema: any, updated: any) {
+  update(bucket: any, schemaId: any, updated: any) {
     const base = BACK_API_URL() + '/admin/schema'
     const params = { bucket }
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/update?id=${schema._id}`, updated, { params })
+      .post(`${base}/update?id=${schemaId}`, updated, { params })
       .then((rst: ApiRst) => rst.data.result)
   },
   remove(bucket: any, schema: any) {
@@ -46,6 +46,13 @@ export default {
     const params = { bucket, tag: tagName }
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/listByTag`, { params })
+      .then((rst: ApiRst) => rst.data.result)
+  },
+  get(bucket: any, schemaId: string) {
+    const base = BACK_API_URL() + '/admin/schema'
+    const params = { bucket, id: schemaId }
+    return TmsAxios.ins('mongodb-api')
+      .get(`${base}/get`, { params })
       .then((rst: ApiRst) => rst.data.result)
   },
 }
