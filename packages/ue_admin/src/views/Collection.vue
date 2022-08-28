@@ -142,11 +142,11 @@ import { onMounted, reactive, ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowRight, ArrowDown } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
-
+import _ from 'lodash'
 import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiPlugin from '@/apis/plugin'
-import { getLocalToken, COMPACT_MODE, FS_BASE_URL } from '@/global'
+import { getLocalToken, COMPACT_MODE, FS_BASE_URL, BACK_API_URL } from '@/global'
 
 import facStore from '@/store'
 import {
@@ -321,7 +321,7 @@ const setPluginDocParam = (docScope: string) => {
  * @param docScope 操作的文档范围类型
  * @param widgetResult 插件部件收集的数据
  */
-function executePlugin(plugin: any, docScope = '', widgetResult = undefined, widgetHandleExectionResult = false) {
+function executePlugin(plugin: any, docScope = '', widgetResult = undefined, widgetHandleResponse = false, applyAccessTokenField = '') {
   let postBody: any
   if (plugin.transData && plugin.transData === 'one') {
     postBody = docScope
@@ -331,7 +331,21 @@ function executePlugin(plugin: any, docScope = '', widgetResult = undefined, wid
     else postBody = {}
   }
   // 携带插件部件的数据
-  if (widgetResult) postBody.widget = widgetResult
+  if (widgetResult) {
+    if (applyAccessTokenField && typeof applyAccessTokenField === 'string') {
+      let field = _.get(widgetResult, applyAccessTokenField)
+      if (field && typeof field === 'string') {
+        /**只有访问自己的后端服务时才添加*/
+        if (field.indexOf(BACK_API_URL()) === 0) {
+          field += field.indexOf('?') > 0 ? '&' : '?'
+          let accessToken = getLocalToken() ?? ''
+          field += `access_token=${accessToken}`
+          _.set(widgetResult, applyAccessTokenField, field)
+        }
+      }
+    }
+    postBody.widget = widgetResult
+  }
   // 插件执行的基础参数
   let queryParams = { bucket: bucketName ?? '', db: dbName, cl: clName, plugin: plugin.name }
 
@@ -339,7 +353,7 @@ function executePlugin(plugin: any, docScope = '', widgetResult = undefined, wid
   return apiPlugin
     .execute(queryParams, postBody)
     .then((result: any) => {
-      if (widgetHandleExectionResult) {
+      if (widgetHandleResponse) {
         return result
       }
       if (typeof result === 'string') {
@@ -430,12 +444,12 @@ const handlePlugin = (plugin: any, docScope = '') => {
       const widgetResultListener = (event: MessageEvent) => {
         const { data, origin } = event
         if (data) {
-          const { action, result, handleResponse } = data
+          const { action, result, handleResponse, applyAccessTokenField, reloadOnClose } = data
           if (action === 'Cancel') {
             window.removeEventListener('message', widgetResultListener)
             showPluginWidget.value = false
           } else if (action === 'Execute') {
-            executePlugin(plugin, docScope, result, handleResponse).then((response: any) => {
+            executePlugin(plugin, docScope, result, handleResponse, applyAccessTokenField).then((response: any) => {
               if (handleResponse === true) {
                 // 将执行的结果递送给插件
                 if (elPluginWidget.value) {
@@ -449,6 +463,9 @@ const handlePlugin = (plugin: any, docScope = '') => {
           } else if (action === 'Close') {
             window.removeEventListener('message', widgetResultListener)
             showPluginWidget.value = false
+            // 关闭后刷新数据
+            console.log('rrrr', reloadOnClose)
+            if (reloadOnClose) listDocByKw()
           }
         }
       }

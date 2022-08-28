@@ -3,7 +3,16 @@
     <div>
       <el-form label-position="top" size="large">
         <el-form-item label="数据接收地址">
-          <el-input v-model="url" placeholder="请输入地址" clearable />
+          <el-input type="textarea" v-model="userInput.url" placeholder="请输入地址" autosize />
+        </el-form-item>
+        <el-form-item label="HTTP方法">
+          <el-select v-model="userInput.method" placeholder="选择HTTP方法">
+            <el-option label="get" value="get" />
+            <el-option label="post" value="post" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="清除发送的文档数据的id字段">
+          <el-switch v-model="userInput.excludeId"></el-switch>
         </el-form-item>
       </el-form>
       <el-divider />
@@ -12,7 +21,7 @@
           <el-switch v-model="persistUserInput"></el-switch>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="onExecute" :disabled="!url">执行</el-button>
+          <el-button type="primary" @click="onExecute" :disabled="!userInput.url">执行</el-button>
           <el-button @click="onCancel" v-if="!executed">取消</el-button>
           <el-button @click="onClose" v-if="executed">关闭</el-button>
         </el-form-item>
@@ -25,9 +34,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, reactive, ref, toRaw } from 'vue';
 
-const url = ref('')
+const userInput = reactive({
+  url: '',
+  method: '',
+  excludeId: true
+})
 
 const executed = ref(false)
 
@@ -39,8 +52,10 @@ enum PluginWidgetAction { Cancel = 'Cancel', Execute = 'Execute', Close = 'Close
 
 interface PluginWidgetResult {
   action: PluginWidgetAction,
-  handleResponse: boolean,
-  result?: any
+  result?: any,
+  handleResponse?: boolean,
+  applyAccessTokenField?: string // 定用户输入中申请添加access_token的字段
+  reloadOnClose?: boolean // 关闭部件后是否要刷新数据 
 }
 
 // 调用插件的页面
@@ -75,12 +90,12 @@ window.addEventListener('message', (event) => {
 })
 
 function onExecute() {
-  if (Caller && url.value) {
-    const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, handleResponse: true, result: { url: url.value } }
+  if (Caller && userInput.url) {
+    const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: toRaw(userInput), handleResponse: true, applyAccessTokenField: 'url' }
     try {
       // 在本地存储中保存用户最近一次的输入
       if (persistUserInput.value === true)
-        localStorage.setItem(StorageKey, JSON.stringify({ url: url.value, persistUserInput: true }))
+        localStorage.setItem(StorageKey, JSON.stringify({ userInput: toRaw(userInput), persistUserInput: true }))
       else
         localStorage.removeItem(StorageKey)
       // 给调用方发送数据
@@ -94,14 +109,14 @@ function onExecute() {
 
 function onCancel() {
   if (Caller) {
-    const message: PluginWidgetResult = ({ action: PluginWidgetAction.Cancel, handleResponse: false })
+    const message: PluginWidgetResult = ({ action: PluginWidgetAction.Cancel })
     Caller.postMessage(message, '*')
   }
 }
 
 function onClose() {
   if (Caller) {
-    const message: PluginWidgetResult = ({ action: PluginWidgetAction.Close, handleResponse: false })
+    const message: PluginWidgetResult = ({ action: PluginWidgetAction.Close, reloadOnClose: true })
     Caller.postMessage(message, '*')
   }
 }
@@ -110,7 +125,7 @@ onMounted(() => {
   const latestResult = localStorage.getItem(StorageKey)
   if (latestResult) {
     let latest = JSON.parse(latestResult)
-    if (latest.url) url.value = latest.url
+    if (latest.userInput) Object.assign(userInput, latest.userInput)
     if (latest.persistUserInput === true) persistUserInput.value = true
   }
 })

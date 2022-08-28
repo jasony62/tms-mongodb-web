@@ -61,6 +61,81 @@ class Document extends Base {
 
     return new ResultData(result)
   }
+  /**
+   * 在指定的集合中新建文档
+   */
+  async create() {
+    const existCl = await this.docHelper.findRequestCl()
+
+    const { name: clName, extensionInfo } = existCl
+    let data = this.request.body
+
+    /**在数据库中创建记录*/
+    const createOne = async (doc) => {
+      // 加工数据
+      this.modelDoc.beforeProcessByInAndUp(doc, 'insert')
+
+      return this.docHelper
+        .findSysColl(existCl)
+        .insertOne(doc)
+        .then(async (r) => {
+          await this.modelDoc.dataActionLog(
+            r.ops,
+            '创建',
+            existCl.db.name,
+            clName
+          )
+          return doc
+        })
+    }
+
+    let result: any
+    if (Array.isArray(data) && data.length) {
+      result = []
+      for (let i = 0; i < data.length; i++) {
+        let newDoc = await createOne(data[i])
+        result.push(newDoc)
+      }
+    } else if (data && typeof data === 'object') {
+      let newDoc = await createOne(data)
+      result = newDoc
+    }
+
+    return new ResultData(result)
+
+    // 去重校验
+    // const result = this.modelDoc.findUnRepeatRule(existCl)
+    // if (result[0]) {
+    //   const { dbName, clName: collName, keys, insert } = result[1]
+    //   const curDoc = [doc]
+    //   const curConfig = {
+    //     config: {
+    //       columns: keys,
+    //       db: dbName,
+    //       cl: collName,
+    //       insert: insert,
+    //     },
+    //   }
+    //   const repeated = await unrepeat(this, curDoc, curConfig)
+    //   if (repeated.length === 0)
+    //     return new ResultFault('添加失败,当前数据已存在')
+    // }
+    // 补充公共属性
+    // if (extensionInfo) {
+    //   const { info, schemaId } = extensionInfo
+    //   if (schemaId) {
+    //     const modelSchema = new ModelSchema(
+    //       this['mongoClient'],
+    //       this['bucket'],
+    //       this['client']
+    //     )
+    //     const publicSchema = await modelSchema.bySchemaId(schemaId)
+    //     Object.keys(publicSchema).forEach((schema) => {
+    //       doc[schema] = info[schema] ? info[schema] : ''
+    //     })
+    //   }
+    // }
+  }
 }
 
 export default Document

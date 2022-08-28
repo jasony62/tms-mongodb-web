@@ -12,34 +12,27 @@ class ExportDocJsonPlugin extends PluginBase {
     this.transData = 'more'
   }
 
-  async execute(ctrl: any, cl: any) {
-    let { filter, docIds } = ctrl.request.body
+  async execute(ctrl: any, tmwCl: any) {
+    const [ok, docsOrCause] = await this.findRequestDocs(ctrl, tmwCl)
 
-    let modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
+    if (ok === false) return { code: 10001, msg: docsOrCause }
 
-    let result, docs
-    if (Array.isArray(docIds) && docIds.length) {
-      result = await modelDoc.byIds(cl, docIds)
-    } else if (filter && typeof filter === 'object') {
-      result = await modelDoc.list(cl, { filter, orderBy: null })
-    } else if (filter && filter === 'ALL') {
-      result = await modelDoc.list(cl)
-    } else {
-      return { code: 10001, msg: '没有指定要导出的文档' }
-    }
-
-    if (result[0] === false) return { code: 10001, msg: result[1] }
-
-    docs = result[1].docs ?? result[1]
-
+    /**文档导出文件*/
     const fsContext = ctrl.tmsContext.FsContext.insSync()
     const domain = fsContext.getDomain(fsContext.defaultDomain)
-    const filename = `${cl.name}.zip`
-    const dir = cl.name
+    const filename = `${tmwCl.name}.zip`
+    const dir = tmwCl.name
 
-    const url = exportJSON(ctrl.tmsContext, domain.name, docs, filename, {
-      dir,
-    })
+    const url = exportJSON(
+      ctrl.tmsContext,
+      domain.name,
+      docsOrCause,
+      filename,
+      {
+        dir,
+      }
+    )
+
     return { code: 0, url }
   }
 }

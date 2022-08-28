@@ -1,4 +1,5 @@
 import { PluginProfile } from 'tmw-data'
+import { ModelDoc } from '..'
 
 // 必须提供的属性
 const RequiredProps = ['name', 'scope', 'title', 'description']
@@ -52,6 +53,43 @@ export abstract class PluginBase implements PluginProfile {
 
       return true
     })
+  }
+  /**
+   * 根据请求中的条件获得要发送的文档
+   * @param {object} ctrl
+   * @param {object} tmwCl
+   *
+   * @returns {[]} {[]} 第1位：是否成功，第2位：错误信息或文档列表
+   */
+  async findRequestDocs(ctrl, tmwCl) {
+    let docs
+
+    const modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
+    const { docIds, filter } = ctrl.request.body
+    if (docIds && Array.isArray(docIds) && docIds.length > 0) {
+      let [success, docsOrCause]: [boolean, any] = await modelDoc.byIds(
+        tmwCl,
+        docIds
+      )
+      if (success === true) docs = docsOrCause
+      else return [false, docsOrCause]
+    } else {
+      let query
+      if (typeof filter === 'string' && /all/i.test(filter)) {
+        query = {}
+      } else if (typeof filter === 'object' && Object.keys(filter).length) {
+        query = filter
+      }
+      let [success, docsOrCause] = await modelDoc.list(tmwCl, {
+        filter: query,
+        orderBy: null,
+      })
+      //@ts-ignore
+      if (success === true) docs = docsOrCause.docs
+      else return [false, docsOrCause]
+    }
+
+    return [true, docs]
   }
   /**
    * 返回参见描述信息

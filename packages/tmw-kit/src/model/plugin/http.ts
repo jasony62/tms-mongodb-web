@@ -13,7 +13,6 @@ import ModelCol from '../collection'
  */
 export abstract class PluginHttpSend extends PluginBase {
   axiosInstance
-  method
 
   constructor(file: string) {
     super(file)
@@ -22,23 +21,25 @@ export abstract class PluginHttpSend extends PluginBase {
 
   validate() {
     return super.validate().then(() => {
-      let { file, method, getUrl, getBody } = this
-      if (!method || typeof method !== 'string')
-        throw `插件文件[${file}]不可用，创建的PluginHttpSend插件未包含[method]属性`
+      // let { file, method, getUrl, getBody } = this
+      // if (!method || typeof method !== 'string')
+      //   throw `插件文件[${file}]不可用，创建的PluginHttpSend插件未包含[method]属性`
 
-      if (!['post', 'get'].includes(method))
-        throw `插件文件[${file}]不可用，创建的PluginHttpSend插件[method=${method}]未提供有效值`
+      // if (!['post', 'get'].includes(method))
+      //   throw `插件文件[${file}]不可用，创建的PluginHttpSend插件[method=${method}]未提供有效值`
 
-      if (!getUrl || typeof getUrl !== 'function')
-        throw `插件文件[${file}]不可用，创建的PluginHttpSend插件未包含[getUrl]方法`
+      // if (!getUrl || typeof getUrl !== 'function')
+      //   throw `插件文件[${file}]不可用，创建的PluginHttpSend插件未包含[getUrl]方法`
 
-      if (method === 'post')
-        if (!getBody || typeof getBody !== 'function')
-          throw `插件文件[${file}]不可用，创建的PluginHttpSend插件未包含[getBody]方法`
+      // if (method === 'post')
+      //   if (!getBody || typeof getBody !== 'function')
+      //     throw `插件文件[${file}]不可用，创建的PluginHttpSend插件未包含[getBody]方法`
 
       return true
     })
   }
+
+  abstract getMethod(ctrl: any, tmwCl: any)
 
   abstract getUrl(ctrl: any, tmwCl: any)
 
@@ -71,43 +72,6 @@ export abstract class PluginHttpSendDocs extends PluginHttpSend {
     return schemas
   }
   /**
-   * 根据请求中的条件获得要发送的文档
-   * @param {object} ctrl
-   * @param {object} tmwCl
-   *
-   * @returns {[]} {[]} 第1位：是否成功，第2位：错误信息或文档列表
-   */
-  async findRequestDocs(ctrl, tmwCl) {
-    let docs
-
-    const modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
-    const { docIds, filter } = ctrl.request.body
-    if (docIds && Array.isArray(docIds) && docIds.length > 0) {
-      let [success, docsOrCause]: [boolean, any] = await modelDoc.byIds(
-        tmwCl,
-        docIds
-      )
-      if (success === true) docs = docsOrCause
-      else return [false, docsOrCause]
-    } else {
-      let query
-      if (typeof filter === 'string' && /all/i.test(filter)) {
-        query = {}
-      } else if (typeof filter === 'object' && Object.keys(filter).length) {
-        query = filter
-      }
-      let [success, docsOrCause] = await modelDoc.list(tmwCl, {
-        filter: query,
-        orderBy: null,
-      })
-      //@ts-ignore
-      if (success === true) docs = docsOrCause.docs
-      else return [false, docsOrCause]
-    }
-
-    return [true, docs]
-  }
-  /**
    * 发送http请求
    * @param {object} ctrl - 调用插件的控制器对象
    * @param {object} tmwCl - 文档所在集合
@@ -117,7 +81,7 @@ export abstract class PluginHttpSendDocs extends PluginHttpSend {
   async httpSend(ctrl, tmwCl) {
     let { getConfig, axiosInstance } = this
 
-    let url = this.getUrl(ctrl, tmwCl)
+    const url = this.getUrl(ctrl, tmwCl)
     let config =
       getConfig && typeof getConfig === 'function' ? getConfig(ctrl, tmwCl) : {}
 
@@ -127,13 +91,20 @@ export abstract class PluginHttpSendDocs extends PluginHttpSend {
     })
 
     logger.debug(`插件[name=${this.name}]向[${url}]接口发送数据`)
-    if (this.method === 'post') {
-      let body = await this.getBody(ctrl, tmwCl)
-      return axiosInstance.post(url, body, config).then(({ data }) => data)
-    } else if (this.method === 'get') {
+
+    const method = this.getMethod(ctrl, tmwCl)
+
+    if (method === 'post') {
+      try {
+        let body = await this.getBody(ctrl, tmwCl)
+        return axiosInstance.post(url, body, config).then(({ data }) => data)
+      } catch (e) {
+        Promise.reject(e.message)
+      }
+    } else if (method === 'get') {
       return axiosInstance.get(url, config).then(({ data }) => data)
     }
 
-    return Promise.reject(`不支持的请求方法[${this.method}]`)
+    return Promise.reject(`不支持的请求方法[${method}]`)
   }
 }
