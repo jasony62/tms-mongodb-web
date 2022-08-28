@@ -1,28 +1,15 @@
-import { PluginBase, exportJSON, ModelDoc } from 'tmw-kit'
+import { PluginBase, exportJSON, ModelDoc } from 'tmw-kit/dist/model'
 /**
- *
+ * 将集合中的文档数据导出为json文件的压缩包
  */
 class ExportDocJsonPlugin extends PluginBase {
   constructor(file) {
     super(file)
-  }
-  get name() {
-    return 'exportDocJson'
-  }
-  get title() {
-    return '导出文档(JSON)'
-  }
-  get description() {
-    return '在集合中，将文档按JSON格式导出，保存为zip包。'
-  }
-  get scope() {
-    return 'document'
-  }
-  get transData() {
-    return ''
-  }
-  get disabled() {
-    return false
+    this.name = 'export-doc-json'
+    this.title = '导出文档(JSON)'
+    this.description = '在集合中，将文档按JSON格式导出，保存为zip包。'
+    this.scope = 'document'
+    this.transData = 'more'
   }
 
   async execute(ctrl: any, cl: any) {
@@ -34,7 +21,7 @@ class ExportDocJsonPlugin extends PluginBase {
     if (Array.isArray(docIds) && docIds.length) {
       result = await modelDoc.byIds(cl, docIds)
     } else if (filter && typeof filter === 'object') {
-      result = await modelDoc.list(cl, { filter })
+      result = await modelDoc.list(cl, { filter, orderBy: null })
     } else if (filter && filter === 'ALL') {
       result = await modelDoc.list(cl)
     } else {

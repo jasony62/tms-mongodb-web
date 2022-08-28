@@ -129,6 +129,12 @@
       </div>
     </div>
   </div>
+  <el-drawer v-model="showPluginWidget" :size="pluginWidgetSize" :with-header="false" :show-close="false"
+    :close-on-click-modal="false" :destroy-on-close="true">
+    <div class="h-full w-full relative">
+      <iframe ref="elPluginWidget" class="plugin-widget" :src="pluginWidgetUrl"></iframe>
+    </div>
+  </el-drawer>
 </template>
 
 <script setup lang="ts">
@@ -149,6 +155,11 @@ import {
 import { useRouter } from 'vue-router'
 
 const COMPACT = computed(() => COMPACT_MODE())
+
+const elPluginWidget = ref<HTMLIFrameElement>()
+const showPluginWidget = ref(false)
+const pluginWidgetUrl = ref('')
+const pluginWidgetSize = ref('')
 
 const store = facStore()
 
@@ -305,12 +316,12 @@ const setPluginDocParam = (docScope: string) => {
   }
 }
 /**
- * 执行插件
- * 
- * @param plugin 要执行的插件 
- * @param docScope 插件操作数据的范围
+ * 执行插件操作
+ * @param plugin 指定的插件 
+ * @param docScope 操作的文档范围类型
+ * @param widgetResult 插件部件收集的数据
  */
-const handlePlugin = (plugin: any, docScope: string = "") => {
+function executePlugin(plugin: any, docScope = '', widgetResult = undefined, widgetHandleExectionResult = false) {
   let postBody: any
   if (plugin.transData && plugin.transData === 'one') {
     postBody = docScope
@@ -319,27 +330,28 @@ const handlePlugin = (plugin: any, docScope: string = "") => {
       postBody = setPluginDocParam(docScope)
     else postBody = {}
   }
-  new Promise((resolve) => {
-    resolve({})
-  }).then((beforeResult) => {
-    // if (beforeResult) {
-    //   postBody.widget = beforeResult
-    // }
-    let queryParams = {
-      db: dbName,
-      cl: clName,
-      plugin: plugin.name,
-    }
-    apiPlugin
-      .execute(queryParams, postBody)
-      .then((result: any) => {
-        if (typeof result === 'string') {
-          ElMessage.success({
-            message: result, showClose: true,
-          })
-          listDocByKw()
-        } else if (result && typeof result === 'object' && result.type === 'documents') {
-          /**返回操作结果——数据 */
+  // 携带插件部件的数据
+  if (widgetResult) postBody.widget = widgetResult
+  // 插件执行的基础参数
+  let queryParams = { bucket: bucketName ?? '', db: dbName, cl: clName, plugin: plugin.name }
+
+  // 执行插件方法
+  return apiPlugin
+    .execute(queryParams, postBody)
+    .then((result: any) => {
+      if (widgetHandleExectionResult) {
+        return result
+      }
+      if (typeof result === 'string') {
+        /**返回字符串直接显示内容*/
+        ElMessage.success({
+          message: result, showClose: true,
+        })
+        listDocByKw()
+      } else if (result && typeof result === 'object') {
+        /**返回的是对象*/
+        if (result.type === 'documents') {
+          /**返回的是文档数据*/
           let nInserted = 0, nModified = 0, nRemoved = 0
           let { inserted, modified, removed } = result
           /**在当前文档列表中移除删除的记录 */
@@ -368,11 +380,7 @@ const handlePlugin = (plugin: any, docScope: string = "") => {
           }
           let msg = `插件[${plugin.title}]执行完毕，添加[${nInserted}]条，修改[${nModified}]条，删除[${nRemoved}]条记录。`
           ElMessage.success({ message: msg })
-        } else if (
-          result &&
-          typeof result === 'object' &&
-          result.type === 'numbers'
-        ) {
+        } else if (result.type === 'numbers') {
           /**返回操作结果——数量 */
           let { nInserted, nModified, nRemoved } = result
           let message = `插件[${plugin.title}]执行完毕，添加[${parseInt(nInserted) || 0
@@ -385,22 +393,72 @@ const handlePlugin = (plugin: any, docScope: string = "") => {
           }).catch(() => {
             listDocByKw()
           })
-        } else if (result && typeof result === 'object' && typeof result.url === 'string') {
+        } else if (typeof result.url === 'string') {
           /**下载文件*/
           let url = FS_BASE_URL() + result.url
           window.open(url)
-        } else {
-          ElMessage.success({
-            message: `插件[${plugin.title}]执行完毕。`,
-            showClose: true,
-          })
-          listDocByKw()
         }
-      })
-      .catch((err: any) => {
-        ElMessage.error(err.msg)
-      })
-  })
+      } else {
+        ElMessage.success({
+          message: `插件[${plugin.title}]执行完毕。`,
+          showClose: true,
+        })
+        listDocByKw()
+      }
+      return 'ok'
+    })
+    .catch((err: any) => {
+      ElMessage.error(err.msg)
+    })
+}
+/**
+ * 执行插件
+ * 
+ * @param plugin 要执行的插件 
+ * @param docScope 插件操作数据的范围
+ */
+const handlePlugin = (plugin: any, docScope = '') => {
+  const { beforeWidget } = plugin
+  if (beforeWidget) {
+    const { name, url, size } = beforeWidget
+    if (name === 'external' && url) {
+      let fullurl = url + (url.indexOf('?') > 0 ? '&' : '?')
+      showPluginWidget.value = true
+      pluginWidgetUrl.value = fullurl + `bucket=${bucketName ?? ''}&db=${dbName}&cl=${clName}`
+      pluginWidgetSize.value = size ?? '50%'
+      // 收集页面数据
+      const widgetResultListener = (event: MessageEvent) => {
+        const { data, origin } = event
+        if (data) {
+          const { action, result, handleResponse } = data
+          if (action === 'Cancel') {
+            window.removeEventListener('message', widgetResultListener)
+            showPluginWidget.value = false
+          } else if (action === 'Execute') {
+            executePlugin(plugin, docScope, result, handleResponse).then((response: any) => {
+              if (handleResponse === true) {
+                // 将执行的结果递送给插件
+                if (elPluginWidget.value) {
+                  elPluginWidget.value.contentWindow?.postMessage({ response }, '*')
+                }
+              } else {
+                window.removeEventListener('message', widgetResultListener)
+                showPluginWidget.value = false
+              }
+            })
+          } else if (action === 'Close') {
+            window.removeEventListener('message', widgetResultListener)
+            showPluginWidget.value = false
+          }
+        }
+      }
+      window.addEventListener('message', widgetResultListener)
+      return
+    }
+  } else {
+    executePlugin(plugin, docScope)
+  }
+
 }
 
 const changeDocPage = (page: number) => {
@@ -469,3 +527,9 @@ onMounted(async () => {
   listDocByKw()
 })
 </script>
+<style scoped lang="scss">
+.plugin-widget {
+  border: 0;
+  @apply h-full w-full;
+}
+</style>

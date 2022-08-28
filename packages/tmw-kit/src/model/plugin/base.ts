@@ -6,13 +6,12 @@ const RequiredProps = ['name', 'scope', 'title', 'description']
 /**
  * 插件基类
  */
-export class PluginBase implements PluginProfile {
+export abstract class PluginBase implements PluginProfile {
   file: string
   name: string // 插件名
   scope: string // 适用管理对象，支持：database，collection，document
   title: string // 插件按钮名称
   description: string // 插件描述信息
-  execute: Function
   excludeTags?: string[]
   everyTags?: string[]
   someTags?: string[]
@@ -21,6 +20,7 @@ export class PluginBase implements PluginProfile {
   visible?
   disabled?: boolean
   remoteWidgetOptions?: Function
+
   /**
    * 创建插件
    * @param {string} file - 文件名
@@ -87,4 +87,6 @@ export class PluginBase implements PluginProfile {
       visible,
     }
   }
+
+  abstract execute(ctrl: any, tmwCl: any)
 }

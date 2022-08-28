@@ -11,11 +11,9 @@ import ModelCol from '../collection'
  * 发送数据插件
  * @extends PluginBase
  */
-export class PluginHttpSend extends PluginBase {
+export abstract class PluginHttpSend extends PluginBase {
   axiosInstance
   method
-  getUrl
-  getBody
 
   constructor(file: string) {
     super(file)
@@ -41,12 +39,16 @@ export class PluginHttpSend extends PluginBase {
       return true
     })
   }
+
+  abstract getUrl(ctrl: any, tmwCl: any)
+
+  abstract getBody(ctrl: any, tmwCl: any)
 }
 /**
  * 发送集合中的文档数据
  * @extends PluginHttpSend
  */
-export class PluginHttpSendDocs extends PluginHttpSend {
+export abstract class PluginHttpSendDocs extends PluginHttpSend {
   getConfig
 
   constructor(file: string) {

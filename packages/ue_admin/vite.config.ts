@@ -5,7 +5,7 @@ import { resolve } from 'path'
 export default ({ mode }) => {
   const env = loadEnv(mode, process.cwd())
 
-  const BASE_URL = env.VITE_BASE_URL ? env.VITE_BASE_URL : '/admin'
+  const BASE_URL = env.VITE_BASE_URL ? env.VITE_BASE_URL : '/admin/'
 
   return defineConfig({
     base: BASE_URL,

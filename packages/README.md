@@ -17,7 +17,7 @@ npm run build
 本地启动服务
 
 ```
-TMW_APP_PORT=3020 TMW_APP_AUTH_CAPTCHA_DISABLED=yes TMS_KOA_CONFIG_DIR=../../docker/back/config TMS_KOA_CONTROLLERS_DIR=./dist/controllers TMW_APP_PLUGIN_DIR=./dist/plugins TMW_APP_AUTH_JWT_KEY=xxxxx TMW_APP_AUTH_JWT_EXPIRESIN=3600 node dist/server
+TMW_APP_PORT=3020 TMW_APP_AUTH_CAPTCHA_DISABLED=yes TMS_KOA_CONFIG_DIR=../../docker/back/config TMS_KOA_CONTROLLERS_DIR=./dist/controllers TMW_APP_PLUGIN_DIR=../plugins/dist/** TMW_PLUGIN_DOCUMENT_HTTP_SEND=xxx TMW_APP_AUTH_JWT_KEY=xxxxx TMW_APP_AUTH_JWT_EXPIRESIN=3600 node dist/server
 ```
 
 新增插件时，需要在 tmw-back/src 下新建 plugins 文件夹
