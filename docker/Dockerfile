@@ -17,33 +17,38 @@ COPY ../docker/back/npmlibs/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br /root/.
 COPY ../packages/tmw-data /usr/src/tmw/data
 RUN cd /usr/src/tmw/data && pnpm i --strict-peer-dependencies=false && pnpm build 
 ### 去掉不必要的依赖包
-RUN rm -rf /usr/src/tmw/data/node_modules
-RUN cd /usr/src/tmw/data && pnpm i --production --strict-peer-dependencies=false
+# RUN rm -rf /usr/src/tmw/data/node_modules
+# RUN cd /usr/src/tmw/data && pnpm i --production --strict-peer-dependencies=false
 
 ## kit
 COPY ../packages/tmw-kit /usr/src/tmw/kit
 RUN sed -i 's/"tmw-data": "workspace:\*"/"tmw-data": "file:\.\.\/data"/g' /usr/src/tmw/kit/package.json
 RUN cd /usr/src/tmw/kit && pnpm i --strict-peer-dependencies=false && pnpm build 
-### 去掉不必要的依赖包
-RUN rm -rf /usr/src/tmw/kit/node_modules
-RUN cd /usr/src/tmw/kit && pnpm i --production --strict-peer-dependencies=false
+# ### 去掉不必要的依赖包
+# RUN rm -rf /usr/src/tmw/kit/node_modules
+# RUN cd /usr/src/tmw/kit && pnpm i --production --strict-peer-dependencies=false
 
 ## plugin
 COPY ../packages/plugins /usr/src/tmw/plugins
 RUN sed -i 's/"tmw-kit": "workspace:\*"/"tmw-kit": "file:\.\.\/kit"/g' /usr/src/tmw/plugins/package.json
 RUN cd /usr/src/tmw/plugins && pnpm i --strict-peer-dependencies=false && pnpm build 
 ### 去掉不必要的依赖包
-RUN rm -rf /usr/src/tmw/plugins/node_modules
-RUN cd /usr/src/tmw/plugins && pnpm i --production --strict-peer-dependencies=false
+# RUN rm -rf /usr/src/tmw/plugins/node_modules
+# RUN cd /usr/src/tmw/plugins && pnpm i --production --strict-peer-dependencies=false
 
 ## back安装依赖包
 COPY ../packages/tmw-back/package.json /usr/src/tmw/back/package.json
 RUN sed -i 's/"tmw-data": "workspace:\*"/"tmw-data": "file:\.\.\/data"/g' /usr/src/tmw/back/package.json
 RUN sed -i 's/"tmw-kit": "workspace:\*"/"tmw-kit": "file:\.\.\/kit"/g' /usr/src/tmw/back/package.json
 RUN cd /usr/src/tmw/back && pnpm i --strict-peer-dependencies=false
+
 ## ue_admin安装依赖包
 COPY ../packages/ue_admin/package.json /usr/src/tmw/ue_admin/package.json
 RUN cd /usr/src/tmw/ue_admin && pnpm i --strict-peer-dependencies=false
+
+## ue_admin安装依赖包
+COPY ../packages/ue_plugin/package.json /usr/src/tmw/ue_plugin/package.json
+RUN cd /usr/src/tmw/ue_plugin && pnpm i --strict-peer-dependencies=false
 
 # 编译源代码
 ## back
@@ -60,11 +65,15 @@ RUN cd /usr/src/tmw/back && pnpm i --production --strict-peer-dependencies=false
 
 ## ue_admin
 COPY ../packages/ue_admin /usr/src/tmw/ue_admin
-ARG vite_base_url
-RUN echo VITE_BASE_URL=$vite_base_url >> /usr/src/tmw/ue_admin/.env
+ARG vite_admin_base_url
+RUN echo VITE_BASE_URL=$vite_admin_base_url >> /usr/src/tmw/ue_admin/.env
 RUN cd /usr/src/tmw/ue_admin && pnpm build
 
-# WORKDIR /usr/src/packages
+## ue_plugin
+COPY ../packages/ue_plugin /usr/src/tmw/ue_plugin
+ARG vite_plugin_base_url
+RUN echo VITE_BASE_URL=$vite_plugin_base_url >> /usr/src/tmw/ue_plugin/.env
+RUN cd /usr/src/tmw/ue_plugin && pnpm build
 
 # 生成运行镜像
 
@@ -73,6 +82,9 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
   && apk update && apk add bash tzdata \
   && cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 RUN apk add nginx gettext
+
+# ue_plugin
+COPY --from=builder /usr/src/tmw/ue_plugin/dist /usr/share/nginx/html
 
 # ue_admin
 COPY --from=builder /usr/src/tmw/ue_admin/dist /usr/share/nginx/html

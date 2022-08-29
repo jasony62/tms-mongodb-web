@@ -54,9 +54,16 @@ http {
         server_name  localhost;
         root   /usr/share/nginx/html;
 
+        # 管理界面
         location $NGINX_UE_ADMIN_BASE_URL {
             index index.html;
             try_files $uri $uri/ $NGINX_UE_ADMIN_BASE_URL/index.html;
+        }
+        
+        # 插件部件
+        location $NGINX_UE_PLUGIN_BASE_URL {
+            index index.html;
+            try_files $uri $uri/ $NGINX_UE_PLUGIN_BASE_URL/index.html;
         }
         
         # 转发前端的API请求到本地服务

@@ -71,9 +71,11 @@ const {
   TMW_PLUGIN_DOC_HTTP_SEND_URL: Url,
   TMW_PLUGIN_DOC_HTTP_SEND_METHOD: Method,
   TMW_PLUGIN_DOC_HTTP_SEND_EXCLUDEID: ExcludeId,
+  TMW_PLUGIN_DOC_HTTP_SEND_WIDGET_URL,
 } = process.env
 
 module.exports = {
+  widgetUrl: TMW_PLUGIN_DOC_HTTP_SEND_WIDGET_URL,
   name: Name ? Name.split(',') : ['doc-http-send'],
   title: Title ? Title.split(',') : ['发送数据'],
   url: Url ? Url.split(',') : [],

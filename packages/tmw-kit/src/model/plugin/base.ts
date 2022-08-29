@@ -1,4 +1,3 @@
-export { loadConfig } from 'tms-koa'
 import { PluginProfile } from 'tmw-data'
 import { ModelDoc } from '..'
 

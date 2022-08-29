@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
-import HttpSendDoc from '@/views/HttpSendDoc.vue'
+import HttpSendDoc from '@/views/DocHttpSend.vue'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
   ? import.meta.env.VITE_BASE_URL
@@ -8,8 +8,8 @@ const BASE_URL = import.meta.env.VITE_BASE_URL
 
 const routes: RouteRecordRaw[] = [
   {
-    path: '/http-send-doc',
-    name: 'httpSendDoc',
+    path: '/doc-http-send',
+    name: 'docHttpSend',
     component: HttpSendDoc,
   },
 ]
