@@ -4,7 +4,6 @@ const axios = require('axios')
 
 import { PluginBase } from './base'
 
-import ModelDoc from '../document'
 import ModelCol from '../collection'
 
 /**

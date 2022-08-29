@@ -1,3 +1,4 @@
+export { loadConfig } from 'tms-koa'
 import { PluginProfile } from 'tmw-data'
 import { ModelDoc } from '..'
 
@@ -13,13 +14,16 @@ export abstract class PluginBase implements PluginProfile {
   scope: string // 适用管理对象，支持：database，collection，document
   title: string // 插件按钮名称
   description: string // 插件描述信息
+  bucketName?: RegExp // 和存储空间名称匹配的正则表达式
+  dbName?: RegExp // 和数据库名称匹配的正则表达式
+  clName?: RegExp // 和集合名称匹配的正则表达式
   excludeTags?: string[]
   everyTags?: string[]
   someTags?: string[]
-  beforeWidget?: any
   transData?
-  visible?
+  visible? // 控制适用的文档条件，当文档的key的值和指定值一致时显示
   disabled?: boolean
+  beforeWidget?: any
   remoteWidgetOptions?: Function
 
   /**
@@ -102,6 +106,9 @@ export abstract class PluginBase implements PluginProfile {
       scope,
       title,
       description,
+      bucketName,
+      dbName,
+      clName,
       excludeTags,
       everyTags,
       someTags,
@@ -116,6 +123,9 @@ export abstract class PluginBase implements PluginProfile {
       scope,
       title,
       description,
+      bucketName,
+      dbName,
+      clName,
       excludeTags,
       everyTags,
       someTags,

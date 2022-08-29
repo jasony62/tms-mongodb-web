@@ -6,11 +6,18 @@ export interface PluginProfile {
     disabled?: boolean;
     visible?: any;
     transData?: string;
+    bucketName?: RegExp;
+    dbName?: RegExp;
+    clName?: RegExp;
     excludeTags?: string[];
     everyTags?: string[];
     someTags?: string[];
     beforeWidget?: {
         name: string;
-        remoteWidgetOptions?: any;
+        remoteWidgetOptions?: boolean;
+        url?: string;
+        size?: string;
+        [k: string]: any;
     };
+    remoteWidgetOptions?: Function;
 }

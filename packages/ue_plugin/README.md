@@ -1,37 +1,22 @@
 运行插件的前端部件。
 
-调用方提供的基本参数，数据库名称，集合名称等
+调用方在`iframe`中打开插件部件，双方通过`postMessage`方法交换数据。
 
-执行插件操作前收集数据
+```mermaid
+sequenceDiagram
+autonumber
 
-说明是否支持展示结果
+participant C as Collection.vue
+participant P as ue_plugin
 
-调用方将执行的结果提供给插件
+C->>P: iframe+url
+P->>C: postMessage(Created)
+C->>P: postMessage(plugin)
+P->>C: postMessage(Execute)
+C->>Back: execute
+Back-->>C: response
+C->>P: postMessage(response)
+P->>C: postMessage(Close)
+```
 
-执行插件操作后显示结果
-
-支持保留用户输入；支持按照 collection 分别保留用户输入。本地存储用户输入的命名规则。
-
-bucket=&db=&cl=
-
-是否支持用户级别的隔离？
-
-是否支持在后台进行持久化？
-
-支持的本地组件
-
-支持的前端数据处理
-
-支持下载文件
-
-是否要刷新数据？如果插件不提供增量变化的数据就不需要。
-
-集合间复制数据
-
-http-send-doc
-
-方法
-
-发送的数据
-
-支持通过配置文件指定插件的规则
+插件的定义详见`plugins`中的说明。

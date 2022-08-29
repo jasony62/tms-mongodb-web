@@ -138,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, computed } from 'vue'
+import { onMounted, reactive, ref, computed, nextTick, toRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowRight, ArrowDown } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
@@ -445,7 +445,12 @@ const handlePlugin = (plugin: any, docScope = '') => {
         const { data, origin } = event
         if (data) {
           const { action, result, handleResponse, applyAccessTokenField, reloadOnClose } = data
-          if (action === 'Cancel') {
+          if (action === 'Created') {
+            // 插件创建成功后，将插件信息传递给插件
+            if (elPluginWidget.value) {
+              elPluginWidget.value.contentWindow?.postMessage({ plugin: { name: toRaw(plugin.name), ui: toRaw(beforeWidget.ui) } }, '*')
+            }
+          } else if (action === 'Cancel') {
             window.removeEventListener('message', widgetResultListener)
             showPluginWidget.value = false
           } else if (action === 'Execute') {
@@ -464,7 +469,6 @@ const handlePlugin = (plugin: any, docScope = '') => {
             window.removeEventListener('message', widgetResultListener)
             showPluginWidget.value = false
             // 关闭后刷新数据
-            console.log('rrrr', reloadOnClose)
             if (reloadOnClose) listDocByKw()
           }
         }
@@ -475,7 +479,6 @@ const handlePlugin = (plugin: any, docScope = '') => {
   } else {
     executePlugin(plugin, docScope)
   }
-
 }
 
 const changeDocPage = (page: number) => {

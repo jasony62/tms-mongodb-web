@@ -42,7 +42,7 @@ class Plugin extends CtrlBase {
    *               "$ref": "#/components/schemas/ResponseDataArray"
    */
   async list() {
-    const { scope } = this.request.query
+    const { scope, db, cl } = this.request.query
     if (!['document', 'collection', 'database'].includes(scope))
       return new ResultFault(`参数错误[scope=${scope}]`)
 
@@ -64,15 +64,31 @@ class Plugin extends CtrlBase {
     } else {
       objTags = []
     }
-    /**根据标签进行筛选*/
+
+    /**进行筛选*/
     plugins = plugins.filter((plugin) => {
-      let { excludeTags, everyTags, someTags } = plugin
+      let { bucketName, dbName, clName, excludeTags, everyTags, someTags } =
+        plugin
+
+      if (bucketName && bucketName instanceof RegExp && this.bucket) {
+        if (bucketName.test(this.bucket) === false) return false
+      }
+
+      if (dbName && dbName instanceof RegExp)
+        if (dbName.test(db) === false) return false
+
+      if (clName && clName instanceof RegExp) {
+        if (clName.test(cl) === false) return false
+      }
+
       // 集合标签中不能包括指定的标签
       if (Array.isArray(excludeTags) && excludeTags.length)
         if (_.intersection(excludeTags, objTags).length) return false
+
       // 集合标签中包括指定的所有标签
       if (Array.isArray(everyTags) && everyTags.length)
         if (_.difference(everyTags, objTags).length) return false
+
       // 集合标签中包括至少1个指定标签
       if (Array.isArray(someTags) && someTags.length)
         if (_.intersection(someTags, objTags).length === 0) return false
@@ -118,7 +134,7 @@ class Plugin extends CtrlBase {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async remoteWidgetOptions() {
-    let { bucket, db, cl, plugin: pluginName } = this['request'].query
+    let { bucket, db, cl, plugin: pluginName } = this.request.query
 
     if (!pluginName) return new ResultFault('缺少plugin参数')
 

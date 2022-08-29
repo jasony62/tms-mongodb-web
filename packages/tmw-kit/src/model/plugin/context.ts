@@ -76,40 +76,47 @@ export class Context {
             )
             continue
           }
+
+          // 支持用1个插件文件创建多个插件实例
           let plugin: PluginProfile = createPlugin(path.basename(file))
-          if (!plugin || !(plugin instanceof PluginBase)) {
-            logger.warn(
-              `插件文件[${path.basename(file)}]不可用，未创建插件对象`
-            )
-            continue
-          }
-          if (plugin.disabled === true) {
-            logger.warn(`插件文件[${plugin.file}]已禁用`)
-            continue
-          }
-          let passed = await validatePlugin(plugin)
-          if (passed) {
-            if (_pluginsByName.has(plugin.name)) {
+
+          let plugins = Array.isArray(plugin) ? plugin : [plugin]
+          for (let p = 0; p < plugins.length; p++) {
+            let onePlugin = plugins[p]
+            if (!onePlugin || !(onePlugin instanceof PluginBase)) {
               logger.warn(
-                `插件文件[${plugin.file}]不可用，已有同名插件[name=${plugin.name}]`
+                `插件文件[${path.basename(file)}]不可用，未创建插件对象`
               )
               continue
             }
-            let { name, scope } = plugin
-            switch (scope) {
-              case 'database':
-                _dbProfiles.push(plugin.profile)
-                break
-              case 'collection':
-                _clProfiles.push(plugin.profile)
-                break
-              case 'document':
-                _docProfiles.push(plugin.profile)
-                break
+            if (onePlugin.disabled === true) {
+              logger.warn(`插件文件[${onePlugin.file}]已禁用`)
+              continue
             }
-            _pluginsByName.set(name, plugin)
+            let passed = await validatePlugin(onePlugin)
+            if (passed) {
+              if (_pluginsByName.has(onePlugin.name)) {
+                logger.warn(
+                  `插件文件[${onePlugin.file}]不可用，已有同名插件[name=${onePlugin.name}]`
+                )
+                continue
+              }
+              let { name, scope } = onePlugin
+              switch (scope) {
+                case 'database':
+                  _dbProfiles.push(onePlugin.profile)
+                  break
+                case 'collection':
+                  _clProfiles.push(onePlugin.profile)
+                  break
+                case 'document':
+                  _docProfiles.push(onePlugin.profile)
+                  break
+              }
+              _pluginsByName.set(name, onePlugin)
 
-            logger.info(`从文件[${plugin.file}]创建插件[name=${name}]`)
+              logger.info(`从文件[${onePlugin.file}]创建插件[name=${name}]`)
+            }
           }
         }
       })

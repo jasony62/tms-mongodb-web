@@ -5,7 +5,7 @@ import { PluginBase, exportJSON, ModelDoc } from 'tmw-kit/dist/model'
 class ExportDocJsonPlugin extends PluginBase {
   constructor(file) {
     super(file)
-    this.name = 'export-doc-json'
+    this.name = 'doc-export-json'
     this.title = '导出文档(JSON)'
     this.description = '在集合中，将文档按JSON格式导出，保存为zip包。'
     this.scope = 'document'

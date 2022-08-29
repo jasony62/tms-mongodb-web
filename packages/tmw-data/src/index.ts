@@ -33,6 +33,18 @@ export interface PluginProfile {
    */
   transData?: string
   /**
+   * 和存储空间名称匹配的正则表达式
+   */
+  bucketName?: RegExp
+  /**
+   * 和数据库名称匹配的正则表达式
+   */
+  dbName?: RegExp
+  /**
+   * 和集合名称匹配的正则表达式
+   */
+  clName?: RegExp
+  /**
    * 管理对象中不允许包含的标签的名称数组
    */
   excludeTags?: string[]
@@ -50,11 +62,28 @@ export interface PluginProfile {
   beforeWidget?: {
     /**
      * 前端内置插件名称
+     * 当值为external时，为外置自定义部件
      */
     name: string
     /**
-     *
+     * 内置区间是否需要远程参数
      */
-    remoteWidgetOptions?: any
+    remoteWidgetOptions?: boolean
+    /**
+     * 自定义部件的打开地址
+     */
+    url?: string
+    /**
+     * 自定义部分显示宽度
+     */
+    size?: string
+    /**
+     * 携带的其它信息
+     */
+    [k: string]: any
   }
+  /**
+   * 内置部件参数
+   */
+  remoteWidgetOptions?: Function
 }
