@@ -64,7 +64,7 @@ export class Context {
         if (dir === '') return
         let absDir = path.resolve(process.cwd(), dir)
         logger.info(`从目录[${absDir}]读取插件文件`)
-        let files = glob.sync(`${absDir}/*.js`)
+        let files: string[] = glob.sync(`${absDir}/*.js`)
         for (let i = 0, file; i < files.length; i++) {
           file = files[i]
           let { createPlugin } = require(file)
@@ -78,15 +78,13 @@ export class Context {
           }
 
           // 支持用1个插件文件创建多个插件实例
-          let plugin: PluginProfile = createPlugin(path.basename(file))
+          let plugin: PluginProfile = createPlugin(file)
 
           let plugins = Array.isArray(plugin) ? plugin : [plugin]
           for (let p = 0; p < plugins.length; p++) {
             let onePlugin = plugins[p]
             if (!onePlugin || !(onePlugin instanceof PluginBase)) {
-              logger.warn(
-                `插件文件[${path.basename(file)}]不可用，未创建插件对象`
-              )
+              logger.warn(`插件文件[${file}]不可用，未创建插件对象`)
               continue
             }
             if (onePlugin.disabled === true) {
@@ -115,7 +113,7 @@ export class Context {
               }
               _pluginsByName.set(name, onePlugin)
 
-              logger.info(`从文件[${onePlugin.file}]创建插件[name=${name}]`)
+              logger.info(`从文件[${file}]创建插件[name=${name}]`)
             }
           }
         }

@@ -46,7 +46,7 @@ RUN cd /usr/src/tmw/back && pnpm i --strict-peer-dependencies=false
 COPY ../packages/ue_admin/package.json /usr/src/tmw/ue_admin/package.json
 RUN cd /usr/src/tmw/ue_admin && pnpm i --strict-peer-dependencies=false
 
-## ue_admin安装依赖包
+## ue_plugin安装依赖包
 COPY ../packages/ue_plugin/package.json /usr/src/tmw/ue_plugin/package.json
 RUN cd /usr/src/tmw/ue_plugin && pnpm i --strict-peer-dependencies=false
 

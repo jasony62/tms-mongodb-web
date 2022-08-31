@@ -29,7 +29,7 @@ export abstract class PluginBase implements PluginProfile {
    * 创建插件
    * @param {string} file - 文件名
    */
-  constructor(file) {
+  constructor(file: string) {
     if (typeof file !== 'string') throw '创建插件时未指定有效参数[file]'
     this.file = file
   }
@@ -95,6 +95,12 @@ export abstract class PluginBase implements PluginProfile {
     return [true, docs]
   }
   /**
+   * 执行插件操作
+   * @param ctrl
+   * @param tmwCl
+   */
+  abstract execute(ctrl: any, tmwCl: any)
+  /**
    * 返回参见描述信息
    *
    * @returns {object} 插件的描述信息
@@ -134,6 +140,4 @@ export abstract class PluginBase implements PluginProfile {
       visible,
     }
   }
-
-  abstract execute(ctrl: any, tmwCl: any)
 }

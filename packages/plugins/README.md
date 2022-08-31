@@ -1,4 +1,4 @@
-# http-send-doc
+# doc-http-send
 
 本插件实现将选择的文档数据发送到指定的地址。
 

@@ -1,9 +1,9 @@
-import { PluginBase, exportJSON, ModelDoc } from 'tmw-kit/dist/model'
+import { PluginBase, exportJSON } from 'tmw-kit/dist/model'
 /**
  * 将集合中的文档数据导出为json文件的压缩包
  */
 class ExportDocJsonPlugin extends PluginBase {
-  constructor(file) {
+  constructor(file: string) {
     super(file)
     this.name = 'doc-export-json'
     this.title = '导出文档(JSON)'
@@ -37,6 +37,6 @@ class ExportDocJsonPlugin extends PluginBase {
   }
 }
 
-export function createPlugin(file: any) {
+export function createPlugin(file: string) {
   return new ExportDocJsonPlugin(file)
 }

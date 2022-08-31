@@ -1,6 +1,5 @@
 import DbEditor from './DbEditor.vue'
 import CollectionEditor from './CollectionEditor.vue'
-import DocEditor from './DocEditor.vue'
 import TagEditor from './TagEditor.vue'
 import ReplicaEditor from './ReplicaEditor.vue'
 import SelectCondition from './SelectCondition.vue'
@@ -180,35 +179,6 @@ export function openSchemaEditor(options: SchemaEditorOptions) {
   })
   // @ts-ignore
   app.use(ElementPlus).use(JsonSchema).mount(root)
-}
-/***/
-export function openDocEditor(options: DocEditorOptions) {
-  const root = document.createElement('div')
-  root.setAttribute('id', 'docEditor')
-  document.body.appendChild(root)
-
-  const {
-    mode,
-    bucketName,
-    dbName,
-    collection,
-    document: doc,
-    onBeforeClose,
-  } = options
-
-  let app = createApp(DocEditor, {
-    mode,
-    bucketName,
-    dbName,
-    collection,
-    document: doc,
-    onClose: (newCl: any) => {
-      if (newCl && onBeforeClose) onBeforeClose(newCl)
-      app.unmount()
-      document.body.removeChild(root)
-    },
-  })
-  app.use(ElementPlus).mount(root)
 }
 /***/
 export function openBucketEditor(options: BucketEditorOptions) {

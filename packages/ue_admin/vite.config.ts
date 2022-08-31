@@ -11,6 +11,14 @@ export default ({ mode }) => {
     base: BASE_URL,
     build: {
       outDir: `dist${BASE_URL}`,
+      // minify: false,
+      // rollupOptions: {
+      //   manualChunks(id) {
+      //     if (id.includes('node_modules')) {
+      //       return 'vendor'
+      //     }
+      //   },
+      // },
     },
     resolve: {
       alias: {

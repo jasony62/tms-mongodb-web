@@ -4,9 +4,9 @@
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ name: 'database', params: { dbName } }">{{ dbName }}</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ name: 'collection', params: { dbName, clName } }">{{ clName }}</el-breadcrumb-item>
-        <el-breadcrumb-item>{{ document._id ? document._id : '新建文档' }}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'database', params: { dbName } }">{{  dbName  }}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'collection', params: { dbName, clName } }">{{  clName  }}</el-breadcrumb-item>
+        <el-breadcrumb-item>{{  document._id ? document._id : '新建文档'  }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
     <div class="p-2 border border-gray-200 mb-2 rounded-md text-center">
@@ -20,8 +20,8 @@
       <div v-if="activeField?.schemaType === 'json'" class="w-1/3 h-full flex flex-col gap-2">
         <div>
           <el-button type="primary" @click="updateFieldJson" :disabled="!jsonFieldValueChanged">更新【{{
-              activeField.fullname
-          }}】</el-button>
+             activeField.fullname 
+            }}】</el-button>
         </div>
         <div ref="elJsonEditor" class="flex-grow"></div>
       </div>
@@ -33,7 +33,7 @@
           </el-tooltip>
         </div>
         <div class="border border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
-          <pre>{{ previewResult }}</pre>
+          <pre>{{   previewResult   }}</pre>
         </div>
       </div>
     </div>
@@ -54,7 +54,7 @@ import apiCl from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import useClipboard from 'vue-clipboard3'
 import * as _ from 'lodash'
-import * as Debug from 'debug'
+import Debug from 'debug'
 import { openPickFileEditor } from '@/components/editor';
 import { ArrowRight } from '@element-plus/icons-vue'
 import JSONEditor from 'jsoneditor'
