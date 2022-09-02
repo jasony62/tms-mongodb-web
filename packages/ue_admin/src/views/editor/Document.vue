@@ -13,7 +13,7 @@
       <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button type="default" @click="openDrawer" v-if="!COMPACT">分屏</el-button>
     </div>
-    <div class="flex flex-row gap-4 h-full overflow-auto px-4 pb-4" v-if="collection._id">
+    <div class="flex flex-row gap-4 h-full overflow-auto px-4 pb-4" v-if="collection._id && document._id">
       <tms-json-doc ref="$jde" class="w-1/3 h-full overflow-auto" :schema="collection.schema.body" :value="document"
         :enable-paste="true" :on-paste="onJdocPaste" :on-file-select="onFileSelect" :on-file-download="onFileDownload"
         :show-field-fullname="true" @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
@@ -33,7 +33,7 @@
           </el-tooltip>
         </div>
         <div class="border border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
-          <pre>{{   previewResult   }}</pre>
+          <pre>{{         previewResult         }}</pre>
         </div>
       </div>
     </div>
@@ -48,6 +48,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue';
 import TmsJsonDoc, { Field, DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
+import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 import { EXTERNAL_FS_URL, getLocalToken, COMPACT_MODE } from '@/global'
 import apiDoc from '@/apis/document'
 import apiCl from '@/apis/collection'

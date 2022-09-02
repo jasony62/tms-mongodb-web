@@ -4,11 +4,11 @@
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item>{{ title }}</el-breadcrumb-item>
+        <el-breadcrumb-item>{{  title  }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
     <div class="p-2 border border-gray-200 mb-2 rounded-md text-center">
-      <el-button type="primary" @click="onSubmit">{{ submitTitle }}</el-button>
+      <el-button type="primary" @click="onSubmit">{{  submitTitle  }}</el-button>
     </div>
     <div class="h-full flex flex-row">
       <el-tabs tab-position="left" v-model="activeTab">
@@ -46,7 +46,7 @@
               </el-tooltip>
             </div>
             <div class="border-2 border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
-              <pre>{{ previewResult }}</pre>
+              <pre>{{     previewResult     }}</pre>
             </div>
           </div>
         </div>
@@ -134,7 +134,6 @@ const onSubmit = () => {
       .update(bucketName, schemaId, schema.value)
       .then(() => {
         ElMessage.success({ message: '修改成功' })
-        router.push({ name: 'home' })
       })
       .catch(() => {
         ElMessage.error({ message: '修改失败' })
@@ -144,7 +143,6 @@ const onSubmit = () => {
       .create(bucketName, schema.value)
       .then(() => {
         ElMessage.success({ message: '创建成功' })
-        router.push({ name: 'home' })
       })
       .catch(() => {
         ElMessage.error({ message: '创建失败' })

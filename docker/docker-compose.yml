@@ -65,6 +65,8 @@ services:
     #   account 配置
     #    - TMS_ACCOUNT_DBNAME=tms_account
     #    - TMS_ACCOUNT_CLNAME=account
+    #   支持可信主机的控制器跳过检查直接通过
+    #    - TMS_KOA_SKIP_TRUSTED_HOST=yes
     networks:
       - tms-mongodb
     command:

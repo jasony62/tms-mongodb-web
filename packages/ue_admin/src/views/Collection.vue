@@ -22,11 +22,7 @@
                 <div>URL:
                   {{  `/open/document/get?bucket=${bucketName ? bucketName :
                   ''}&db=${dbName}&cl=${clName}&id=${props.row._id}`
-
-
-
-
-                  }}
+ }}
                 </div>
               </div>
             </template>

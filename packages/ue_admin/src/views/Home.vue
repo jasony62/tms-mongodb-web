@@ -20,7 +20,7 @@
             <el-table-column type="selection" width="55"></el-table-column>
             <el-table-column label="数据库" width="180">
               <template #default="scope">
-                <router-link :to="{ name: 'database', params: { dbName: scope.row.name } }">{{ scope.row.name }}
+                <router-link :to="{ name: 'database', params: { dbName: scope.row.name } }">{{  scope.row.name  }}
                 </router-link>
               </template>
             </el-table-column>
@@ -34,7 +34,7 @@
             </el-table-column>
           </el-table>
           <div class="flex flex-row gap-4 p-2 items-center justify-between">
-            <span>已选中 {{ criteria.multipleDb.length }} 条数据</span>
+            <span>已选中 {{  criteria.multipleDb.length  }} 条数据</span>
             <el-pagination layout="total, sizes, prev, pager, next" background :total="criteria.dbBatch.total"
               :page-sizes="[10, 25, 50, 100]" :current-page="criteria.dbBatch.page" :page-size="criteria.dbBatch.size"
               @current-change="changeDbPage" @size-change="changeDbSize"></el-pagination>
@@ -42,7 +42,14 @@
         </div>
         <div v-show="activeTab === 'docSchemas'" class="flex flex-col gap-2">
           <el-table :data="store.documentSchemas" stripe>
-            <el-table-column prop="title" label="名称" width="180"></el-table-column>
+            <el-table-column label="名称" width="180">
+              <template #default="scope">
+                <router-link
+                  :to="{ name: 'schemaEditor', params: { bucketName, scope: 'document', schemaId: scope.row._id } }">{{
+                   scope.row.title  }}
+                </router-link>
+              </template>
+            </el-table-column>
             <el-table-column prop="description" label="说明"></el-table-column>
             <el-table-column label="操作" width="180">
               <template #default="scope">
@@ -56,7 +63,7 @@
         </div>
         <div v-show="activeTab === 'dbSchemas'" class="flex flex-col gap-2">
           <el-table :data="store.dbSchemas" stripe>
-            <el-table-column prop="title" label="名称" width="180"></el-table-column>
+            <el-table-column prop="title" label="名称" width="180" @cell-click=""></el-table-column>
             <el-table-column prop="description" label="说明"></el-table-column>
             <el-table-column label="操作" width="180">
               <template #default="scope">
@@ -107,7 +114,7 @@
             </el-table-column>
           </el-table>
           <div class="flex flex-row gap-4 p-2 items-center justify-between">
-            <span>已选中 {{ criteria.multipleReplica.length }} 条数据</span>
+            <span>已选中 {{  criteria.multipleReplica.length  }} 条数据</span>
             <el-pagination layout="total, sizes, prev, pager, next" background :total="criteria.replicaBatch.total"
               :page-sizes="[10, 25, 50, 100]" :current-page="criteria.replicaBatch.page"
               :page-size="criteria.replicaBatch.size" @current-change="changeReplicaPage"

@@ -25,6 +25,12 @@ class Document extends Base {
     this.modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
   }
   /**
+   * 检查请求是否来源于可信主机，符合就跳过认证机制
+   */
+  static tmsAuthTrustedHosts() {
+    return true
+  }
+  /**
    * 根据ID返回单个文档的数据
    * @returns
    */
