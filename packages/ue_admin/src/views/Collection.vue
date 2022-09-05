@@ -4,8 +4,8 @@
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ name: 'database', params: { dbName: dbName } }">{{  dbName  }}</el-breadcrumb-item>
-        <el-breadcrumb-item>{{  clName  }}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'database', params: { dbName: dbName } }">{{ dbName }}</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ clName }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
     <!--content-->
@@ -17,29 +17,22 @@
           <el-table-column type="selection" width="40" />
           <el-table-column type="expand" width="40">
             <template #default="props">
-              <div class="p-4 flex flex-col gap-2">
-                <div>ID: {{  props.row._id  }}</div>
-                <div>URL:
-                  {{  `/open/document/get?bucket=${bucketName ? bucketName :
-                  ''}&db=${dbName}&cl=${clName}&id=${props.row._id}`
- }}
-                </div>
-              </div>
+              <div v-html="renderDocManual(props.row)"></div>
             </template>
           </el-table-column>
           <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
             <template #header>
               <div @click="handleFilter(s, k)">
                 <span v-if="s.required" class="text-red-400">*</span>
-                <span>{{  s.title  }}</span>
+                <span>{{ s.title }}</span>
                 <img :data-id="k" class="w-4 h-4 inline-block" src="../assets/imgs/icon_filter.png">
               </div>
             </template>
             <template #default="scope">
-              <span v-if="s.type === 'boolean'">{{  scope.row[k] ? '是' : '否'  }}</span>
+              <span v-if="s.type === 'boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
               <span v-else-if="s.type === 'array' && s.items && s.items.format === 'file'">
                 <span v-for="(i, v) in scope.row[k]" :key="v">
-                  <el-link type="primary" @click="downLoadFile(i)">{{  i.name  }}</el-link>
+                  <el-link type="primary" @click="downLoadFile(i)">{{ i.name }}</el-link>
                   <br />
                 </span>
               </span>
@@ -50,7 +43,7 @@
                       <span v-for="(e, v) in s.enum" :key="v">
                         <span
                           v-if="e.group === g.id && scope.row[k] && scope.row[k].length && scope.row[k].includes(e.value)">{{
-                           e.label 
+                          e.label
                           }}&nbsp;</span>
                       </span>
                     </span>
@@ -58,7 +51,7 @@
                 </span>
                 <span v-else>
                   <span v-for="(i, v) in s.enum" :key="v">
-                    <span v-if="scope.row[k] && scope.row[k].includes(i.value)">{{  i.label  }}&nbsp;</span>
+                    <span v-if="scope.row[k] && scope.row[k].includes(i.value)">{{ i.label }}&nbsp;</span>
                   </span>
                 </span>
               </span>
@@ -67,18 +60,18 @@
                   <span v-for="(g, i) in s.enumGroups" :key="i">
                     <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value">
                       <span v-for="(e, v) in s.enum" :key="v">
-                        <span v-if="e.group === g.id && scope.row[k] === e.value">{{  e.label  }}</span>
+                        <span v-if="e.group === g.id && scope.row[k] === e.value">{{ e.label }}</span>
                       </span>
                     </span>
                   </span>
                 </span>
                 <span v-else>
                   <span v-for="(i, v) in s.enum" :key="v">
-                    <span v-if="scope.row[k] === i.value">{{  i.label  }}</span>
+                    <span v-if="scope.row[k] === i.value">{{ i.label }}</span>
                   </span>
                 </span>
               </span>
-              <div class="max-h-16 overflow-y-auto" v-else>{{  scope.row[k]  }}</div>
+              <div class="max-h-16 overflow-y-auto" v-else>{{ scope.row[k] }}</div>
             </template>
           </el-table-column>
           <el-table-column fixed="right" label="操作" width="180">
@@ -89,7 +82,7 @@
           </el-table-column>
         </el-table>
         <div class="flex flex-row gap-4 p-2 items-center justify-between">
-          <span>已选中 {{  data.multipleDoc.length  }} 条数据</span>
+          <span>已选中 {{ data.multipleDoc.length }} 条数据</span>
           <el-pagination layout="total, sizes, prev, pager, next" background :total="data.docBatch.total"
             :page-sizes="[10, 25, 50, 100]" :current-page="data.docBatch.page" :page-size="data.docBatch.size"
             @current-change="changeDocPage" @size-change="changeDocSize"></el-pagination>
@@ -100,10 +93,10 @@
           <el-button @click="createDocument">添加文档</el-button>
         </div>
         <div v-for="p in data.plugins" :key="p.name">
-          <el-button v-if="p.transData === 'nothing'" type="success" plain @click="handlePlugin(p)">{{  p.title  }}
+          <el-button v-if="p.transData === 'nothing'" type="success" plain @click="handlePlugin(p)">{{ p.title }}
           </el-button>
           <el-dropdown v-else>
-            <el-button type="success" plain>{{  p.title  }}
+            <el-button type="success" plain>{{ p.title }}
               <el-icon class="el-icon--right">
                 <arrow-down />
               </el-icon>
@@ -112,15 +105,15 @@
               <el-dropdown-menu>
                 <el-dropdown-item>
                   <el-button text @click="handlePlugin(p, 'all')" :disabled="totalByAll == 0">
-                    按全部({{  totalByAll  }})</el-button>
+                    按全部({{ totalByAll }})</el-button>
                 </el-dropdown-item>
                 <el-dropdown-item>
                   <el-button text @click="handlePlugin(p, 'filter')" :disabled="totalByFilter == 0">
-                    按筛选({{  totalByFilter  }})</el-button>
+                    按筛选({{ totalByFilter }})</el-button>
                 </el-dropdown-item>
                 <el-dropdown-item>
                   <el-button text @click="handlePlugin(p, 'checked')" :disabled="totalByChecked == 0">
-                    按选中({{  totalByChecked  }})</el-button>
+                    按选中({{ totalByChecked }})</el-button>
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -138,15 +131,16 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, computed, nextTick, toRaw } from 'vue'
+import { onMounted, reactive, ref, computed, toRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowRight, ArrowDown } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
 import * as _ from 'lodash'
+import * as Handlebars from 'handlebars'
 import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiPlugin from '@/apis/plugin'
-import { getLocalToken, COMPACT_MODE, FS_BASE_URL, BACK_API_URL } from '@/global'
+import { getLocalToken, COMPACT_MODE, FS_BASE_URL, BACK_API_URL,DOC_MANUAL } from '@/global'
 
 import facStore from '@/store'
 import {
@@ -296,6 +290,14 @@ const removeDocument = (document: any) => {
         })
     })
     .catch(() => { })
+}
+/**
+ * 文档对象的说明
+ */
+const renderDocManual=(doc:any)=>{
+  const tpl = DOC_MANUAL(dbName,clName)
+ const html = Handlebars.compile(tpl)({bucketName:bucketName??'',dbName,clName,doc})
+ return html
 }
 
 const downLoadFile = (file: any) => {

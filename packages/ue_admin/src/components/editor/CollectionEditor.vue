@@ -4,7 +4,7 @@
     <el-tabs v-model="activeTab" type="card">
       <el-tab-pane label="基本信息" name="info"></el-tab-pane>
       <el-tab-pane label="设置" name="setting"></el-tab-pane>
-      <el-tab-pane label="数据转换" name="convert"></el-tab-pane>
+      <el-tab-pane label="文档编辑转换规则" name="convert"></el-tab-pane>
     </el-tabs>
     <el-form :model="collection" label-position="top" v-show="activeTab === 'info'" :rules="rules">
       <el-form-item label="集合名称（英文）" prop="name">

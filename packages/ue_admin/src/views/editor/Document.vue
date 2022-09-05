@@ -4,24 +4,25 @@
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ name: 'database', params: { dbName } }">{{  dbName  }}</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ name: 'collection', params: { dbName, clName } }">{{  clName  }}</el-breadcrumb-item>
-        <el-breadcrumb-item>{{  document._id ? document._id : '新建文档'  }}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'database', params: { dbName } }">{{ dbName }}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'collection', params: { dbName, clName } }">{{ clName }}</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ document._id ? document._id : '新建文档' }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
     <div class="p-2 border border-gray-200 mb-2 rounded-md text-center">
       <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button type="default" @click="openDrawer" v-if="!COMPACT">分屏</el-button>
     </div>
-    <div class="flex flex-row gap-4 h-full overflow-auto px-4 pb-4" v-if="collection._id && document._id">
+    <div class="flex flex-row gap-4 h-full overflow-auto px-4 pb-4" v-if="collection._id && (!docId || document._id)">
       <tms-json-doc ref="$jde" class="w-1/3 h-full overflow-auto" :schema="collection.schema.body" :value="document"
         :enable-paste="true" :on-paste="onJdocPaste" :on-file-select="onFileSelect" :on-file-download="onFileDownload"
-        :show-field-fullname="true" @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
+        :show-field-fullname="showFieldFullname" :hide-root-title="true" :hide-root-description="true"
+        @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
       <div v-if="activeField?.schemaType === 'json'" class="w-1/3 h-full flex flex-col gap-2">
         <div>
           <el-button type="primary" @click="updateFieldJson" :disabled="!jsonFieldValueChanged">更新【{{
-             activeField.fullname 
-            }}】</el-button>
+          activeField.fullname
+          }}】</el-button>
         </div>
         <div ref="elJsonEditor" class="flex-grow"></div>
       </div>
@@ -33,7 +34,7 @@
           </el-tooltip>
         </div>
         <div class="border border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
-          <pre>{{         previewResult         }}</pre>
+          <pre>{{ previewResult }}</pre>
         </div>
       </div>
     </div>
@@ -57,6 +58,7 @@ import useClipboard from 'vue-clipboard3'
 import * as _ from 'lodash'
 import Debug from 'debug'
 import { openPickFileEditor } from '@/components/editor';
+import { ElMessage } from 'element-plus'
 import { ArrowRight } from '@element-plus/icons-vue'
 import JSONEditor from 'jsoneditor'
 import 'jsoneditor/dist/jsoneditor.css'
@@ -81,6 +83,8 @@ const $jde = ref<{ editing: () => string, editDoc: DocAsArray } | null>(null)
 const collection = ref<any>({ schema: { body: {} } })
 
 const document = ref({ _id: '' })
+
+const showFieldFullname = ref(false)
 
 // 文档字段转化规则
 const DocFieldConvertRules = computed(() =>
@@ -315,7 +319,9 @@ const onSubmit = () => {
     if (document.value._id) {
       apiDoc
         .update(bucketName, dbName, clName, document.value._id, newDoc)
-        .then(() => { })
+        .then(() => {
+          ElMessage.success({ message: '修改成功' })
+         })
     } else {
       if (Object.keys(newDoc).length === 0) {
         return false
@@ -324,6 +330,7 @@ const onSubmit = () => {
         .create(bucketName, dbName, collection.value.name, newDoc)
         .then((newDoc: any) => {
           document.value = newDoc
+          ElMessage.success({ message: '新建成功' })
         })
     }
   }

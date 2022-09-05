@@ -4,19 +4,19 @@
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item>{{  title  }}</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ title }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
-    <div class="p-2 border border-gray-200 mb-2 rounded-md text-center">
-      <el-button type="primary" @click="onSubmit">{{  submitTitle  }}</el-button>
+    <div class="p-2 border-t border-b border-gray-200 mb-2 text-center">
+      <el-button type="primary" @click="onSubmit">{{ submitTitle }}</el-button>
     </div>
-    <div class="h-full flex flex-row">
-      <el-tabs tab-position="left" v-model="activeTab">
+    <div class="flex-1 mb-4 flex flex-row overflow-hidden">
+      <el-tabs tab-position="left" v-model="activeTab" class="h-full flex-shrink-0">
         <el-tab-pane label="基本信息" name="first"></el-tab-pane>
         <el-tab-pane label="列定义" name="second"></el-tab-pane>
       </el-tabs>
-      <div class="overflow-auto flex-grow">
-        <el-form v-show="activeTab === 'first'" :model="schema" label-position="top">
+      <div class="overflow-auto flex-grow h-full">
+        <el-form v-show="activeTab === 'first'" :model="schema" label-position="top" class="w-1/3">
           <el-form-item label="显示名（中文）">
             <el-input v-model="schema.title"></el-input>
           </el-form-item>
@@ -31,22 +31,22 @@
         </el-form>
         <div v-if="activeTab === 'second'" class="flex flex-row gap-4 h-full overflow-auto">
           <tms-json-schema ref="$jse" :schema="schema.body" :root-name="'$'" :on-upload="onUploadFile"
-            class="h-full overflow-auto" :on-message="onMessage">
+            class="h-full w-1/2 overflow-auto" :on-message="onMessage">
             <template #extattrs="{ attrs }">
               <el-form-item label="不可修改">
                 <el-switch v-model="attrs.readonly"></el-switch>
               </el-form-item>
             </template>
           </tms-json-schema>
-          <div class="h-full flex-grow flex flex-col gap-2 relative" style="max-width:50%;">
+          <div class="h-full w-1/2 flex flex-col gap-2 relative">
             <div class="absolute top-0 right-0">
               <el-button @click="preview">预览</el-button>
               <el-tooltip effect="dark" content="复制" placement="bottom" :visible="copyTooltipVisible">
                 <el-button @click="copy" :disabled="!previewResult">复制</el-button>
               </el-tooltip>
             </div>
-            <div class="border-2 border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
-              <pre>{{     previewResult     }}</pre>
+            <div class="border border-gray-200 rounded-md p-2 h-full w-full">
+              <pre class="w-full h-full overflow-auto">{{ previewResult }}</pre>
             </div>
           </div>
         </div>
@@ -60,12 +60,9 @@ import apiTag from '@/apis/tag'
 import apiDoc from '@/apis/document'
 import { ArrowRight } from '@element-plus/icons-vue'
 import { computed, ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
 
 import useClipboard from 'vue-clipboard3'
 import { ElMessage } from 'element-plus'
-
-const router = useRouter()
 
 // JSONSchema编辑器
 const $jse = ref(null as unknown as { editing: () => any })
@@ -161,4 +158,16 @@ if (schemaId) {
 }
 </script>
 
+<style lang="scss">
+#schemaEditor {
+  @apply h-full flex flex-col overflow-hidden;
 
+  .tvu-jse {
+
+    .tvu-jse__properties,
+    .tvu-jse__property-fields {
+      @apply w-1/2 border border-gray-200 rounded-md overflow-auto p-2;
+    }
+  }
+}
+</style>

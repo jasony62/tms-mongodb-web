@@ -5,7 +5,8 @@ type Globalsettings = {
   backApiPort: number
   loginCaptchaDisabled: boolean
   externalFsUrl: string
-  compact: boolean
+  compact: boolean // 精简模式，在iframe打开时使用
+  manual?: any // 在线用户手册
 }
 
 let _globalsettings: Globalsettings = {
@@ -33,6 +34,8 @@ export function init(settings: Globalsettings) {
   if (settings.externalFsUrl)
     _globalsettings.externalFsUrl = settings.externalFsUrl
   if (settings.compact === true) _globalsettings.compact = true
+  if (settings.manual && typeof settings.manual === 'object')
+    _globalsettings.manual = settings.manual
 }
 /**
  * 根据环境变量设置认证服务起始地址
@@ -114,6 +117,33 @@ export const EXTERNAL_FS_URL = () => _globalsettings.externalFsUrl
  * 精简模式
  */
 export const COMPACT_MODE = () => _globalsettings.compact
+
+// 默认的文档对象说明模板
+const DocManualTpl =
+  '<div class="p-4 flex flex-col gap-2"> <div>ID: {{ doc._id }}</div> <div>URL: /open/document/get?bucket=&db={{dbName}}&cl={{clName}}</div> </div>'
+
+/**
+ * 文档对象在线用户手册
+ */
+export const DOC_MANUAL = (dbName: string, clName: string) => {
+  let tpl
+  const { manual } = _globalsettings
+  if (
+    manual?.document &&
+    Array.isArray(manual.document) &&
+    manual.document.length
+  ) {
+    let matched = manual.document.find((rule: any) => {
+      let { db, cl } = rule
+      return (
+        db && new RegExp(db).test(dbName) && cl && new RegExp(cl).test(clName)
+      )
+    })
+    if (matched) tpl = matched.template
+  }
+
+  return tpl ? tpl : DocManualTpl
+}
 
 const way = import.meta.env.VITE_STORETOKEN_WAY
 
