@@ -12,13 +12,13 @@ const ObjectId = mongodb.ObjectId
 class DbBase extends Base {
   constructor(...args) {
     super(...args)
-    this['dbHelper'] = new DbHelper(this)
+    this.dbHelper = new DbHelper(this)
   }
   async tmsBeforeEach() {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
 
-    this['clMongoObj'] = this['dbHelper'].clMongoObj
+    this.clMongoObj = this.dbHelper.clMongoObj
 
     return true
   }
@@ -27,8 +27,8 @@ class DbBase extends Base {
    */
   async list() {
     const query: any = { type: 'database' }
-    if (this['bucket']) query.bucket = this['bucket'].name
-    let { keyword } = this['request'].query
+    if (this.bucket) query.bucket = this.bucket.name
+    let { keyword } = this.request.query
     if (keyword) {
       if (/\(/.test(keyword)) {
         keyword = keyword.replace(/\(/g, '\\(')
@@ -48,17 +48,17 @@ class DbBase extends Base {
       projection: { type: 0 },
       sort: { top: -1, _id: -1 },
     }
-    let { skip, limit } = this['dbHelper'].requestPage()
+    let { skip, limit } = this.dbHelper.requestPage()
     // 添加分页条件
     if (typeof skip === 'number') {
       options.skip = skip
       options.limit = limit
     }
 
-    const tmwDbs = await this['clMongoObj'].find(query, options).toArray()
+    const tmwDbs = await this.clMongoObj.find(query, options).toArray()
 
     if (typeof skip === 'number') {
-      let total = await this['clMongoObj'].countDocuments(query)
+      let total = await this.clMongoObj.countDocuments(query)
       return new ResultData({ databases: tmwDbs, total })
     }
 

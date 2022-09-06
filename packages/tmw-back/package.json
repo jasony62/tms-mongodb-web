@@ -12,7 +12,9 @@
   "license": "MIT",
   "dependencies": {
     "archiver": "^5.3.1",
+    "commander": "^9.4.0",
     "dayjs": "^1.11.3",
+    "debug": "^4.3.4",
     "lodash": "^4.17.21",
     "log4js": "^6.5.2",
     "mongodb": "^4.8.1",

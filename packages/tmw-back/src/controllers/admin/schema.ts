@@ -114,12 +114,12 @@ class Schema extends SchemaBase {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async create() {
-    let info = this['request'].body
+    let info = this.request.body
     info.type = 'schema'
     if (!info.scope) info.scope = 'document'
-    if (this['bucket']) info.bucket = this['bucket'].name
+    if (this.bucket) info.bucket = this.bucket.name
 
-    return this['clMongoObj'].insertOne(info).then((result) => {
+    return this.clMongoObj.insertOne(info).then((result) => {
       info._id = result.insertedId
       return new ResultData(info)
     })
