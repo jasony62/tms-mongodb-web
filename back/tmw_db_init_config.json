@@ -14,9 +14,14 @@
     },
     "docSchema": {
       "title": "示例文档定义",
-      "description": "",
-      "properties": {}
+      "description": "测试",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "名称"
+        }
+      }
     },
-    "docs": []
+    "docs": [{ "name": "001" }, { "name": "002" }]
   }
 ]

@@ -37,13 +37,13 @@ class DocBase extends Base {
    * 指定数据库指定集合下新建文档
    */
   async create() {
-    const existCl = await this['docHelper'].findRequestCl()
+    const existCl = await this.docHelper.findRequestCl()
 
     const { name: clName, extensionInfo } = existCl
-    let doc = this['request'].body
+    let doc = this.request.body
 
     // 去重校验
-    const result = this['modelDoc'].findUnRepeatRule(existCl)
+    const result = this.modelDoc.findUnRepeatRule(existCl)
     if (result[0]) {
       const { dbName, clName: collName, keys, insert } = result[1]
       const curDoc = [doc]
@@ -64,9 +64,9 @@ class DocBase extends Base {
       const { info, schemaId } = extensionInfo
       if (schemaId) {
         const modelSchema = new ModelSchema(
-          this['mongoClient'],
-          this['bucket'],
-          this['client']
+          this.mongoClient,
+          this.bucket,
+          this.client
         )
         const publicSchema = await modelSchema.bySchemaId(schemaId)
         Object.keys(publicSchema).forEach((schema) => {
@@ -76,13 +76,13 @@ class DocBase extends Base {
     }
 
     // 加工数据
-    this['modelDoc'].beforeProcessByInAndUp(doc, 'insert')
+    this.modelDoc.beforeProcessByInAndUp(doc, 'insert')
 
-    return this['docHelper']
+    return this.docHelper
       .findSysColl(existCl)
       .insertOne(doc)
       .then(async (r) => {
-        await this['modelDoc'].dataActionLog(
+        await this.modelDoc.dataActionLog(
           r.ops,
           '创建',
           existCl.db.name,

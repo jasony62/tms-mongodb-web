@@ -243,7 +243,7 @@ class Handler {
     const existCl = await this.cl.findOne(query)
     if (existCl) {
       debug(`数据库[name=${newDb.name}]中，已存在同名集合[name=${tpl.name}]`)
-      return
+      return existCl
     }
 
     // 在数据库中创建集合
@@ -253,14 +253,38 @@ class Handler {
         debug(
           `创建集合对象[db.name=${newDb.name}][db.sysname=${newDb.sysname}][name=${tpl.name}][sysname=${tpl.sysname}]`
         )
+        return tpl
       })
     })
   }
   /**
-   *
-   * @param info
+   * 创建文档
    */
-  private async parseAndCreate(info) {
+  private async createDocument(db, cl, docs) {
+    if (!Array.isArray(docs) || docs.length === 0) {
+      debug('没有提供有效的文档数据，结束创建文档操作')
+      return 0
+    }
+
+    const docCl = this.client.db(db.sysname).collection(cl.sysname)
+    let counter = 0
+    for (const doc of docs) {
+      const { insertedId } = await docCl.insertOne({
+        ...doc,
+        TMW_DEFAULT_CREATE_TIME,
+      })
+      debug(
+        `在[db=${db.sysname}][cl=${cl.sysname}][id=${insertedId}]创建1条文档数据`
+      )
+      counter++
+    }
+
+    return counter
+  }
+  /**
+   * 一条初始化数据包含1个数据库，1个文档定义，1个集合，和1组文档
+   */
+  private async parseOne(info) {
     /**
      * 创建数据库
      */
@@ -272,11 +296,14 @@ class Handler {
     /**
      * 创建结合
      */
-    await this.createCollection(newDb, schemaId, info.cl)
+    const newCl = await this.createCollection(newDb, schemaId, info.cl)
+    /**
+     * 插入文档
+     */
+    await this.createDocument(newDb, newCl, info.docs)
   }
   /**
    * 执行初始化操作
-   * @param filePath
    */
   static async execute(filePath: string, mongoOptions: any) {
     const initData = require(filePath)
@@ -287,7 +314,7 @@ class Handler {
 
     const init = new Handler(client, cl)
     for (const data of initData) {
-      await init.parseAndCreate(data)
+      await init.parseOne(data)
     }
     await client.close()
   }
