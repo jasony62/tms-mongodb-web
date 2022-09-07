@@ -347,14 +347,10 @@ class DocBase extends Base {
    * 批量复制数据
    */
   async copyMany() {
-    const existCl = await this['docHelper'].findRequestCl()
+    const existCl = await this.docHelper.findRequestCl()
 
     const { toDb, toCl } = this['request'].query
-    const modelCl = new ModelCl(
-      this['mongoClient'],
-      this['bucket'],
-      this['client']
-    )
+    const modelCl = new ModelCl(this.mongoClient, this.bucket, this.client)
     const targetCl = await modelCl.byName(toDb, toCl)
     if (!targetCl)
       return new ResultFault(
@@ -365,27 +361,25 @@ class DocBase extends Base {
       this['docHelper'].getRequestBatchQuery()
     if (errCause) return new ResultFault(errCause)
 
-    let total = await this['modelDoc'].count(existCl, query)
+    let total = await this.modelDoc.count(existCl, query)
     if (total === 0)
       return new ResultFault('没有符合条件的数据，未执行复制操作')
 
-    return this['modelDoc']
-      .copyMany(existCl, query, targetCl)
-      .then(async () => {
-        let existSysCl = this['docHelper'].findSysColl(existCl)
-        let copyedDocs = await existSysCl.find(query).toArray()
-        if (TMW_CONFIG.TMW_APP_DATA_ACTION_LOG === 'Y') {
-          this['modelDoc'].dataActionLog(
-            copyedDocs,
-            `${operation}复制`,
-            existCl.db.name,
-            existCl.name,
-            targetCl.db.name,
-            targetCl.name
-          )
-        }
-        return new ResultData(total)
-      })
+    return this.modelDoc.copyMany(existCl, query, targetCl).then(async () => {
+      let existSysCl = this.docHelper.findSysColl(existCl)
+      let copyedDocs = await existSysCl.find(query).toArray()
+      if (TMW_CONFIG.TMW_APP_DATA_ACTION_LOG === 'Y') {
+        this.modelDoc.dataActionLog(
+          copyedDocs,
+          `${operation}复制`,
+          existCl.db.name,
+          existCl.name,
+          targetCl.db.name,
+          targetCl.name
+        )
+      }
+      return new ResultData(total)
+    })
   }
   /**
    *  根据某一列的值分组

@@ -117,10 +117,12 @@ const CollectionTemplate: any = {
 class Handler {
   client
   cl
+  options
 
-  constructor(client: any, cl: any) {
+  constructor(client: any, cl: any, options: any) {
     this.client = client
     this.cl = cl
+    this.options = options
   }
 
   /**
@@ -149,7 +151,9 @@ class Handler {
       db = tpl
       debug(`创建数据库对象[name=${tpl.name}][sysname=${tpl.sysname}]`)
     } else {
-      debug(`数据库[name=${tpl.name}][sysname=${tpl.sysname}]已经存在`)
+      debug(
+        `数据库[name=${tpl.name}][sysname=${tpl.sysname}]已经存在，不用新建`
+      )
     }
 
     return db
@@ -169,8 +173,15 @@ class Handler {
 
     let existSchema = await this.cl.findOne(query)
     if (existSchema) {
-      debug(`标题为[${info.title}]的文档列定义已经存在，不能重复创建`)
-      process.exit(0)
+      if (this.options.allowReuseSchema === true) {
+        debug(`标题为[${info.title}]的文档列定义已经存在，允许复用`)
+        return existSchema._id
+      } else {
+        debug(
+          `标题为[${info.title}]的文档列定义已经存在，不能重复创建，停止后续操作`
+        )
+        process.exit(0)
+      }
     }
 
     let tpl = JSON.parse(JSON.stringify(SchemaTemplate))
@@ -242,7 +253,9 @@ class Handler {
 
     const existCl = await this.cl.findOne(query)
     if (existCl) {
-      debug(`数据库[name=${newDb.name}]中，已存在同名集合[name=${tpl.name}]`)
+      debug(
+        `数据库[name=${newDb.name}]中，已存在同名集合[name=${tpl.name}]，不用新建`
+      )
       return existCl
     }
 
@@ -265,8 +278,27 @@ class Handler {
       debug('没有提供有效的文档数据，结束创建文档操作')
       return 0
     }
-
+    // 文档所在集合
     const docCl = this.client.db(db.sysname).collection(cl.sysname)
+
+    /**检查集合中是否已经存在数据*/
+    const total = await docCl.countDocuments()
+    if (total > 0) {
+      const msg = `[db=${db.sysname}][cl=${cl.sysname}]中已有[${total}]条文档`
+      switch (this.options.docCreateMode) {
+        case 'stop':
+          debug(`${msg}，停止新建文档`)
+          return 0
+        case 'override':
+          await docCl.deleteMany({})
+          debug(`${msg}， 清除已有文档`)
+          break
+        case 'merge':
+          debug(`${msg}， 添加新文档`)
+          break
+      }
+    }
+
     let counter = 0
     for (const doc of docs) {
       const { insertedId } = await docCl.insertOne({
@@ -305,14 +337,14 @@ class Handler {
   /**
    * 执行初始化操作
    */
-  static async execute(filePath: string, mongoOptions: any) {
+  static async execute(filePath: string, mongoOptions: any, options: any) {
     const initData = require(filePath)
 
     const mongoObj = new Mongo(mongoOptions)
     const client = await mongoObj.client()
     const cl = client.db('tms_admin').collection('mongodb_object')
 
-    const init = new Handler(client, cl)
+    const init = new Handler(client, cl, options)
     for (const data of initData) {
       await init.parseOne(data)
     }
@@ -321,10 +353,19 @@ class Handler {
 }
 
 async function start() {
-  program.option('-u,--username <uname>', '机器人用户名')
-  program.option('-p,--password <pwd>', '机器人账号')
+  program.option('-u,--username <uname>', 'mongodb用户名')
+  program.option('-p,--password <pwd>', 'mongodb口令')
   program.option('--host <url>', 'mongodb连接地址')
+  program.option('--port <url>', 'mongodb连接端口')
   program.option('--file <path>', '初始化文件路径')
+  program.option(
+    '--allowReuseSchema',
+    '当存在title相同的schema时允许继续操作。'
+  )
+  program.option(
+    '--doc-create-mode <string>',
+    '新建文档数据模式，stop：有数据就不执行；override：清除现有数据后新建；merge：直接新建'
+  )
   program.parse()
   const options = program.opts()
 
@@ -333,6 +374,9 @@ async function start() {
     TMW_MONGODB_PORT,
     TMW_MONGODB_USER,
     TMW_MONGODB_PASSWORD,
+    TMW_DB_INIT_ALLOW_REUSE_SCHEMA,
+    TMW_DB_INIT_DOC_CREATE_MODE,
+    TMW_DB_INIT_DATA_FILE,
   } = process.env
 
   /**mongodb连接参数*/
@@ -359,11 +403,29 @@ async function start() {
     ? TMW_MONGODB_PASSWORD
     : false
 
-  if (options.file && typeof options.file === 'string') {
-    const filePath = path.resolve(options.file)
+  /**处理同名schema问题*/
+  const allowReuseSchema =
+    /yes|true/i.test(TMW_DB_INIT_ALLOW_REUSE_SCHEMA) ||
+    options.allowReuseSchema === true
+
+  /**新建文档模式*/
+  let docCreateMode = options.docCreateMode
+    ? options.docCreateMode
+    : TMW_DB_INIT_DOC_CREATE_MODE
+    ? TMW_DB_INIT_DOC_CREATE_MODE
+    : 'stop'
+  if (!/stop|override|merge/i.test(docCreateMode)) docCreateMode = 'stop'
+
+  const dataFile = options.file ? options.file : TMW_DB_INIT_DATA_FILE
+  if (typeof dataFile === 'string') {
+    const filePath = path.resolve(dataFile)
     if (fs.existsSync(filePath)) {
       debug(`指定初始化数据文件：${filePath}`)
-      await Handler.execute(filePath, { host, port, username, password })
+      await Handler.execute(
+        filePath,
+        { host, port, username, password },
+        { allowReuseSchema, docCreateMode }
+      )
       debug('完成初始化操作')
     } else {
       debug(`指定的初始数据文件【${filePath}】不存在`)
