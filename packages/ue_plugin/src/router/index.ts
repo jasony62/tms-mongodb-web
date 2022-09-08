@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
-import HttpSendDoc from '@/views/DocHttpSend.vue'
+import DocHttpSend from '@/views/DocHttpSend.vue'
+import DocAgenda from '@/views/DocAgenda.vue'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
   ? import.meta.env.VITE_BASE_URL
@@ -10,7 +11,12 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/doc-http-send',
     name: 'docHttpSend',
-    component: HttpSendDoc,
+    component: DocHttpSend,
+  },
+  {
+    path: '/doc-agenda',
+    name: 'docAgenda',
+    component: DocAgenda,
   },
 ]
 

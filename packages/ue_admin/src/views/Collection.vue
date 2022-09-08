@@ -71,6 +71,22 @@
                   </span>
                 </span>
               </span>
+              <span v-else-if="s.type === 'string' && s.oneOf && s.oneOf.length">
+                <span v-if="s.enumGroups && s.enumGroups.length">
+                  <span v-for="(g, i) in s.enumGroups" :key="i">
+                    <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value">
+                      <span v-for="(e, v) in s.oneOf" :key="v">
+                        <span v-if="e.group === g.id && scope.row[k] === e.value">{{ e.label }}</span>
+                      </span>
+                    </span>
+                  </span>
+                </span>
+                <span v-else>
+                  <span v-for="(i, v) in s.oneOf" :key="v">
+                    <span v-if="scope.row[k] === i.value">{{ i.label }}</span>
+                  </span>
+                </span>
+              </span>
               <div class="max-h-16 overflow-y-auto" v-else>{{ scope.row[k] }}</div>
             </template>
           </el-table-column>
