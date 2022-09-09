@@ -101,7 +101,8 @@ COPY ../docker/back/start_back.sh /usr/app/tmw/start_back.sh
 RUN chmod +x /usr/app/tmw/start_back.sh
 
 # plugins
-COPY --from=builder /usr/src/tmw/plugins/dist /usr/app/tmw/plugins
+COPY --from=builder /usr/src/tmw/plugins/dist /usr/app/tmw/plugins/dist
+COPY --from=builder /usr/src/tmw/plugins/node_modules /usr/app/tmw/plugins/node_modules
 
 WORKDIR /usr/app/tmw
 

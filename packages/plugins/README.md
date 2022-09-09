@@ -121,6 +121,13 @@ module.exports = {
 | bucketName       | 匹配的存储空间名称。                           | RegExp | 无            | 否   |
 | dbName           | 匹配的数据库名称。                             | RegExp | 无            | 否   |
 | clName           | 匹配的集合名称。                               | RegExp | 无            | 否   |
+| jobFields        | 任务字段和文档字段的对应关系。                 | Object |               | 是   |
+| --name           | 任务名称字段。                                 | string | name          | 是   |
+| --interval       | 执行计划字段。                                 | string | interval      | 是   |
+| --url            | 调用 url 字段。                                | string | url           | 是   |
+| --method         | 调用 http 方法字段。                           | string | method        | 是   |
+| --body           | 调用发送消息体字段。                           | string | body          | 是   |
+| --state          | 任务状体字段。                                 | string | state         | 是   |
 | **部件基本信息** |                                                |        |               |      |
 | beforeWidget     |                                                |        |               |      |
 | --name           | 部件名称。指明是自定义外部部件。               | string | external      | 是   |
@@ -135,6 +142,12 @@ const {
   TMW_PLUGIN_DOC_AGENDA_CL: Cl,
   TMW_PLUGIN_DOC_AGENDA_TITLE: Title,
   TMW_PLUGIN_DOC_AGENDA_WIDGET_URL,
+  TMW_PLUGIN_DOC_AGENDA_JOB_NAME_FIELD: JobNameField,
+  TMW_PLUGIN_DOC_AGENDA_JOB_INTERVAL_FIELD: JobIntervalField,
+  TMW_PLUGIN_DOC_AGENDA_JOB_URL_FIELD: JobUrlField,
+  TMW_PLUGIN_DOC_AGENDA_JOB_METHOD_FIELD: JobMethodField,
+  TMW_PLUGIN_DOC_AGENDA_JOB_BODY_FIELD: JobBodyField,
+  TMW_PLUGIN_DOC_AGENDA_JOB_STATE_FIELD: JobStateField,
 } = process.env
 
 module.exports = {
@@ -144,5 +157,13 @@ module.exports = {
   bucket: Bucket,
   db: Db,
   cl: Cl,
+  jobFields: {
+    name: JobNameField ? JobNameField : 'name',
+    interval: JobIntervalField ? JobIntervalField : 'interval',
+    url: JobUrlField ? JobUrlField : 'url',
+    method: JobMethodField ? JobMethodField : 'method',
+    body: JobBodyField ? JobBodyField : 'body',
+    state: JobStateField ? JobStateField : 'state',
+  },
 }
 ```

@@ -65,8 +65,8 @@ export class Context {
         let absDir = path.resolve(process.cwd(), dir)
         logger.info(`从目录[${absDir}]读取插件文件`)
         let files: string[] = glob.sync(`${absDir}/*.js`)
-        for (let i = 0, file; i < files.length; i++) {
-          file = files[i]
+        for (let file of files) {
+          if (file.indexOf('node_modules') !== -1) continue
           let { createPlugin } = require(file)
           if (typeof createPlugin !== 'function') {
             logger.warn(
@@ -81,12 +81,12 @@ export class Context {
           let plugin: PluginProfile = createPlugin(file)
 
           let plugins = Array.isArray(plugin) ? plugin : [plugin]
-          for (let p = 0; p < plugins.length; p++) {
-            let onePlugin = plugins[p]
-            if (!onePlugin || !(onePlugin instanceof PluginBase)) {
-              logger.warn(`插件文件[${file}]不可用，未创建插件对象`)
-              continue
-            }
+          for (let onePlugin of plugins) {
+            // if (!onePlugin || !(onePlugin instanceof PluginBase)) {
+            //   logger.warn(`插件文件[${file}]不是[PluginBase]类型，不可用`)
+            //   logger.debug(`插件文件[${file}]`, onePlugin)
+            //   continue
+            // }
             if (onePlugin.disabled === true) {
               logger.warn(`插件文件[${onePlugin.file}]已禁用`)
               continue
