@@ -104,7 +104,7 @@ importers:
       debug: ^4.3.4
       element-plus: ^2.2.8
       handlebars: ^4.7.7
-      jsoneditor: ^9.7.4
+      jsoneditor: ^9.9.0
       lodash: ^4.17.21
       mongodb: ^4.7.0
       pinia: ^2.0.13
@@ -115,7 +115,7 @@ importers:
       tailwindcss: ^3.0.24
       tms-koa-account: ^0.0.10
       tms-vue3: ^0.0.5
-      tms-vue3-ui: ^0.0.59
+      tms-vue3-ui: ^0.0.60
       typescript: ^4.5.4
       vite: ^3.0.4
       vue: ^3.2.25
@@ -134,7 +134,7 @@ importers:
       pinia: 2.0.16_j6bzmzd4ujpabbp5objtwxyjp4
       tms-koa-account: 0.0.10
       tms-vue3: 0.0.5_debug@4.3.4
-      tms-vue3-ui: 0.0.59_vue@3.2.37
+      tms-vue3-ui: 0.0.60_vue@3.2.37
       vue: 3.2.37
       vue-clipboard3: 2.0.0
       vue-router: 4.1.2_vue@3.2.37
@@ -5675,8 +5675,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /tms-vue3-ui/0.0.59_vue@3.2.37:
-    resolution: {integrity: sha512-NnR0TKWaJlRQJCf4vAe5tIKvmyoSn71mTZhh61d9lW7mvextu3VLMGEjhlZrqiv45Z3R6zipQj+IvzpuAsS4iQ==}
+  /tms-vue3-ui/0.0.60_vue@3.2.37:
+    resolution: {integrity: sha512-ZtG5MKUIcj2pundWkM5TYgn3NVu6Tqb2xkhAqTmR9CbHeb7XIepuuGa8tIfCNNs1LPICDohMb2XBuZ1ENxa6EQ==}
     dependencies:
       '@types/debug': 4.1.7
       debug: 4.3.4

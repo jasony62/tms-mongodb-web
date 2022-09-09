@@ -72,14 +72,15 @@ const props = defineProps({
   scope: { type: String, default: '' },
   schemaId: { type: String, default: '' },
 })
-const { bucketName, scope, schemaId } = props
+const { bucketName, scope } = props
+const editingSchemaId = ref(props.schemaId)
 
 const submitTitle = computed(() => {
-  return schemaId ? '修改' : '新建'
+  return editingSchemaId.value ? '修改' : '新建'
 })
 const title = computed(() => {
   let t = scope === 'document' ? '文档内容定义' : (scope === 'db' ? '数据库属性定义' : '集合属性定义')
-  t += '-' + (schemaId ? '修改' : '新建')
+  t += '-' + (editingSchemaId.value ? '修改' : '新建')
   return t
 })
 const activeTab = ref('first')
@@ -126,9 +127,9 @@ const onSubmit = () => {
   let newBody = $jse.value?.editing()
   if (newBody)
     Object.assign(schema.value.body, newBody)
-  if (schemaId) {
+  if (editingSchemaId.value) {
     apiSchema
-      .update(bucketName, schemaId, schema.value)
+      .update(bucketName, editingSchemaId.value, schema.value)
       .then(() => {
         ElMessage.success({ message: '修改成功' })
       })
@@ -138,7 +139,8 @@ const onSubmit = () => {
   } else {
     apiSchema
       .create(bucketName, schema.value)
-      .then(() => {
+      .then((rsp: any) => {
+        editingSchemaId.value = rsp._id
         ElMessage.success({ message: '创建成功' })
       })
       .catch(() => {
@@ -151,8 +153,8 @@ apiTag.list(bucketName).then((datas: any) => {
   tags.push(...datas)
 })
 
-if (schemaId) {
-  apiSchema.get(bucketName, schemaId).then((data: any) => {
+if (props.schemaId) {
+  apiSchema.get(bucketName, props.schemaId).then((data: any) => {
     schema.value = data
   })
 }
