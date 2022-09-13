@@ -344,13 +344,15 @@ const setPluginDocParam = (docScope: string) => {
  */
 function executePlugin(plugin: any, docScope = '', widgetResult = undefined, widgetHandleResponse = false, applyAccessTokenField = '') {
   let postBody: any
-  if (plugin.amount && plugin.amount === 'one') {
-    postBody = docScope
+  if (plugin.amount === 'one') {
+    if (selectedDocuments.value.length !== 1) return
+    postBody = { docId: toRaw(selectedDocuments.value[0]._id) }
   } else {
     if (['all', 'filter', 'checked'].includes(docScope))
       postBody = setPluginDocParam(docScope)
     else postBody = {}
   }
+
   // 携带插件部件的数据
   if (widgetResult) {
     if (applyAccessTokenField && typeof applyAccessTokenField === 'string') {

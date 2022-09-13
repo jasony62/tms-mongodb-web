@@ -98,7 +98,7 @@ export abstract class PluginHttpSendDocs extends PluginHttpSend {
         let body = await this.getBody(ctrl, tmwCl)
         return axiosInstance.post(url, body, config).then(({ data }) => data)
       } catch (e) {
-        Promise.reject(e.message)
+        return Promise.reject(e.message)
       }
     } else if (method === 'get') {
       return axiosInstance.get(url, config).then(({ data }) => data)

@@ -59,7 +59,10 @@ class HttpSendDocPlugin extends PluginHttpSendDocs {
     if (ok === false) throw Error(docs)
 
     /**清除_id字段*/
-    if (excludeId === true) docs.forEach((doc) => delete doc._id)
+    if (excludeId === true) {
+      if (Array.isArray(docs)) docs.forEach((doc) => delete doc._id)
+      else delete docs._id
+    }
 
     return docs
   }

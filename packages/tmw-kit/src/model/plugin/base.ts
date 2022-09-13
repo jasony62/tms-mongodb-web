@@ -62,14 +62,17 @@ export abstract class PluginBase implements PluginProfile {
    * @param {object} ctrl
    * @param {object} tmwCl
    *
-   * @returns {[]} {[]} 第1位：是否成功，第2位：错误信息或文档列表
+   * @returns 第1位：是否成功，第2位：错误信息或文档、文档列表
    */
   async findRequestDocs(ctrl, tmwCl) {
     let docs
 
     const modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
-    const { docIds, filter } = ctrl.request.body
-    if (docIds && Array.isArray(docIds) && docIds.length > 0) {
+    const { docId, docIds, filter } = ctrl.request.body
+    if (docId && typeof docId === 'string') {
+      let doc = await modelDoc.byId(tmwCl, docId)
+      return doc ? [true, doc] : [false, '指定的文档不存在']
+    } else if (docIds && Array.isArray(docIds) && docIds.length > 0) {
       let [success, docsOrCause]: [boolean, any] = await modelDoc.byIds(
         tmwCl,
         docIds
