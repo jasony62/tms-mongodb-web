@@ -93,17 +93,20 @@ export abstract class PluginHttpSendDocs extends PluginHttpSend {
 
     const method = this.getMethod(ctrl, tmwCl)
 
-    if (method === 'post') {
-      try {
-        let body = await this.getBody(ctrl, tmwCl)
-        return axiosInstance.post(url, body, config).then(({ data }) => data)
-      } catch (e) {
-        return Promise.reject(e.message)
-      }
-    } else if (method === 'get') {
-      return axiosInstance.get(url, config).then(({ data }) => data)
+    switch (method) {
+      case 'post':
+        try {
+          let body = await this.getBody(ctrl, tmwCl)
+          return axiosInstance.post(url, body, config).then(({ data }) => data)
+        } catch (e) {
+          return Promise.reject(e.message)
+        }
+      case 'get':
+        return axiosInstance.get(url, config).then(({ data }) => data)
+      case 'delete':
+        return axiosInstance.delete(url, config).then(({ data }) => data)
     }
 
-    return Promise.reject(`不支持的请求方法[${method}]`)
+    return Promise.reject(`插件[name=${this.name}]不支持的请求方法[${method}]`)
   }
 }
