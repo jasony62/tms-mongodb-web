@@ -19,7 +19,7 @@ class HttpSendDocPlugin extends PluginHttpSendDocs {
     super(file)
     this.name = 'doc-http-send'
     this.scope = 'document'
-    this.transData = 'more' //'nothing:无/one:一条/more:多条'。one在单条文档上适用的插件。
+    this.amount = 'many'
     this.title = '发送数据'
     this.description = '通过http将集合中的文档数据发送指定地址。'
     this.beforeWidget = { name: 'external', url: '', size: '40%' }
@@ -86,8 +86,18 @@ export function createPlugin(file: any) {
   if (ConfigFile) config = loadConfig(ConfigDir, ConfigFile)
 
   if (config && typeof config === 'object') {
-    let { widgetUrl, name, bucket, db, cl, title, url, method, excludeId } =
-      config
+    let {
+      widgetUrl,
+      name,
+      amount,
+      bucket,
+      db,
+      cl,
+      title,
+      url,
+      method,
+      excludeId,
+    } = config
 
     // const disabled = widgetUrl && widgetUrl.indexOf('http') === 0 ? false : true
     // if (disabled) return false
@@ -102,6 +112,10 @@ export function createPlugin(file: any) {
       // title
       if (Array.isArray(title) && index < title.length && title[index]) {
         newPlugin.title = title[index]
+      }
+      // amount
+      if (Array.isArray(amount) && index < amount.length && amount[index]) {
+        newPlugin.amount = amount[index]
       }
       // bucket
       if (Array.isArray(bucket) && index < bucket.length && bucket[index]) {

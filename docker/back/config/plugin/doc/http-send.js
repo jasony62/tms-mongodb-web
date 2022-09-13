@@ -1,5 +1,6 @@
 const {
   TMW_PLUGIN_DOC_HTTP_SEND_NAME: Name,
+  TMW_PLUGIN_DOC_HTTP_SEND_AMOUNT: Amount,
   TMW_PLUGIN_DOC_HTTP_SEND_BUCKET: Bucket,
   TMW_PLUGIN_DOC_HTTP_SEND_DB: Db,
   TMW_PLUGIN_DOC_HTTP_SEND_CL: Cl,
@@ -13,6 +14,7 @@ const {
 module.exports = {
   widgetUrl: TMW_PLUGIN_DOC_HTTP_SEND_WIDGET_URL || '/plugin/doc-http-send',
   name: Name ? Name.split(',') : ['doc-http-send'],
+  amount: Amount ? Amount.split(',') : ['many'],
   title: Title ? Title.split(',') : ['发送数据'],
   url: Url ? Url.split(',') : [],
   method: Method ? Method.split(',') : [],

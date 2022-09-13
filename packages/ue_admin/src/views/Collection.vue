@@ -109,7 +109,10 @@
           <el-button @click="createDocument">添加文档</el-button>
         </div>
         <div v-for="p in data.plugins" :key="p.name">
-          <el-button v-if="p.transData === 'nothing'" type="success" plain @click="handlePlugin(p)">{{ p.title }}
+          <el-button v-if="p.amount === 'zero'" type="success" plain @click="handlePlugin(p)">{{ p.title }}
+          </el-button>
+          <el-button v-else-if="p.amount === 'one'" :disabled="totalByChecked !== 1" type="success" plain
+            @click="handlePlugin(p)">{{ p.title }}
           </el-button>
           <el-dropdown v-else>
             <el-button type="success" plain>{{ p.title }}
@@ -120,15 +123,15 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item>
-                  <el-button text @click="handlePlugin(p, 'all')" :disabled="totalByAll == 0">
+                  <el-button text @click="handlePlugin(p, 'all')" :disabled="totalByAll === 0">
                     按全部({{ totalByAll }})</el-button>
                 </el-dropdown-item>
                 <el-dropdown-item>
-                  <el-button text @click="handlePlugin(p, 'filter')" :disabled="totalByFilter == 0">
+                  <el-button text @click="handlePlugin(p, 'filter')" :disabled="totalByFilter === 0">
                     按筛选({{ totalByFilter }})</el-button>
                 </el-dropdown-item>
                 <el-dropdown-item>
-                  <el-button text @click="handlePlugin(p, 'checked')" :disabled="totalByChecked == 0">
+                  <el-button text @click="handlePlugin(p, 'checked')" :disabled="totalByChecked === 0">
                     按选中({{ totalByChecked }})</el-button>
                 </el-dropdown-item>
               </el-dropdown-menu>
@@ -156,7 +159,7 @@ import * as Handlebars from 'handlebars'
 import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiPlugin from '@/apis/plugin'
-import { getLocalToken, COMPACT_MODE, FS_BASE_URL, BACK_API_URL,DOC_MANUAL } from '@/global'
+import { getLocalToken, COMPACT_MODE, FS_BASE_URL, BACK_API_URL, DOC_MANUAL } from '@/global'
 
 import facStore from '@/store'
 import {
@@ -310,10 +313,10 @@ const removeDocument = (document: any) => {
 /**
  * 文档对象的说明
  */
-const renderDocManual=(doc:any)=>{
-  const tpl = DOC_MANUAL(dbName,clName)
- const html = Handlebars.compile(tpl)({bucketName:bucketName??'',dbName,clName,doc})
- return html
+const renderDocManual = (doc: any) => {
+  const tpl = DOC_MANUAL(dbName, clName)
+  const html = Handlebars.compile(tpl)({ bucketName: bucketName ?? '', dbName, clName, doc })
+  return html
 }
 
 const downLoadFile = (file: any) => {
@@ -341,7 +344,7 @@ const setPluginDocParam = (docScope: string) => {
  */
 function executePlugin(plugin: any, docScope = '', widgetResult = undefined, widgetHandleResponse = false, applyAccessTokenField = '') {
   let postBody: any
-  if (plugin.transData && plugin.transData === 'one') {
+  if (plugin.amount && plugin.amount === 'one') {
     postBody = docScope
   } else {
     if (['all', 'filter', 'checked'].includes(docScope))
@@ -466,7 +469,12 @@ const handlePlugin = (plugin: any, docScope = '') => {
           if (action === 'Created') {
             // 插件创建成功后，将插件信息传递给插件
             if (elPluginWidget.value) {
-              elPluginWidget.value.contentWindow?.postMessage({ plugin: { name: toRaw(plugin.name), ui: toRaw(beforeWidget.ui) } }, '*')
+              const msg: any = { plugin: { name: toRaw(plugin.name), ui: toRaw(beforeWidget.ui) } }
+              if (plugin.amount === 'one' && selectedDocuments.value.length === 1) {
+                // 处理单个文档时，将文档数据传递给插件
+                msg.document = toRaw(selectedDocuments.value[0])
+              }
+              elPluginWidget.value.contentWindow?.postMessage(msg, '*')
             }
           } else if (action === 'Cancel') {
             window.removeEventListener('message', widgetResultListener)

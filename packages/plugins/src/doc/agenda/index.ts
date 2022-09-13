@@ -26,7 +26,7 @@ class AgendaDocPlugin extends PluginBase {
     this.title = '调度任务'
     this.description = '根据文档数据执行调度任务'
     this.scope = 'document'
-    this.transData = 'more'
+    this.amount = 'many'
     this.beforeWidget = { name: 'external', url: '', size: '40%' }
     this.axiosInstance = axios.create()
     this.jobFields = {}

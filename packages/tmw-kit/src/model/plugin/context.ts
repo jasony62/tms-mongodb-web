@@ -78,7 +78,11 @@ export class Context {
           }
 
           // 支持用1个插件文件创建多个插件实例
-          let plugin: PluginProfile = createPlugin(file)
+          let plugin: PluginProfile | boolean = createPlugin(file)
+          if (false === plugin) {
+            logger.warn(`插件文件[${file}]创建插件失败`)
+            continue
+          }
 
           let plugins = Array.isArray(plugin) ? plugin : [plugin]
           for (let onePlugin of plugins) {

@@ -5,7 +5,7 @@ export interface PluginProfile {
     description: string;
     disabled?: boolean;
     visible?: any;
-    transData?: string;
+    amount?: string;
     bucketName?: RegExp;
     dbName?: RegExp;
     clName?: RegExp;

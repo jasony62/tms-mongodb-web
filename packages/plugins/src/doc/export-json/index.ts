@@ -9,7 +9,7 @@ class ExportDocJsonPlugin extends PluginBase {
     this.title = '导出文档(JSON)'
     this.description = '在集合中，将文档按JSON格式导出，保存为zip包。'
     this.scope = 'document'
-    this.transData = 'more'
+    this.amount = 'many'
   }
 
   async execute(ctrl: any, tmwCl: any) {

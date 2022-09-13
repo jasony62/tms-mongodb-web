@@ -19,7 +19,7 @@ export abstract class PluginBase implements PluginProfile {
   excludeTags?: string[]
   everyTags?: string[]
   someTags?: string[]
-  transData?
+  amount?: string // 处理的数据量，zero,single,many
   visible? // 控制适用的文档条件，当文档的key的值和指定值一致时显示
   disabled?: boolean
   beforeWidget?: any
@@ -118,7 +118,7 @@ export abstract class PluginBase implements PluginProfile {
       everyTags,
       someTags,
       beforeWidget,
-      transData,
+      amount,
       disabled,
       visible,
     } = this
@@ -135,7 +135,7 @@ export abstract class PluginBase implements PluginProfile {
       everyTags,
       someTags,
       beforeWidget,
-      transData,
+      amount,
       disabled,
       visible,
     }

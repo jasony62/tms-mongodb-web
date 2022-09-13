@@ -29,9 +29,9 @@ export interface PluginProfile {
   visible?: any
   /**
    * 需要的数据
-   * nothing/one
+   * zero,one,many
    */
-  transData?: string
+  amount?: string
   /**
    * 和存储空间名称匹配的正则表达式
    */
