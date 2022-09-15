@@ -1,4 +1,4 @@
-import { MongoClient, MongoError } from 'mongodb'
+import { MongoClient, MongoError, ObjectId } from 'mongodb'
 import * as dayjs from 'dayjs'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -301,6 +301,9 @@ class Handler {
 
     let counter = 0
     for (const doc of docs) {
+      if (doc._id && typeof doc._id === 'string') {
+        doc._id = new ObjectId(doc._id)
+      }
       const { insertedId } = await docCl.insertOne({
         ...doc,
         TMW_DEFAULT_CREATE_TIME,
