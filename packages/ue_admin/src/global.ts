@@ -120,7 +120,7 @@ export const COMPACT_MODE = () => _globalsettings.compact
 
 // 默认的文档对象说明模板
 const DocManualTpl =
-  '<div class="p-4 flex flex-col gap-2"> <div>ID: {{ doc._id }}</div> <div>URL: /open/document/get?bucket=&db={{dbName}}&cl={{clName}}&id={{doc._id}}</div> </div>'
+  '<div class="p-4 flex flex-col gap-2"> <div>ID: {{ doc._id }}</div> <div>API: /open/document/get?bucket=&db={{dbName}}&cl={{clName}}&id={{doc._id}}</div> </div>'
 
 /**
  * 文档对象在线用户手册
