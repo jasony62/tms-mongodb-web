@@ -29,8 +29,9 @@ importers:
       nanoid: ^3.3.4
       redis: ^4.2.0
       rimraf: ^3.0.2
-      tms-koa: 0.0.99
-      tms-koa-account: ^0.0.10
+      tms-koa: ^0.1.0
+      tms-koa-account: ^0.1.0
+      tms-koa-captcha: ^0.1.0
       tmw-data: workspace:*
       tmw-kit: workspace:*
     dependencies:
@@ -43,8 +44,9 @@ importers:
       mongodb: 4.8.1
       nanoid: 3.3.4
       redis: 4.2.0
-      tms-koa: 0.0.99_redis@4.2.0
-      tms-koa-account: 0.0.10_redis@4.2.0+tms-koa@0.0.99
+      tms-koa: 0.1.0_redis@4.2.0
+      tms-koa-account: 0.1.0_redis@4.2.0
+      tms-koa-captcha: 0.1.0_redis@4.2.0
       tmw-data: link:../tmw-data
       tmw-kit: link:../tmw-kit
     devDependencies:
@@ -115,7 +117,7 @@ importers:
       tailwindcss: ^3.0.24
       tms-koa-account: ^0.0.10
       tms-vue3: ^0.0.5
-      tms-vue3-ui: ^0.0.61
+      tms-vue3-ui: ^0.0.63
       typescript: ^4.5.4
       vite: ^3.0.4
       vue: ^3.2.25
@@ -134,7 +136,7 @@ importers:
       pinia: 2.0.16_j6bzmzd4ujpabbp5objtwxyjp4
       tms-koa-account: 0.0.10
       tms-vue3: 0.0.5_debug@4.3.4
-      tms-vue3-ui: 0.0.61_vue@3.2.37
+      tms-vue3-ui: 0.0.63
       vue: 3.2.37
       vue-clipboard3: 2.0.0
       vue-router: 4.1.2_vue@3.2.37
@@ -1518,14 +1520,6 @@ packages:
       postcss: 8.4.14
       postcss-value-parser: 4.2.0
     dev: true
-
-  /axios/0.26.1_debug@4.3.4:
-    resolution: {integrity: sha512-fPwcX4EvnSHuInCMItEhAGnaSEXRBjtzh9fOtsE6E1G6p7vl7edEeZe11QHf18+6+9gR5PbKV/sGKNaD8YaMeA==}
-    dependencies:
-      follow-redirects: 1.15.1
-    transitivePeerDependencies:
-      - debug
-    dev: false
 
   /axios/0.27.2:
     resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
@@ -4322,6 +4316,12 @@ packages:
   /ms/2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
 
+  /nanoid/3.1.20:
+    resolution: {integrity: sha512-a1cQNyczgKbLX9jwbS/+d7W8fX/RfgYR7lVWwWOGIPNgK2m0MWvrGF6/m4kk6U3QcFMnZf3RIhL0v2Jgh/0Uxw==}
+    engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
+    hasBin: true
+    dev: false
+
   /nanoid/3.3.4:
     resolution: {integrity: sha512-MqBkQh/OHTS2egovRtLk45wEyNXwF+cokD+1YPf9u5VfJiRdAiRwB2froX5Co9Rh20xs4siNPm8naNotSD6RBw==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
@@ -5545,33 +5545,6 @@ packages:
       - supports-color
     dev: false
 
-  /tms-koa-account/0.0.10_redis@4.2.0+tms-koa@0.0.99:
-    resolution: {integrity: sha512-5MOdqFmZJu+PCXlbivQCYmqDtXaQmbpk2hltLWyAqyaMGrVUI90qbjMoo7c+YG9cm1khTfxTlxvGzmls9DBAaQ==}
-    peerDependencies:
-      redis: 4.1.0
-      tms-koa: ^0.0.84
-    dependencies:
-      '@koa/cors': 3.3.0
-      '@koa/router': 10.1.1
-      '@log4js-node/log4js-api': 1.0.2
-      '@types/node': 17.0.45
-      crypto-js: 4.1.1
-      dotenv-flow: 3.2.0
-      fs: 0.0.1-security
-      koa: 2.13.4
-      koa-body: 4.2.0
-      lodash: 4.17.21
-      lowdb: 1.0.0
-      nanoid: 3.3.4
-      password-validator: 5.3.0
-      path: 0.12.7
-      redis: 4.2.0
-      svg-captcha: 1.4.0
-      tms-koa: 0.0.99_redis@4.2.0
-    transitivePeerDependencies:
-      - supports-color
-    dev: false
-
   /tms-koa-account/0.0.10_tms-koa@0.0.97:
     resolution: {integrity: sha512-5MOdqFmZJu+PCXlbivQCYmqDtXaQmbpk2hltLWyAqyaMGrVUI90qbjMoo7c+YG9cm1khTfxTlxvGzmls9DBAaQ==}
     peerDependencies:
@@ -5597,6 +5570,59 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: true
+
+  /tms-koa-account/0.1.0_redis@4.2.0:
+    resolution: {integrity: sha512-xG/lLSSYRyKorpcGhh6N3s0wBToiN++r/gmR7p2ZLYYVFT0xw6NGkfJpHsnUBUFpHSPCp1ZH7LPaO4bFOOWXGg==}
+    peerDependencies:
+      redis: 4.1.0
+    dependencies:
+      '@log4js-node/log4js-api': 1.0.2
+      debug: 4.3.4
+      dotenv-flow: 3.2.0
+      lodash: 4.17.21
+      lowdb: 1.0.0
+      mongodb: 4.8.1
+      nanoid: 3.1.20
+      password-validator: 5.3.0
+      redis: 4.2.0
+      svg-captcha: 1.4.0
+      tms-koa: 0.1.0_redis@4.2.0
+      tms-koa-crypto: 0.1.0
+    transitivePeerDependencies:
+      - bufferutil
+      - neo4j-driver
+      - openapi-types
+      - prom-client
+      - supports-color
+      - tms-db
+      - utf-8-validate
+    dev: false
+
+  /tms-koa-captcha/0.1.0_redis@4.2.0:
+    resolution: {integrity: sha512-Kq9fz56e0OiZlnD8CCtocekgoA5vZEQgVpkWZAvtm60txP77qBqvfv8ly6R/hh8rqCDIneNt2zF1lAZ/Ggmhnw==}
+    dependencies:
+      '@log4js-node/log4js-api': 1.0.2
+      lodash: 4.17.21
+      lowdb: 1.0.0
+      nanoid: 3.1.20
+      svg-captcha: 1.4.0
+      tms-koa: 0.1.0_redis@4.2.0
+    transitivePeerDependencies:
+      - bufferutil
+      - neo4j-driver
+      - openapi-types
+      - prom-client
+      - redis
+      - supports-color
+      - tms-db
+      - utf-8-validate
+    dev: false
+
+  /tms-koa-crypto/0.1.0:
+    resolution: {integrity: sha512-wyqHNz8RrRca4INca705c2S8/aq/AZY0V8Y/DiCmBUr2fH9zGh+raHdKYrfVlge2Ay54bSjD/prtz+JHjAyrRQ==}
+    dependencies:
+      crypto-js: 4.1.1
+    dev: false
 
   /tms-koa/0.0.97:
     resolution: {integrity: sha512-Kqzh7lsnEDTLSuvkLxp7yyKLv/pmwsi3pyc+fr6Wg5CUcNNckMoXPcRLUzsSXUxcmZPJsXVGyoRbp2fxG9snNA==}
@@ -5635,8 +5661,8 @@ packages:
       - utf-8-validate
     dev: true
 
-  /tms-koa/0.0.99_redis@4.2.0:
-    resolution: {integrity: sha512-Xuwr6f8bWVVdvssODYnmNXZzW9JgxSBASg9J8Cd4UB3AJ0levpqmk4gUKLCAYJmhWlk/yKQmOJg+y3XEcuqDxQ==}
+  /tms-koa/0.1.0_redis@4.2.0:
+    resolution: {integrity: sha512-M5/Zf3Yp+jX8mJeUeeLe/nHDhsTtMB8pn7pNaVoG/bZMU5O0TaDqRke2x/rsesG6tEhHL3hGvlvNYIWVfLDAtQ==}
     engines: {node: '>=16.15.0'}
     peerDependencies:
       neo4j-driver: ^4.4.2
@@ -5665,7 +5691,6 @@ packages:
       sharp: 0.30.7
       socket.io: 4.5.1
       swagger-jsdoc: 6.2.1
-      tms-koa-account: 0.0.10_redis@4.2.0+tms-koa@0.0.99
       uuid: 8.3.2
       xlsx: 0.18.5
     transitivePeerDependencies:
@@ -5675,28 +5700,16 @@ packages:
       - utf-8-validate
     dev: false
 
-  /tms-vue3-ui/0.0.61_vue@3.2.37:
-    resolution: {integrity: sha512-GiuOS6KhXmxWh6x+8n8pmKupkYifg5ukAK4aM7FEroSew4k+zt/bsN81q25St2Jzil+vJTHROhbz6VF1zyaWOQ==}
+  /tms-vue3-ui/0.0.63:
+    resolution: {integrity: sha512-B6Sh9OGJzRGMm4eqrDUYChFRBWeKah0llwA+yNWcoBVT5KLnjCZodrELU/UzJK7x0aw4w+cl2LVnF1GUmz3BIQ==}
     dependencies:
       '@types/debug': 4.1.7
       debug: 4.3.4
       lodash: 4.17.21
       randexp: 0.5.3
-      tms-vue3: 0.0.4_debug@4.3.4+vue@3.2.37
+      tms-vue3: 0.0.5_debug@4.3.4
     transitivePeerDependencies:
       - supports-color
-      - vue
-    dev: false
-
-  /tms-vue3/0.0.4_debug@4.3.4+vue@3.2.37:
-    resolution: {integrity: sha512-ta3nlyfCItEwttlZ+09/KbkwErBb7rDzlqKsiHyNeYmSSpZx9+WOqOdBses3qc2V77MRlI5wFSUlaesq6TyYrA==}
-    peerDependencies:
-      vue: ^3.2.25
-    dependencies:
-      axios: 0.26.1_debug@4.3.4
-      vue: 3.2.37
-    transitivePeerDependencies:
-      - debug
     dev: false
 
   /tms-vue3/0.0.5_debug@4.3.4:

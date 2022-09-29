@@ -1,5 +1,0 @@
-/node_modules/*
-/storage
-/logs
-.env*
-README.md

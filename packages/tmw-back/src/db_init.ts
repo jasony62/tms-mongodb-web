@@ -136,7 +136,7 @@ class Handler {
 
     let tpl = JSON.parse(JSON.stringify(DatabaseTemplate))
     tpl.name = info.name
-    tpl.sysname = nanoid(10)
+    tpl.sysname = info.sysname ? info.sysname : nanoid(10)
 
     if (info.title) tpl.title = info.title
     if (info.description) tpl.description = info.description
@@ -228,7 +228,7 @@ class Handler {
     }
     tpl.schema_id = schemaId
     tpl.name = info.name
-    tpl.sysname = nanoid(10)
+    tpl.sysname = info.sysname ? info.sysname : nanoid(10)
     if (info.title) tpl.title = info.title
     if (info.description) tpl.description = info.description
     if (info.bucket) tpl.bucket = info.bucket

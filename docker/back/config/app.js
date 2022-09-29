@@ -8,6 +8,14 @@ let appConfig = {
     },
     controllers: {
       prefix: env.TMW_APP_ROUTER_CONTROLLER || 'api', // 控制器接口调用url的前缀，例如：/api
+      plugins_npm: [
+        {
+          disabled: false,
+          id: 'tms-koa-account',
+          dir: 'dist/controllers',
+          alias: 'account',
+        },
+      ],
     },
     plugins: {
       prefix: env.TMW_APP_ROUTER_PLUGIN || 'plugin', // 插件接口调用url的前缀
@@ -22,7 +30,12 @@ let appConfig = {
   auth: {
     // 内置账号
     client: {
-      accounts: [{ id: 1, username: 'admin', password: 'admin' }],
+      npm: {
+        disabled: /true|yes/i.test(env.TMW_APP_AUTH_CLIENT_DISABLED),
+        id: 'tms-koa-account/dist/models',
+        authentication: 'authenticate',
+        register: 'register',
+      },
     },
     // 保存鉴权信息
     jwt: {
@@ -35,8 +48,8 @@ let appConfig = {
     captcha: {
       npm: {
         disabled: /true|yes/i.test(env.TMW_APP_AUTH_CAPTCHA_DISABLED),
-        id: 'tms-koa-account',
-        module: 'models/captcha',
+        id: 'tms-koa-captcha',
+        module: 'dist',
         checker: 'checkCaptcha',
         generator: 'createCaptcha',
       },

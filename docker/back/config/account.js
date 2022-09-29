@@ -1,15 +1,13 @@
+const { env } = process
+
 module.exports = {
-  disabled: false,
+  disabled: /true|yes/i.test(env.TMW_APP_AUTH_CLIENT_DISABLED),
+  admin: { username: 'admin', password: 'admin' },
   mongodb: {
     disabled: false,
-    name: 'master',
-    database: process.env.TMS_ACCOUNT_DBNAME || 'tms_account',
-    collection: process.env.TMS_ACCOUNT_CLNAME || 'account',
-    schema: { test: { type: 'string', title: '测试' } },
-  },
-  redis: {
-    disabled: false,
-    name: 'master',
+    name: env.TMW_APP_AUTH_CLIENT_MONGODB_NAME || 'master',
+    database: env.TMW_APP_AUTH_CLIENT_MONGODB_DATABASE || 'tmw_account',
+    collection: env.TMW_APP_AUTH_CLIENT_MONGODB_COLLECTION || 'account',
   },
   authConfig: {
     pwdErrMaxNum: 5, // int 密码错误次数限制 0 不限制
@@ -28,5 +26,4 @@ module.exports = {
       // hasKeyBoardContinuousCharSize: 4
     },
   },
-  captchaConfig: {},
 }
