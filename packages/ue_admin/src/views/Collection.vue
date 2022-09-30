@@ -376,6 +376,8 @@ function executePlugin(plugin: any, docScope = '', widgetResult = undefined, wid
   return apiPlugin
     .execute(queryParams, postBody)
     .then((result: any) => {
+      console.log(result);
+
       if (widgetHandleResponse) {
         return result
       }
@@ -443,9 +445,6 @@ function executePlugin(plugin: any, docScope = '', widgetResult = undefined, wid
         listDocByKw()
       }
       return 'ok'
-    })
-    .catch((err: any) => {
-      ElMessage.error(err.msg)
     })
 }
 /**

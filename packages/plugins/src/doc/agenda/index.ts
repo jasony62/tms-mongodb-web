@@ -139,7 +139,7 @@ class AgendaDocPlugin extends PluginBase {
         break
     }
 
-    return { code: 0, result }
+    return { code: 0, msg: result.success }
   }
 }
 
