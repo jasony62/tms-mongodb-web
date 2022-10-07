@@ -8,21 +8,26 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@antv/layout": "^0.3.1",
+    "@antv/x6": "^1.34.2",
+    "@antv/x6-vue-shape": "^1.5.2",
     "@element-plus/icons-vue": "^2.0.6",
     "add": "^2.0.6",
     "debug": "^4.3.4",
     "element-plus": "^2.2.8",
+    "elkjs": "^0.8.2",
+    "gitart-vue-dialog": "^2.4.0",
     "handlebars": "^4.7.7",
     "jsoneditor": "^9.9.0",
     "lodash": "^4.17.21",
-    "mongodb": "^4.7.0",
     "pinia": "^2.0.13",
-    "tms-koa-account": "^0.0.10",
+    "tms-koa-crypto": "^0.1.0",
     "tms-vue3": "^0.0.5",
-    "tms-vue3-ui": "^0.0.63",
+    "tms-vue3-ui": "^0.0.64",
     "vue": "^3.2.25",
     "vue-clipboard3": "^2.0.0",
-    "vue-router": "4"
+    "vue-router": "4",
+    "web-worker": "^1.2.0"
   },
   "devDependencies": {
     "@types/debug": "^4.1.7",
