@@ -8,6 +8,7 @@ import { onMounted } from 'vue'
 import { Graph, PropertyNode, ValueNode, OwnPropertyEdge } from './x6'
 import { Cell } from '@antv/x6';
 import { Builder } from './builder'
+import { Field } from 'tms-vue3-ui/dist/es/json-doc';
 
 
 const props = defineProps({
@@ -15,14 +16,31 @@ const props = defineProps({
   doc: { type: Object, required: true },
 })
 
+let X6Graph: any
+
 const emit = defineEmits(['clickValueNode'])
+/**
+ * 更新指定字段的值
+ * @param field 
+ * @param newVal 
+ */
+const setPropertyValue = (field: Field, newVal: any) => {
+  const cellId = field.fullname + '_val'
+  const cell = X6Graph.getCellById(cellId)
+  if (cell) {
+    let text = field.schemaType === 'json' ? JSON.stringify(newVal) : newVal
+    cell.setAttrs({ label: { textWrap: { text } } })
+  }
+}
+
+defineExpose({ setPropertyValue })
 
 onMounted(async () => {
   const builder = new Builder(props.schema, props.doc)
   const GraphData = await builder.build()
 
   // 初始化画布
-  const x6Graph = new Graph({
+  X6Graph = new Graph({
     container: document.getElementById('container')!,
     async: false,
     frozen: false,
@@ -62,12 +80,12 @@ onMounted(async () => {
     // },
   })
 
-  x6Graph.on('node:collapse', ({ node }: { node: PropertyNode }) => {
+  X6Graph.on('node:collapse', ({ node }: { node: PropertyNode }) => {
     node.toggleCollapse()
     const collapsed = node.isCollapsed()
     /**处理后代节点*/
     const run = (pre: PropertyNode) => {
-      const succ = x6Graph.getSuccessors(pre, { distance: 1 })
+      const succ = X6Graph.getSuccessors(pre, { distance: 1 })
       if (succ) {
         succ.forEach((node: Cell) => {
           node.toggleVisible(!collapsed)
@@ -82,7 +100,7 @@ onMounted(async () => {
     run(node)
   })
 
-  x6Graph.on('node:clickValueNode', ({ node }: { node: ValueNode }) => {
+  X6Graph.on('node:clickValueNode', ({ node }: { node: ValueNode }) => {
     emit('clickValueNode', node.getData())
   })
 
@@ -104,9 +122,9 @@ onMounted(async () => {
       })
   )
 
-  x6Graph.resetCells([...nodes, ...edges])
+  X6Graph.resetCells([...nodes, ...edges])
   // 将根节点滚动到画布的中心位置
-  x6Graph.positionCell(nodes[0], 'left')
+  X6Graph.positionCell(nodes[0], 'left')
 })
 </script>
 <style lang="scss">

@@ -8,7 +8,8 @@
             :enable-paste="true" :hide-root-title="true" :hide-root-description="true"></tms-json-doc>
         </div>
       </div>
-      <div class="actions">
+      <div class="actions flex flex-row gap-4">
+        <button @click="submit">修改</button>
         <button @click="dialogState = false">关闭</button>
       </div>
     </div>
@@ -16,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import TmsJsonDoc, { Field } from 'tms-vue3-ui/dist/es/json-doc'
+import TmsJsonDoc, { DocAsArray, Field } from 'tms-vue3-ui/dist/es/json-doc'
 import { JSONSchemaBuilder } from 'tms-vue3-ui/dist/es/json-schema'
 import { computed, PropType, ref } from 'vue'
 import * as _ from 'lodash'
@@ -28,6 +29,7 @@ const props = defineProps({
   },
   field: { type: Object as PropType<Field>, required: true },
   editDoc: { type: Object, required: true },
+  onSubmit: { type: Function, default: () => { } }
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -41,25 +43,28 @@ const dialogState = computed({
   },
 })
 
-/**构造完整的schema定义*/
 const { field, editDoc } = props
+// 编辑的属性定义
+const ClonedSchema = _.cloneDeep(field.schemaProp)
+ClonedSchema.path = ''
+// 如果是数组中的子项目，需要指定属性名称
+if (ClonedSchema.name === '[*]') ClonedSchema.name = 'arrayItem'
+/**构造完整的schema定义*/
 const builder = new JSONSchemaBuilder()
 builder.flatten({ type: 'object' })
-const clonedSchema = _.cloneDeep(field.schemaProp)
-clonedSchema._path = ''
-// 如果是数组中的子项目，需要指定属性名称
-if (clonedSchema.name === '[*]') clonedSchema.name = 'arrayItem'
-builder.props.push(clonedSchema)
+builder.props.push(ClonedSchema)
+// 用于生成表单的完整属性定义
 const schema = builder.unflatten()
+// 表单对应的文档
+const document = _.set({}, ClonedSchema.name, editDoc.get(field.fullname))
 
-const document = _.set({}, clonedSchema.name, editDoc.get(field.fullname))
-
+const $jde = ref<{ editDoc: DocAsArray } | null>(null)
 /**
  * 通过对话框修改数据
  */
-const submitChange = () => {
-  // const newValue = editing.value
-  // props.onModify(newValue)
+const submit = () => {
+  const newValue = $jde.value?.editDoc.get(ClonedSchema.name)
+  props.onSubmit(newValue)
   dialogState.value = false
 }
 </script>

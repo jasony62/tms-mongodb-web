@@ -40,8 +40,8 @@
         </div>
         <div class="border border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
           <pre v-if="previewMode === 'text'">{{ previewResult }}</pre>
-          <json-diagram-x6 v-if="previewMode === 'diagram'" :schema="collection.schema.body" :doc="document"
-            @click-value-node="onClickValueNode">
+          <json-diagram-x6 ref="$diagram" v-if="previewMode === 'diagram'" :schema="collection.schema.body"
+            :doc="document" @click-value-node="onClickValueNode">
           </json-diagram-x6>
         </div>
       </div>
@@ -61,7 +61,6 @@ import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 import { EXTERNAL_FS_URL, getLocalToken, COMPACT_MODE } from '@/global'
 import apiDoc from '@/apis/document'
 import apiCl from '@/apis/collection'
-import apiSchema from '@/apis/schema'
 import useClipboard from 'vue-clipboard3'
 import * as _ from 'lodash'
 import Debug from 'debug'
@@ -88,7 +87,7 @@ const props = defineProps({
 const { VITE_SCHEMA_TAGS } = import.meta.env
 
 const { bucketName, dbName, clName, docId } = props
-const $jde = ref<{ editing: () => string; editDoc: DocAsArray } | null>(null)
+const $jde = ref<{ editing: () => any; editDoc: DocAsArray } | null>(null)
 // const plugins: any[] = []
 
 const collection = ref<any>({ schema: { body: {} } })
@@ -151,8 +150,11 @@ const updateFieldJson = () => {
   }
 }
 
+const $diagram = ref<{ setPropertyValue: (field: Field, newVal: any) => void } | null>(null)
 const $dialog = inject(dialogInjectionKey)
-/**在图上选中了一个值节点 */
+/**
+ * 在图表上选中了一个值节点
+ */
 const onClickValueNode = (field: Field) => {
   if ($dialog) {
     const editDoc = $jde.value?.editDoc
@@ -161,6 +163,12 @@ const onClickValueNode = (field: Field) => {
       props: {
         field,
         editDoc,
+        onSubmit: (newVal: any) => {
+          // 修改表单中的数据
+          $jde.value?.editDoc.set(field.fullname, newVal)
+          // 修改图标中的数据
+          $diagram.value?.setPropertyValue(field, newVal)
+        }
       },
     })
   }
@@ -377,6 +385,23 @@ const copy = async () => {
     }, 1000)
   } catch (e) { }
 }
+/**
+ * 更新预览视图
+ */
+const updatePreview = () => {
+  const currentMode = previewMode.value
+  previewMode.value = ''
+  nextTick(() => {
+    switch (currentMode) {
+      case 'diagram':
+        diagram()
+        break
+      case 'preview':
+        preview()
+        break
+    }
+  })
+}
 
 const onSubmit = () => {
   let validate = true
@@ -393,9 +418,7 @@ const onSubmit = () => {
   //     })
   //     .every(ele => ele === true)
   // }
-  if (!validate) {
-    return false
-  }
+  if (!validate) return false
 
   let newDoc = $jde.value?.editing()
   if (newDoc) {
@@ -403,12 +426,13 @@ const onSubmit = () => {
       apiDoc
         .update(bucketName, dbName, clName, document.value._id, newDoc)
         .then(() => {
+          Object.assign(document.value, newDoc)
+          // 更新预览视图
+          if (previewMode.value) updatePreview()
           ElMessage.success({ message: '修改成功' })
         })
     } else {
-      if (Object.keys(newDoc).length === 0) {
-        return false
-      }
+      if (Object.keys(newDoc).length === 0) return false
       apiDoc
         .create(bucketName, dbName, collection.value.name, newDoc)
         .then((newDoc: any) => {
@@ -416,35 +440,6 @@ const onSubmit = () => {
           ElMessage.success({ message: '新建成功' })
         })
     }
-  }
-}
-
-const handleProperty = async () => {
-  let tags = VITE_SCHEMA_TAGS
-    ? VITE_SCHEMA_TAGS.split(',')
-    : collection.value.schema_tags
-  let body: { [k: string]: any } = {}
-
-  if (tags && tags.length) {
-    for (let i = 0; i < tags.length; i++) {
-      let schemas = await apiSchema.listByTag(props.bucketName, tags[i])
-      schemas.forEach(
-        (schema: { body: { [s: string]: unknown } | ArrayLike<unknown> }) => {
-          Object.entries(schema.body).forEach(([key, val]) => {
-            if (val && typeof val === 'object') {
-              // 如果属性值为空就不合并
-              if (!body[key]) body[key] = {}
-              if (JSON.stringify(val) !== '{}') Object.assign(body[key], val)
-            } else {
-              body[key] = val
-            }
-          })
-        }
-      )
-    }
-    body.value = body
-  } else {
-    Object.assign(body.value, collection.value.schema.body)
   }
 }
 
