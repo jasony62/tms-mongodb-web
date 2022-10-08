@@ -1,6 +1,6 @@
 import { TmsAxios } from 'tms-vue3'
 // @ts-ignore
-import { encodeAccountV1 } from 'tms-koa-account/models/crypto'
+import { encodeAccountV1 } from 'tms-koa-crypto'
 import { AUTH_API_URL } from '@/global'
 
 const APPID = import.meta.env.VITE_LOGIN_CODE_APPID || 'tms-mongodb-web'
@@ -43,7 +43,7 @@ export default {
     let params = { ...userArg }
     let url = `${baseAuth}/register`
     if (ISCRYPTO === 'yes') {
-      const encode = encodeAccountV1({
+      const encode: any = encodeAccountV1({
         username: params['uname'],
         password: params['password'],
       })
@@ -71,7 +71,7 @@ export default {
     let params = { ...userArg }
     let url = `${baseAuth}/authenticate`
     if (ISCRYPTO === 'yes') {
-      const encode = encodeAccountV1({
+      const encode: any = encodeAccountV1({
         username: params['uname'],
         password: params['password'],
       })

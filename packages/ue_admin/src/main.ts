@@ -24,6 +24,10 @@ import 'tms-vue3-ui/dist/es/flex/style/index.css'
 import './assets/common.scss'
 import apiAuth from '@/apis/login'
 import { schema } from '@/data/login'
+import 'gitart-vue-dialog/dist/style.css'
+import { GDialog, plugin as dialogPlugin } from 'gitart-vue-dialog'
+import 'gitart-vue-dialog/dist/style.css'
+
 const { fnCaptcha, fnLogin } = apiAuth
 
 const LoginPromise = (function () {
@@ -115,6 +119,8 @@ function afterLoadSettings() {
     .use(Flex)
     .use(JsonSchema.install)
     .use(ElementPlus)
+    .use(dialogPlugin)
+    .component('GDialog', GDialog)
     .mount('#app')
 }
 

@@ -1,9 +1,0 @@
-/node_modules/
-/public/
-.env
-.env.*
-/storage
-/plugins
-/logs
-/config/*.local.*
-_lowdb.json

@@ -4,9 +4,13 @@
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ name: 'database', params: { dbName } }">{{ dbName }}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'database', params: { dbName } }">{{
+        dbName
+        }}</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'collection', params: { dbName, clName } }">{{ clName }}</el-breadcrumb-item>
-        <el-breadcrumb-item>{{ document._id ? document._id : '新建文档' }}</el-breadcrumb-item>
+        <el-breadcrumb-item>{{
+        document._id ? document._id : '新建文档'
+        }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
     <div class="p-2 border border-gray-200 mb-2 rounded-md text-center">
@@ -21,20 +25,24 @@
       <div v-if="activeField?.schemaType === 'json'" class="w-1/3 h-full flex flex-col gap-2">
         <div>
           <el-button type="primary" @click="updateFieldJson" :disabled="!jsonFieldValueChanged">更新【{{
-          activeField.fullname
-          }}】</el-button>
+          activeField.fullname }}】</el-button>
         </div>
         <div ref="elJsonEditor" class="flex-grow"></div>
       </div>
-      <div class="h-full w-1/3 flex flex-col gap-2 relative">
-        <div class="absolute top-0 right-0">
+      <div class="h-full w-1/3 flex flex-col gap-2 relative"
+        :class="activeField?.schemaType === 'json'?'w-1/3':'w-2/3'">
+        <div class="absolute top-0 right-0" style="z-index: 999">
+          <el-button @click="diagram">图形</el-button>
           <el-button @click="preview">预览</el-button>
           <el-tooltip effect="dark" content="复制" placement="bottom" :visible="copyTooltipVisible">
             <el-button @click="copy" :disabled="!previewResult">复制</el-button>
           </el-tooltip>
         </div>
         <div class="border border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
-          <pre>{{ previewResult }}</pre>
+          <pre v-if="previewMode === 'text'">{{ previewResult }}</pre>
+          <json-diagram-x6 v-if="previewMode === 'diagram'" :schema="collection.schema.body" :doc="document"
+            @click-value-node="onClickValueNode">
+          </json-diagram-x6>
         </div>
       </div>
     </div>
@@ -47,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue';
+import { computed, nextTick, ref, inject } from 'vue'
 import TmsJsonDoc, { Field, DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 import { EXTERNAL_FS_URL, getLocalToken, COMPACT_MODE } from '@/global'
@@ -57,11 +65,14 @@ import apiSchema from '@/apis/schema'
 import useClipboard from 'vue-clipboard3'
 import * as _ from 'lodash'
 import Debug from 'debug'
-import { openPickFileEditor } from '@/components/editor';
+import { openPickFileEditor } from '@/components/editor'
 import { ElMessage } from 'element-plus'
 import { ArrowRight } from '@element-plus/icons-vue'
 import JSONEditor from 'jsoneditor'
 import 'jsoneditor/dist/jsoneditor.css'
+import JsonDiagramX6 from '@/components/JsonDiagramX6.vue'
+import { dialogInjectionKey } from 'gitart-vue-dialog'
+import PropValueEditor from '@/components/PropValueEditor.vue'
 
 const COMPACT = computed(() => COMPACT_MODE())
 
@@ -77,7 +88,7 @@ const props = defineProps({
 const { VITE_SCHEMA_TAGS } = import.meta.env
 
 const { bucketName, dbName, clName, docId } = props
-const $jde = ref<{ editing: () => string, editDoc: DocAsArray } | null>(null)
+const $jde = ref<{ editing: () => string; editDoc: DocAsArray } | null>(null)
 // const plugins: any[] = []
 
 const collection = ref<any>({ schema: { body: {} } })
@@ -88,12 +99,14 @@ const showFieldFullname = ref(false)
 
 // 文档字段转化规则
 const DocFieldConvertRules = computed(() =>
-  (collection.value.docFieldConvertRules && typeof collection.value.docFieldConvertRules === 'object' && Object.keys(collection.value.docFieldConvertRules).length) ? collection.value.docFieldConvertRules : null
+  collection.value.docFieldConvertRules &&
+    typeof collection.value.docFieldConvertRules === 'object' &&
+    Object.keys(collection.value.docFieldConvertRules).length
+    ? collection.value.docFieldConvertRules
+    : null
 )
 
 const elJsonEditor = ref<HTMLElement | null>(null)
-
-const previewResult = ref('')
 
 const { toClipboard } = useClipboard()
 
@@ -137,16 +150,31 @@ const updateFieldJson = () => {
     $jde.value?.editDoc.set(activeField.value.fullname, newVal)
   }
 }
+
+const $dialog = inject(dialogInjectionKey)
+/**在图上选中了一个值节点 */
+const onClickValueNode = (field: Field) => {
+  if ($dialog) {
+    const editDoc = $jde.value?.editDoc
+    $dialog.addDialog({
+      component: PropValueEditor,
+      props: {
+        field,
+        editDoc,
+      },
+    })
+  }
+}
 /**
  * 将传入的外部数据转换为与field属性定义匹配的数据
- * 
+ *
  * 用'__'代表根节点（两个下划线）
- * 
+ *
  * 如果指定了多条映射，按如下原则匹配：
  * 外部数组字段匹配的百分比越高，比配的数量越多，越靠前，优先级越高
- * 
+ *
  * 内部数据字段对应的可以是字符串或对象。字符串代表外部数据对象的path；对象中的value代表内部字段的值
- * 
+ *
  * @param field 指定的文档字段
  * @param source 外部数据来源
  * @param data 外部数据
@@ -154,60 +182,92 @@ const updateFieldJson = () => {
 function convertExternalData(field: Field, source: string, data: any): any {
   const log = debug.extend('convertExternalData')
   const dataType = field.schemaType
-  const newData = dataType === 'object' ? {} : (dataType === 'array' ? [] : undefined)
+  const newData =
+    dataType === 'object' ? {} : dataType === 'array' ? [] : undefined
   if (!newData) return newData
 
-  log(`字段【${field.fullname}】从【${source}】获得外部数据\n` + JSON.stringify(data, null, 2))
+  log(
+    `字段【${field.fullname}】从【${source}】获得外部数据\n` +
+    JSON.stringify(data, null, 2)
+  )
   if (DocFieldConvertRules.value === null) {
-    log(`字段【${field.fullname}】获得【${source}】数据，集合没有指定转换规则，直接使用粘贴数据`)
+    log(
+      `字段【${field.fullname}】获得【${source}】数据，集合没有指定转换规则，直接使用粘贴数据`
+    )
     return data
   }
 
   let usedRule
-  let rules = DocFieldConvertRules.value[source] ? DocFieldConvertRules.value[source][field.fullname || '__'] : []
+  let rules = DocFieldConvertRules.value[source]
+    ? DocFieldConvertRules.value[source][field.fullname || '__']
+    : []
 
   if (Array.isArray(rules) && rules.length) {
-    log(`字段【${field.fullname}】有【${source}】数据转换规则，共【${rules.length}】条`)
-    const [matchIndex, score] = rules.reduce((result, rule, index) => {
-      // 规则中指定的外部数据需要提供的字段
-      let externalPaths: string[] = []
-      Object.values(rule).forEach(v => {
-        if (v && typeof v === 'string') externalPaths.push(v)
-      })
-      // 外部数据中包含的指定字段的数量
-      let matchedNum = 0
-      externalPaths.forEach((p) => { if (Object.hasOwn(data, p)) matchedNum++ })
-      // 分数分为3段
-      let score = Math.floor(matchedNum / externalPaths.length * 100) * 100000 + (matchedNum * 100) + (99 - index)
-      log(`字段【${field.fullname}】有【${source}】数据转换规则中，第【${index}】条得分【${score}】`)
-      return score > result[1] ? [index, score] : result
-    }, [-1, -1])
-    log(`字段【${field.fullname}】有【${source}】数据转换规则中，第【${matchIndex}】条匹配`)
+    log(
+      `字段【${field.fullname}】有【${source}】数据转换规则，共【${rules.length}】条`
+    )
+    const [matchIndex, score] = rules.reduce(
+      (result, rule, index) => {
+        // 规则中指定的外部数据需要提供的字段
+        let externalPaths: string[] = []
+        Object.values(rule).forEach((v) => {
+          if (v && typeof v === 'string') externalPaths.push(v)
+        })
+        // 外部数据中包含的指定字段的数量
+        let matchedNum = 0
+        externalPaths.forEach((p) => {
+          if (Object.hasOwn(data, p)) matchedNum++
+        })
+        // 分数分为3段
+        let score =
+          Math.floor((matchedNum / externalPaths.length) * 100) * 100000 +
+          matchedNum * 100 +
+          (99 - index)
+        log(
+          `字段【${field.fullname}】有【${source}】数据转换规则中，第【${index}】条得分【${score}】`
+        )
+        return score > result[1] ? [index, score] : result
+      },
+      [-1, -1]
+    )
+    log(
+      `字段【${field.fullname}】有【${source}】数据转换规则中，第【${matchIndex}】条匹配`
+    )
     if (matchIndex !== -1) usedRule = rules[matchIndex]
   } else if (rules && typeof rules === 'object') {
     usedRule = rules
   }
   if (!usedRule) return undefined
 
-  log(`字段【${field.fullname}】有【${source}】数据转换规则\n` + JSON.stringify(usedRule, null, 2))
-  let converted = _.transform(usedRule, (result: any, dataDef: any, docKey: string) => {
-    if (dataDef) {
-      if (typeof dataDef === 'string') {
-        // 定义的是外部数据的key
-        let val = _.get(data, dataDef)
-        _.set(result, docKey, val)
-      } else if (Array.isArray(dataDef) && dataDef.length) {
-        // 不支持
-      } else if (typeof dataDef === 'object') {
-        // 定义的是固定的值
-        if (dataDef.value ?? false) {
-          _.set(result, docKey, dataDef.value)
+  log(
+    `字段【${field.fullname}】有【${source}】数据转换规则\n` +
+    JSON.stringify(usedRule, null, 2)
+  )
+  let converted = _.transform(
+    usedRule,
+    (result: any, dataDef: any, docKey: string) => {
+      if (dataDef) {
+        if (typeof dataDef === 'string') {
+          // 定义的是外部数据的key
+          let val = _.get(data, dataDef)
+          _.set(result, docKey, val)
+        } else if (Array.isArray(dataDef) && dataDef.length) {
+          // 不支持
+        } else if (typeof dataDef === 'object') {
+          // 定义的是固定的值
+          if (dataDef.value ?? false) {
+            _.set(result, docKey, dataDef.value)
+          }
         }
       }
-    }
-  }, {})
+    },
+    {}
+  )
 
-  log(`字段【${field.fullname}】获得【${source}】转换后数据\n` + JSON.stringify(converted, null, 2))
+  log(
+    `字段【${field.fullname}】获得【${source}】转换后数据\n` +
+    JSON.stringify(converted, null, 2)
+  )
   if (dataType === 'object' && typeof data === 'object')
     _.assign(newData, data, converted)
   else _.assign(newData, converted)
@@ -280,8 +340,29 @@ const handleFileSubmit = (ref: string | number, files: any[]) => {
     })
     .catch((err) => Promise.reject(err))
 }
+// 预览方式，支持文本和图形
+const previewMode = ref('')
+const previewData = ref<any>({})
+const previewResult = ref('')
+
+const diagram = () => {
+  const switchToDiagram = () => {
+    previewMode.value = 'diagram'
+    previewData.value = $jde.value?.editing() || {}
+  }
+  if (previewMode.value === 'diagram') {
+    /**重新生成图表对象*/
+    previewMode.value = ''
+    nextTick(() => {
+      switchToDiagram()
+    })
+  } else {
+    switchToDiagram()
+  }
+}
 
 const preview = () => {
+  previewMode.value = 'text'
   previewResult.value = JSON.stringify($jde.value?.editing(), null, 2)
 }
 
@@ -291,7 +372,9 @@ const copy = async () => {
   try {
     await toClipboard(previewResult.value)
     copyTooltipVisible.value = true
-    setTimeout(() => { copyTooltipVisible.value = false }, 1000)
+    setTimeout(() => {
+      copyTooltipVisible.value = false
+    }, 1000)
   } catch (e) { }
 }
 
@@ -321,7 +404,7 @@ const onSubmit = () => {
         .update(bucketName, dbName, clName, document.value._id, newDoc)
         .then(() => {
           ElMessage.success({ message: '修改成功' })
-         })
+        })
     } else {
       if (Object.keys(newDoc).length === 0) {
         return false
@@ -371,7 +454,6 @@ const openDrawer = () => {
   assistant.value = true
 }
 
-
 apiCl.byName(bucketName, dbName, clName).then((cl: any) => {
   collection.value = cl
 })
@@ -380,12 +462,10 @@ if (docId)
   apiDoc.get(bucketName, dbName, clName, docId).then((doc: any) => {
     document.value = doc
   })
-
 </script>
 
 <style lang="scss">
 #docEditor {
-
   @apply w-full h-full overflow-auto flex flex-col gap-2;
 
   .jsoneditor {

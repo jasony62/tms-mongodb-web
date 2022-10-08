@@ -1,4 +1,4 @@
-import { MongoClient, MongoError } from 'mongodb'
+import { MongoClient, MongoError, ObjectId } from 'mongodb'
 import * as dayjs from 'dayjs'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -136,7 +136,7 @@ class Handler {
 
     let tpl = JSON.parse(JSON.stringify(DatabaseTemplate))
     tpl.name = info.name
-    tpl.sysname = nanoid(10)
+    tpl.sysname = info.sysname ? info.sysname : nanoid(10)
 
     if (info.title) tpl.title = info.title
     if (info.description) tpl.description = info.description
@@ -228,7 +228,7 @@ class Handler {
     }
     tpl.schema_id = schemaId
     tpl.name = info.name
-    tpl.sysname = nanoid(10)
+    tpl.sysname = info.sysname ? info.sysname : nanoid(10)
     if (info.title) tpl.title = info.title
     if (info.description) tpl.description = info.description
     if (info.bucket) tpl.bucket = info.bucket
@@ -301,6 +301,9 @@ class Handler {
 
     let counter = 0
     for (const doc of docs) {
+      if (doc._id && typeof doc._id === 'string') {
+        doc._id = new ObjectId(doc._id)
+      }
       const { insertedId } = await docCl.insertOne({
         ...doc,
         TMW_DEFAULT_CREATE_TIME,
