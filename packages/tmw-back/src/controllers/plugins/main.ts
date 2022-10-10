@@ -236,8 +236,9 @@ class Plugin extends CtrlBase {
           arg = await this.pluginHelper.findRequestCl()
           break
       }
-      const result = await plugin.execute(this, arg)
-      return new ResultData(result)
+      const { code, msg } = await plugin.execute(this, arg)
+      if (code !== 0) return new ResultFault(msg)
+      return new ResultData(msg)
     }
 
     return new ResultData('ok')
