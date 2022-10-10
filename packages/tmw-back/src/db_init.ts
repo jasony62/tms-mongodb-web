@@ -221,6 +221,16 @@ class Handler {
       return
     }
 
+    // 检查标签
+    if (info.tags) {
+      if (!Array.isArray(info.tags)) {
+        debug('集合定义的标签格式错误')
+        return
+      } else {
+        tpl.tags = info.tags
+      }
+    }
+
     tpl.database = newDb.name
     tpl.db = {
       sysname: newDb.sysname,
@@ -317,7 +327,43 @@ class Handler {
     return counter
   }
   /**
-   * 一条初始化数据包含1个数据库，1个文档定义，1个集合，和1组文档
+   * 创建标签
+   */
+  private async createTag(tags) {
+    if (!Array.isArray(tags) || tags.length === 0) {
+      debug('没有提供有效的标签数据，结束创建标签操作')
+      return 0
+    }
+
+    let counter = 0
+    for (const tag of tags) {
+      tag.name = tag.name.replace(/(^\s*)|(\s*$)/g, '')
+      tag.type = 'tag'
+
+      const query: any = { name: tag.name, type: 'tag' }
+      if (tag.bucket) query.bucket = tag.bucket
+
+      let existTag = await this.cl.findOne(query)
+      if (existTag) {
+        debug(`名称为[${tag.name}]的标签已经存在，不能重复创建`)
+        return 0
+      }
+
+      if (tag._id && typeof tag._id === 'string') {
+        tag._id = new ObjectId(tag._id)
+      }
+      const { insertedId } = await this.cl.insertOne({
+        ...tag,
+        TMW_DEFAULT_CREATE_TIME,
+      })
+      debug(`创建了标签[id=${insertedId}]`)
+      counter++
+    }
+
+    return counter
+  }
+  /**
+   * 一条初始化数据包含1个数据库，1个文档定义，1个集合，1组文档，和1组标签
    */
   private async parseOne(info) {
     /**
@@ -329,13 +375,17 @@ class Handler {
      */
     const schemaId = await this.createSchema(info.docSchema)
     /**
-     * 创建结合
+     * 创建集合
      */
     const newCl = await this.createCollection(newDb, schemaId, info.cl)
     /**
      * 插入文档
      */
     await this.createDocument(newDb, newCl, info.docs)
+    /**
+     * 创建标签
+     */
+    await this.createTag(info.tags)
   }
   /**
    * 执行初始化操作
