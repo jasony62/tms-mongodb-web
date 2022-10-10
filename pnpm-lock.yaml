@@ -29,9 +29,9 @@ importers:
       nanoid: ^3.3.4
       redis: ^4.2.0
       rimraf: ^3.0.2
-      tms-koa: ^0.1.1
+      tms-koa: ^0.1.2
       tms-koa-account: ^0.1.1
-      tms-koa-captcha: ^0.1.1
+      tms-koa-captcha: ^0.1.2
       tmw-data: workspace:*
       tmw-kit: workspace:*
     dependencies:
@@ -44,9 +44,9 @@ importers:
       mongodb: 4.8.1
       nanoid: 3.3.4
       redis: 4.2.0
-      tms-koa: 0.1.1_redis@4.2.0
+      tms-koa: 0.1.2_redis@4.2.0
       tms-koa-account: 0.1.1_redis@4.2.0
-      tms-koa-captcha: 0.1.1_redis@4.2.0
+      tms-koa-captcha: 0.1.2_redis@4.2.0
       tmw-data: link:../tmw-data
       tmw-kit: link:../tmw-kit
     devDependencies:
@@ -121,7 +121,7 @@ importers:
       tailwindcss: ^3.0.24
       tms-koa-crypto: ^0.1.0
       tms-vue3: ^0.0.5
-      tms-vue3-ui: ^0.0.65
+      tms-vue3-ui: ^0.0.66
       typescript: ^4.5.4
       vite: ^3.0.4
       vue: ^3.2.25
@@ -145,7 +145,7 @@ importers:
       pinia: 2.0.16_j6bzmzd4ujpabbp5objtwxyjp4
       tms-koa-crypto: 0.1.0
       tms-vue3: 0.0.5_debug@4.3.4
-      tms-vue3-ui: 0.0.65
+      tms-vue3-ui: 0.0.66
       vue: 3.2.37
       vue-clipboard3: 2.0.0
       vue-router: 4.1.2_vue@3.2.37
@@ -5843,15 +5843,15 @@ packages:
       - utf-8-validate
     dev: false
 
-  /tms-koa-captcha/0.1.1_redis@4.2.0:
-    resolution: {integrity: sha512-GwlC12CbZF1y9064HQnVG5m6QgUPfRxAXpgqLiqsifQ2SnNdmru/hhArSoS6yF8ZO8rI8LFw2OpWC3AGRT0hyw==}
+  /tms-koa-captcha/0.1.2_redis@4.2.0:
+    resolution: {integrity: sha512-ZdQLtP4Zw9FH4OKm401eyveLsQCyZ++DdVkoX4cWiHHkIQLDF/gm8X0CKACSu59rLL8NPbDd5E1538WdN+qZ3Q==}
     dependencies:
       '@log4js-node/log4js-api': 1.0.2
       lodash: 4.17.21
       lowdb: 1.0.0
       nanoid: 3.1.20
       svg-captcha: 1.4.0
-      tms-koa: 0.1.1_redis@4.2.0
+      tms-koa: 0.1.2_redis@4.2.0
     transitivePeerDependencies:
       - bufferutil
       - neo4j-driver
@@ -5945,8 +5945,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /tms-koa/0.1.1_redis@4.2.0:
-    resolution: {integrity: sha512-7dmbpmGYHrlvI2aGVQgLkmLYQr9hb/U+dcwX/vQsQwC58MHC/WcW0tgFJ04pEO5Na2TSufr90+F7s+EQQ9GMjg==}
+  /tms-koa/0.1.2_redis@4.2.0:
+    resolution: {integrity: sha512-j9SwJyiShc3k0kp5ul0xhLVblhHmdFUmHcb7QrMo5/z5ngE9aJ2iqhtVOk+JY46njiOvRAjx21PFPm5okxavUg==}
     engines: {node: '>=16.15.0'}
     peerDependencies:
       neo4j-driver: ^4.4.2
@@ -5972,7 +5972,6 @@ packages:
       moment: 2.29.4
       mongodb: 4.8.1
       redis: 4.2.0
-      sharp: 0.30.7
       socket.io: 4.5.1
       swagger-jsdoc: 6.2.1
       uuid: 8.3.2
@@ -5984,8 +5983,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /tms-vue3-ui/0.0.65:
-    resolution: {integrity: sha512-qgu2dcYK7SbtiCouIvjs3pzaFN9bS8iIi99L89gi8JNcrcJhoRaq8Vd171reFNZkiMtoLmedWmbOcDsr+w+q3A==}
+  /tms-vue3-ui/0.0.66:
+    resolution: {integrity: sha512-x1R/QyE0m1RJp6qCBvtu6riwFtK9UXbnHVxkRfGwr6k9OkJ8S4HfbRPi0LAmE5n9rpAU1DC/oHNSQT4t4HP+dA==}
     dependencies:
       '@types/debug': 4.1.7
       debug: 4.3.4
