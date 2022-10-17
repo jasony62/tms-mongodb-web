@@ -33,7 +33,7 @@ class ExportDocJsonPlugin extends PluginBase {
       }
     )
 
-    return { code: 0, url }
+    return { code: 0, msg: { url } }
   }
 }
 
