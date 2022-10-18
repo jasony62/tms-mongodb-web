@@ -45,6 +45,10 @@ http {
     send_timeout $NGINX_SEND_TIMEOUT;
     # 隐藏版本号
     server_tokens $NGINX_SERVER_TOKENS;
+    # 限制文件上传大小
+    client_max_body_size $NGINX_CLIENT_MAX_BODY_SIZE;
+    # 限制缓存区大小
+    client_body_buffer_size $NGINX_CLIENT_BODY_BUFFER_SIZE;
     # 发生错误时返回指定错误页
     error_page 400 404 413 /40x.html;
     error_page 500 502 503 504 /50.html;

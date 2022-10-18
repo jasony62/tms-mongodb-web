@@ -62,6 +62,9 @@ let appConfig = {
       env.TMS_APP_DEFAULT_UPDATETIME || 'TMW_DEFAULT_UPDATE_TIME', // 修改集合中文档时默认增加修改时间字段，字段名名
     TMW_APP_DATA_ACTION_LOG: env.TMW_APP_DATA_ACTION_LOG || 'N', // 数据操作日志， 日志会记录到tms_admin库下的 tms_app_data_action_log 集合中
   },
+  body: {
+    jsonLimit: env.TMW_APP_BODY_JSON_LIMIT || '1mb'
+  }
 }
 
 module.exports = appConfig
