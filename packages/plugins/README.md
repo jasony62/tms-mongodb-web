@@ -111,28 +111,28 @@ module.exports = {
 
 本插件实现将选择的文档数据作为调度任务的定义参数。
 
-| 属性             | 用途                                           | 类型   | 默认值        | 必填 |
-| ---------------- | ---------------------------------------------- | ------ | ------------- | ---- |
-| **基本信息**     |                                                |        |               |      |
-| name             | 插件名称。需要有唯一性，同名插件只会加载一次。 | string | doc-http-send | 是   |
-| scope            | 插件适用的数据对象类型。只用于文档类型。       | string | document      | 是   |
-| title            | 插件在页面上的显示内容。                       | string | 发送数据      | 是   |
-| amount           | 操作的数据量。                                 | string | many          | 是   |
-| bucketName       | 匹配的存储空间名称。                           | RegExp | 无            | 否   |
-| dbName           | 匹配的数据库名称。                             | RegExp | 无            | 否   |
-| clName           | 匹配的集合名称。                               | RegExp | 无            | 否   |
-| jobFields        | 任务字段和文档字段的对应关系。                 | Object |               | 是   |
-| --name           | 任务名称字段。                                 | string | name          | 是   |
-| --interval       | 执行计划字段。                                 | string | interval      | 是   |
-| --url            | 调用 url 字段。                                | string | url           | 是   |
-| --method         | 调用 http 方法字段。                           | string | method        | 是   |
-| --body           | 调用发送消息体字段。                           | string | body          | 是   |
-| --state          | 任务状体字段。                                 | string | state         | 是   |
-| **部件基本信息** |                                                |        |               |      |
-| beforeWidget     |                                                |        |               |      |
-| --name           | 部件名称。指明是自定义外部部件。               | string | external      | 是   |
-| --url            | 部件获取地址。通过配置文件指定。               | string | 无            | 是   |
-| --size           | 部件在页面上的宽度。                           | string | 40%           | 是   |
+| 属性             | 用途                                           | 类型   | 默认值     | 必填 |
+| ---------------- | ---------------------------------------------- | ------ | ---------- | ---- |
+| **基本信息**     |                                                |        |            |      |
+| name             | 插件名称。需要有唯一性，同名插件只会加载一次。 | string | doc-agenda | 是   |
+| scope            | 插件适用的数据对象类型。只用于文档类型。       | string | document   | 是   |
+| title            | 插件在页面上的显示内容。                       | string | 调度任务   | 是   |
+| amount           | 操作的数据量。                                 | string | many       | 是   |
+| bucketName       | 匹配的存储空间名称。                           | RegExp | 无         | 否   |
+| dbName           | 匹配的数据库名称。                             | RegExp | 无         | 否   |
+| clName           | 匹配的集合名称。                               | RegExp | 无         | 否   |
+| jobFields        | 任务字段和文档字段的对应关系。                 | Object |            | 是   |
+| --name           | 任务名称字段。                                 | string | name       | 是   |
+| --interval       | 执行计划字段。                                 | string | interval   | 是   |
+| --url            | 调用 url 字段。                                | string | url        | 是   |
+| --method         | 调用 http 方法字段。                           | string | method     | 是   |
+| --body           | 调用发送消息体字段。                           | string | body       | 是   |
+| --state          | 任务状体字段。                                 | string | state      | 是   |
+| **部件基本信息** |                                                |        |            |      |
+| beforeWidget     |                                                |        |            |      |
+| --name           | 部件名称。指明是自定义外部部件。               | string | external   | 是   |
+| --url            | 部件获取地址。通过配置文件指定。               | string | 无         | 是   |
+| --size           | 部件在页面上的宽度。                           | string | 40%        | 是   |
 
 ```js
 const {
@@ -167,3 +167,48 @@ module.exports = {
   },
 }
 ```
+
+# doc-create-account
+
+本插件实现通过管理员身份创建用户账号。
+
+| 属性             | 用途                                           | 类型   | 默认值             | 必填 |
+| ---------------- | ---------------------------------------------- | ------ | ------------------ | ---- |
+| **基本信息**     |                                                |        |                    |      |
+| name             | 插件名称。需要有唯一性，同名插件只会加载一次。 | string | doc-create-account | 是   |
+| scope            | 插件适用的数据对象类型。只用于文档类型。       | string | document           | 是   |
+| title            | 插件在页面上的显示内容。                       | string | 发送数据           | 是   |
+| amount           | 操作的数据量。                                 | string | many               | 是   |
+| bucketName       | 匹配的存储空间名称。                           | RegExp | 无                 | 否   |
+| dbName           | 匹配的数据库名称。                             | RegExp | 无                 | 否   |
+| clName           | 匹配的集合名称。                               | RegExp | 无                 | 否   |
+| **部件基本信息** |                                                |        |                    |      |
+| beforeWidget     |                                                |        |                    |      |
+| --name           | 部件名称。指明是自定义外部部件。               | string | external           | 是   |
+| --url            | 部件获取地址。通过配置文件指定。               | string | 无                 | 是   |
+| --size           | 部件在页面上的宽度。                           | string | 40%                | 是   |
+| **部件用户输入** |                                                |        |                    |      |
+| beforeWidget.ui  |                                                |        |                    |      |
+| --username       | 新建用户名。                                   | string | 无                 | 否   |
+| --password       | 密码。                                         | string | 无                 | 否   |
+
+```js
+const {
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_NAME: Name,
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_BUCKET: Bucket,
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_DB: Db,
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_CL: Cl,
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_TITLE: Title,
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_WIDGET_URL
+} = process.env
+
+module.exports = {
+  widgetUrl: TMW_PLUGIN_DOC_CREATE_ACCOUNT_WIDGET_URL || '/plugin/doc-create-account',
+  name: Name ? Name : 'doc-create-account',
+  title: Title ? Title : '创建账号',
+  bucket: Bucket,
+  db: Db,
+  cl: Cl
+}
+```
+
