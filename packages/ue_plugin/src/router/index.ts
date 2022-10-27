@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
 import DocHttpSend from '@/views/DocHttpSend.vue'
 import DocAgenda from '@/views/DocAgenda.vue'
+import DocCreateAccount from '@/views/DocCreateAccount.vue'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
   ? import.meta.env.VITE_BASE_URL
@@ -17,6 +18,11 @@ const routes: RouteRecordRaw[] = [
     path: '/doc-agenda',
     name: 'docAgenda',
     component: DocAgenda,
+  },
+  {
+    path: '/doc-create-account',
+    name: 'docCreateAccount',
+    component: DocCreateAccount,
   },
 ]
 

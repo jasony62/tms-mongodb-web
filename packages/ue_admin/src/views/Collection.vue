@@ -472,8 +472,9 @@ const handlePlugin = (plugin: any, docScope = '') => {
             if (elPluginWidget.value) {
               const msg: any = { plugin: { name: toRaw(plugin.name), ui: toRaw(beforeWidget.ui) } }
               if (plugin.amount === 'one' && selectedDocuments.value.length === 1) {
-                // 处理单个文档时，将文档数据传递给插件
+                // 处理单个文档时，将文档数据和schema传递给插件
                 msg.document = toRaw(selectedDocuments.value[0])
+                msg.schema = toRaw(collection.schema.body)
               }
               elPluginWidget.value.contentWindow?.postMessage(msg, '*')
             }

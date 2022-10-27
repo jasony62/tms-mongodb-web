@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref } from 'vue'
 
 const responseContent = ref<string>('')
 
@@ -55,15 +55,15 @@ window.addEventListener('message', (event) => {
   }
 })
 
-function onExecute(action:string) {
-    const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: {action}, handleResponse: true }
-    try {
-      // 给调用方发送数据
-      Caller.postMessage(message, '*')
-      executed.value = true
-    } catch (e) {
-      console.log('未知错误', e)
-    }
+function onExecute(action: string) {
+  const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: { action }, handleResponse: true }
+  try {
+    // 给调用方发送数据
+    Caller.postMessage(message, '*')
+    executed.value = true
+  } catch (e) {
+    console.log('未知错误', e)
+  }
 }
 
 function onCancel() {
