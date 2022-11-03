@@ -22,15 +22,17 @@
         :enable-paste="true" :on-paste="onJdocPaste" :on-file-select="onFileSelect" :on-file-download="onFileDownload"
         :show-field-fullname="showFieldFullname" :hide-root-title="true" :hide-root-description="true"
         @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
-      <div v-if="activeField?.schemaType === 'json'" class="w-1/3 h-full flex flex-col gap-2">
-        <div>
+      <div v-if="isSmallLeft" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
+        <div v-if="activeField?.schemaType === 'json'">
           <el-button type="primary" @click="updateFieldJson" :disabled="!jsonFieldValueChanged">更新【{{
           activeField.fullname }}】</el-button>
         </div>
-        <div ref="elJsonEditor" class="flex-grow"></div>
+        <div v-if="activeField?.schemaType === 'json'" ref="elJsonEditor" class="flex-grow"></div>
+        <div v-if="/mustache|handlebars/.test(activeField?.schemaProp.attrs?.format)">
+          <handlebars-viz :template-text="activeFieldValue" />
+        </div>
       </div>
-      <div class="h-full w-1/3 flex flex-col gap-2 relative"
-        :class="activeField?.schemaType === 'json'?'w-1/3':'w-2/3'">
+      <div class="h-full flex flex-col gap-2 relative" :class="isSmallLeft?'w-1/3':'w-2/3'">
         <div class="absolute top-0 right-0" style="z-index: 999">
           <el-button @click="diagram">图形</el-button>
           <el-button @click="preview">预览</el-button>
@@ -69,6 +71,9 @@ import { ElMessage } from 'element-plus'
 import { ArrowRight } from '@element-plus/icons-vue'
 import JSONEditor from 'jsoneditor'
 import 'jsoneditor/dist/jsoneditor.css'
+// @ts-ignore
+import { HandlebarsViz } from 'tms-template-viz'
+import 'tms-template-viz/dist/style.css'
 import JsonDiagramX6 from '@/components/JsonDiagramX6.vue'
 import { dialogInjectionKey } from 'gitart-vue-dialog'
 import PropValueEditor from '@/components/PropValueEditor.vue'
@@ -121,6 +126,17 @@ const options = {
   },
 }
 
+const isSmallLeft = computed(() => {
+  if (activeField.value?.schemaType === 'json') {
+    return true
+  } else if (activeField.value?.schemaType === 'string') {
+    if (['mustache', 'handlebars'].includes(activeField.value.schemaProp.attrs?.format)) {
+      return true
+    }
+  }
+  return false
+})
+
 let jsonEditor: any = null
 
 const onJdocFocus = (field: Field) => {
@@ -149,6 +165,14 @@ const updateFieldJson = () => {
     $jde.value?.editDoc.set(activeField.value.fullname, newVal)
   }
 }
+
+const activeFieldValue = computed(() => {
+  let field = activeField.value
+  if (field) {
+    let fieldValue = $jde.value?.editDoc.get(field.fullname)
+    return fieldValue
+  }
+})
 
 const $diagram = ref<{ setPropertyValue: (field: Field, newVal: any) => void } | null>(null)
 const $dialog = inject(dialogInjectionKey)

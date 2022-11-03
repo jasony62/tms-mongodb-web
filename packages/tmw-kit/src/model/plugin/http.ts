@@ -89,24 +89,25 @@ export abstract class PluginHttpSendDocs extends PluginHttpSend {
       maxBodyLength: Infinity,
     })
 
-    logger.debug(`插件[name=${this.name}]向[${url}]接口发送数据`)
-
     const method = this.getMethod(ctrl, tmwCl)
 
-    switch (method) {
-      case 'post':
-        try {
+    logger.debug(`插件[${this.name}]向[${url}]接口用[${method}]方法发送数据`)
+
+    try {
+      switch (method) {
+        case 'post':
           let body = await this.getBody(ctrl, tmwCl)
           return axiosInstance.post(url, body, config).then(({ data }) => data)
-        } catch (e) {
-          return Promise.reject(e.message)
-        }
-      case 'get':
-        return axiosInstance.get(url, config).then(({ data }) => data)
-      case 'delete':
-        return axiosInstance.delete(url, config).then(({ data }) => data)
-    }
 
-    return Promise.reject(`插件[name=${this.name}]不支持的请求方法[${method}]`)
+        case 'get':
+          return axiosInstance.get(url, config).then(({ data }) => data)
+        case 'delete':
+          return axiosInstance.delete(url, config).then(({ data }) => data)
+      }
+      return Promise.reject(`插件[${this.name}]不支持的请求方法[${method}]`)
+    } catch (e) {
+      logger.warn(`插件[${this.name}]在[${url}]接口执行[${method}]方法异常`, e)
+      return Promise.reject(e.message)
+    }
   }
 }
