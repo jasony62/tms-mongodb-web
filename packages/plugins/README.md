@@ -212,3 +212,48 @@ module.exports = {
 }
 ```
 
+# doc-manage-account
+
+本插件实现账号管理功能，支持重置密码、禁（启）用账号操作。
+
+| 属性             | 用途                                           | 类型    | 默认值             | 必填 |
+| ---------------- | ---------------------------------------------- | ------- | ------------------ | ---- |
+| **基本信息**     |                                                |         |                    |      |
+| name             | 插件名称。需要有唯一性，同名插件只会加载一次。 | string  | doc-manage-account | 是   |
+| scope            | 插件适用的数据对象类型。只用于文档类型。       | string  | document           | 是   |
+| title            | 插件在页面上的显示内容。                       | string  | 发送数据           | 是   |
+| amount           | 操作的数据量。                                 | string  | one                | 是   |
+| bucketName       | 匹配的存储空间名称。                           | RegExp  | 无                 | 否   |
+| dbName           | 匹配的数据库名称。                             | RegExp  | 无                 | 否   |
+| clName           | 匹配的集合名称。                               | RegExp  | 无                 | 否   |
+| **部件基本信息** |                                                |         |                    |      |
+| beforeWidget     |                                                |         |                    |      |
+| --name           | 部件名称。指明是自定义外部部件。               | string  | external           | 是   |
+| --url            | 部件获取地址。通过配置文件指定。               | string  | 无                 | 是   |
+| --size           | 部件在页面上的宽度。                           | string  | 40%                | 是   |
+| **部件用户输入** |                                                |         |                    |      |
+| beforeWidget.ui  |                                                |         |                    |      |
+| --username       | 用户名。                                       | string  | 无                 | 否   |
+| --password       | 密码。                                         | string  | 无                 | 否   |
+| --forbidden      | 是否禁止登录                                   | boolean | 无                 | 否   |
+
+```js
+const {
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_NAME: Name,
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_BUCKET: Bucket,
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_DB: Db,
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_CL: Cl,
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_TITLE: Title,
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_WIDGET_URL
+} = process.env
+
+module.exports = {
+  widgetUrl: TMW_PLUGIN_DOC_MANAGE_ACCOUNT_WIDGET_URL || '/plugin/doc-manage-account',
+  name: Name ? Name : 'doc-manage-account',
+  title: Title ? Title : '账号管理',
+  bucket: Bucket,
+  db: Db,
+  cl: Cl
+}
+```
+
