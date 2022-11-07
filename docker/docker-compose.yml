@@ -67,6 +67,10 @@ services:
     #    - TMS_ACCOUNT_CLNAME=account
     #   支持可信主机的控制器跳过检查直接通过
     #    - TMS_KOA_SKIP_TRUSTED_HOST=yes
+    # 插件配置
+    ## 创建账号
+    #    - TMW_PLUGIN_DOC_CREATE_ACCOUNT_DB=
+    #    - TMW_PLUGIN_DOC_CREATE_ACCOUNT_CL=
     networks:
       - tms-mongodb
     command:

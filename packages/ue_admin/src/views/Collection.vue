@@ -376,8 +376,6 @@ function executePlugin(plugin: any, docScope = '', widgetResult = undefined, wid
   return apiPlugin
     .execute(queryParams, postBody)
     .then((result: any) => {
-      console.log(result);
-
       if (widgetHandleResponse) {
         return result
       }
