@@ -11,8 +11,8 @@
     <!--content-->
     <div class="flex flex-row gap-2">
       <div class="flex flex-col gap-4" :class="COMPACT ? 'w-full' : 'w-4/5'">
-        <el-table id="tables" :data="store.documents" highlight-current-row stripe
-          @selection-change="handleSelectionChange">
+        <el-table id="tables" ref="tableRef" :data="store.documents" highlight-current-row stripe
+          @selection-change="handleSelectionChange" @row-click="handleRowClick">
           <el-table-column fixed="left" type="index" width="48"></el-table-column>
           <el-table-column type="selection" width="40" />
           <el-table-column type="expand" width="40">
@@ -166,6 +166,7 @@ import {
   openSelectConditionEditor,
 } from '@/components/editor'
 import { useRouter } from 'vue-router'
+import { ElTable } from 'element-plus'
 
 const COMPACT = computed(() => COMPACT_MODE())
 
@@ -202,6 +203,8 @@ const data = reactive({
   plugins: [] as any[],
   filter: reactive({})
 })
+
+const tableRef = ref<InstanceType<typeof ElTable>>()
 
 const selectedDocuments = ref<any[]>([])
 const totalByAll = computed(() => Object.keys(data.filter).length ? 0 : data.docBatch.total)
@@ -276,6 +279,10 @@ const handleFilter = (schema: any, name: any) => {
 
 const handleSelectionChange = (rows: any) => {
   selectedDocuments.value = rows
+}
+
+const handleRowClick = (row:any)=>{
+  tableRef.value!.toggleRowSelection(row,undefined) 
 }
 
 const router = useRouter()

@@ -30,8 +30,8 @@
           </el-form-item>
         </el-form>
         <div v-if="activeTab === 'second'" class="flex flex-row gap-4 h-full overflow-auto">
-          <tms-json-schema ref="$jse" :schema="schema.body" :root-name="'$'" :on-upload="onUploadFile"
-            class="h-full w-1/2 overflow-auto" :on-message="onMessage">
+          <tms-json-schema class="h-full w-1/2 overflow-auto" ref="$jse" :schema="schema.body" :root-name="'$'"
+            :on-upload="onUploadFile" :on-message="onMessage" :on-paste="onPasteSchema">
             <template #extattrs="{ attrs }">
               <el-form-item label="不可修改">
                 <el-switch v-model="attrs.readonly"></el-switch>
@@ -51,6 +51,19 @@
           </div>
         </div>
       </div>
+      <el-drawer v-model="pasteSchemaPanel" size="50%" :with-header="false">
+        <div class="h-full w-full relative flex flex-col gap-4">
+          <div class="flex-grow">
+            <div ref="elJsonEditor" class="h-full"></div>
+          </div>
+          <el-form>
+            <el-form-item>
+              <el-button type="primary" @click="doPasteSchema">确定</el-button>
+              <el-button @click="pasteSchemaPanel = false">关闭</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+      </el-drawer>
     </div>
   </div>
 </template>
@@ -59,10 +72,13 @@ import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
 import apiDoc from '@/apis/document'
 import { ArrowRight } from '@element-plus/icons-vue'
-import { computed, ref, reactive } from 'vue'
-
+import { computed, ref, reactive, nextTick } from 'vue'
+import { SchemaProp } from 'tms-vue3-ui/dist/es/json-schema'
 import useClipboard from 'vue-clipboard3'
 import { ElMessage } from 'element-plus'
+import JSONEditor from 'jsoneditor'
+import 'jsoneditor/dist/jsoneditor.css'
+import { watch } from 'vue'
 
 // JSONSchema编辑器
 const $jse = ref(null as unknown as { editing: () => any })
@@ -119,8 +135,52 @@ const copy = async () => {
   } catch (e) { }
 }
 
+const elJsonEditor = ref<HTMLElement | null>(null)
+let jsonEditor: any = null
+const jsonEditorOptions = {
+  mode: 'code',
+  search: false
+}
+const pasteSchemaPanel = ref(false)
+let pastedSchema: any
+
+const onPasteSchema = (prop: SchemaProp) => {
+  pasteSchemaPanel.value = true
+  nextTick(async () => {
+    if (elJsonEditor.value) {
+      let child = elJsonEditor.value.querySelector('.jsoneditor')
+      if (child) elJsonEditor.value.removeChild(child)
+      // @ts-ignore
+      jsonEditor = new JSONEditor(elJsonEditor.value, jsonEditorOptions)
+      try {
+        const clipText = await navigator.clipboard.readText()
+        jsonEditor.setText(clipText)
+      } catch (e) { }
+    }
+  })
+  return new Promise((resovle, reject) => {
+    let unwatch = watch(pasteSchemaPanel, (newVal) => {
+      if (newVal === false) {
+        unwatch()
+        jsonEditor = null
+        if (pastedSchema) {
+          resovle(JSON.parse(JSON.stringify(pastedSchema)))
+          pastedSchema = null
+        } else {
+          reject()
+        }
+      }
+    })
+  })
+}
+
+const doPasteSchema = () => {
+  pastedSchema = jsonEditor?.get()
+  pasteSchemaPanel.value = false
+}
+
 const onMessage = (msg: string) => {
-  alert(`报错了:${msg}`,)
+  alert(`报错了:${msg}`)
 }
 
 const onSubmit = () => {
@@ -169,6 +229,14 @@ if (props.schemaId) {
     .tvu-jse__properties,
     .tvu-jse__property-fields {
       @apply w-1/2 border border-gray-200 rounded-md overflow-auto p-2;
+    }
+  }
+
+  .jsoneditor {
+
+    .jsoneditor-transform,
+    .jsoneditor-poweredBy {
+      display: none;
     }
   }
 }

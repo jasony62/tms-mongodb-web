@@ -5,11 +5,11 @@
       <el-breadcrumb :separator-icon="ArrowRight">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'database', params: { dbName } }">{{
-        dbName
+            dbName
         }}</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'collection', params: { dbName, clName } }">{{ clName }}</el-breadcrumb-item>
         <el-breadcrumb-item>{{
-        document._id ? document._id : '新建文档'
+            document._id ? document._id : '新建文档'
         }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
@@ -25,14 +25,15 @@
       <div v-if="isSmallLeft" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
         <div v-if="activeField?.schemaType === 'json'">
           <el-button type="primary" @click="updateFieldJson" :disabled="!jsonFieldValueChanged">更新【{{
-          activeField.fullname }}】</el-button>
+              activeField.fullname
+          }}】</el-button>
         </div>
         <div v-if="activeField?.schemaType === 'json'" ref="elJsonEditor" class="flex-grow"></div>
         <div v-if="/mustache|handlebars/.test(activeField?.schemaProp.attrs?.format)">
           <handlebars-viz :template-text="activeFieldValue" />
         </div>
       </div>
-      <div class="h-full flex flex-col gap-2 relative" :class="isSmallLeft?'w-1/3':'w-2/3'">
+      <div class="h-full flex flex-col gap-2 relative" :class="isSmallLeft ? 'w-1/3' : 'w-2/3'">
         <div class="absolute top-0 right-0" style="z-index: 999">
           <el-button @click="diagram">图形</el-button>
           <el-button @click="preview">预览</el-button>
@@ -48,16 +49,29 @@
         </div>
       </div>
     </div>
-    <el-drawer v-model="assistant" size="60%">
+    <el-drawer v-model="assistant" size="60%" :with-header="false">
       <div class="h-full w-full relative">
         <iframe class="assistant" src="/admin/home?compact=Y"></iframe>
+      </div>
+    </el-drawer>
+    <el-drawer v-model="pasteDocPanel" size="50%" :with-header="false">
+      <div class="h-full w-full relative flex flex-col gap-4">
+        <div class="flex-grow">
+          <div ref="elPasteDocEditor" class="h-full"></div>
+        </div>
+        <el-form>
+          <el-form-item>
+            <el-button type="primary" @click="doPasteSchema">确定</el-button>
+            <el-button @click="pasteDocPanel = false">关闭</el-button>
+          </el-form-item>
+        </el-form>
       </div>
     </el-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, inject } from 'vue'
+import { computed, nextTick, ref, inject, watch } from 'vue'
 import TmsJsonDoc, { Field, DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 import { EXTERNAL_FS_URL, getLocalToken, COMPACT_MODE } from '@/global'
@@ -306,22 +320,50 @@ function convertExternalData(field: Field, source: string, data: any): any {
 
   return newData
 }
+const pasteDocPanel = ref(false)
+const elPasteDocEditor = ref<HTMLElement | null>(null)
+let pasteDocEditor: any
+let pastedDoc: any
+const jsonEditorOptions = {
+  mode: 'code',
+  search: false
+}
 /**
  * 对指定字段执行黏贴操作，快速添加子字段
  * @param field 指定的字段
  */
 const onJdocPaste = async (field: Field) => {
-  const log = debug.extend('onJdocPaste')
-  /**从粘贴板中获取数据，添加到文档中*/
-  const clipText = await navigator.clipboard.readText()
-  try {
-    let clipData = JSON.parse(clipText)
-    let newData = convertExternalData(field, 'onPaste', clipData)
-    return newData
-  } catch (e: any) {
-    let msg = `粘贴内容填充字段【${field.fullname}】失败：` + e.message
-    log(msg)
-  }
+  pasteDocPanel.value = true
+  nextTick(async () => {
+    if (elPasteDocEditor.value) {
+      let child = elPasteDocEditor.value.querySelector('.jsoneditor')
+      if (child) elPasteDocEditor.value.removeChild(child)
+      // @ts-ignore
+      pasteDocEditor = new JSONEditor(elPasteDocEditor.value, jsonEditorOptions)
+      try {
+        const clipText = await navigator.clipboard.readText()
+        pasteDocEditor.setText(clipText ?? '')
+      } catch (e) { }
+    }
+  })
+  return new Promise((resovle, reject) => {
+    let unwatch = watch(pasteDocPanel, (newVal) => {
+      if (newVal === false) {
+        unwatch()
+        pasteDocEditor = null
+        if (pastedDoc) {
+          resovle(JSON.parse(JSON.stringify(pastedDoc)))
+          pastedDoc = null
+        } else {
+          reject()
+        }
+      }
+    })
+  })
+}
+const doPasteSchema = () => {
+  pastedDoc = pasteDocEditor?.get()
+  pasteDocPanel.value = false
 }
 /**
  * 通过外部文件服务选取文件
@@ -490,18 +532,9 @@ if (docId)
   .jsoneditor {
 
     .jsoneditor-transform,
-    .jsoneditor-repair,
     .jsoneditor-poweredBy {
       display: none;
     }
-  }
-
-  .el-drawer__header {
-    margin-bottom: 0;
-  }
-
-  .el-drawer__body {
-    padding-top: 0;
   }
 
   .assistant {

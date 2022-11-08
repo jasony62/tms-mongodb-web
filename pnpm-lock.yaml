@@ -126,7 +126,7 @@ importers:
       tms-koa-crypto: ^0.1.0
       tms-template-viz: ^0.0.2
       tms-vue3: ^0.0.5
-      tms-vue3-ui: ^0.0.67
+      tms-vue3-ui: ^0.0.73
       typescript: ^4.5.4
       vite: ^3.0.4
       vue: ^3.2.25
@@ -151,7 +151,7 @@ importers:
       tms-koa-crypto: 0.1.0
       tms-template-viz: 0.0.2
       tms-vue3: 0.0.5_debug@4.3.4
-      tms-vue3-ui: 0.0.67
+      tms-vue3-ui: 0.0.73
       vue: 3.2.37
       vue-clipboard3: 2.0.0
       vue-router: 4.1.2_vue@3.2.37
@@ -6011,8 +6011,8 @@ packages:
       - supports-color
     dev: false
 
-  /tms-vue3-ui/0.0.67:
-    resolution: {integrity: sha512-6MNwXS9QIKwl/tQTAndawCLamzjFpVgRELwLL4Up9y6P6Hd7zUbhmcwRJ+aIJI1mxGdW7l4fxF8XsDihY7p6aQ==}
+  /tms-vue3-ui/0.0.73:
+    resolution: {integrity: sha512-e8lv5y+JpE7FvXJ81622+TGc1CcRsj7Twf/2uSjCyPcdsSsWqFhFUrrQNECmstQHZd2VOOcfu9dmco7LL+r+6w==}
     dependencies:
       debug: 4.3.4
       lodash: 4.17.21

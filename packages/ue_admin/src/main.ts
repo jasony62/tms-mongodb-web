@@ -31,25 +31,20 @@ import 'gitart-vue-dialog/dist/style.css'
 const { fnCaptcha, fnLogin } = apiAuth
 
 const LoginPromise = (function () {
-  const fnSuccessLogin = function (response: LoginResponse) {
-    const token = response.result.access_token
-    setLocalToken(token)
-
-    ElMessage({
-      showClose: true,
-      message: '登录成功，请手动关闭登录框',
-      duration: 3000,
-      type: 'success',
-      zIndex: 100001,
-    })
-    return `Bearer ${token}`
-  }
   let ins = new TmsLockPromise(function () {
-    return Login.open({
-      schema: schema(),
-      fnCaptcha,
-      fnLogin,
-      onSuccess: fnSuccessLogin,
+    return new Promise((resolve) => {
+      const fnSuccessLogin = function (response: LoginResponse) {
+        const token = response.result.access_token
+        setLocalToken(token)
+        resolve(`Bearer ${token}`)
+      }
+      Login.open({
+        schema: schema(),
+        fnCaptcha,
+        fnLogin,
+        onSuccess: fnSuccessLogin,
+        closeAfterSuccess: true,
+      })
     })
   })
   return ins
@@ -69,7 +64,7 @@ function getAccessToken() {
 }
 
 function onRetryAttempt(res: any) {
-  if (res.data.code === 20001) {
+  if (res.data.code === 10001) {
     return LoginPromise.wait().then(() => {
       return true
     })

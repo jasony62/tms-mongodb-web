@@ -24,7 +24,7 @@
     "tms-koa-crypto": "^0.1.0",
     "tms-template-viz": "^0.0.2",
     "tms-vue3": "^0.0.5",
-    "tms-vue3-ui": "^0.0.67",
+    "tms-vue3-ui": "^0.0.73",
     "vue": "^3.2.25",
     "vue-clipboard3": "^2.0.0",
     "vue-router": "4",
