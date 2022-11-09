@@ -282,7 +282,8 @@ const handleSelectionChange = (rows: any) => {
 }
 
 const handleRowClick = (row:any)=>{
-  tableRef.value!.toggleRowSelection(row,undefined) 
+  //@ts-ignore
+  tableRef.value!.toggleRowSelection(row) 
 }
 
 const router = useRouter()
