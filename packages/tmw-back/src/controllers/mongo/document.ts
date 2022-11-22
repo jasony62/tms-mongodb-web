@@ -1,9 +1,14 @@
-import { ResultData, ResultFault } from 'tms-koa'
+import { ResultData, ResultFault, Context } from 'tms-koa'
+const { FsContext } = Context
+import { UploadPlain } from 'tms-koa/dist/model/fs/upload'
+import { LocalFS } from 'tms-koa/dist/model/fs/local'
 import DocBase from '../documentBase'
 import * as _ from 'lodash'
 import { ModelCl, ModelDoc } from 'tmw-kit'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
+import DbHelper from '../dbHelper'
+import CollectionHelper from '../collectionHelper'
 
 class Document extends DocBase {
   constructor(...args) {
@@ -16,15 +21,39 @@ class Document extends DocBase {
     if (!this.request.files || !this.request.files.file) {
       return new ResultFault('没有上传文件')
     }
-    const existCl = await this['docHelper'].findRequestCl()
-    const { UploadPlain } = require('tms-koa/dist/model/fs/upload')
-    const { LocalFS } = require('tms-koa/dist/model/fs/local')
-    const { FsContext } = require('tms-koa').Context
 
-    const file = this['request'].files.file
+    let { reqMode, docCreateMode } = this.request.query
+    if (reqMode === 'api')
+      await this.beforeImport()
+
+    const existCl = await this.docHelper.findRequestCl()
+    if (reqMode === 'api') {
+      /**检查集合中是否已经存在数据*/
+      const docCl = await this.docHelper.findSysColl(existCl)
+      const total = await docCl.countDocuments()
+      if (total > 0) {
+        switch (docCreateMode) {
+          case 'stop':
+            console.log(`停止新建文档`)
+            const docInfo: any = {}
+            if (this.bucket) docInfo.bucket = this.bucket.name
+            const docs = await docCl.find(docInfo).toArray()
+            return new ResultData(docs)
+          case 'override':
+            console.log(`清除已有文档`)
+            await docCl.deleteMany({})
+            break
+          case 'merge':
+            console.log(`添加新文档`)
+            break
+        }
+      }
+    }
+
+    const file = this.request.files.file
     const fsContextIns = FsContext.insSync()
     const domain = fsContextIns.getDomain(fsContextIns.defaultDomain)
-    const tmsFs = new LocalFS(domain)
+    const tmsFs = new LocalFS(Context, domain)
     const upload = new UploadPlain(tmsFs)
     let filepath
     try {
@@ -52,17 +81,22 @@ class Document extends DocBase {
       }
     }
 
-    let rst = await this['docHelper'].importToColl(
+    let rst = await this.docHelper.importToColl(
       existCl,
       filepath,
-      noRepeatConfig
+      noRepeatConfig,
+      reqMode
     )
 
     let result = null
     if (rst[0] === true) {
-      result = {
-        importAll: true,
-        message: `导入成功`,
+      if (reqMode === 'api') {
+        result = rst[1]
+      } else {
+        result = {
+          importAll: true,
+          message: `导入成功`,
+        }
       }
     } else {
       result = {
@@ -219,6 +253,43 @@ class Document extends DocBase {
     }
 
     return new ResultData(data)
+  }
+  /**
+   * 处理db/cl
+   * 针对上游直接请求【uploadToImport】API
+   */
+  async beforeImport() {
+    let { originalFilename: fileName } = this.request.files.file
+    fileName = fileName.substring(0, fileName.indexOf("."))
+    if (new RegExp('^[a-zA-Z]+[0-9a-zA-Z_]{0,63}$').test(fileName) !== true) {
+      fileName = 'excel'
+    }
+
+    let { db, cl } = this.request.query
+    if (!db) {
+      db = 'upload_import'
+      this.request.query.db = db
+    }
+    if (!cl) {
+      const dayjs = require('dayjs')
+      cl = fileName + dayjs().format('YYYYMMDDHHmmss')
+      this.request.query.cl = cl
+    }
+
+    const dbInfo: any = { name: db }
+    if (this.bucket) dbInfo.bucket = this.bucket.name
+    const dbHelper = new DbHelper(this)
+    let [dbFlag, dbRst] = await dbHelper.dbCreate(dbInfo)
+    console.log('db flag -- ', dbFlag, dbRst)
+
+    const clInfo: any = { name: cl }
+    if (this.bucket) clInfo.bucket = this.bucket.name
+    const clHelper = new CollectionHelper(this)
+    const reqDb = await clHelper.findRequestDb()
+    let [clFlag, clRst] = await clHelper.createCl(reqDb, clInfo)
+    console.log('cl flag -- ', clFlag, clRst)
+
+    return true
   }
 }
 
