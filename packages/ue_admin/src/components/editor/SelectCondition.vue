@@ -84,6 +84,7 @@ const props = defineProps({
     default: []
   },
 })
+const dialogVisible = ref(props.dialogVisible)
 
 const multipleTableRef = ref<InstanceType<typeof ElTable>>()
 const regs = reactive([

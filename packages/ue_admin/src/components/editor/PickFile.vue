@@ -1,5 +1,5 @@
 <template>
-  <el-dialog title="选取文件" v-model="innerVisible" :fullscreen="true" :destroy-on-close="true"
+  <el-dialog title="选取文件" v-model="dialogVisible2" :fullscreen="true" :destroy-on-close="true"
     :close-on-click-modal="true" :before-close="onBeforeClose">
     <iframe id="iframe" width="100%" height="100%" frameborder="0" :src="url" marginwidth="0" marginheight="0"
       scrolling="no" @load="iframeLoad"></iframe>
@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, nextTick } from 'vue'
+import { onMounted, nextTick, ref } from 'vue'
 import { parseLocation } from '@/global'
 
 const props = defineProps({
@@ -15,6 +15,8 @@ const props = defineProps({
   url: { type: String, required: true },
   onClose: { type: Function, default: (newDoc: any) => { } },
 })
+
+const dialogVisible2 = ref(props.innerVisible)
 
 const { onClose } = props
 // 关闭对话框时执行指定的回调方法

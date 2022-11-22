@@ -76,11 +76,11 @@ location / {
 在项目根目录执行命令。
 
 ```bash
-docker build -f ./docker/Dockerfile -t tms/tmw-aio .
+docker build -f ./docker/Dockerfile -t jasony62/tmw-aio .
 ```
 
 ```bash
-docker build -f ./docker/Dockerfile.dev -t tms/tmw-aio_dev .
+docker build -f ./docker/Dockerfile.dev -t jasony62/tmw-aio_dev .
 ```
 
 # 运行镜像
