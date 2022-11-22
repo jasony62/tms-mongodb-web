@@ -53,7 +53,7 @@ class DocumentHelper extends Helper {
    *  提取excel数据到集合中
    *  noRepeatconfig 数据去重配置
    */
-  async importToColl(existCl, filename, noRepeatconfig, rowsJson = []) {
+  async importToColl(existCl, filename, noRepeatconfig, reqMode, rowsJson = []) {
     const modelDoc = new ModelDoc(
       this.ctrl.mongoClient,
       this.ctrl.bucket,
@@ -61,7 +61,8 @@ class DocumentHelper extends Helper {
     )
     if (!rowsJson.length) {
       if (!fs.existsSync(filename)) return [false, '指定的文件不存在']
-      const xlsx = require('tms-koa/node_modules/xlsx')
+      // const xlsx = require('tms-koa/node_modules/xlsx')
+      const xlsx = require('xlsx')
       const wb = xlsx.readFile(filename)
       const firstSheetName = wb.SheetNames[0]
       const sh = wb.Sheets[firstSheetName]
@@ -73,7 +74,8 @@ class DocumentHelper extends Helper {
       this.ctrl.client
     )
     let columns = await collModel.getSchemaByCollection(existCl)
-    if (!columns) return [false, '指定的集合没有指定集合列']
+    // if (!columns) return [false, '指定的集合没有指定集合列']
+    if (!columns && reqMode !== 'api') return [false, '指定的集合没有指定集合列']
 
     let publicDoc = {}
     const { extensionInfo } = existCl
@@ -93,44 +95,54 @@ class DocumentHelper extends Helper {
     }
     let jsonFinishRows = rowsJson.map((row) => {
       let newRow = {}
-      for (const k in columns) {
-        let column = columns[k]
-        let rDByTitle = row[column.title]
-        if (typeof rDByTitle === 'number') {
-          newRow[k] = String(rDByTitle)
-        } else if (typeof rDByTitle === 'undefined') {
-          // 单选
-          if (
-            column.type === 'string' &&
-            column.enum &&
-            column.enum.length &&
-            column.default &&
-            column.default.length
-          ) {
-            newRow[k] = column.enum.find(
-              (ele) => ele.value === column.default
-            ).label
-          } else if (
-            column.type === 'array' &&
-            column.enum &&
-            column.enum.length &&
-            column.default &&
-            column.default.length
-          ) {
-            const target = column.enum.map((ele) => {
-              if (column.default.includes(ele.value)) {
-                return ele.label
-              }
-            })
-            newRow[k] = target.join(',')
+      if (columns) {
+        for (const k in columns) {
+          let column = columns[k]
+          let rDByTitle = row[column.title]
+          if (typeof rDByTitle === 'number') {
+            newRow[k] = String(rDByTitle)
+          } else if (typeof rDByTitle === 'undefined') {
+            // 单选
+            if (
+              column.type === 'string' &&
+              column.enum &&
+              column.enum.length &&
+              column.default &&
+              column.default.length
+            ) {
+              newRow[k] = column.enum.find(
+                (ele) => ele.value === column.default
+              ).label
+            } else if (
+              column.type === 'array' &&
+              column.enum &&
+              column.enum.length &&
+              column.default &&
+              column.default.length
+            ) {
+              const target = column.enum.map((ele) => {
+                if (column.default.includes(ele.value)) {
+                  return ele.label
+                }
+              })
+              newRow[k] = target.join(',')
+            } else {
+              //存在默认值
+              newRow[k] = column.default || null
+            }
           } else {
-            //存在默认值
-            newRow[k] = column.default || null
+            newRow[k] = rDByTitle
           }
-        } else {
-          newRow[k] = rDByTitle
         }
+      } else {
+        newRow = row
+        // for (const key in row) {
+        //   let k = 0
+        //   newRow[k] = row[key]
+        //   k++
+        // }
       }
+
       // 加工数据
       collModel.beforeProcessByInAndUp(newRow, 'insert')
 
@@ -187,6 +199,9 @@ class DocumentHelper extends Helper {
             let failMsg = getFailMsg(noRepeatconfig, failDatas)
             return [false, `${failMsg}已存在或重复`]
           } else {
+            if (reqMode === 'api') {
+              return [true, jsonFinishRows]
+            }
             return [true, '导入成功']
           }
         })
@@ -395,9 +410,9 @@ class DocumentHelper extends Helper {
       return [
         false,
         '插入数据数量错误需插入：' +
-          newDocs2.length +
-          '；实际插入：' +
-          rst.insertedCount,
+        newDocs2.length +
+        '；实际插入：' +
+        rst.insertedCount,
       ]
     }
 

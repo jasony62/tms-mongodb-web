@@ -24,7 +24,8 @@
     "tms-koa-account": "^0.1.2",
     "tms-koa-captcha": "^0.1.2",
     "tmw-data": "workspace:*",
-    "tmw-kit": "workspace:*"
+    "tmw-kit": "workspace:*",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.182",

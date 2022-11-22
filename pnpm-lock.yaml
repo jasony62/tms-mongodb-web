@@ -38,6 +38,7 @@ importers:
       tms-koa-captcha: ^0.1.2
       tmw-data: workspace:*
       tmw-kit: workspace:*
+      xlsx: ^0.18.5
     dependencies:
       archiver: 5.3.1
       commander: 9.4.0
@@ -53,6 +54,7 @@ importers:
       tms-koa-captcha: 0.1.2_redis@4.2.0
       tmw-data: link:../tmw-data
       tmw-kit: link:../tmw-kit
+      xlsx: 0.18.5
     devDependencies:
       '@types/lodash': 4.14.182
       '@types/node': 18.6.5
