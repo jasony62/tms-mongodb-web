@@ -40,7 +40,7 @@ class CollectionHelper extends Helper {
     )
 
     // 加工数据
-    modelCl.beforeProcessByInAndUp(info, 'insert')
+    modelCl.processBeforeStore(info, 'insert')
 
     info.type = 'collection'
     info.database = existDb.name

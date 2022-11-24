@@ -19,6 +19,24 @@ class DocBase extends Base {
     return TMW_CONFIG
   }
   /**
+   *
+   * @param schema_id
+   */
+  private async getClSchema(schema_id) {
+    const modelSchema = new ModelSchema(
+      this.mongoClient,
+      this.bucket,
+      this.client
+    )
+
+    // 集合的schema定义
+    let clSchema
+    if (schema_id && typeof schema_id === 'string')
+      clSchema = await modelSchema.bySchemaId(schema_id)
+
+    return clSchema
+  }
+  /**
    * 根据ID返回单个文档的数据
    * @returns
    */
@@ -39,8 +57,20 @@ class DocBase extends Base {
   async create() {
     const existCl = await this.docHelper.findRequestCl()
 
-    const { name: clName, extensionInfo } = existCl
+    const { name: clName, schema_id, extensionInfo } = existCl
+
     let doc = this.request.body
+
+    const modelSchema = new ModelSchema(
+      this.mongoClient,
+      this.bucket,
+      this.client
+    )
+
+    // 集合的schema定义
+    let clSchema
+    if (schema_id && typeof schema_id === 'string')
+      clSchema = await modelSchema.bySchemaId(schema_id)
 
     // 去重校验
     const result = this.modelDoc.findUnRepeatRule(existCl)
@@ -63,11 +93,6 @@ class DocBase extends Base {
     if (extensionInfo) {
       const { info, schemaId } = extensionInfo
       if (schemaId) {
-        const modelSchema = new ModelSchema(
-          this.mongoClient,
-          this.bucket,
-          this.client
-        )
         const publicSchema = await modelSchema.bySchemaId(schemaId)
         Object.keys(publicSchema).forEach((schema) => {
           doc[schema] = info[schema] ? info[schema] : ''
@@ -76,7 +101,7 @@ class DocBase extends Base {
     }
 
     // 加工数据
-    this.modelDoc.beforeProcessByInAndUp(doc, 'insert')
+    this.modelDoc.processBeforeStore(doc, 'insert', clSchema)
 
     return this.docHelper
       .findSysColl(existCl)
@@ -95,16 +120,16 @@ class DocBase extends Base {
    * 删除文档
    */
   async remove() {
-    const existCl = await this['docHelper'].findRequestCl()
+    const existCl = await this.docHelper.findRequestCl()
 
-    const { id } = this['request'].query
+    const { id } = this.request.query
 
     let existDoc = await this['modelDoc'].byId(existCl, id)
     if (!existDoc) return new ResultFault('要删除的文档不存在')
 
     if (TMW_CONFIG.TMW_APP_DATA_ACTION_LOG === 'Y') {
       // 记录操作日志
-      await this['modelDoc'].dataActionLog(
+      await this.modelDoc.dataActionLog(
         existDoc,
         '删除',
         existCl.db.name,
@@ -112,7 +137,7 @@ class DocBase extends Base {
       )
     }
 
-    const isOk = await this['modelDoc'].remove(existCl, id)
+    const isOk = await this.modelDoc.remove(existCl, id)
 
     return new ResultData(isOk)
   }
@@ -120,19 +145,21 @@ class DocBase extends Base {
    * 更新指定数据库指定集合下的文档
    */
   async update() {
-    const existCl = await this['docHelper'].findRequestCl()
+    const existCl = await this.docHelper.findRequestCl()
+    const { name: clName, schema_id } = existCl
 
-    const { id } = this['request'].query
+    const { id } = this.request.query
 
-    let existDoc = await this['modelDoc'].byId(existCl, id)
+    let existDoc = await this.modelDoc.byId(existCl, id)
     if (!existDoc) return new ResultFault('要更新的文档不存在')
 
-    let newDoc = this['request'].body
+    let newDoc = this.request.body
     // 加工数据
-    this['modelDoc'].beforeProcessByInAndUp(newDoc, 'update')
+    const clSchema = await this.getClSchema(schema_id)
+    this.modelDoc.processBeforeStore(newDoc, 'update', clSchema, existDoc)
 
     let updated = _.omit(newDoc, ['_id', 'bucket'])
-    const isOk = await this['modelDoc'].update(existCl, id, updated)
+    const isOk = await this.modelDoc.update(existCl, id, updated)
 
     if (!isOk) return new ResultFault('要更新的文档不存在')
 
@@ -144,7 +171,7 @@ class DocBase extends Base {
         newDoc,
         '修改',
         existCl.db.name,
-        existCl.name,
+        clName,
         '',
         '',
         beforeDoc
@@ -318,9 +345,9 @@ class DocBase extends Base {
       updated[key] = columns[key]
     }
     // 加工数据
-    this['modelDoc'].beforeProcessByInAndUp(updated, 'update')
+    this.modelDoc.processBeforeStore(updated, 'update')
 
-    return this['modelDoc']
+    return this.modelDoc
       .updateMany(existCl, query, updated)
       .then(async (modifiedCount) => {
         if (TMW_CONFIG.TMW_APP_DATA_ACTION_LOG === 'Y') {

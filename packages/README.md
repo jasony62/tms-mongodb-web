@@ -12,9 +12,9 @@
 npm run build
 ```
 
-# tms-back
+# tmw-back
 
-本地启动服务
+在`tmw-back`目录下，启动服务
 
 ```
 TMW_APP_PORT=3030 TMW_APP_AUTH_CAPTCHA_DISABLED=yes TMS_KOA_SKIP_TRUSTED_HOST=yes TMS_KOA_CONFIG_DIR=../../docker/back/config TMS_KOA_CONTROLLERS_DIR=./dist/controllers TMW_APP_PLUGIN_DIR=../plugins/dist/** TMW_PLUGIN_DOC_HTTP_SEND_WIDGET_URL=xxx TMW_APP_AUTH_JWT_KEY=xxxxx TMW_APP_AUTH_JWT_EXPIRESIN=86400 node dist/server

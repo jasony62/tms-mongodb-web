@@ -25,26 +25,36 @@
               <div @click="handleFilter(s, k)">
                 <span v-if="s.required" class="text-red-400">*</span>
                 <span>{{ s.title }}</span>
-                <img :data-id="k" class="w-4 h-4 inline-block" src="../assets/imgs/icon_filter.png">
+                <img :data-id="k" class="w-4 h-4 inline-block" src="../assets/imgs/icon_filter.png" />
               </div>
             </template>
             <template #default="scope">
-              <span v-if="s.type === 'boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
-              <span v-else-if="s.type === 'array' && s.items && s.items.format === 'file'">
+              <span v-if="s.type === 'boolean'">{{
+                  scope.row[k] ? '是' : '否'
+              }}</span>
+              <span v-else-if="
+                s.type === 'array' && s.items && s.items.format === 'file'
+              ">
                 <span v-for="(i, v) in scope.row[k]" :key="v">
-                  <el-link type="primary" @click="downLoadFile(i)">{{ i.name }}</el-link>
+                  <el-link type="primary" @click="downLoadFile(i)">{{
+                      i.name
+                  }}</el-link>
                   <br />
                 </span>
               </span>
               <span v-else-if="s.type === 'array' && s.enum && s.enum.length">
                 <span v-if="s.enumGroups && s.enumGroups.length">
                   <span v-for="(g, i) in s.enumGroups" :key="i">
-                    <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value">
+                    <span v-if="
+                      scope.row[g.assocEnum.property] === g.assocEnum.value
+                    ">
                       <span v-for="(e, v) in s.enum" :key="v">
-                        <span
-                          v-if="e.group === g.id && scope.row[k] && scope.row[k].length && scope.row[k].includes(e.value)">{{
-                          e.label
-                          }}&nbsp;</span>
+                        <span v-if="
+                          e.group === g.id &&
+                          scope.row[k] &&
+                          scope.row[k].length &&
+                          scope.row[k].includes(e.value)
+                        ">{{ e.label }}&nbsp;</span>
                       </span>
                     </span>
                   </span>
@@ -58,7 +68,9 @@
               <span v-else-if="s.type === 'string' && s.enum && s.enum.length">
                 <span v-if="s.enumGroups && s.enumGroups.length">
                   <span v-for="(g, i) in s.enumGroups" :key="i">
-                    <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value">
+                    <span v-if="
+                      scope.row[g.assocEnum.property] === g.assocEnum.value
+                    ">
                       <span v-for="(e, v) in s.enum" :key="v">
                         <span v-if="e.group === g.id && scope.row[k] === e.value">{{ e.label }}</span>
                       </span>
@@ -74,7 +86,9 @@
               <span v-else-if="s.type === 'string' && s.oneOf && s.oneOf.length">
                 <span v-if="s.enumGroups && s.enumGroups.length">
                   <span v-for="(g, i) in s.enumGroups" :key="i">
-                    <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value">
+                    <span v-if="
+                      scope.row[g.assocEnum.property] === g.assocEnum.value
+                    ">
                       <span v-for="(e, v) in s.oneOf" :key="v">
                         <span v-if="e.group === g.id && scope.row[k] === e.value">{{ e.label }}</span>
                       </span>
@@ -87,7 +101,9 @@
                   </span>
                 </span>
               </span>
-              <div class="max-h-16 overflow-y-auto" v-else>{{ scope.row[k] }}</div>
+              <div class="max-h-16 overflow-y-auto" v-else>
+                {{ scope.row[k] }}
+              </div>
             </template>
           </el-table-column>
           <el-table-column fixed="right" label="操作" width="180">
@@ -159,12 +175,16 @@ import * as Handlebars from 'handlebars'
 import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiPlugin from '@/apis/plugin'
-import { getLocalToken, COMPACT_MODE, FS_BASE_URL, BACK_API_URL, DOC_MANUAL } from '@/global'
+import {
+  getLocalToken,
+  COMPACT_MODE,
+  FS_BASE_URL,
+  BACK_API_URL,
+  DOC_MANUAL,
+} from '@/global'
 
 import facStore from '@/store'
-import {
-  openSelectConditionEditor,
-} from '@/components/editor'
+import { openSelectConditionEditor } from '@/components/editor'
 import { useRouter } from 'vue-router'
 import { ElTable } from 'element-plus'
 
@@ -191,7 +211,7 @@ const props = defineProps({
   bucketName: { type: String, defalut: '' },
   dbName: { type: String, default: '' },
   clName: { type: String, default: '' },
-  tmsAxiosName: { type: String, default: 'mongodb-api' }
+  tmsAxiosName: { type: String, default: 'mongodb-api' },
 })
 const { bucketName, dbName, clName } = props
 
@@ -201,14 +221,18 @@ const data = reactive({
   properties: {} as any,
   documents: [] as any[],
   plugins: [] as any[],
-  filter: reactive({})
+  filter: reactive({}),
 })
 
 const tableRef = ref<InstanceType<typeof ElTable>>()
 
 const selectedDocuments = ref<any[]>([])
-const totalByAll = computed(() => Object.keys(data.filter).length ? 0 : data.docBatch.total)
-const totalByFilter = computed(() => Object.keys(data.filter).length ? data.docBatch.total : 0)
+const totalByAll = computed(() =>
+  Object.keys(data.filter).length ? 0 : data.docBatch.total
+)
+const totalByFilter = computed(() =>
+  Object.keys(data.filter).length ? data.docBatch.total : 0
+)
 const totalByChecked = computed(() => selectedDocuments.value.length)
 
 const handleCondition = () => {
@@ -241,34 +265,54 @@ const handleFilter = (schema: any, name: any) => {
       store.conditionAddColumn({ condition })
       // 获取界面所有元素
       const elementImgs: any = document.querySelectorAll('#tables thead img')
-      let currentEle: any = Array.from(elementImgs).find((ele: any) => ele.getAttribute('data-id') === name)
+      let currentEle: any = Array.from(elementImgs).find(
+        (ele: any) => ele.getAttribute('data-id') === name
+      )
       if (isClear) {
         store.conditionDelColumn({ condition })
-        currentEle.src = new URL('../assets/imgs/icon_filter.png', import.meta.url).href
+        currentEle.src = new URL(
+          '../assets/imgs/icon_filter.png',
+          import.meta.url
+        ).href
       } else if (isCheckBtn) {
         store.conditionDelBtn({ columnName: name })
-        const filename = '../assets/imgs/icon_' + condition.rule.orderBy[name] + '_active.png'
+        const filename =
+          '../assets/imgs/icon_' + condition.rule.orderBy[name] + '_active.png'
         currentEle.src = new URL(filename, import.meta.url).href
       } else {
-        currentEle.src = new URL('../assets/imgs/icon_filter_active.png', import.meta.url).href
+        currentEle.src = new URL(
+          '../assets/imgs/icon_filter_active.png',
+          import.meta.url
+        ).href
       }
       // 如果选择升降序规则，则需重置其他图标
       if (isCheckBtn) {
         store.conditions.forEach((conEle: any) => {
           const name = conEle.columnName
-          let currentEle: any = Array.from(elementImgs).find((ele: any) => ele.getAttribute('data-id') === name)
+          let currentEle: any = Array.from(elementImgs).find(
+            (ele: any) => ele.getAttribute('data-id') === name
+          )
           if (
             conEle.rule &&
             conEle.rule.filter &&
             conEle.rule.filter[name] &&
             conEle.rule.filter[name].keyword
           ) {
-            currentEle.src = new URL('../assets/imgs/icon_filter_active.png', import.meta.url).href
+            currentEle.src = new URL(
+              '../assets/imgs/icon_filter_active.png',
+              import.meta.url
+            ).href
           } else if (conEle.bySort) {
-            const filename = '../assets/imgs/icon_' + condition.rule.orderBy[name] + '_active.png'
+            const filename =
+              '../assets/imgs/icon_' +
+              condition.rule.orderBy[name] +
+              '_active.png'
             currentEle.src = new URL(filename, import.meta.url).href
           } else {
-            currentEle.src = new URL('../assets/imgs/icon_filter.png', import.meta.url).href
+            currentEle.src = new URL(
+              '../assets/imgs/icon_filter.png',
+              import.meta.url
+            ).href
           }
         })
       }
@@ -281,9 +325,9 @@ const handleSelectionChange = (rows: any) => {
   selectedDocuments.value = rows
 }
 
-const handleRowClick = (row:any)=>{
+const handleRowClick = (row: any) => {
   //@ts-ignore
-  tableRef.value!.toggleRowSelection(row) 
+  tableRef.value!.toggleRowSelection(row)
 }
 
 const router = useRouter()
@@ -323,7 +367,12 @@ const removeDocument = (document: any) => {
  */
 const renderDocManual = (doc: any) => {
   const tpl = DOC_MANUAL(dbName, clName)
-  const html = Handlebars.compile(tpl)({ bucketName: bucketName ?? '', dbName, clName, doc })
+  const html = Handlebars.compile(tpl)({
+    bucketName: bucketName ?? '',
+    dbName,
+    clName,
+    doc,
+  })
   return html
 }
 
@@ -346,11 +395,17 @@ const setPluginDocParam = (docScope: string) => {
 }
 /**
  * 执行插件操作
- * @param plugin 指定的插件 
+ * @param plugin 指定的插件
  * @param docScope 操作的文档范围类型
  * @param widgetResult 插件部件收集的数据
  */
-function executePlugin(plugin: any, docScope = '', widgetResult = undefined, widgetHandleResponse = false, applyAccessTokenField = '') {
+function executePlugin(
+  plugin: any,
+  docScope = '',
+  widgetResult = undefined,
+  widgetHandleResponse = false,
+  applyAccessTokenField = ''
+) {
   let postBody: any
   if (plugin.amount === 'one') {
     if (selectedDocuments.value.length !== 1) return
@@ -378,85 +433,93 @@ function executePlugin(plugin: any, docScope = '', widgetResult = undefined, wid
     postBody.widget = widgetResult
   }
   // 插件执行的基础参数
-  let queryParams = { bucket: bucketName ?? '', db: dbName, cl: clName, plugin: plugin.name }
+  let queryParams = {
+    bucket: bucketName ?? '',
+    db: dbName,
+    cl: clName,
+    plugin: plugin.name,
+  }
 
   // 执行插件方法
-  return apiPlugin
-    .execute(queryParams, postBody)
-    .then((result: any) => {
-      if (widgetHandleResponse) {
-        return result
-      }
-      if (typeof result === 'string') {
-        /**返回字符串直接显示内容*/
-        ElMessage.success({
-          message: result, showClose: true,
-        })
-        listDocByKw()
-      } else if (result && typeof result === 'object') {
-        /**返回的是对象*/
-        if (result.type === 'documents') {
-          /**返回的是文档数据*/
-          let nInserted = 0, nModified = 0, nRemoved = 0
-          let { inserted, modified, removed } = result
-          /**在当前文档列表中移除删除的记录 */
-          if (Array.isArray(removed) && (nRemoved = removed.length)) {
-            let documents = data.documents.filter((doc) => !removed.includes(doc._id))
-            store.documents = documents
-          }
-          /**在当前文档列表中更新修改的记录 */
-          if (Array.isArray(modified) && (nModified = modified.length)) {
-            let map = modified.reduce((m, doc) => {
-              if (doc._id && typeof doc._id === 'string') m[doc._id] = doc
-              return m
-            }, {})
-            data.documents.forEach((doc: any, index: number) => {
-              let newDoc = map[doc._id]
-              if (newDoc) Object.assign(doc, newDoc)
-              store.updateDocument({ index, document: doc })
-            })
-          }
-          /**在当前文档列表中添加插入的记录 */
-          if (Array.isArray(inserted) && (nInserted = inserted.length)) {
-            inserted.forEach((newDoc) => {
-              if (newDoc._id && typeof newDoc._id === 'string')
-                data.documents.unshift(newDoc)
-            })
-          }
-          let msg = `插件[${plugin.title}]执行完毕，添加[${nInserted}]条，修改[${nModified}]条，删除[${nRemoved}]条记录。`
-          ElMessage.success({ message: msg })
-        } else if (result.type === 'numbers') {
-          /**返回操作结果——数量 */
-          let { nInserted, nModified, nRemoved } = result
-          let message = `插件[${plugin.title}]执行完毕，添加[${parseInt(nInserted) || 0
-            }]条，修改[${parseInt(nModified) || 0}]条，删除[${parseInt(nRemoved) || 0
-            }]条记录。`
-          ElMessageBox.confirm(message, '提示', {
-            confirmButtonText: '关闭',
-            cancelButtonText: '刷新数据',
-            showClose: false,
-          }).catch(() => {
-            listDocByKw()
-          })
-        } else if (typeof result.url === 'string') {
-          /**下载文件*/
-          let url = FS_BASE_URL() + result.url
-          window.open(url)
+  return apiPlugin.execute(queryParams, postBody).then((result: any) => {
+    if (widgetHandleResponse) {
+      return result
+    }
+    if (typeof result === 'string') {
+      /**返回字符串直接显示内容*/
+      ElMessage.success({
+        message: result,
+        showClose: true,
+      })
+      listDocByKw()
+    } else if (result && typeof result === 'object') {
+      /**返回的是对象*/
+      if (result.type === 'documents') {
+        /**返回的是文档数据*/
+        let nInserted = 0,
+          nModified = 0,
+          nRemoved = 0
+        let { inserted, modified, removed } = result
+        /**在当前文档列表中移除删除的记录 */
+        if (Array.isArray(removed) && (nRemoved = removed.length)) {
+          let documents = data.documents.filter(
+            (doc) => !removed.includes(doc._id)
+          )
+          store.documents = documents
         }
-      } else {
-        ElMessage.success({
-          message: `插件[${plugin.title}]执行完毕。`,
-          showClose: true,
+        /**在当前文档列表中更新修改的记录 */
+        if (Array.isArray(modified) && (nModified = modified.length)) {
+          let map = modified.reduce((m, doc) => {
+            if (doc._id && typeof doc._id === 'string') m[doc._id] = doc
+            return m
+          }, {})
+          data.documents.forEach((doc: any, index: number) => {
+            let newDoc = map[doc._id]
+            if (newDoc) Object.assign(doc, newDoc)
+            store.updateDocument({ index, document: doc })
+          })
+        }
+        /**在当前文档列表中添加插入的记录 */
+        if (Array.isArray(inserted) && (nInserted = inserted.length)) {
+          inserted.forEach((newDoc) => {
+            if (newDoc._id && typeof newDoc._id === 'string')
+              data.documents.unshift(newDoc)
+          })
+        }
+        let msg = `插件[${plugin.title}]执行完毕，添加[${nInserted}]条，修改[${nModified}]条，删除[${nRemoved}]条记录。`
+        ElMessage.success({ message: msg })
+      } else if (result.type === 'numbers') {
+        /**返回操作结果——数量 */
+        let { nInserted, nModified, nRemoved } = result
+        let message = `插件[${plugin.title}]执行完毕，添加[${parseInt(nInserted) || 0
+          }]条，修改[${parseInt(nModified) || 0}]条，删除[${parseInt(nRemoved) || 0
+          }]条记录。`
+        ElMessageBox.confirm(message, '提示', {
+          confirmButtonText: '关闭',
+          cancelButtonText: '刷新数据',
+          showClose: false,
+        }).catch(() => {
+          listDocByKw()
         })
-        listDocByKw()
+      } else if (typeof result.url === 'string') {
+        /**下载文件*/
+        let url = FS_BASE_URL() + result.url
+        window.open(url)
       }
-      return 'ok'
-    })
+    } else {
+      ElMessage.success({
+        message: `插件[${plugin.title}]执行完毕。`,
+        showClose: true,
+      })
+      listDocByKw()
+    }
+    return 'ok'
+  })
 }
 /**
  * 执行插件
- * 
- * @param plugin 要执行的插件 
+ *
+ * @param plugin 要执行的插件
  * @param docScope 插件操作数据的范围
  */
 const handlePlugin = (plugin: any, docScope = '') => {
@@ -466,18 +529,33 @@ const handlePlugin = (plugin: any, docScope = '') => {
     if (name === 'external' && url) {
       let fullurl = url + (url.indexOf('?') > 0 ? '&' : '?')
       showPluginWidget.value = true
-      pluginWidgetUrl.value = fullurl + `bucket=${bucketName ?? ''}&db=${dbName}&cl=${clName}`
+      pluginWidgetUrl.value =
+        fullurl + `bucket=${bucketName ?? ''}&db=${dbName}&cl=${clName}`
       pluginWidgetSize.value = size ?? '50%'
       // 收集页面数据
       const widgetResultListener = (event: MessageEvent) => {
         const { data, origin } = event
         if (data) {
-          const { action, result, handleResponse, applyAccessTokenField, reloadOnClose } = data
+          const {
+            action,
+            result,
+            handleResponse,
+            applyAccessTokenField,
+            reloadOnClose,
+          } = data
           if (action === 'Created') {
             // 插件创建成功后，将插件信息传递给插件
             if (elPluginWidget.value) {
-              const msg: any = { plugin: { name: toRaw(plugin.name), ui: toRaw(beforeWidget.ui) } }
-              if (plugin.amount === 'one' && selectedDocuments.value.length === 1) {
+              const msg: any = {
+                plugin: {
+                  name: toRaw(plugin.name),
+                  ui: toRaw(beforeWidget.ui),
+                },
+              }
+              if (
+                plugin.amount === 'one' &&
+                selectedDocuments.value.length === 1
+              ) {
                 // 处理单个文档时，将文档数据和schema传递给插件
                 msg.document = toRaw(selectedDocuments.value[0])
                 msg.schema = toRaw(collection.schema.body)
@@ -488,11 +566,20 @@ const handlePlugin = (plugin: any, docScope = '') => {
             window.removeEventListener('message', widgetResultListener)
             showPluginWidget.value = false
           } else if (action === 'Execute') {
-            executePlugin(plugin, docScope, result, handleResponse, applyAccessTokenField).then((response: any) => {
+            executePlugin(
+              plugin,
+              docScope,
+              result,
+              handleResponse,
+              applyAccessTokenField
+            ).then((response: any) => {
               if (handleResponse === true) {
                 // 将执行的结果递送给插件
                 if (elPluginWidget.value) {
-                  elPluginWidget.value.contentWindow?.postMessage({ response }, '*')
+                  elPluginWidget.value.contentWindow?.postMessage(
+                    { response },
+                    '*'
+                  )
                 }
               } else {
                 window.removeEventListener('message', widgetResultListener)
@@ -525,7 +612,7 @@ const changeDocSize = (size: number) => {
 }
 /**
  * 根据标签获得匹配的schema
- * @param tags 
+ * @param tags
  */
 const listSchemaByTag = (tags: any) => {
   let temp = {}
@@ -550,14 +637,21 @@ const listSchemaByTag = (tags: any) => {
  */
 const setTableColumnsFromSchema = async () => {
   let matchedSchema = {}
-  let properties = collection.schema.body.properties
+  let properties: any = collection.schema.body.properties
 
   if (collection.schema_default_tags && collection.schema_default_tags.length) {
     matchedSchema = await listSchemaByTag(collection.schema_default_tags)
   } else if (collection.schema_tags && collection.schema_tags.length) {
     matchedSchema = await listSchemaByTag(collection.schema_tags)
   } else if (properties && typeof properties === 'object') {
-    Object.assign(matchedSchema, properties)
+    /*需要去除password属性*/
+    const props: any = {}
+    for (let key in properties) {
+      if (properties[key].format !== 'password') {
+        props[key] = properties[key]
+      }
+    }
+    Object.assign(matchedSchema, props)
   }
 
   data.properties = Object.freeze(matchedSchema)
@@ -570,13 +664,17 @@ const listDocByKw = () => {
     db: dbName,
     cl: clName,
     size: LIST_DB_PAGE_SIZE,
-    criterais
+    criterais,
   })
 }
 
 onMounted(async () => {
   collection = await apiCollection.byName(bucketName, dbName, clName)
-  data.plugins = await apiPlugin.getCollectionDocPlugins(bucketName, dbName, clName)
+  data.plugins = await apiPlugin.getCollectionDocPlugins(
+    bucketName,
+    dbName,
+    clName
+  )
   await setTableColumnsFromSchema()
   listDocByKw()
 })

@@ -4,6 +4,9 @@ import { Base, Helper } from './ctrl'
 
 export { Base as CtrlBase, Helper as CtrlHelper }
 
+export * from './schema'
+export * from './crypto'
+
 import * as fs from 'fs'
 import * as path from 'path'
 import * as _ from 'lodash'

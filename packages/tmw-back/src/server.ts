@@ -1,6 +1,7 @@
 import * as log4js from 'log4js'
 import * as path from 'path'
 import * as fs from 'fs'
+import { nanoid } from 'nanoid'
 
 let cnfpath = path.resolve(process.cwd() + '/config/log4js.js')
 if (fs.existsSync(cnfpath)) {
@@ -38,6 +39,22 @@ let Replica_Child_Process // 执行集合复制的子进程
  */
 function afterInit() {
   logger.info('已完成框架初始化')
+  /**
+   * 数据加密基础key
+   */
+  if (!process.env.TMW_APP_DATA_CIPHER_KEY) {
+    const filename = '.data-cipher.key'
+    let key
+    if (fs.existsSync(filename)) {
+      key = fs.readFileSync(filename)
+    } else {
+      key = nanoid(16)
+      // 保存到文件
+      fs.writeFileSync(filename, key)
+      console.warn('****请删除生成的密钥文件****')
+    }
+    process.env.TMW_APP_DATA_CIPHER_KEY = key
+  }
   /**
    * 加载插件
    */

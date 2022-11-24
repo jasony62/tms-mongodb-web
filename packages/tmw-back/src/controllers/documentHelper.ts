@@ -37,9 +37,9 @@ class DocumentHelper extends Helper {
     } else if (typeof filter === 'object' && Object.keys(filter).length) {
       // 按条件删除
       const modelDoc = new ModelDoc(
-        this['mongoClient'],
-        this['bucket'],
-        this['client']
+        this.ctrl.mongoClient,
+        this.ctrl.bucket,
+        this.ctrl.client
       )
       query = modelDoc.assembleQuery(filter)
       operation = '批量（按条件）'
@@ -53,7 +53,13 @@ class DocumentHelper extends Helper {
    *  提取excel数据到集合中
    *  noRepeatconfig 数据去重配置
    */
-  async importToColl(existCl, filename, noRepeatconfig, reqMode, rowsJson = []) {
+  async importToColl(
+    existCl,
+    filename,
+    noRepeatconfig,
+    reqMode,
+    rowsJson = []
+  ) {
     const modelDoc = new ModelDoc(
       this.ctrl.mongoClient,
       this.ctrl.bucket,
@@ -75,7 +81,8 @@ class DocumentHelper extends Helper {
     )
     let columns = await collModel.getSchemaByCollection(existCl)
     // if (!columns) return [false, '指定的集合没有指定集合列']
-    if (!columns && reqMode !== 'api') return [false, '指定的集合没有指定集合列']
+    if (!columns && reqMode !== 'api')
+      return [false, '指定的集合没有指定集合列']
 
     let publicDoc = {}
     const { extensionInfo } = existCl
@@ -144,7 +151,7 @@ class DocumentHelper extends Helper {
       }
 
       // 加工数据
-      collModel.beforeProcessByInAndUp(newRow, 'insert')
+      collModel.processBeforeStore(newRow, 'insert')
 
       return newRow
     })
@@ -377,7 +384,7 @@ class DocumentHelper extends Helper {
           newd[k] = oldDoc[k]
         }
       }
-      modelDoc.beforeProcessByInAndUp(newd, 'insert')
+      modelDoc.processBeforeStore(newd, 'insert')
       if (newPublicDoc) Object.assign(newd, newPublicDoc)
       return newd
     })
@@ -410,9 +417,9 @@ class DocumentHelper extends Helper {
       return [
         false,
         '插入数据数量错误需插入：' +
-        newDocs2.length +
-        '；实际插入：' +
-        rst.insertedCount,
+          newDocs2.length +
+          '；实际插入：' +
+          rst.insertedCount,
       ]
     }
 

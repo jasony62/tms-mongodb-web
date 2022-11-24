@@ -61,7 +61,7 @@ class DbHelper extends Helper {
     info.sysname = sysname
 
     // 加工数据
-    modelDb.beforeProcessByInAndUp(info, 'insert')
+    modelDb.processBeforeStore(info, 'insert')
 
     return this.clMongoObj
       .insertOne(info)

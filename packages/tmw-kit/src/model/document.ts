@@ -32,6 +32,28 @@ class Document extends Base {
     return existDoc
   }
   /**
+   * 获得指定查找条件的文档
+   * @param {object} existCl - 文档所在集合
+   * @param {object} {filter, like} - 查找条件
+   * @param {object} projection - 显示哪些列
+   *
+   * @returns {object} 文档对象
+   */
+  async findOne(existCl, { filter, like = false }, projection = null) {
+    let mongoClient = this.mongoClient
+    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+
+    let options: any = {}
+    if (projection && typeof projection === 'object')
+      options.projection = projection
+
+    let query = filter ? this.assembleQuery(filter, like) : {}
+
+    let existDoc = await sysCl.findOne(query, options)
+
+    return existDoc
+  }
+  /**
    * 删除指定id的文档
    *
    * 如果删除的是从集合中的数据，改为删除主集合中的数据
@@ -210,10 +232,10 @@ class Document extends Base {
         delete info[tmwConfig.TMW_APP_DEFAULT_CREATETIME]
       let isExistDoc = await targetSysCl.findOne({ _id: doc._id })
       if (isExistDoc) {
-        this.beforeProcessByInAndUp(info, 'update')
+        this.processBeforeStore(info, 'update')
         bulkOp.find({ _id: doc._id }).updateOne({ $set: info })
       } else {
-        this.beforeProcessByInAndUp(info, 'insert')
+        this.processBeforeStore(info, 'insert')
         bulkOp.find({ _id: doc._id }).upsert().updateOne({
           $setOnInsert: info,
         })

@@ -1,7 +1,7 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import Base from 'tmw-kit/dist/ctrl/base'
 import DocumentHelper from '../documentHelper'
-import { ModelDoc } from 'tmw-kit'
+import { ModelDoc, ModelSchema } from 'tmw-kit'
 
 function makeProjection(fields: any, fixed = { _id: 0 }) {
   return fields
@@ -73,13 +73,24 @@ class Document extends Base {
   async create() {
     const existCl = await this.docHelper.findRequestCl()
 
-    const { name: clName, extensionInfo } = existCl
+    const { name: clName, schema_id } = existCl
     let data = this.request.body
+
+    const modelSchema = new ModelSchema(
+      this.mongoClient,
+      this.bucket,
+      this.client
+    )
+
+    // 集合的schema定义
+    let clSchema
+    if (schema_id && typeof schema_id === 'string')
+      clSchema = await modelSchema.bySchemaId(schema_id)
 
     /**在数据库中创建记录*/
     const createOne = async (doc) => {
       // 加工数据
-      this.modelDoc.beforeProcessByInAndUp(doc, 'insert')
+      this.modelDoc.processBeforeStore(doc, 'insert', clSchema)
 
       return this.docHelper
         .findSysColl(existCl)
@@ -96,7 +107,7 @@ class Document extends Base {
     }
 
     let result: any
-    if (Array.isArray(data) && data.length) {
+    if (Array.isArray(data)) {
       result = []
       for (let i = 0; i < data.length; i++) {
         let newDoc = await createOne(data[i])

@@ -1,6 +1,21 @@
 import * as dayjs from 'dayjs'
 import * as path from 'path'
 import * as fs from 'fs'
+import * as _ from 'lodash'
+import { SchemaIter } from '../schema'
+import { AES } from '../crypto'
+/**
+ * 定义过滤条件
+ */
+type FilterCondKeyword = {
+  keyword: string
+}
+type FilterLike = {
+  [column: string]: string | number | FilterCondKeyword
+}
+type FilterSimple = {
+  [column: string]: any
+}
 
 let TMW_CONFIG
 let cnfpath = path.resolve(process.cwd() + '/config/app.js')
@@ -133,18 +148,72 @@ class Base {
   }
   /**
    * 对插入到表中的数据进行加工
+   * 如果指定了schema，需要根据schema进行检查和加工
    */
-  beforeProcessByInAndUp(data, type) {
+  processBeforeStore(data, type: string, schema?: any, existData?: any) {
     let current = dayjs().format('YYYY-MM-DD HH:mm:ss')
     let { tmwConfig } = this
-    if (type === 'insert') {
-      if (typeof data[tmwConfig.TMW_APP_DEFAULT_UPDATETIME] !== 'undefined')
-        delete data[tmwConfig.TMW_APP_DEFAULT_UPDATETIME]
-      data[tmwConfig.TMW_APP_DEFAULT_CREATETIME] = current
-    } else if (type === 'update') {
-      if (typeof data[tmwConfig.TMW_APP_DEFAULT_CREATETIME] !== 'undefined')
-        delete data[this.tmwConfig.TMW_APP_DEFAULT_CREATETIME]
-      data[tmwConfig.TMW_APP_DEFAULT_UPDATETIME] = current
+
+    switch (type) {
+      case 'insert':
+        if (typeof data[tmwConfig.TMW_APP_DEFAULT_UPDATETIME] !== 'undefined')
+          delete data[tmwConfig.TMW_APP_DEFAULT_UPDATETIME]
+        data[tmwConfig.TMW_APP_DEFAULT_CREATETIME] = current
+        /**根据schema处理数据 */
+        if (schema && typeof schema === 'object') {
+          /**所有密码格式的属性都需要加密存储*/
+          const schemaIter = new SchemaIter({
+            type: 'object',
+            properties: schema,
+          })
+          for (let schemaProp of schemaIter) {
+            let { fullname, attrs } = schemaProp
+            if (attrs.format === 'password') {
+              let val = _.get(data, fullname)
+              if (val && typeof val === 'string') {
+                let encrypted = AES.encrypt(
+                  val,
+                  process.env.TMW_APP_DATA_CIPHER_KEY
+                )
+                _.set(data, fullname, encrypted)
+              }
+            }
+          }
+        }
+        break
+      case 'update':
+        if (typeof data[tmwConfig.TMW_APP_DEFAULT_CREATETIME] !== 'undefined')
+          delete data[this.tmwConfig.TMW_APP_DEFAULT_CREATETIME]
+        data[tmwConfig.TMW_APP_DEFAULT_UPDATETIME] = current
+        /**根据schema处理数据 */
+        if (schema && typeof schema === 'object' && existData) {
+          /**
+           * 所有密码格式的属性都需要加密存储
+           * 只有数据发生变化时才会进行处理，避免对加密的数据加密
+           */
+          const schemaIter = new SchemaIter({
+            type: 'object',
+            properties: schema,
+          })
+          for (let schemaProp of schemaIter) {
+            let { fullname, attrs } = schemaProp
+            if (attrs.format === 'password') {
+              let newVal = _.get(data, fullname)
+              let oldVal = _.get(existData, fullname)
+              if (newVal !== oldVal) {
+                if (newVal && typeof newVal === 'string') {
+                  let encrypted = AES.encrypt(
+                    newVal,
+                    process.env.TMW_APP_DATA_CIPHER_KEY
+                  )
+                  _.set(data, fullname, encrypted)
+                }
+              }
+            }
+          }
+        }
+
+        break
     }
 
     return data
