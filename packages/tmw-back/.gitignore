@@ -3,5 +3,5 @@ storage
 node_modules
 _lowdb.json
 .pnpm-debug.log
-.env
+.env*
 auth_client_account

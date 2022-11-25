@@ -28,7 +28,7 @@ export default ({ mode }) => {
         },
         {
           find: '@antv/x6',
-          replacement: '@antv/x6/dist/index.js',
+          replacement: '@antv/x6/dist/x6.js',
         },
         {
           find: '@antv/x6-vue-shape',

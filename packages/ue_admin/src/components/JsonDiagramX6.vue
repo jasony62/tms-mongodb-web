@@ -1,6 +1,5 @@
 <template>
   <div id="container" class="w-full h-full"></div>
-  <div id="minimap"></div>
 </template>
 
 <script setup lang="ts">
@@ -9,7 +8,6 @@ import { Graph, PropertyNode, ValueNode, OwnPropertyEdge } from './x6'
 import { Cell } from '@antv/x6';
 import { Builder } from './builder'
 import { Field } from 'tms-vue3-ui/dist/es/json-doc';
-
 
 const props = defineProps({
   schema: { type: Object, required: true },
@@ -43,7 +41,6 @@ onMounted(async () => {
   X6Graph = new Graph({
     container: document.getElementById('container')!,
     async: false,
-    //@ts-ignore
     frozen: false,
     scroller: true,
     interacting: false,
@@ -60,25 +57,6 @@ onMounted(async () => {
         },
       },
     },
-    // minimap: {
-    //   enabled: true,
-    //   container: document.getElementById('minimap')!,
-    //   graphOptions: {
-    //     async: true,
-    //     getCellView(cell) {
-    //       // 用指定的 View 替换节点默认的 View
-    //       if (cell.isNode()) {
-    //         return NodeView
-    //       }
-    //     },
-    //     createCellView(cell) {
-    //       // 在小地图中不渲染边
-    //       if (cell.isEdge()) {
-    //         return null
-    //       }
-    //     },
-    //   }
-    // },
   })
 
   X6Graph.on('node:collapse', ({ node }: { node: PropertyNode }) => {

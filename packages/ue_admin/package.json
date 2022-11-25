@@ -9,8 +9,8 @@
   },
   "dependencies": {
     "@antv/layout": "^0.3.5",
-    "@antv/x6": "^2.0.0",
-    "@antv/x6-vue-shape": "^2.0.0",
+    "@antv/x6": "^1.34.2",
+    "@antv/x6-vue-shape": "^1.5.2",
     "@element-plus/icons-vue": "^2.0.6",
     "add": "^2.0.6",
     "debug": "^4.3.4",
