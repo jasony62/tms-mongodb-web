@@ -50,7 +50,7 @@ class ManageAccountPlugin extends PluginBase {
       if (password) {
         const {
           PasswordProcess: ProcessPwd,
-        } = require('tms-koa-account/dist/models/processPwd')
+        } = require('tms-koa-account/dist/models/processpwd')
 
         // 检查密码格式
         const pwdProcess = new ProcessPwd(password, actRst.salt)
@@ -79,7 +79,7 @@ class ManageAccountPlugin extends PluginBase {
 
       return { code: 0, msg: '操作成功' }
     } catch (error) {
-      return { code: 10001, msg: error }
+      return { code: 10001, msg: `执行插件失败，原因：${error}` }
     }
   }
 }
