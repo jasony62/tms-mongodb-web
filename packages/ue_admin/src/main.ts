@@ -64,7 +64,7 @@ function getAccessToken() {
 }
 
 function onRetryAttempt(res: any) {
-  if (res.data.code === 10001) {
+  if (res.data.code === 20001) {
     return LoginPromise.wait().then(() => {
       return true
     })
