@@ -3,7 +3,7 @@
     <!--header-->
     <div class="h-12 py-4 px-2">
       <el-breadcrumb separator-class="el-icon-arrow-right">
-        <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'databases' }">数据库</el-breadcrumb-item>
         <el-breadcrumb-item>{{ dbName }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>

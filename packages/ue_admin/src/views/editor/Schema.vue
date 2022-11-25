@@ -1,9 +1,8 @@
 <template>
   <div id="schemaEditor">
-    <!--header-->
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight">
-        <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'docSchemas' }">文档内容定义</el-breadcrumb-item>
         <el-breadcrumb-item>{{ title }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>

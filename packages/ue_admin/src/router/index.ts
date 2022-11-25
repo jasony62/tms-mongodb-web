@@ -3,6 +3,13 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Login from '../views/Login.vue'
 import Home from '../views/Home.vue'
 import Bucket from '../views/Bucket.vue'
+import Databases from '../views/Databases.vue'
+import DocSchemas from '../views/DocSchemas.vue'
+import DbSchemas from '../views/DbSchemas.vue'
+import ClSchemas from '../views/ClSchemas.vue'
+import Tag from '../views/Tag.vue'
+import Replica from '../views/Replica.vue'
+import Files from '../views/Files.vue'
 import Database from '../views/Database.vue'
 import Collection from '../views/Collection.vue'
 import Register from '../views/Register.vue'
@@ -29,6 +36,18 @@ const routes: RouteRecordRaw[] = [
     component: Login,
   },
   {
+    path: `/register`,
+    name: 'register',
+    component: Register,
+    props: true,
+  },
+  {
+    path: `/smscode`,
+    name: 'smscode',
+    component: Smscode,
+    props: true,
+  },
+  {
     path: '/bucket',
     name: 'bucket',
     component: Bucket,
@@ -39,50 +58,79 @@ const routes: RouteRecordRaw[] = [
     component: Invite,
   },
   {
-    path: `/smscode`,
-    name: 'smscode',
-    component: Smscode,
-    props: true,
-  },
-  {
-    path: `${BucketPart}/home`,
+    path: `/`,
     name: 'home',
     component: Home,
+    redirect: `${BucketPart}/database/`,
     props: true,
-  },
-  {
-    path: `/register`,
-    name: 'register',
-    component: Register,
-    props: true,
-  },
-  {
-    path: `${BucketPart}/database/:dbName`,
-    name: 'database',
-    component: Database,
-    props: true,
-  },
-  {
-    path: `${BucketPart}/collection/:dbName/:clName`,
-    name: 'collection',
-    component: Collection,
-    props: true,
-  },
-  {
-    path: `${BucketPart}/document/:dbName/:clName/:docId?`,
-    name: 'docEditor',
-    component: DocEditor,
-    props: true,
-  },
-  {
-    path: `${BucketPart}/schema/:scope/:schemaId?`,
-    name: 'schemaEditor',
-    component: SchemaEditor,
-    props: true,
-  },
-  {
-    path: '/',
-    redirect: { name: 'home' },
+    children: [
+      {
+        path: `${BucketPart}/database/`,
+        name: 'databases',
+        component: Databases,
+        props: true,
+      },
+      {
+        path: `${BucketPart}/database/:dbName`,
+        name: 'database',
+        component: Database,
+        props: true,
+      },
+      {
+        path: `${BucketPart}/collection/:dbName/:clName`,
+        name: 'collection',
+        component: Collection,
+        props: true,
+      },
+      {
+        path: `${BucketPart}/document/:dbName/:clName/:docId?`,
+        name: 'docEditor',
+        component: DocEditor,
+        props: true,
+      },
+      {
+        path: `${BucketPart}/docSchemas/`,
+        name: 'docSchemas',
+        component: DocSchemas,
+        props: true,
+      },
+      {
+        path: `${BucketPart}/schema/:scope/:schemaId?`,
+        name: 'schemaEditor',
+        component: SchemaEditor,
+        props: true,
+      },
+      {
+        path: `${BucketPart}/dbSchemas/`,
+        name: 'dbSchemas',
+        component: DbSchemas,
+        props: true,
+      },
+      {
+        path: `${BucketPart}/clSchemas/`,
+        name: 'clSchemas',
+        component: ClSchemas,
+        props: true,
+      },
+      {
+        path: `${BucketPart}/tag/`,
+        name: 'tag',
+        component: Tag,
+        props: true,
+      },
+      {
+        path: `${BucketPart}/replica/`,
+        name: 'replica',
+        component: Replica,
+        props: true,
+      },
+      {
+        path: `files`,
+        name: 'files',
+        component: Files,
+        props: true,
+      },
+    ],
   },
 ]
 
