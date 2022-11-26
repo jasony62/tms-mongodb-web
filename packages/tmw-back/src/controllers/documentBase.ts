@@ -1,7 +1,7 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import Base from 'tmw-kit/dist/ctrl/base'
+import { createDocWebhook } from 'tmw-kit/dist/webhook/document'
 import DocumentHelper from './documentHelper'
-import { createDocWebhook } from './documentWebhook'
 import unrepeat from './unrepeat'
 import { ModelDoc, ModelCl, ModelSchema } from 'tmw-kit'
 import { TMW_CONFIG } from '../global'
@@ -15,9 +15,10 @@ class DocBase extends Base {
   constructor(...args) {
     super(...args)
     this.docHelper = new DocumentHelper(this)
-    this.docWebhook = createDocWebhook(this)
+    this.docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK)
     this.modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
   }
+
   get tmwConfig() {
     return TMW_CONFIG
   }

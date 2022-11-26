@@ -1,8 +1,5 @@
 import axios from 'axios'
 
-// 指定的回调地址
-const WebhookUrl = process.env.TMW_APP_WEBHOOK
-
 // WEBHOOK文档事件
 enum WEBHOOK_DOC_EVENT {
   BeforeCreate = 'beforeCreate',
@@ -98,21 +95,26 @@ class DocumentWebhookNoop implements DocumentWebhookInf {
  * 调用指定的webhook接口
  */
 class DocumentWebhook implements DocumentWebhookInf {
-  ctrl
+  private _webhooUrl
 
   axiosInstance
 
-  constructor(ctrl) {
-    this.ctrl = ctrl
+  constructor(webhookUrl: string) {
+    this._webhooUrl = webhookUrl
     this.axiosInstance = axios.create()
   }
+
+  get webhookUrl() {
+    return this._webhooUrl
+  }
+
   /**
    *
    * @param evt
    * @returns
    */
   private async sendReq(evt: WEBHOOK_POSTED) {
-    const rsp = await this.axiosInstance.post(WebhookUrl, evt)
+    const rsp = await this.axiosInstance.post(this.webhookUrl, evt)
     const { msg, code, result } = rsp.data
 
     let ret
@@ -262,12 +264,12 @@ class DocumentWebhook implements DocumentWebhookInf {
 }
 /**
  * 提供webhook实现
- * @param ctrl
+ * @param webhookUrl
  * @returns
  */
-export function createDocWebhook(ctrl) {
-  if (WebhookUrl) {
-    return new DocumentWebhook(ctrl)
+export function createDocWebhook(webhookUrl: string) {
+  if (webhookUrl) {
+    return new DocumentWebhook(webhookUrl)
   } else {
     return new DocumentWebhookNoop()
   }

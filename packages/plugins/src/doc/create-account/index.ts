@@ -1,6 +1,7 @@
 import { loadConfig } from 'tmw-kit'
 import { PluginBase } from 'tmw-kit/dist/model'
 import * as path from 'path'
+import { createDocWebhook } from 'tmw-kit/dist/webhook/document'
 
 /**配置文件存放位置*/
 const ConfigDir = path.resolve(
@@ -9,12 +10,15 @@ const ConfigDir = path.resolve(
 
 // 插件配置文件地址
 const ConfigFile =
-  process.env.TMW_PLUGIN_DOC_CREATE_ACCOUNT_CONFIG_NAME || './plugin/doc/create_account'
+  process.env.TMW_PLUGIN_DOC_CREATE_ACCOUNT_CONFIG_NAME ||
+  './plugin/doc/create_account'
 
 /**
  * 账号管理
  */
 class CreateAccountPlugin extends PluginBase {
+  docWebhook
+
   constructor(file: string) {
     super(file)
     this.name = 'doc-create-account'
@@ -23,6 +27,7 @@ class CreateAccountPlugin extends PluginBase {
     this.scope = 'document'
     this.amount = 'zero'
     this.beforeWidget = { name: 'external', url: '', size: '40%' }
+    this.docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK_ACCOUNT)
   }
 
   async execute(ctrl: any, tmwCl: any) {
@@ -34,8 +39,30 @@ class CreateAccountPlugin extends PluginBase {
       tmwCl.sysname
     )
 
+    let account = ctrl.request.body.widget
     try {
-      await Model.processAndCreate(ctrl.request.body.widget)
+      // 通过webhook处理数据
+      let beforeRst = await this.docWebhook.beforeCreate(account, tmwCl)
+
+      if (beforeRst.passed !== true)
+        return {
+          code: 10001,
+          msg: beforeRst.reason || '操作被Webhook.beforeCreate阻止',
+        }
+
+      if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
+        account = beforeRst.rewrited
+
+      let newAccount = await Model.processAndCreate(account)
+
+      // 通过webhook处理数据
+      let afterRst = await this.docWebhook.afterCreate(newAccount, tmwCl)
+      if (afterRst.passed !== true)
+        return {
+          code: 10001,
+          msg: afterRst.reason || '操作被Webhook.afterCreate阻止',
+        }
+
       return { code: 0, msg: '创建账号成功' }
     } catch (e) {
       return { code: 10001, msg: e }
@@ -61,5 +88,4 @@ export function createPlugin(file: string) {
   }
 
   return false
-
 }

@@ -2,6 +2,7 @@ import { loadConfig } from 'tmw-kit'
 import { PluginBase } from 'tmw-kit/dist/model'
 import * as path from 'path'
 import * as _ from 'lodash'
+import { createDocWebhook } from 'tmw-kit/dist/webhook/document'
 
 /**配置文件存放位置*/
 const ConfigDir = path.resolve(
@@ -17,6 +18,8 @@ const ConfigFile =
  * 账号管理
  */
 class ManageAccountPlugin extends PluginBase {
+  docWebhook
+
   constructor(file: string) {
     super(file)
     this.name = 'doc-manage-account'
@@ -25,6 +28,7 @@ class ManageAccountPlugin extends PluginBase {
     this.scope = 'document'
     this.amount = 'one'
     this.beforeWidget = { name: 'external', url: '', size: '40%' }
+    this.docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK_ACCOUNT)
   }
 
   async execute(ctrl: any, tmwCl: any) {
