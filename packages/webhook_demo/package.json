@@ -1,0 +1,20 @@
+{
+  "name": "webhook_demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "rimraf ./dist && tsc",
+    "dev": "DEBUG=tms-koa:* node node_modules/tms-koa/dist/server"
+  },
+  "keywords": [],
+  "author": "jasony62",
+  "license": "MIT",
+  "dependencies": {
+    "tms-koa": "^0.1.4"
+  },
+  "devDependencies": {
+    "rimraf": "^3.0.2"
+  }
+}

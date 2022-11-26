@@ -9,10 +9,12 @@ node_modules
 *.override.yml
 *.mongoweb.yml
 
+.env*
+dist/
+
 /tests/
 /patch/
 /volumes/
 
 .pnpm-debug.log
-
 docker/standalone/back

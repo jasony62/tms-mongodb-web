@@ -1,11 +1,13 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import Base from 'tmw-kit/dist/ctrl/base'
 import DocumentHelper from './documentHelper'
+import { createDocWebhook } from './documentWebhook'
 import unrepeat from './unrepeat'
 import { ModelDoc, ModelCl, ModelSchema } from 'tmw-kit'
 import { TMW_CONFIG } from '../global'
 import * as _ from 'lodash'
 import * as mongodb from 'mongodb'
+
 const ObjectId = mongodb.ObjectId
 
 /**文档对象控制器基类 */
@@ -13,6 +15,7 @@ class DocBase extends Base {
   constructor(...args) {
     super(...args)
     this.docHelper = new DocumentHelper(this)
+    this.docWebhook = createDocWebhook(this)
     this.modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
   }
   get tmwConfig() {
@@ -103,7 +106,19 @@ class DocBase extends Base {
     // 加工数据
     this.modelDoc.processBeforeStore(doc, 'insert', clSchema)
 
-    return this.docHelper
+    // 通过webhook处理数据
+    let beforeRst = await this.docWebhook.beforeCreate(doc, existCl)
+
+    if (beforeRst.passed !== true)
+      return new ResultFault(
+        beforeRst.reason || '操作被Webhook.beforeCreate阻止'
+      )
+
+    if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
+      doc = beforeRst.rewrited
+
+    // 在数据库中创建
+    const newDoc = await this.docHelper
       .findSysColl(existCl)
       .insertOne(doc)
       .then(async (r) => {
@@ -113,8 +128,19 @@ class DocBase extends Base {
           existCl.db.name,
           clName
         )
-        return new ResultData(doc)
+        return doc
       })
+
+    // 通过webhook处理数据
+    let afterRst = await this.docWebhook.afterCreate(newDoc, existCl)
+    if (afterRst.passed !== true)
+      return new ResultFault(afterRst.reason || '操作被Webhook.afterCreate阻止')
+
+    if (afterRst.rewrited && typeof afterRst.rewrited === 'object')
+      doc = afterRst.rewrited
+
+    // 返回结果
+    return new ResultData(doc)
   }
   /**
    * 删除文档
@@ -124,7 +150,7 @@ class DocBase extends Base {
 
     const { id } = this.request.query
 
-    let existDoc = await this['modelDoc'].byId(existCl, id)
+    let existDoc = await this.modelDoc.byId(existCl, id)
     if (!existDoc) return new ResultFault('要删除的文档不存在')
 
     if (TMW_CONFIG.TMW_APP_DATA_ACTION_LOG === 'Y') {
@@ -137,7 +163,22 @@ class DocBase extends Base {
       )
     }
 
+    // 通过webhook处理数据
+    let beforeRst = await this.docWebhook.beforeRemove(existDoc, existCl)
+
+    if (beforeRst.passed !== true)
+      return new ResultFault(
+        beforeRst.reason || '操作被Webhook.beforeRemove阻止'
+      )
+
     const isOk = await this.modelDoc.remove(existCl, id)
+    if (!isOk) return new ResultFault('删除文档失败')
+
+    // 通过webhook处理数据
+    let afterRst = await this.docWebhook.afterRemove(existDoc, existCl)
+    if (afterRst.passed !== true)
+      // 被组织有什么意义吗？
+      return new ResultFault(afterRst.reason || '操作被Webhook.afterRemove阻止')
 
     return new ResultData(isOk)
   }
@@ -158,16 +199,25 @@ class DocBase extends Base {
     const clSchema = await this.getClSchema(schema_id)
     this.modelDoc.processBeforeStore(newDoc, 'update', clSchema, existDoc)
 
+    // 通过webhook处理数据
+    let beforeRst = await this.docWebhook.beforeUpdate(newDoc, existCl)
+    if (beforeRst.passed !== true)
+      return new ResultFault(
+        beforeRst.reason || '操作被Webhook.afterUpdate阻止'
+      )
+    if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
+      newDoc = beforeRst.rewrited
+
     let updated = _.omit(newDoc, ['_id', 'bucket'])
     const isOk = await this.modelDoc.update(existCl, id, updated)
 
-    if (!isOk) return new ResultFault('要更新的文档不存在')
+    if (!isOk) return new ResultFault('更新文档失败')
 
     // 日志
     if (TMW_CONFIG.TMW_APP_DATA_ACTION_LOG === 'Y') {
       let beforeDoc = {}
       beforeDoc[existDoc._id] = existDoc
-      this['modelDoc'].dataActionLog(
+      this.modelDoc.dataActionLog(
         newDoc,
         '修改',
         existCl.db.name,
@@ -178,7 +228,15 @@ class DocBase extends Base {
       )
     }
 
-    return new ResultData(isOk)
+    // 通过webhook处理数据
+    let afterRst = await this.docWebhook.afterUpdate(newDoc, existCl)
+    if (afterRst.passed !== true)
+      return new ResultFault(afterRst.reason || '操作被Webhook.afterUpdate阻止')
+
+    if (afterRst.rewrited && typeof afterRst.rewrited === 'object')
+      newDoc = afterRst.rewrited
+
+    return new ResultData(newDoc)
   }
   /**
    * 指定数据库指定集合下的文档
