@@ -20,6 +20,8 @@ npm run build
 TMW_APP_PORT=3030 TMW_APP_AUTH_CAPTCHA_DISABLED=yes TMS_KOA_SKIP_TRUSTED_HOST=yes TMS_KOA_CONFIG_DIR=../../docker/back/config TMS_KOA_CONTROLLERS_DIR=./dist/controllers TMW_APP_PLUGIN_DIR=../plugins/dist/** TMW_PLUGIN_DOC_HTTP_SEND_WIDGET_URL=xxx TMW_APP_AUTH_JWT_KEY=xxxxx TMW_APP_AUTH_JWT_EXPIRESIN=86400 node dist/server
 ```
 
+**注意**：可以使用`.env`文件指定环境变量的值。
+
 新增插件时，需要在 tmw-back/src 下新建 plugins 文件夹
 
 每次更改后，需要重新执行`npm run build`
