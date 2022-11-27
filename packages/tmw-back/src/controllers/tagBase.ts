@@ -8,13 +8,13 @@ import TagHelper from './tagHelper'
 class TagBase extends Base {
   constructor(...args) {
     super(...args)
-    this['tagHelper'] = new TagHelper(this)
+    this.tagHelper = new TagHelper(this)
   }
   async tmsBeforeEach() {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
 
-    this['clMongoObj'] = this['tagHelper'].clMongoObj
+    this.clMongoObj = this.tagHelper.clMongoObj
 
     return true
   }
@@ -22,9 +22,11 @@ class TagBase extends Base {
    * 查询所有标签
    */
   async list() {
-    const query = { type: 'tag' }
-    if (this['bucket']) query['bucket'] = this['bucket'].name
-    const tmsTags = await this['clMongoObj'].find(query).toArray()
+    const query: any = { type: 'tag' }
+    if (this.bucket && typeof this.bucket === 'object')
+      query.bucket = this.bucket.name
+
+    const tmsTags = await this.clMongoObj.find(query).toArray()
 
     return new ResultData(tmsTags)
   }

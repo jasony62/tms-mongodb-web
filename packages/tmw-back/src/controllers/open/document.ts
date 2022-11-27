@@ -1,16 +1,7 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import Base from 'tmw-kit/dist/ctrl/base'
 import DocumentHelper from '../documentHelper'
-import { ModelDoc, ModelSchema } from 'tmw-kit'
-
-function makeProjection(fields: any, fixed = { _id: 0 }) {
-  return fields
-    ? fields.split(',').reduce((result, field) => {
-        result[field] = 1
-        return result
-      }, fixed)
-    : null
-}
+import { ModelDoc, ModelSchema, makeTagsFilter, makeProjection } from 'tmw-kit'
 
 /**
  * 开放端文档对象控制器
@@ -52,9 +43,12 @@ class Document extends Base {
   async list() {
     const existCl = await this.docHelper.findRequestCl()
 
-    const { page, size, fields } = this.request.query
-    const { filter, orderBy } = this.request.body
+    const { page, size, tags, fields } = this.request.query
+    let { filter, orderBy } = this.request.body
     let projection = makeProjection(fields)
+
+    // 包含全部标签
+    filter = makeTagsFilter(tags, filter)
 
     let [ok, result] = await this.modelDoc.list(
       existCl,

@@ -18,10 +18,19 @@
       <el-button type="default" @click="openDrawer" v-if="!COMPACT">分屏</el-button>
     </div>
     <div class="flex flex-row gap-4 h-full overflow-auto px-4 pb-4" v-if="collection._id && (!docId || document._id)">
-      <tms-json-doc ref="$jde" class="w-1/3 h-full overflow-auto" :schema="collection.schema.body" :value="document"
-        :enable-paste="true" :on-paste="onJdocPaste" :on-file-select="onFileSelect" :on-file-download="onFileDownload"
-        :show-field-fullname="showFieldFullname" :hide-root-title="true" :hide-root-description="true"
-        @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
+      <div class="w-1/3 h-full overflow-auto">
+        <tms-json-doc ref="$jde" :schema="collection.schema.body" :value="document" :enable-paste="true"
+          :on-paste="onJdocPaste" :on-file-select="onFileSelect" :on-file-download="onFileDownload"
+          :show-field-fullname="showFieldFullname" :hide-root-title="true" :hide-root-description="true"
+          @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
+        <el-form label-position="top">
+          <el-form-item label="标签">
+            <el-select v-model="docTags" multiple clearable placeholder="请选择">
+              <el-option v-for="tag in tags" :label="tag.name" :value="tag.name"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-form>
+      </div>
       <div v-if="isSmallLeft" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
         <div v-if="activeField?.schemaType === 'json'">
           <el-button type="primary" @click="updateFieldJson" :disabled="!jsonFieldValueChanged">更新【{{
@@ -74,9 +83,10 @@
 import { computed, nextTick, ref, inject, watch } from 'vue'
 import TmsJsonDoc, { Field, DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
-import { EXTERNAL_FS_URL, getLocalToken, COMPACT_MODE } from '@/global'
-import apiDoc from '@/apis/document'
+import { EXTERNAL_FS_URL, getLocalToken, COMPACT_MODE, TMW_APP_TAGS } from '@/global'
+import apiTag from '@/apis/tag'
 import apiCl from '@/apis/collection'
+import apiDoc from '@/apis/document'
 import useClipboard from 'vue-clipboard3'
 import * as _ from 'lodash'
 import Debug from 'debug'
@@ -94,6 +104,9 @@ import PropValueEditor from '@/components/PropValueEditor.vue'
 
 const COMPACT = computed(() => COMPACT_MODE())
 
+// 系统指定的标签字段名称
+const TagsFieldName = TMW_APP_TAGS()
+
 const debug = Debug('tmw:doc-editor')
 
 const props = defineProps({
@@ -102,8 +115,6 @@ const props = defineProps({
   clName: { type: String, required: true },
   docId: { type: String, default: '' },
 })
-
-const { VITE_SCHEMA_TAGS } = import.meta.env
 
 const { bucketName, dbName, clName, docId } = props
 const $jde = ref<{ editing: () => any; editDoc: DocAsArray } | null>(null)
@@ -470,24 +481,9 @@ const updatePreview = () => {
 }
 
 const onSubmit = () => {
-  let validate = true
-  // if (plugins.length) {
-  //   validate = plugins
-  //     .map(item => {
-  //       const result = utils[item](body.value, newDoc)
-  //       if (result.msg === 'success') {
-  //         newDoc = result.data
-  //         return true
-  //       } else {
-  //         return false
-  //       }
-  //     })
-  //     .every(ele => ele === true)
-  // }
-  if (!validate) return false
-
   let newDoc = $jde.value?.editing()
   if (newDoc) {
+    newDoc[TagsFieldName] = docTags.value
     if (document.value._id) {
       apiDoc
         .update(bucketName, dbName, clName, document.value._id, newDoc)
@@ -511,6 +507,12 @@ const onSubmit = () => {
 
 const assistant = ref(false)
 
+// 全部标签
+const tags = ref<any[]>([])
+
+// 文档上的标签
+const docTags = ref<string[]>([])
+
 const openDrawer = () => {
   assistant.value = true
 }
@@ -518,10 +520,15 @@ const openDrawer = () => {
 apiCl.byName(bucketName, dbName, clName).then((cl: any) => {
   collection.value = cl
 })
+apiTag.list(bucketName).then((datas: any) => {
+  tags.value.push(...datas)
+})
 
 if (docId)
   apiDoc.get(bucketName, dbName, clName, docId).then((doc: any) => {
     document.value = doc
+    let tags: string[] = Array.isArray(doc[TagsFieldName]) ? doc[TagsFieldName] : []
+    docTags.value.push(...tags)
   })
 </script>
 

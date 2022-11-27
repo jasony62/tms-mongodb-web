@@ -7,8 +7,9 @@ if (fs.existsSync(cnfpath)) {
   TMW_CONFIG = require(process.cwd() + '/config/app').tmwConfig
 } else {
   TMW_CONFIG = {
-    TMW_APP_DEFAULT_CREATETIME: 'TMW_DEFAULT_CREATE_TIME',
-    TMW_APP_DEFAULT_UPDATETIME: 'TMW_DEFAULT_UPDATE_TIME',
+    TMW_APP_CREATETIME: 'TMW_CREATE_TIME',
+    TMW_APP_UPDATETIME: 'TMW_UPDATE_TIME',
+    TMW_APP_TAGS: 'TMW_TAGS',
     TMW_APP_DATA_ACTION_LOG: 'N',
   }
 }

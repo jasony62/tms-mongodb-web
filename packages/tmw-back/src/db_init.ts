@@ -7,7 +7,7 @@ import { program } from 'commander'
 
 const debug = require('debug')('tmw:db_init')
 
-const TMW_DEFAULT_CREATE_TIME = dayjs().format('YYYY-MM-DD HH:mm:ss')
+const TMW_CREATE_TIME = dayjs().format('YYYY-MM-DD HH:mm:ss')
 
 class Mongo {
   host
@@ -54,7 +54,7 @@ class Mongo {
  */
 const DatabaseTemplate: any = {
   type: 'database',
-  TMW_DEFAULT_CREATE_TIME,
+  TMW_CREATE_TIME,
 }
 /**
  * 文档定义模板
@@ -73,7 +73,7 @@ const SchemaTemplate = {
     properties: {},
   },
   type: 'schema',
-  TMW_DEFAULT_CREATE_TIME,
+  TMW_CREATE_TIME,
 }
 /**
  * 集合对象模板
@@ -109,7 +109,7 @@ const CollectionTemplate: any = {
   },
   type: 'collection',
   sysname: nanoid(10),
-  TMW_DEFAULT_CREATE_TIME,
+  TMW_CREATE_TIME,
 }
 /**
  *
@@ -316,7 +316,7 @@ class Handler {
       }
       const { insertedId } = await docCl.insertOne({
         ...doc,
-        TMW_DEFAULT_CREATE_TIME,
+        TMW_CREATE_TIME,
       })
       debug(
         `在[db=${db.sysname}][cl=${cl.sysname}][id=${insertedId}]创建1条文档数据`
@@ -354,7 +354,7 @@ class Handler {
       }
       const { insertedId } = await this.cl.insertOne({
         ...tag,
-        TMW_DEFAULT_CREATE_TIME,
+        TMW_CREATE_TIME,
       })
       debug(`创建了标签[id=${insertedId}]`)
       counter++

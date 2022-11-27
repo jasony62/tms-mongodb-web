@@ -226,10 +226,10 @@ class Document extends Base {
     let { tmwConfig } = this
     for (let doc of copyedDocs) {
       let { _id, ...info } = doc
-      typeof info[tmwConfig.TMW_APP_DEFAULT_CREATETIME] !== 'undefined' &&
-        delete info[tmwConfig.TMW_APP_DEFAULT_UPDATETIME]
-      typeof info[tmwConfig.TMW_APP_DEFAULT_UPDATETIME] !== 'undefined' &&
-        delete info[tmwConfig.TMW_APP_DEFAULT_CREATETIME]
+      typeof info[tmwConfig.TMW_APP_CREATETIME] !== 'undefined' &&
+        delete info[tmwConfig.TMW_APP_UPDATETIME]
+      typeof info[tmwConfig.TMW_APP_UPDATETIME] !== 'undefined' &&
+        delete info[tmwConfig.TMW_APP_CREATETIME]
       let isExistDoc = await targetSysCl.findOne({ _id: doc._id })
       if (isExistDoc) {
         this.processBeforeStore(info, 'update')

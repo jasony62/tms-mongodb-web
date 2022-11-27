@@ -3,8 +3,7 @@ import Base from 'tmw-kit/dist/ctrl/base'
 import { createDocWebhook } from 'tmw-kit/dist/webhook/document'
 import DocumentHelper from './documentHelper'
 import unrepeat from './unrepeat'
-import { ModelDoc, ModelCl, ModelSchema } from 'tmw-kit'
-import { TMW_CONFIG } from '../global'
+import { ModelDoc, ModelCl, ModelSchema, makeTagsFilter } from 'tmw-kit'
 import * as _ from 'lodash'
 import * as mongodb from 'mongodb'
 
@@ -17,10 +16,6 @@ class DocBase extends Base {
     this.docHelper = new DocumentHelper(this)
     this.docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK)
     this.modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
-  }
-
-  get tmwConfig() {
-    return TMW_CONFIG
   }
   /**
    *
@@ -154,7 +149,7 @@ class DocBase extends Base {
     let existDoc = await this.modelDoc.byId(existCl, id)
     if (!existDoc) return new ResultFault('要删除的文档不存在')
 
-    if (TMW_CONFIG.TMW_APP_DATA_ACTION_LOG === 'Y') {
+    if (this.tmwConfig.TMW_APP_DATA_ACTION_LOG === 'Y') {
       // 记录操作日志
       await this.modelDoc.dataActionLog(
         existDoc,
@@ -215,7 +210,7 @@ class DocBase extends Base {
     if (!isOk) return new ResultFault('更新文档失败')
 
     // 日志
-    if (TMW_CONFIG.TMW_APP_DATA_ACTION_LOG === 'Y') {
+    if (this.tmwConfig.TMW_APP_DATA_ACTION_LOG === 'Y') {
       let beforeDoc = {}
       beforeDoc[existDoc._id] = existDoc
       this.modelDoc.dataActionLog(
@@ -240,23 +235,25 @@ class DocBase extends Base {
     return new ResultData(newDoc)
   }
   /**
-   * 指定数据库指定集合下的文档
+   * 获得指定数据库指定集合下的文档
    */
   async list() {
-    const existCl = await this['docHelper'].findRequestCl()
+    const existCl = await this.docHelper.findRequestCl()
 
-    const { page, size } = this['request'].query
-    const { filter, orderBy } = this['request'].body
-    let data = await this['modelDoc'].list(
+    const { page, size, tags } = this.request.query
+    let { filter, orderBy } = this.request.body
+
+    // 包含全部标签
+    filter = makeTagsFilter(tags, filter)
+
+    let [ok, result] = await this.modelDoc.list(
       existCl,
       { filter, orderBy },
       { page, size }
     )
-    if (data[0] === false) return new ResultFault(data[1])
+    if (ok === false) return new ResultFault(result)
 
-    data = data[1]
-
-    return new ResultData(data)
+    return new ResultData(result)
   }
   /**
    * 按指定的列进行分组，并显示每个分组的记录数
@@ -362,7 +359,7 @@ class DocBase extends Base {
     if (total === 0)
       return new ResultFault('没有符合条件的数据，未执行删除操作')
 
-    if (TMW_CONFIG.TMW_APP_DATA_ACTION_LOG === 'Y') {
+    if (this.tmwConfig.TMW_APP_DATA_ACTION_LOG === 'Y') {
       // 记录操作日志
       let sysCl = this['docHelper'].findSysColl(existCl)
       let removedDocs = await sysCl.find(query).toArray()
@@ -409,7 +406,7 @@ class DocBase extends Base {
     return this.modelDoc
       .updateMany(existCl, query, updated)
       .then(async (modifiedCount) => {
-        if (TMW_CONFIG.TMW_APP_DATA_ACTION_LOG === 'Y') {
+        if (this.tmwConfig.TMW_APP_DATA_ACTION_LOG === 'Y') {
           // 记录操作日志
           updateBeforeDocs.forEach(async (doc) => {
             let afterDoc = Object.assign({}, doc, updated)
@@ -454,7 +451,7 @@ class DocBase extends Base {
     return this.modelDoc.copyMany(existCl, query, targetCl).then(async () => {
       let existSysCl = this.docHelper.findSysColl(existCl)
       let copyedDocs = await existSysCl.find(query).toArray()
-      if (TMW_CONFIG.TMW_APP_DATA_ACTION_LOG === 'Y') {
+      if (this.tmwConfig.TMW_APP_DATA_ACTION_LOG === 'Y') {
         this.modelDoc.dataActionLog(
           copyedDocs,
           `${operation}复制`,

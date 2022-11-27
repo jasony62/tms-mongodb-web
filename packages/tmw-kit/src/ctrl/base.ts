@@ -1,4 +1,7 @@
 import { Ctrl, ResultFault, ResultObjectNotFound } from 'tms-koa'
+import { loadTmwConfig } from '../util'
+
+const TMW_CONFIG = loadTmwConfig()
 
 function allowAccessBucket(bucket, clientId) {
   if (bucket.creator === clientId) return true
@@ -15,6 +18,9 @@ const isRequireBucket = /yes|true/i.test(process.env.TMW_REQUIRE_BUCKET)
 class Base extends Ctrl {
   constructor(...args) {
     super(...args)
+  }
+  get tmwConfig() {
+    return TMW_CONFIG
   }
   /**
    * 系统调用控制器方法前执行

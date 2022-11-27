@@ -43,17 +43,18 @@ class Tag extends TagBase {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async create() {
-    let info = this['request'].body
+    let info = this.request.body
     info.name = info.name.replace(/(^\s*)|(\s*$)/g, '')
 
     info.type = 'tag'
-    if (this['bucket']) info.bucket = this['bucket'].name
+    if (this.bucket && typeof this.bucket === 'object')
+      info.bucket = this.bucket.name
 
     // 查询是否存在同名标签
-    let existTag = await this['tagHelper'].tagByName(info.name)
+    let existTag = await this.tagHelper.tagByName(info.name)
     if (existTag) return new ResultFault('已存在同名标签')
 
-    return this['clMongoObj'].insertOne(info).then((result) => {
+    return this.clMongoObj.insertOne(info).then((result) => {
       info._id = result.insertedId
       return new ResultData(info)
     })
@@ -98,19 +99,19 @@ class Tag extends TagBase {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async update() {
-    const { id } = this['request'].query
-    let info = this['request'].body
+    const { id } = this.request.query
+    let info = this.request.body
 
     // 查询是否存在同名标签
-    let existTag = await this['tagHelper'].tagByName(info.name)
+    let existTag = await this.tagHelper.tagByName(info.name)
     if (existTag) return new ResultFault('已存在同名标签')
 
-    let query = { _id: new ObjectId(id), type: 'tag' }
-    if (this['bucket']) query['bucket'] = this['bucket'].name
+    let query: any = { _id: new ObjectId(id), type: 'tag' }
+    if (this.bucket) query.bucket = this.bucket.name
 
     info = _.omit(info, ['_id', 'type', 'bucket'])
 
-    return this['clMongoObj']
+    return this.clMongoObj
       .updateOne(query, { $set: info }, { upsert: true })
       .then(() => {
         return new ResultData(info)
@@ -138,11 +139,11 @@ class Tag extends TagBase {
    *
    */
   async remove() {
-    const { name } = this['request'].query
+    const { name } = this.request.query
     if (!name) return new ResultFault('参数不完整')
 
     // 是否正在使用
-    let rst = await this['clMongoObj'].findOne({
+    let rst = await this.clMongoObj.findOne({
       tags: { $elemMatch: { $eq: name } },
       type: 'schema',
     })
@@ -150,9 +151,11 @@ class Tag extends TagBase {
     if (rst) {
       return new ResultFault('标签正在被使用不能删除')
     }
-    const query = { name: name, type: 'tag' }
-    if (this['bucket']) query['bucket'] = this['bucket'].name
-    return this['clMongoObj'].deleteOne(query).then(() => new ResultData('ok'))
+
+    const query: any = { name: name, type: 'tag' }
+    if (this.bucket) query.bucket = this.bucket.name
+
+    return this.clMongoObj.deleteOne(query).then(() => new ResultData('ok'))
   }
 }
 

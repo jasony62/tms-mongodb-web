@@ -5,6 +5,7 @@ type Globalsettings = {
   backApiPort: number
   loginCaptchaDisabled: boolean
   externalFsUrl: string
+  tmwAppTags: string // 标签字段名称
   compact: boolean // 精简模式，在iframe打开时使用
   manual?: any // 在线用户手册
 }
@@ -18,6 +19,7 @@ let _globalsettings: Globalsettings = {
     import.meta.env.VITE_LOGIN_CAPTCHA_DISABLED
   ),
   externalFsUrl: import.meta.env.VITE_EXTERNAL_FS_URL,
+  tmwAppTags: import.meta.env.VITE_TMW_APP_TAGS || 'TMW_TAGS',
   compact: false,
 }
 /**
@@ -33,6 +35,7 @@ export function init(settings: Globalsettings) {
     _globalsettings.loginCaptchaDisabled = settings.loginCaptchaDisabled
   if (settings.externalFsUrl)
     _globalsettings.externalFsUrl = settings.externalFsUrl
+  if (settings.tmwAppTags) _globalsettings.tmwAppTags = settings.tmwAppTags
   if (settings.compact === true) _globalsettings.compact = true
   if (settings.manual && typeof settings.manual === 'object')
     _globalsettings.manual = settings.manual
@@ -102,25 +105,26 @@ export const FS_BASE_URL = () => {
 
   return url
 }
-
 /**
  * 关闭验证码
  */
 export const LOGIN_CAPTCHA_DISABLED = () => _globalsettings.loginCaptchaDisabled
-
 /**
  * 外部文件服务地址
  */
 export const EXTERNAL_FS_URL = () => _globalsettings.externalFsUrl
-
+/**
+ * 标签数据字段名
+ * @returns
+ */
+export const TMW_APP_TAGS = () => _globalsettings.tmwAppTags
 /**
  * 精简模式
  */
 export const COMPACT_MODE = () => _globalsettings.compact
 
 // 默认的文档对象说明模板
-const DocManualTpl =
-  '<div class="p-4 flex flex-col gap-2"> <div>ID: {{ doc._id }}</div> <div>API: /open/document/get?bucket=&db={{dbName}}&cl={{clName}}&id={{doc._id}}</div> </div>'
+const DocManualTpl = `<div class="p-4 flex flex-col gap-2"> <div>ID: {{ doc._id }}</div><div>TAGS: {{doc.${TMW_APP_TAGS()}}}</div> </div>`
 
 /**
  * 文档对象在线用户手册

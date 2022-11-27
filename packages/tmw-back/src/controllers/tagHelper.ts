@@ -10,8 +10,9 @@ class TagHelper extends Helper {
    * @param {string} name
    */
   async tagByName(name) {
-    const query = { name, type: 'tag' }
-    if (this.ctrl.bucket) query['bucket'] = this.ctrl.bucket.name
+    const query: any = { name, type: 'tag' }
+    if (this.ctrl.bucket && typeof this.ctrl.bucket === 'object')
+      query.bucket = this.ctrl.bucket.name
 
     const tag = await this.clMongoObj.findOne(query)
 
