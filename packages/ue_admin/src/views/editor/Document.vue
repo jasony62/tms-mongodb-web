@@ -15,7 +15,6 @@
     </div>
     <div class="p-2 border border-gray-200 mb-2 rounded-md text-center">
       <el-button type="primary" @click="onSubmit">提交</el-button>
-      <el-button type="default" @click="openDrawer" v-if="!COMPACT">分屏</el-button>
     </div>
     <div class="flex flex-row gap-4 h-full overflow-auto px-4 pb-4" v-if="collection._id && (!docId || document._id)">
       <div class="w-1/3 h-full overflow-auto">
@@ -58,11 +57,6 @@
         </div>
       </div>
     </div>
-    <el-drawer v-model="assistant" size="60%" :with-header="false">
-      <div class="h-full w-full relative">
-        <iframe class="assistant" src="/admin/home?compact=Y"></iframe>
-      </div>
-    </el-drawer>
     <el-drawer v-model="pasteDocPanel" size="50%" :with-header="false">
       <div class="h-full w-full relative flex flex-col gap-4">
         <div class="flex-grow">
@@ -83,7 +77,7 @@
 import { computed, nextTick, ref, inject, watch } from 'vue'
 import TmsJsonDoc, { Field, DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
-import { EXTERNAL_FS_URL, getLocalToken, COMPACT_MODE, TMW_APP_TAGS } from '@/global'
+import { EXTERNAL_FS_URL, getLocalToken, TMW_APP_TAGS } from '@/global'
 import apiTag from '@/apis/tag'
 import apiCl from '@/apis/collection'
 import apiDoc from '@/apis/document'
@@ -101,8 +95,6 @@ import 'tms-template-viz/dist/style.css'
 import JsonDiagramX6 from '@/components/JsonDiagramX6.vue'
 import { dialogInjectionKey } from 'gitart-vue-dialog'
 import PropValueEditor from '@/components/PropValueEditor.vue'
-
-const COMPACT = computed(() => COMPACT_MODE())
 
 // 系统指定的标签字段名称
 const TagsFieldName = TMW_APP_TAGS()
@@ -505,17 +497,11 @@ const onSubmit = () => {
   }
 }
 
-const assistant = ref(false)
-
 // 全部标签
 const tags = ref<any[]>([])
 
 // 文档上的标签
 const docTags = ref<string[]>([])
-
-const openDrawer = () => {
-  assistant.value = true
-}
 
 apiCl.byName(bucketName, dbName, clName).then((cl: any) => {
   collection.value = cl
@@ -544,9 +530,5 @@ if (docId)
     }
   }
 
-  .assistant {
-    border: 0;
-    @apply h-full w-full;
-  }
 }
 </style>
