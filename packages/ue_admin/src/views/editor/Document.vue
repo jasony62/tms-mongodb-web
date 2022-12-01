@@ -15,6 +15,7 @@
     </div>
     <div class="p-2 border border-gray-200 mb-2 rounded-md text-center">
       <el-button type="primary" @click="onSubmit">提交</el-button>
+      <el-button v-for="ep in etlPlugins" type="success" @click="handleExtract(ep)">{{ ep.title }}</el-button>
     </div>
     <div class="flex flex-row gap-4 h-full overflow-auto px-4 pb-4" v-if="collection._id && (!docId || document._id)">
       <div class="w-1/3 h-full overflow-auto">
@@ -81,6 +82,7 @@ import { EXTERNAL_FS_URL, getLocalToken, TMW_APP_TAGS } from '@/global'
 import apiTag from '@/apis/tag'
 import apiCl from '@/apis/collection'
 import apiDoc from '@/apis/document'
+import apiEtl from '@/apis/etl'
 import useClipboard from 'vue-clipboard3'
 import * as _ from 'lodash'
 import Debug from 'debug'
@@ -95,6 +97,7 @@ import 'tms-template-viz/dist/style.css'
 import JsonDiagramX6 from '@/components/JsonDiagramX6.vue'
 import { dialogInjectionKey } from 'gitart-vue-dialog'
 import PropValueEditor from '@/components/PropValueEditor.vue'
+import { useAssistant } from '@/composables/assistant'
 
 // 系统指定的标签字段名称
 const TagsFieldName = TMW_APP_TAGS()
@@ -110,7 +113,6 @@ const props = defineProps({
 
 const { bucketName, dbName, clName, docId } = props
 const $jde = ref<{ editing: () => any; editDoc: DocAsArray } | null>(null)
-// const plugins: any[] = []
 
 const collection = ref<any>({ schema: { body: {} } })
 
@@ -496,6 +498,30 @@ const onSubmit = () => {
     }
   }
 }
+/**
+ * 执行ETL插件的提取操作
+ */
+const handleExtract = (etl: any) => {
+  const resultListener = async (event: MessageEvent) => {
+    window.removeEventListener('message', resultListener)
+    const { data, origin } = event
+    if (data?.action === 'extract.close') {
+      let docIds = data?.docIds
+      if (Array.isArray(docIds) && docIds.length) {
+        const result = await apiEtl.transform(bucketName, etl._id, docIds)
+        if (Array.isArray(result) && result.length)
+          for (let key in result[0])
+            $jde.value?.editDoc.set(key, result[0][key])
+      }
+      opened.value = false
+    }
+  }
+  window.addEventListener('message', resultListener)
+  let options: any = { extract: true, dbName: 'e2e5gmx_addrbook', clName: 'account' }
+  if (etl?.rules?.multiple !== true) options.multiple = false
+  const { opened } = useAssistant(options)
+  opened.value = true
+}
 
 // 全部标签
 const tags = ref<any[]>([])
@@ -508,6 +534,13 @@ apiCl.byName(bucketName, dbName, clName).then((cl: any) => {
 })
 apiTag.list(bucketName).then((datas: any) => {
   tags.value.push(...datas)
+})
+/**
+ * etl插件
+ */
+const etlPlugins = ref<any[]>([])
+apiEtl.findForDst(bucketName, dbName, clName, 'document').then((etls: any) => {
+  etls.forEach((etl: any) => etlPlugins.value.push(etl))
 })
 
 if (docId)

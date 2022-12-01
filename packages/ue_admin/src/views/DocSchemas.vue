@@ -38,8 +38,8 @@ import { Batch } from 'tms-vue3'
 import { useRouter } from 'vue-router'
 
 import facStore from '@/store'
-import { openDbEditor, openTagEditor, openReplicaEditor, openSchemaEditor } from '@/components/editor'
-import { EXTERNAL_FS_URL, getLocalToken, COMPACT_MODE } from '@/global'
+import { openSchemaEditor } from '@/components/editor'
+import { COMPACT_MODE } from '@/global'
 
 const COMPACT = computed(() => COMPACT_MODE())
 

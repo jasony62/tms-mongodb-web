@@ -22,8 +22,6 @@ const externalFsUrl = computed(() => {
 
 const props = defineProps({ bucketName: String })
 
-const activeTab = ref('database')
-
 onMounted(() => {
   let bucket = props.bucketName
 })

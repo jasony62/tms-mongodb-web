@@ -80,7 +80,7 @@ class Document extends Base {
       if (attrs.format === 'password') {
         let val = _.get(existDoc, fullname)
         if (val && typeof val === 'string') {
-          let decrypted = AES.decrypt(val, process.env.TMW_APP_DATA_CIPHER_KEY)
+          let decrypted = AES.decrypt(val)
           _.set(existDoc, fullname, decrypted)
         }
       }
@@ -125,10 +125,7 @@ class Document extends Base {
           result.docs.forEach((doc) => {
             let val = _.get(doc, fullname)
             if (val && typeof val === 'string') {
-              let decrypted = AES.decrypt(
-                val,
-                process.env.TMW_APP_DATA_CIPHER_KEY
-              )
+              let decrypted = AES.decrypt(val)
               _.set(doc, fullname, decrypted)
             }
           })
@@ -161,7 +158,7 @@ class Document extends Base {
       if (attrs.format === 'password') {
         let val = _.get(existDoc, fullname)
         if (val && typeof val === 'string') {
-          let decrypted = AES.decrypt(val, process.env.TMW_APP_DATA_CIPHER_KEY)
+          let decrypted = AES.decrypt(val)
           _.set(existDoc, fullname, decrypted)
         }
       }

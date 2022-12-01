@@ -6,10 +6,12 @@ export class AES {
   /**
    * 对输入的文本进行加密
    * @param text
-   * @param key
    */
-  static encrypt(text, key): string {
-    let utf8Key = CryptoJS.enc.Utf8.parse(key).toString()
+  static encrypt(text): string {
+    const CIPHER_KEY = process.env.TMW_APP_DATA_CIPHER_KEY
+    if (!CIPHER_KEY) return text
+
+    let utf8Key = CryptoJS.enc.Utf8.parse(CIPHER_KEY).toString()
 
     let encrypted = CryptoJS.AES.encrypt(text, utf8Key, {
       mode: CryptoJS.mode.ECB,
@@ -22,10 +24,11 @@ export class AES {
   /**
    * 对输入的文本进行解密
    * @param text
-   * @param key
    */
-  static decrypt(text, key): string {
-    let utf8Key = CryptoJS.enc.Utf8.parse(key).toString()
+  static decrypt(text): string {
+    const CIPHER_KEY = process.env.TMW_APP_DATA_CIPHER_KEY
+    if (!CIPHER_KEY) return text
+    let utf8Key = CryptoJS.enc.Utf8.parse(CIPHER_KEY).toString()
     let decrypted = CryptoJS.AES.decrypt(text, utf8Key, {
       mode: CryptoJS.mode.ECB,
       padding: CryptoJS.pad.Pkcs7,

@@ -7,6 +7,8 @@ type Globalsettings = {
   externalFsUrl: string
   tmwAppTags: string // 标签字段名称
   compact: boolean // 精简模式，在iframe打开时使用
+  extract: boolean // 提取数据模式，在iframe打开时使用
+  multiple: boolean // 提取数据模式下，是否支持多选
   manual?: any // 在线用户手册
 }
 
@@ -21,6 +23,8 @@ let _globalsettings: Globalsettings = {
   externalFsUrl: import.meta.env.VITE_EXTERNAL_FS_URL,
   tmwAppTags: import.meta.env.VITE_TMW_APP_TAGS || 'TMW_TAGS',
   compact: false,
+  extract: false,
+  multiple: true,
 }
 /**
  * 根据在线获取的全局设置
@@ -37,6 +41,8 @@ export function init(settings: Globalsettings) {
     _globalsettings.externalFsUrl = settings.externalFsUrl
   if (settings.tmwAppTags) _globalsettings.tmwAppTags = settings.tmwAppTags
   if (settings.compact === true) _globalsettings.compact = true
+  if (settings.extract === true) _globalsettings.extract = true
+  if (settings.multiple === false) _globalsettings.multiple = false
   if (settings.manual && typeof settings.manual === 'object')
     _globalsettings.manual = settings.manual
 }
@@ -122,6 +128,14 @@ export const TMW_APP_TAGS = () => _globalsettings.tmwAppTags
  * 精简模式
  */
 export const COMPACT_MODE = () => _globalsettings.compact
+/**
+ * 提取数据模式
+ */
+export const EXTRACT_MODE = () => _globalsettings.extract
+/**
+ * 提取数据模式，是否多选
+ */
+export const MULTIPLE_MODE = () => _globalsettings.multiple
 
 // 默认的文档对象说明模板
 const DocManualTpl = `<div class="p-4 flex flex-col gap-2"> <div>ID: {{ doc._id }}</div><div>TAGS: {{doc.${TMW_APP_TAGS()}}}</div> </div>`

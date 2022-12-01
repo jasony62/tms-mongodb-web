@@ -468,17 +468,16 @@ class DocBase extends Base {
    *  根据某一列的值分组
    */
   async getGroupByColumnVal() {
-    const existCl = await this['docHelper'].findRequestCl()
+    const existCl = await this.docHelper.findRequestCl()
 
-    let { column, page = null, size = null } = this['request'].query
-    let { filter } = this['request'].body
+    let { column, page = null, size = null } = this.request.query
+    let { filter } = this.request.body
 
-    let cl = this['docHelper'].findSysColl(existCl)
+    let cl = this.docHelper.findSysColl(existCl)
 
     let find = {}
-    if (filter) {
-      find = this['modelDoc'].assembleQuery(filter)
-    }
+    if (filter) find = this.modelDoc.assembleQuery(filter)
+
     let group = [
       {
         $match: find,
@@ -527,21 +526,21 @@ class DocBase extends Base {
    * 返回指定文档的完成度
    */
   async getDocCompleteStatusById() {
-    const existCl = await this['docHelper'].findRequestCl()
+    const existCl = await this.docHelper.findRequestCl()
 
-    let { docIds } = this['request'].body
+    let { docIds } = this.request.body
     if (!Array.isArray(docIds) || docIds.length === 0)
       return new ResultFault('没有要查询的数据')
 
     const docIds2 = docIds.map((id) => new ObjectId(id))
     const find = { _id: { $in: docIds2 } }
 
-    return this['docHelper']
+    return this.docHelper
       .findSysColl(existCl)
       .find(find)
       .toArray()
       .then(async (docs) => {
-        await this['modelDoc'].getDocCompleteStatus(existCl, docs)
+        await this.modelDoc.getDocCompleteStatus(existCl, docs)
         return docs
       })
   }
@@ -550,9 +549,7 @@ class DocBase extends Base {
    */
   async export() {
     let { filter, docIds, columns, exportType } = this.request.body
-    if (!exportType) {
-      return new ResultFault('缺少导出的文件类型参数')
-    }
+    if (!exportType) return new ResultFault('缺少导出的文件类型参数')
 
     let modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
 
@@ -571,13 +568,13 @@ class DocBase extends Base {
       return new ResultFault('没有要导出的数据')
     }
 
-    const existCl = await this['docHelper'].findRequestCl()
+    const existCl = await this.docHelper.findRequestCl()
     // 集合列
     let modelCl = new ModelCl(this.mongoClient, this.bucket, this.client)
     columns = columns ? columns : await modelCl.getSchemaByCollection(existCl)
     if (!columns) return new ResultFault('指定的集合没有指定集合列')
 
-    const client = this['mongoClient']
+    const client = this.mongoClient
     // 集合数据
     let data = await client
       .db(existCl.db.sysname)
@@ -588,7 +585,7 @@ class DocBase extends Base {
     let rst
     if (exportType === 'xlsx') {
       // 数据处理-针对单选多选转化
-      this['docHelper'].transformsCol('toLabel', data, columns)
+      this.docHelper.transformsCol('toLabel', data, columns)
 
       const { ExcelCtrl } = require('tms-koa/dist/controller/fs')
       rst = ExcelCtrl.export(columns, data, existCl.name + '.xlsx')

@@ -2,7 +2,12 @@
   <div class="flex flex-col gap-2">
     <!--header-->
     <div class="h-12 py-4 px-2">
-      <el-breadcrumb :separator-icon="ArrowRight">
+      <el-breadcrumb :separator-icon="ArrowRight" v-if="EXTRACT===true">
+        <el-breadcrumb-item>数据库</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ dbName }}</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ clName }}</el-breadcrumb-item>
+      </el-breadcrumb>
+      <el-breadcrumb :separator-icon="ArrowRight" v-else>
         <el-breadcrumb-item :to="{ name: 'databases' }">数据库</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'database', params: { dbName: dbName } }">{{ dbName }}</el-breadcrumb-item>
         <el-breadcrumb-item>{{ clName }}</el-breadcrumb-item>
@@ -11,10 +16,11 @@
     <!--content-->
     <div class="flex flex-row gap-2">
       <div class="flex flex-col gap-4" :class="COMPACT ? 'w-full' : 'w-4/5'">
-        <el-table id="tables" ref="tableRef" :data="store.documents" highlight-current-row stripe
-          @selection-change="handleSelectionChange" @row-click="handleRowClick">
+        <el-table id="tables" ref="tableRef" :cell-class-name="'tmw-table__cell'" :data="store.documents"
+          highlight-current-row stripe @selection-change="handleSelectionChange" @current-change="handleCurrentChange"
+          @row-click="handleRowClick">
           <el-table-column fixed="left" type="index" width="48"></el-table-column>
-          <el-table-column type="selection" width="40" />
+          <el-table-column type="selection" width="40" v-if="MULTIPLE !== false" />
           <el-table-column type="expand" width="40">
             <template #default="props">
               <div v-html="renderDocManual(props.row)"></div>
@@ -114,7 +120,7 @@
           </el-table-column>
         </el-table>
         <div class="flex flex-row gap-4 p-2 items-center justify-between">
-          <span>已选中 {{ data.multipleDoc.length }} 条数据</span>
+          <span>已选中 {{ selectedDocuments.length }} 条数据</span>
           <el-pagination layout="total, sizes, prev, pager, next" background :total="data.docBatch.total"
             :page-sizes="[10, 25, 50, 100]" :current-page="data.docBatch.page" :page-size="data.docBatch.size"
             @current-change="changeDocPage" @size-change="changeDocSize"></el-pagination>
@@ -123,6 +129,9 @@
       <div class="flex flex-col items-start space-y-3" v-if="!COMPACT">
         <div>
           <el-button @click="createDocument">添加文档</el-button>
+        </div>
+        <div v-for="ep in etlPlugins">
+          <el-button type="success" plain @click="handleExtract(ep)">{{ ep.title }}</el-button>
         </div>
         <div v-for="p in data.plugins" :key="p.name">
           <el-button v-if="p.amount === 'zero'" type="success" plain @click="handlePlugin(p)">{{ p.title }}
@@ -165,6 +174,17 @@
   </el-drawer>
 </template>
 
+<style scoped lang="scss">
+#tables :deep(tr.current-row>td.tmw-table__cell) {
+  @apply text-red-400;
+}
+
+.plugin-widget {
+  @apply h-full w-full border-0;
+}
+</style>
+
+
 <script setup lang="ts">
 import { onMounted, reactive, ref, computed, toRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -175,20 +195,28 @@ import * as Handlebars from 'handlebars'
 import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiPlugin from '@/apis/plugin'
+import apiEtl from '@/apis/etl'
+import apiDoc from '@/apis/document'
 import {
   getLocalToken,
   COMPACT_MODE,
   FS_BASE_URL,
   BACK_API_URL,
   DOC_MANUAL,
+  EXTRACT_MODE,
+  MULTIPLE_MODE,
 } from '@/global'
 
 import facStore from '@/store'
 import { openSelectConditionEditor } from '@/components/editor'
 import { useRouter } from 'vue-router'
 import { ElTable } from 'element-plus'
+import { useMitt } from '@/composables/mitt'
+import { useAssistant } from '@/composables/assistant'
 
 const COMPACT = computed(() => COMPACT_MODE())
+const EXTRACT = computed(() => EXTRACT_MODE())
+const MULTIPLE = computed(() => MULTIPLE_MODE())
 
 const elPluginWidget = ref<HTMLIFrameElement>()
 const showPluginWidget = ref(false)
@@ -217,7 +245,6 @@ const { bucketName, dbName, clName } = props
 
 const data = reactive({
   docBatch: new Batch(() => { }),
-  multipleDoc: [] as any[],
   properties: {} as any,
   documents: [] as any[],
   plugins: [] as any[],
@@ -323,6 +350,12 @@ const handleFilter = (schema: any, name: any) => {
 
 const handleSelectionChange = (rows: any) => {
   selectedDocuments.value = rows
+}
+
+const currentRow = ref()
+
+const handleCurrentChange = (row: any) => {
+  currentRow.value = row
 }
 
 const handleRowClick = (row: any) => {
@@ -601,6 +634,27 @@ const handlePlugin = (plugin: any, docScope = '') => {
     executePlugin(plugin, docScope)
   }
 }
+/**
+ * 执行ETL插件的提取操作
+ */
+const handleExtract = (etl: any) => {
+  const resultListener = async (event: MessageEvent) => {
+    window.removeEventListener('message', resultListener)
+    const { data, origin } = event
+    if (data?.action === 'extract.close') {
+      let docIds = data?.docIds
+      if (Array.isArray(docIds) && docIds.length) {
+        const result = await apiEtl.transform(bucketName, etl._id, docIds)
+        for (let proto of result) await apiDoc.create(bucketName, dbName, clName, proto)
+        listDocByKw()
+      }
+      opened.value = false
+    }
+  }
+  window.addEventListener('message', resultListener)
+  const { opened } = useAssistant({ extract: true, dbName: 'e2e5gmx_addrbook', clName: 'account' })
+  opened.value = true
+}
 
 const changeDocPage = (page: number) => {
   data.docBatch.goto(page)
@@ -668,6 +722,27 @@ const listDocByKw = () => {
   })
 }
 
+/**
+ * etl插件
+ */
+const etlPlugins = ref<any[]>([])
+apiEtl.findForDst(bucketName, dbName, clName, 'collection').then((etls: any) => {
+  etls.forEach((etl: any) => etlPlugins.value.push(etl))
+})
+
+if (EXTRACT) {
+  const emitter = useMitt()
+  emitter.on('extract.confirm', () => {
+    let docIds
+    if (MULTIPLE.value === false) {
+      docIds = currentRow.value._id ? [currentRow.value._id] : []
+    } else {
+      docIds = selectedDocuments.value.map(d => d._id)
+    }
+    emitter.emit('extract.confirm.result', docIds)
+  })
+}
+
 onMounted(async () => {
   collection = await apiCollection.byName(bucketName, dbName, clName)
   data.plugins = await apiPlugin.getCollectionDocPlugins(
@@ -679,9 +754,3 @@ onMounted(async () => {
   listDocByKw()
 })
 </script>
-<style scoped lang="scss">
-.plugin-widget {
-  border: 0;
-  @apply h-full w-full;
-}
-</style>

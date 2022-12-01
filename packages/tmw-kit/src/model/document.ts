@@ -350,8 +350,8 @@ class Document extends Base {
    */
   async list(
     existCl,
-    { filter, orderBy } = { filter: null, orderBy: null },
-    { page, size } = { page: 0, size: 0 },
+    { filter = null, orderBy = null } = {},
+    { page = 0, size = 0 } = {},
     like = true,
     projection = null
   ) {

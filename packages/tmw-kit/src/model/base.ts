@@ -123,53 +123,6 @@ class Base {
         break
     }
 
-    // if (feature === 'start') {
-    //   subQuery = { $regex: `^${fnKwRe(keyword)}` }
-    // } else if (feature === 'notStart') {
-    //   subQuery = { $not: { $regex: `^${fnKwRe(keyword)}` } }
-    // } else if (feature === 'end') {
-    //   subQuery = { $regex: `^.*${fnKwRe(keyword)}$` }
-    // } else if (feature === 'notEnd') {
-    //   subQuery = { $not: { $regex: `^.*${fnKwRe(keyword)}$` } }
-    // } else if (feature === 'notLike') {
-    //   subQuery = { $not: { $regex: fnKwRe(keyword) } }
-    // } else if (feature === 'in') {
-    //   if (Array.isArray(keyword)) subQuery = { $in: keyword }
-    // } else if (feature === 'nin') {
-    //   if (Array.isArray(keyword)) subQuery = { $nin: keyword }
-    // } else if (feature === 'between') {
-    //   if (Array.isArray(keyword) && keyword.length === 2)
-    //     subQuery = { $gte: keyword[0], $lte: keyword[1] }
-    // } else if (feature === 'eq') {
-    //   subQuery = { $eq: keyword }
-    // } else if (feature === 'ne') {
-    //   subQuery = { $ne: keyword }
-    // } else if (feature === 'exists') {
-    //   if ([true, false].includes(keyword)) {
-    //     subQuery = { $exists: keyword }
-    //   }
-    // } else if (feature === 'all') {
-    //   if (Array.isArray(keyword)) subQuery = { $all: keyword }
-    // } else if (feature === 'elemMatch') {
-    //   if (
-    //     Object.prototype.toString.call(keyword).toLowerCase() ===
-    //     '[object object]'
-    //   )
-    //     subQuery = { $elemMatch: keyword }
-    // } else if (feature === 'size') {
-    //   if (isNaN(keyword) === false) {
-    //     subQuery = { $size: +keyword }
-    //   }
-    // } else if (!feature && ![null, '', undefined].includes(keyword)) {
-    //   if (typeof keyword === 'string') {
-    //     subQuery = { $regex: fnKwRe(keyword) }
-    //   } else if ([true, false].includes(keyword)) {
-    //     subQuery = keyword
-    //   } else if (isNaN(keyword) === false) {
-    //     subQuery = keyword
-    //   }
-    // }
-
     return subQuery
   }
   /**
@@ -233,11 +186,12 @@ class Base {
             if (attrs.format === 'password') {
               let val = _.get(data, fullname)
               if (val && typeof val === 'string') {
-                let encrypted = AES.encrypt(
-                  val,
-                  process.env.TMW_APP_DATA_CIPHER_KEY
-                )
-                _.set(data, fullname, encrypted)
+                let test = AES.decrypt(val)
+                if (!test) {
+                  // 没有做过加密
+                  let encrypted = AES.encrypt(val)
+                  _.set(data, fullname, encrypted)
+                }
               }
             }
           }
@@ -252,6 +206,7 @@ class Base {
           /**
            * 所有密码格式的属性都需要加密存储
            * 只有数据发生变化时才会进行处理，避免对加密的数据加密
+           * 如果已经是系统加密过的数据不会再次加密
            */
           const schemaIter = new SchemaIter({
             type: 'object',
@@ -261,14 +216,18 @@ class Base {
             let { fullname, attrs } = schemaProp
             if (attrs.format === 'password') {
               let newVal = _.get(data, fullname)
-              let oldVal = _.get(existData, fullname)
-              if (newVal !== oldVal) {
-                if (newVal && typeof newVal === 'string') {
-                  let encrypted = AES.encrypt(
-                    newVal,
-                    process.env.TMW_APP_DATA_CIPHER_KEY
-                  )
-                  _.set(data, fullname, encrypted)
+              if (newVal && typeof newVal === 'string') {
+                // 设置过密码后，不能把密码改为空
+                let test = AES.decrypt(newVal)
+                if (!test) {
+                  // 空字符串，没有做过加密处理
+                  let oldVal = _.get(existData, fullname)
+                  if (newVal !== oldVal) {
+                    if (newVal && typeof newVal === 'string') {
+                      let encrypted = AES.encrypt(newVal)
+                      _.set(data, fullname, encrypted)
+                    }
+                  }
                 }
               }
             }
