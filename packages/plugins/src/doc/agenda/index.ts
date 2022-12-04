@@ -147,13 +147,14 @@ export function createPlugin(file: string) {
   let config
   if (ConfigFile) config = loadConfig(ConfigDir, ConfigFile)
   if (config && typeof config === 'object') {
-    let { widgetUrl, bucket, db, cl, title, jobFields } = config
+    let { widgetUrl, bucket, db, cl, schema, title, jobFields } = config
     const newPlugin = new AgendaDocPlugin(file)
     newPlugin.beforeWidget.url = widgetUrl
 
     if (bucket) newPlugin.bucketName = new RegExp(bucket)
     if (db) newPlugin.dbName = new RegExp(db)
     if (cl) newPlugin.clName = new RegExp(cl)
+    if (schema) newPlugin.schemaName = new RegExp(schema)
 
     if (title && typeof title === 'string') newPlugin.title = title
 

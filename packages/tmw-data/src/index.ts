@@ -45,6 +45,10 @@ export interface PluginProfile {
    */
   clName?: RegExp
   /**
+   * 和文档列定义名称匹配的正则表达式
+   */
+  schemaName?: RegExp
+  /**
    * 管理对象中不允许包含的标签的名称数组
    */
   excludeTags?: string[]

@@ -3,6 +3,7 @@ const {
   TMW_PLUGIN_DOC_AGENDA_BUCKET: Bucket,
   TMW_PLUGIN_DOC_AGENDA_DB: Db,
   TMW_PLUGIN_DOC_AGENDA_CL: Cl,
+  TMW_PLUGIN_DOC_AGENDA_SCHEMA: Schema,
   TMW_PLUGIN_DOC_AGENDA_TITLE: Title,
   TMW_PLUGIN_DOC_AGENDA_WIDGET_URL,
   TMW_PLUGIN_DOC_AGENDA_JOB_NAME_FIELD: JobNameField,
@@ -20,6 +21,7 @@ module.exports = {
   bucket: Bucket,
   db: Db,
   cl: Cl,
+  schema: Schema || 'tmw_agenda',
   jobFields: {
     name: JobNameField ? JobNameField : 'name',
     interval: JobIntervalField ? JobIntervalField : 'interval',

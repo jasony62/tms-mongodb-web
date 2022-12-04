@@ -3,16 +3,17 @@
     <div :class="COMPACT ? 'w-full' : 'w-4/5'">
       <div class="flex flex-col gap-2">
         <el-table :data="store.documentSchemas" stripe>
-          <el-table-column label="名称" width="180">
+          <el-table-column label="定义名称" width="180">
             <template #default="scope">
               <router-link
                 :to="{ name: 'schemaEditor', params: { bucketName, scope: 'document', schemaId: scope.row._id } }">
                 {{
-                    scope.row.title
+                    scope.row.name
                 }}
               </router-link>
             </template>
           </el-table-column>
+          <el-table-column prop="title" label="名称" width="180"></el-table-column>
           <el-table-column prop="description" label="说明"></el-table-column>
           <el-table-column label="操作" width="180">
             <template #default="scope">

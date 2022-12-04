@@ -16,6 +16,7 @@ export abstract class PluginBase implements PluginProfile {
   bucketName?: RegExp // 和存储空间名称匹配的正则表达式
   dbName?: RegExp // 和数据库名称匹配的正则表达式
   clName?: RegExp // 和集合名称匹配的正则表达式
+  schemaName?: RegExp // 和文档列定义名称匹配的正则表达式
   excludeTags?: string[]
   everyTags?: string[]
   someTags?: string[]
@@ -117,6 +118,7 @@ export abstract class PluginBase implements PluginProfile {
       bucketName,
       dbName,
       clName,
+      schemaName,
       excludeTags,
       everyTags,
       someTags,
@@ -134,6 +136,7 @@ export abstract class PluginBase implements PluginProfile {
       bucketName,
       dbName,
       clName,
+      schemaName,
       excludeTags,
       everyTags,
       someTags,

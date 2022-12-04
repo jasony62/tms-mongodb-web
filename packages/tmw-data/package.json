@@ -1,6 +1,6 @@
 {
   "name": "tmw-data",
-  "version": "0.0.3",
+  "version": "0.0.17",
   "description": "TMW数据结构",
   "main": "./dist/esm/index.js",
   "exports": {

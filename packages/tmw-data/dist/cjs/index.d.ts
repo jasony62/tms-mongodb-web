@@ -9,6 +9,7 @@ export interface PluginProfile {
     bucketName?: RegExp;
     dbName?: RegExp;
     clName?: RegExp;
+    schemaName?: RegExp;
     excludeTags?: string[];
     everyTags?: string[];
     someTags?: string[];

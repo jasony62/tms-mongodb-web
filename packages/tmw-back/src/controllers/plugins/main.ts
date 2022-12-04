@@ -1,7 +1,7 @@
 const _ = require('lodash')
 import { ResultFault, ResultData } from 'tms-koa'
 import PluginHelper from './pluginHelper'
-import { PluginContext } from 'tmw-kit'
+import { PluginContext, ModelSchema } from 'tmw-kit'
 import { PluginProfile } from 'tmw-data'
 import { Base as CtrlBase } from 'tmw-kit/dist/ctrl'
 
@@ -14,6 +14,27 @@ class Plugin extends CtrlBase {
   constructor(...args) {
     super(...args)
     this.pluginHelper = new PluginHelper(this)
+  }
+  /**
+   *
+   * @param schema_id
+   * @returns
+   */
+  private async getClSchema(schema_id: string) {
+    const modelSchema = new ModelSchema(
+      this.mongoClient,
+      this.bucket,
+      this.client
+    )
+
+    // 集合的schema定义
+    let clSchema
+    if (schema_id && typeof schema_id === 'string')
+      clSchema = await modelSchema.bySchemaId(schema_id, {
+        onlyProperties: false,
+      })
+
+    return clSchema
   }
   /**
    * @swagger
@@ -57,9 +78,10 @@ class Plugin extends CtrlBase {
         : ins.dbPlugins
 
     /**检查标签是否匹配 */
-    let objTags
+    let objTags, existCl, clSchema
     if (scope === 'document') {
-      const existCl = await this.pluginHelper.findRequestCl()
+      existCl = await this.pluginHelper.findRequestCl()
+      clSchema = await this.getClSchema(existCl.schema_id)
       objTags = Array.isArray(existCl.tags) ? existCl.tags : []
     } else {
       objTags = []
@@ -67,9 +89,15 @@ class Plugin extends CtrlBase {
 
     /**进行筛选*/
     plugins = plugins.filter((plugin) => {
-      let { bucketName, dbName, clName, excludeTags, everyTags, someTags } =
-        plugin
-
+      let {
+        bucketName,
+        dbName,
+        clName,
+        schemaName,
+        excludeTags,
+        everyTags,
+        someTags,
+      } = plugin
       if (bucketName && bucketName instanceof RegExp && this.bucket) {
         if (bucketName.test(this.bucket) === false) return false
       }
@@ -79,6 +107,10 @@ class Plugin extends CtrlBase {
 
       if (clName && clName instanceof RegExp) {
         if (clName.test(cl) === false) return false
+      }
+      if (schemaName && schemaName instanceof RegExp) {
+        if (!clSchema?.name) return false
+        if (schemaName.test(clSchema.name) === false) return false
       }
 
       // 集合标签中不能包括指定的标签

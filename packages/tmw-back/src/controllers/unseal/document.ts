@@ -114,7 +114,7 @@ class Document extends Base {
 
     if (result.total) {
       /**解封加密数据*/
-      const clSchema = this.getClSchema(schema_id)
+      const clSchema = await this.getClSchema(schema_id)
       const schemaIter = new SchemaIter({
         type: 'object',
         properties: clSchema,

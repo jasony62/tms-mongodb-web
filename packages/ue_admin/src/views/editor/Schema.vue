@@ -16,11 +16,14 @@
       </el-tabs>
       <div class="overflow-auto flex-grow h-full">
         <el-form v-show="activeTab === 'first'" :model="schema" label-position="top" class="w-1/3">
+          <el-form-item label="列定义名称（英文）" prop="name">
+            <el-input v-model="schema.name"></el-input>
+          </el-form-item>
           <el-form-item label="显示名（中文）">
-            <el-input v-model="schema.title"></el-input>
+            <el-input v-model="schema.title" :disabled="true"></el-input>
           </el-form-item>
           <el-form-item label="说明">
-            <el-input type="textarea" v-model="schema.description"></el-input>
+            <el-input type="textarea" v-model="schema.description" :disabled="true"></el-input>
           </el-form-item>
           <el-form-item label="标签">
             <el-select v-model="schema.tags" multiple clearable placeholder="请选择">
@@ -101,7 +104,7 @@ const title = computed(() => {
 const activeTab = ref('first')
 const tags = reactive([] as any[])
 
-const schema = ref({ title: '', description: '', scope: scope, tags: [], body: {} })
+const schema = ref({ name: '', title: '', description: '', scope: scope, tags: [], body: {} })
 const previewResult = ref('')
 
 const onUploadFile = (file: any) => {
@@ -184,8 +187,12 @@ const onMessage = (msg: string) => {
 
 const onSubmit = () => {
   let newBody = $jse.value?.editing()
-  if (newBody)
+  if (newBody) {
+    let { title, description } = newBody
+    schema.value.title = title
+    schema.value.description = description
     Object.assign(schema.value.body, newBody)
+  }
   if (editingSchemaId.value) {
     apiSchema
       .update(bucketName, editingSchemaId.value, schema.value)
@@ -214,6 +221,9 @@ apiTag.list(bucketName).then((datas: any) => {
 
 if (props.schemaId) {
   apiSchema.get(bucketName, props.schemaId).then((data: any) => {
+    let { title, description } = data
+    data.body.title = title
+    data.body.description = description
     schema.value = data
   })
 }

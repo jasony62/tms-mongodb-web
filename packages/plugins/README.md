@@ -121,6 +121,7 @@ module.exports = {
 | bucketName       | 匹配的存储空间名称。                           | RegExp | 无         | 否   |
 | dbName           | 匹配的数据库名称。                             | RegExp | 无         | 否   |
 | clName           | 匹配的集合名称。                               | RegExp | 无         | 否   |
+| schemaName       | 匹配的文档列定义名称。                         | RegExp | 无         | 否   |
 | jobFields        | 任务字段和文档字段的对应关系。                 | Object |            | 是   |
 | --name           | 任务名称字段。                                 | string | name       | 是   |
 | --interval       | 执行计划字段。                                 | string | interval   | 是   |
@@ -140,6 +141,7 @@ const {
   TMW_PLUGIN_DOC_AGENDA_BUCKET: Bucket,
   TMW_PLUGIN_DOC_AGENDA_DB: Db,
   TMW_PLUGIN_DOC_AGENDA_CL: Cl,
+  TMW_PLUGIN_DOC_AGENDA_SCHEMA: Schema,
   TMW_PLUGIN_DOC_AGENDA_TITLE: Title,
   TMW_PLUGIN_DOC_AGENDA_WIDGET_URL,
   TMW_PLUGIN_DOC_AGENDA_JOB_NAME_FIELD: JobNameField,
@@ -157,6 +159,7 @@ module.exports = {
   bucket: Bucket,
   db: Db,
   cl: Cl,
+  schema: Schema || 'tmw_agenda',
   jobFields: {
     name: JobNameField ? JobNameField : 'name',
     interval: JobIntervalField ? JobIntervalField : 'interval',
@@ -182,6 +185,7 @@ module.exports = {
 | bucketName       | 匹配的存储空间名称。                           | RegExp | 无                 | 否   |
 | dbName           | 匹配的数据库名称。                             | RegExp | 无                 | 否   |
 | clName           | 匹配的集合名称。                               | RegExp | 无                 | 否   |
+| schemaName       | 匹配的文档列定义名称。                         | RegExp | 无                 | 否   |
 | **部件基本信息** |                                                |        |                    |      |
 | beforeWidget     |                                                |        |                    |      |
 | --name           | 部件名称。指明是自定义外部部件。               | string | external           | 是   |
@@ -198,17 +202,20 @@ const {
   TMW_PLUGIN_DOC_CREATE_ACCOUNT_BUCKET: Bucket,
   TMW_PLUGIN_DOC_CREATE_ACCOUNT_DB: Db,
   TMW_PLUGIN_DOC_CREATE_ACCOUNT_CL: Cl,
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_SCHEMA: Schema,
   TMW_PLUGIN_DOC_CREATE_ACCOUNT_TITLE: Title,
-  TMW_PLUGIN_DOC_CREATE_ACCOUNT_WIDGET_URL
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_WIDGET_URL,
 } = process.env
 
 module.exports = {
-  widgetUrl: TMW_PLUGIN_DOC_CREATE_ACCOUNT_WIDGET_URL || '/plugin/doc-create-account',
+  widgetUrl:
+    TMW_PLUGIN_DOC_CREATE_ACCOUNT_WIDGET_URL || '/plugin/doc-create-account',
   name: Name ? Name : 'doc-create-account',
   title: Title ? Title : '创建账号',
   bucket: Bucket,
   db: Db,
-  cl: Cl
+  cl: Cl,
+  schema: Schema,
 }
 ```
 
@@ -226,6 +233,7 @@ module.exports = {
 | bucketName       | 匹配的存储空间名称。                           | RegExp  | 无                 | 否   |
 | dbName           | 匹配的数据库名称。                             | RegExp  | 无                 | 否   |
 | clName           | 匹配的集合名称。                               | RegExp  | 无                 | 否   |
+| schemaName       | 匹配的文档列定义名称。                         | RegExp  | 无                 | 否   |
 | **部件基本信息** |                                                |         |                    |      |
 | beforeWidget     |                                                |         |                    |      |
 | --name           | 部件名称。指明是自定义外部部件。               | string  | external           | 是   |
@@ -243,17 +251,19 @@ const {
   TMW_PLUGIN_DOC_MANAGE_ACCOUNT_BUCKET: Bucket,
   TMW_PLUGIN_DOC_MANAGE_ACCOUNT_DB: Db,
   TMW_PLUGIN_DOC_MANAGE_ACCOUNT_CL: Cl,
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_SCHEMA: Schema,
   TMW_PLUGIN_DOC_MANAGE_ACCOUNT_TITLE: Title,
-  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_WIDGET_URL
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_WIDGET_URL,
 } = process.env
 
 module.exports = {
-  widgetUrl: TMW_PLUGIN_DOC_MANAGE_ACCOUNT_WIDGET_URL || '/plugin/doc-manage-account',
+  widgetUrl:
+    TMW_PLUGIN_DOC_MANAGE_ACCOUNT_WIDGET_URL || '/plugin/doc-manage-account',
   name: Name ? Name : 'doc-manage-account',
   title: Title ? Title : '账号管理',
   bucket: Bucket,
   db: Db,
-  cl: Cl
+  cl: Cl,
+  schema: Schema,
 }
 ```
-
