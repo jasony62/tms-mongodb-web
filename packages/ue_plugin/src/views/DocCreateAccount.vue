@@ -1,20 +1,13 @@
 <template>
   <div class="flex flex-col gap-4 h-full w-full">
     <div>
-      <el-form label-position="top" size="large">
-        <el-form-item label="用户名">
-          <el-input type="text" v-model="userInput.username" placeholder="请输入用户名" :disabled="!enableInput.username" />
-        </el-form-item>
-        <el-form-item label="密码">
-          <el-input type="password" v-model="userInput.password" placeholder="请输入密码" show-password
-            :disabled="!enableInput.password" />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="onExecute" :disabled="!userInput.username">执行</el-button>
-          <el-button @click="onCancel" v-if="!executed">取消</el-button>
-          <el-button @click="onClose" v-if="executed">关闭</el-button>
-        </el-form-item>
-      </el-form>
+      <tms-json-doc v-if="loading === false" ref="$jde" :schema="obj.schema" :value="obj.data" :enable-paste="false"
+        :hide-root-title="true" :hide-root-description="true"></tms-json-doc>
+    </div>
+    <div>
+      <el-button type="primary" @click="onExecute">执行</el-button>
+      <el-button @click="onCancel" v-if="!executed">取消</el-button>
+      <el-button @click="onClose" v-if="executed">关闭</el-button>
     </div>
     <div class="response-content flex-grow border border-gray-200 rounded-md overflow-auto" v-if="responseContent">
       <pre>{{ responseContent }}</pre>
@@ -23,17 +16,14 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, toRaw } from 'vue';
+import { reactive, ref } from 'vue';
+import TmsJsonDoc, { DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
+import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 
-const userInput = reactive({
-  username: '',
-  password: ''
-})
+const $jde = ref<{ editing: () => any; editDoc: DocAsArray } | null>(null)
+const obj = reactive({ schema: { type: 'object' }, data: {} })
 
-const enableInput = reactive({
-  username: true,
-  password: true
-})
+const loading = ref(true)
 
 const executed = ref(false)
 
@@ -56,7 +46,12 @@ Caller.postMessage(message, '*')
 
 /**接收结果*/
 window.addEventListener('message', (event) => {
+  loading.value = false
   const { data } = event
+  if (data && data.schema) {
+    obj.schema = data.schema
+  }
+
   const { response } = data
   if (typeof response === 'string')
     responseContent.value = response
@@ -65,8 +60,9 @@ window.addEventListener('message', (event) => {
 })
 
 function onExecute() {
-  if (Caller && userInput.username) {
-    const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: toRaw(userInput), handleResponse: true, applyAccessTokenField: 'url' }
+  let newDoc = $jde.value?.editing()
+  if (Caller && Object.keys(newDoc).length !== 0) {
+    const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: newDoc, handleResponse: true, applyAccessTokenField: 'url' }
     try {
       // 给调用方发送数据
       Caller.postMessage(message, '*')
