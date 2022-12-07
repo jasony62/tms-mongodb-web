@@ -15,8 +15,8 @@ module.exports = {
   name: Name ? Name : 'doc-create-account',
   title: Title ? Title : '创建账号',
   bucket: Bucket,
-  db: Db,
-  cl: Cl,
+  db: Db || 'tmw_account',
+  cl: Cl || 'account',
   schema: Schema,
   schemaFile: SchemaFile ? SchemaFile : './plugin/doc/create_account/schema.json'
 }

@@ -114,6 +114,7 @@
           </el-table-column>
           <el-table-column fixed="right" label="操作" width="180">
             <template #default="scope">
+              <el-button type="primary" link size="small" @click="previewDocument(scope.row)">预览</el-button>
               <el-button type="primary" link size="small" @click="editDocument(scope.row)">修改</el-button>
               <el-button type="primary" link size="small" @click="removeDocument(scope.row)">删除</el-button>
             </template>
@@ -172,6 +173,7 @@
       <iframe ref="elPluginWidget" class="plugin-widget" :src="pluginWidgetUrl"></iframe>
     </div>
   </el-drawer>
+  <doc-preview-json></doc-preview-json>
 </template>
 
 <style scoped lang="scss">
@@ -213,6 +215,8 @@ import { useRouter } from 'vue-router'
 import { ElTable } from 'element-plus'
 import { useMitt } from '@/composables/mitt'
 import { useAssistant } from '@/composables/assistant'
+import DocPreviewJson from '@/components/DocPreviewJson.vue'
+import { useDocPreviewJson } from '@/composables/docPreviewJson'
 
 const COMPACT = computed(() => COMPACT_MODE())
 const EXTRACT = computed(() => EXTRACT_MODE())
@@ -367,6 +371,23 @@ const router = useRouter()
 
 const createDocument = () => {
   router.push({ name: 'docEditor', params: { dbName, clName } })
+}
+/**
+ * 通过预览窗口快速编辑文档
+ * @param document 
+ */
+const previewDocument = (document: any) => {
+  const onSave = (newDoc: any) => {
+    apiDoc
+      .update(bucketName, dbName, clName, document._id, newDoc)
+      .then(() => {
+        Object.assign(document, newDoc)
+        ElMessage.success({ showClose: true, message: '修改成功' })
+      })
+  }
+  // 打开预览窗口
+  const { opened } = useDocPreviewJson({ document, onSave })
+  opened.value = true
 }
 
 const editDocument = (document: any) => {

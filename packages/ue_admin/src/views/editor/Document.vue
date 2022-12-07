@@ -73,6 +73,20 @@
     </el-drawer>
   </div>
 </template>
+<style lang="scss">
+#docEditor {
+  @apply w-full h-full overflow-auto flex flex-col gap-2;
+
+  .jsoneditor {
+
+    .jsoneditor-transform,
+    .jsoneditor-poweredBy {
+      display: none;
+    }
+  }
+
+}
+</style>
 
 <script setup lang="ts">
 import { computed, nextTick, ref, inject, watch } from 'vue'
@@ -550,18 +564,3 @@ if (docId)
     docTags.value.push(...tags)
   })
 </script>
-
-<style lang="scss">
-#docEditor {
-  @apply w-full h-full overflow-auto flex flex-col gap-2;
-
-  .jsoneditor {
-
-    .jsoneditor-transform,
-    .jsoneditor-poweredBy {
-      display: none;
-    }
-  }
-
-}
-</style>
