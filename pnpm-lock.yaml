@@ -194,10 +194,12 @@ importers:
 
   packages/ue_plugin:
     specifiers:
+      '@types/jsoneditor': ^9.5.1
       '@types/node': ^18.7.13
       '@vitejs/plugin-vue': ^3.0.3
       autoprefixer: ^10.4.5
       element-plus: ^2.2.8
+      jsoneditor: ^9.9.0
       postcss: ^8.4.12
       sass: ^1.50.1
       stylelint: ^14.8.0
@@ -210,9 +212,11 @@ importers:
       vue-tsc: ^0.39.5
     dependencies:
       element-plus: 2.2.9_vue@3.2.37
+      jsoneditor: 9.9.0
       vue: 3.2.37
       vue-router: 4.1.2_vue@3.2.37
     devDependencies:
+      '@types/jsoneditor': 9.5.1
       '@types/node': 18.7.14
       '@vitejs/plugin-vue': 3.0.3_vite@3.0.9+vue@3.2.37
       autoprefixer: 10.4.7_postcss@8.4.14

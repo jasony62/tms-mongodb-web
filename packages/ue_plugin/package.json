@@ -10,10 +10,12 @@
   },
   "dependencies": {
     "element-plus": "^2.2.8",
+    "jsoneditor": "^9.9.0",
     "vue": "^3.2.37",
     "vue-router": "4"
   },
   "devDependencies": {
+    "@types/jsoneditor": "^9.5.1",
     "@types/node": "^18.7.13",
     "@vitejs/plugin-vue": "^3.0.3",
     "autoprefixer": "^10.4.5",
