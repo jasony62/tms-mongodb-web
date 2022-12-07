@@ -6,6 +6,7 @@ const {
   TMW_PLUGIN_DOC_MANAGE_ACCOUNT_SCHEMA: Schema,
   TMW_PLUGIN_DOC_MANAGE_ACCOUNT_TITLE: Title,
   TMW_PLUGIN_DOC_MANAGE_ACCOUNT_WIDGET_URL,
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_SCHEMA_FILE: SchemaFile
 } = process.env
 
 module.exports = {
@@ -16,5 +17,6 @@ module.exports = {
   bucket: Bucket,
   db: Db,
   cl: Cl,
-  cl: Schema,
+  schema: Schema,
+  schemaFile: SchemaFile ? SchemaFile : './plugin/doc/manage_account/schema.json'
 }

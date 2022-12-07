@@ -10,6 +10,7 @@ export interface PluginProfile {
     dbName?: RegExp;
     clName?: RegExp;
     schemaName?: RegExp;
+    schemaJson?: any;
     excludeTags?: string[];
     everyTags?: string[];
     someTags?: string[];

@@ -11,7 +11,8 @@
   "dependencies": {
     "element-plus": "^2.2.8",
     "vue": "^3.2.37",
-    "vue-router": "4"
+    "vue-router": "4",
+    "tms-vue3-ui": "^0.0.75"
   },
   "devDependencies": {
     "@types/node": "^18.7.13",

@@ -1,29 +1,19 @@
 <template>
   <div class="flex flex-col gap-4 h-full w-full">
-    <div>
-      <el-form :inline="true">
-        <el-form-item>
-          <el-button @click="onCancel" v-if="!executed">取消</el-button>
-          <el-button @click="onClose" v-if="executed">关闭</el-button>
-        </el-form-item>
-      </el-form>
-      <el-tabs v-model="activeName" @tab-click="onClickTab" v-if="!userInput.forbidden">
-        <el-tab-pane label="修改密码" name="first">
-          <el-form label-width="120px" label-position="left">
-            <el-form-item label="用户名">
-              <el-input v-model="userInput.username" disabled></el-input>
-            </el-form-item>
-            <el-form-item label="修改密码">
-              <el-input type="password" v-model="userInput.password" placeholder="8-20位大小写数字特殊字符组合" show-password />
-            </el-form-item>
-          </el-form>
-          <el-button type="primary" @click="onSubmit" :disabled="!userInput.password">确认</el-button>
-        </el-tab-pane>
-        <el-tab-pane label="账号注销" name="second">
-          <p class="tracking-wider mb-8">账号注销后，用户将无法登录、使用{{ userInput.username }}账号。</p>
-          <el-button type="danger" @click="onLogoff">注销</el-button>
-        </el-tab-pane>
-      </el-tabs>
+    <el-form :inline="true">
+      <el-form-item>
+        <el-button v-if="!executed" @click="onCancel">取消</el-button>
+        <el-button v-if="executed" @click="onClose">关闭</el-button>
+      </el-form-item>
+    </el-form>
+    <div v-if="document.forbidden == true">当前账号已注销</div>
+    <div v-else>
+      <tms-json-doc v-if="loading === false" ref="$jde" :schema="schema" :value="document" :enable-paste="false"
+        :hide-root-title="true" :hide-root-description="true"></tms-json-doc>
+      <div class="mt-2">
+        <el-button type="primary" @click="onSubmit">修改密码</el-button>
+        <el-button type="danger" @click="onLogoff">注销账户</el-button>
+      </div>
     </div>
     <div class="response-content flex-grow border border-gray-200 rounded-md overflow-auto" v-if="responseContent">
       <pre>{{ responseContent }}</pre>
@@ -32,17 +22,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, toRaw } from 'vue';
+import TmsJsonDoc, { DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
+import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 
-const activeName = ref('first')
+const $jde = ref<{ editing: () => any; editDoc: DocAsArray } | null>(null)
 
-let userInput = ref({
-  username: "",
-  password: "",
-  forbidden: false
-})
+const schema = ref<any>({})
 
-let userResult: any = {}
+const document = ref<any>({})
+
+const loading = ref(true)
 
 const executed = ref(false)
 
@@ -65,50 +55,43 @@ Caller.postMessage(message, '*')
 
 /**接收结果*/
 window.addEventListener('message', (event) => {
+  loading.value = false
   const { data } = event
+  // 处理数据
   if (data && data.document) {
-    userInput.value = data.document
-    userInput.value.password = ""
+    Object.entries(data.schema.properties).forEach(([key, value]: [string, any]) => {
+      value.readonly = true
+      if (value.type === 'string' && value.format === 'password') {
+        value.readonly = false
+      }
+    });
+    schema.value = data.schema
+    document.value = data.document
   }
 
   const { response } = data
-  if (typeof response === 'string')
+  if (typeof response === 'string') {
+    document.value.forbidden = true
     responseContent.value = response
-  else if (typeof response === 'object')
+  } else if (typeof response === 'object')
     responseContent.value = JSON.stringify(response, null, 2)
 })
 
-function onClickTab(tab: any) {
-  if (tab.paneName === 'first') {
-    delete userResult.forbidden
-  } else if (tab.paneName === 'second') {
-    delete userResult.password
-  }
-  if (responseContent.value) {
-    responseContent.value = ""
-  }
-}
-
 function onSubmit() {
-  userResult = {
-    username: userInput.value.username,
-    password: userInput.value.password
-  }
-  onExecute()
+  let newDoc = $jde.value?.editing()
+  document.value = newDoc
+  onExecute(newDoc)
 }
 
 function onLogoff() {
-  userInput.value.forbidden = true
-  userResult = {
-    username: userInput.value.username,
-    forbidden: true
-  }
-  onExecute()
+  let newDoc = $jde.value?.editing()
+  newDoc.forbidden = true
+  onExecute(toRaw(newDoc))
 }
 
-function onExecute() {
+function onExecute(result: any) {
   if (Caller) {
-    const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: { userInfo: userResult }, handleResponse: true, applyAccessTokenField: 'url' }
+    const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: { userInfo: result }, handleResponse: true, applyAccessTokenField: 'url' }
     try {
       // 给调用方发送数据
       Caller.postMessage(message, '*')

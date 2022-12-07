@@ -556,7 +556,7 @@ function executePlugin(
  * @param docScope 插件操作数据的范围
  */
 const handlePlugin = (plugin: any, docScope = '') => {
-  const { beforeWidget } = plugin
+  const { beforeWidget, schemaJson: schema } = plugin
   if (beforeWidget) {
     const { name, url, size } = beforeWidget
     if (name === 'external' && url) {
@@ -584,6 +584,10 @@ const handlePlugin = (plugin: any, docScope = '') => {
                   name: toRaw(plugin.name),
                   ui: toRaw(beforeWidget.ui),
                 },
+              }
+              if (plugin.amount === 'zero') {
+                // 处理没有文档时，将后端指定的schema传递给插件
+                msg.schema = toRaw(schema)
               }
               if (
                 plugin.amount === 'one' &&
