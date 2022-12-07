@@ -12,7 +12,8 @@
     "element-plus": "^2.2.8",
     "jsoneditor": "^9.9.0",
     "vue": "^3.2.37",
-    "vue-router": "4"
+    "vue-router": "4",
+    "tms-vue3-ui": "^0.0.75"
   },
   "devDependencies": {
     "@types/jsoneditor": "^9.5.1",
