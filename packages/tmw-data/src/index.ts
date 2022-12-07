@@ -49,6 +49,10 @@ export interface PluginProfile {
    */
   schemaName?: RegExp
   /**
+   * 账号管理指定集合schema文件
+   */
+  schemaJson?: any
+  /**
    * 管理对象中不允许包含的标签的名称数组
    */
   excludeTags?: string[]

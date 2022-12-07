@@ -17,6 +17,7 @@ export abstract class PluginBase implements PluginProfile {
   dbName?: RegExp // 和数据库名称匹配的正则表达式
   clName?: RegExp // 和集合名称匹配的正则表达式
   schemaName?: RegExp // 和文档列定义名称匹配的正则表达式
+  schemaJson?: any // 账号管理指定集合schema文件
   excludeTags?: string[]
   everyTags?: string[]
   someTags?: string[]
@@ -119,6 +120,7 @@ export abstract class PluginBase implements PluginProfile {
       dbName,
       clName,
       schemaName,
+      schemaJson,
       excludeTags,
       everyTags,
       someTags,
@@ -137,6 +139,7 @@ export abstract class PluginBase implements PluginProfile {
       dbName,
       clName,
       schemaName,
+      schemaJson,
       excludeTags,
       everyTags,
       someTags,

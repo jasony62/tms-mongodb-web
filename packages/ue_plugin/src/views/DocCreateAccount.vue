@@ -48,6 +48,7 @@ Caller.postMessage(message, '*')
 window.addEventListener('message', (event) => {
   loading.value = false
   const { data } = event
+  console.log('data -- ', data)
   if (data && data.schema) {
     obj.schema = data.schema
   }
