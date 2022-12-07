@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
+import DocImportJson from '@/views/DocImportJson.vue'
 import DocHttpSend from '@/views/DocHttpSend.vue'
 import DocAgenda from '@/views/DocAgenda.vue'
 import DocCreateAccount from '@/views/DocCreateAccount.vue'
@@ -10,6 +11,11 @@ const BASE_URL = import.meta.env.VITE_BASE_URL
   : '/plugin'
 
 const routes: RouteRecordRaw[] = [
+  {
+    path: '/doc-import-json',
+    name: 'docImportJson',
+    component: DocImportJson,
+  },
   {
     path: '/doc-http-send',
     name: 'docHttpSend',
@@ -29,7 +35,7 @@ const routes: RouteRecordRaw[] = [
     path: '/doc-manage-account',
     name: 'docManageAccount',
     component: DocManageAccount,
-  }
+  },
 ]
 
 const router = createRouter({

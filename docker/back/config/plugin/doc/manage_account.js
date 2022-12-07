@@ -14,7 +14,7 @@ module.exports = {
   name: Name ? Name : 'doc-manage-account',
   title: Title ? Title : '账号管理',
   bucket: Bucket,
-  db: Db,
-  cl: Cl,
+  db: Db || 'tmw_account',
+  cl: Cl || 'account',
   cl: Schema,
 }
