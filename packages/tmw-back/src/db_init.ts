@@ -171,9 +171,13 @@ class Handler {
     const query: any = { title: info.title, scope: 'document' }
     if (info.bucket) query.bucket = info.bucket
 
+    let replaceExisting = false // 替换已有数据
     let existSchema = await this.cl.findOne(query)
     if (existSchema) {
-      if (this.options.allowReuseSchema === true) {
+      if (this.options.replaceExistingSchema === true) {
+        debug(`标题为[${info.title}]的文档列定义已经存在，需要替换`)
+        replaceExisting = true
+      } else if (this.options.allowReuseSchema === true) {
         debug(`标题为[${info.title}]的文档列定义已经存在，允许复用`)
         return existSchema._id
       } else {
@@ -187,20 +191,26 @@ class Handler {
     let tpl = JSON.parse(JSON.stringify(SchemaTemplate))
 
     tpl.scope = 'document'
+    if (info.name) tpl.name = info.name
     if (info.title) tpl.title = info.title
     if (info.description) tpl.description = info.description
     tpl.body.properties = info.properties
 
-    const { insertedId } = await this.cl.insertOne(tpl)
+    if (replaceExisting) {
+      await this.cl.replaceOne({ _id: existSchema._id }, tpl)
+      return existSchema._id
+    } else {
+      const { insertedId } = await this.cl.insertOne(tpl)
 
-    if (!insertedId) {
-      debug('缺少要创建的schema列定义')
-      process.exit(0)
+      if (!insertedId) {
+        debug('缺少要创建的schema列定义')
+        process.exit(0)
+      }
+
+      debug(`创建了文档列定义[id=${insertedId}]`)
+
+      return insertedId
     }
-
-    debug(`创建了文档列定义[id=${insertedId}]`)
-
-    return insertedId
   }
   /**
    *
@@ -416,6 +426,10 @@ async function start() {
     '当存在title相同的schema时允许继续操作。'
   )
   program.option(
+    '--replaceExistingSchema',
+    '当存在title相同的schema时用指定数据替换已有数据。'
+  )
+  program.option(
     '--doc-create-mode <string>',
     '新建文档数据模式，stop：有数据就不执行；override：清除现有数据后新建；merge：直接新建'
   )
@@ -428,6 +442,7 @@ async function start() {
     TMW_MONGODB_USER,
     TMW_MONGODB_PASSWORD,
     TMW_DB_INIT_ALLOW_REUSE_SCHEMA,
+    TMW_DB_INIT_REPLACE_EXISTING_SCHEMA,
     TMW_DB_INIT_DOC_CREATE_MODE,
     TMW_DB_INIT_DATA_FILE,
   } = process.env
@@ -461,6 +476,10 @@ async function start() {
     /yes|true/i.test(TMW_DB_INIT_ALLOW_REUSE_SCHEMA) ||
     options.allowReuseSchema === true
 
+  const replaceExistingSchema =
+    /yes|true/i.test(TMW_DB_INIT_REPLACE_EXISTING_SCHEMA) ||
+    options.replaceExistingSchema === true
+
   /**新建文档模式*/
   let docCreateMode = options.docCreateMode
     ? options.docCreateMode
@@ -477,7 +496,7 @@ async function start() {
       await Handler.execute(
         filePath,
         { host, port, username, password },
-        { allowReuseSchema, docCreateMode }
+        { replaceExistingSchema, allowReuseSchema, docCreateMode }
       )
       debug('完成初始化操作')
     } else {
