@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "groupable": false,
+  "dependencies": {},
+  "eventDependencies": {},
+  "readonly": false,
+  "required": false,
+  "properties": {
+    "username": {
+      "type": "string",
+      "title": "登录账号",
+      "description": "作为登录账号。"
+    },
+    "password": {
+      "type": "string",
+      "title": "账号密码"
+    },
+    "nickname": {
+      "type": "string",
+      "title": "用户昵称"
+    }
+  }
+}

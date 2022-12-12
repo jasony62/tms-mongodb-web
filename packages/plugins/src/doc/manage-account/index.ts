@@ -3,6 +3,7 @@ import { PluginBase } from 'tmw-kit/dist/model'
 import * as path from 'path'
 import * as _ from 'lodash'
 import { createDocWebhook } from 'tmw-kit/dist/webhook/document'
+import * as fs from 'fs'
 
 /**配置文件存放位置*/
 const ConfigDir = path.resolve(
@@ -50,8 +51,17 @@ class ManageAccountPlugin extends PluginBase {
     if (!actRst) return { code: 10001, msg: '账号不存在' }
 
     try {
-      // 修改密码
-      if (password) {
+      // 禁（启）用账号
+      if (forbidden != undefined && typeof forbidden != 'boolean')
+        return { code: 10001, msg: '参数格式错误' }
+
+      if (typeof forbidden === 'boolean') {
+        await Model.updateOne(
+          { _id: actRst._id },
+          { forbidden, update_at: Date.now() }
+        )
+      } else if (password && !forbidden) {
+        // 修改密码
         const {
           PasswordProcess: ProcessPwd,
         } = require('tms-koa-account/dist/models/processpwd')
@@ -70,17 +80,6 @@ class ManageAccountPlugin extends PluginBase {
         await Model.updateOne({ _id: actRst._id }, newInfo)
       }
 
-      // 禁（启）用账号
-      if (forbidden != undefined && typeof forbidden != 'boolean')
-        return { code: 10001, msg: '参数格式错误' }
-
-      if (typeof forbidden === 'boolean') {
-        await Model.updateOne(
-          { _id: actRst._id },
-          { forbidden, update_at: Date.now() }
-        )
-      }
-
       return { code: 0, msg: '操作成功' }
     } catch (error) {
       return { code: 10001, msg: `执行插件失败，原因：${error}` }
@@ -92,8 +91,17 @@ export function createPlugin(file: string) {
   let config
   if (ConfigFile) config = loadConfig(ConfigDir, ConfigFile)
   if (config && typeof config === 'object') {
-    let { widgetUrl, bucket, db, cl, schema, title } = config
+    let { widgetUrl, bucket, db, cl, schema, title, schemaFile } = config
     const newPlugin = new ManageAccountPlugin(file)
+
+    let schemaJson
+    const fp = path.resolve(ConfigDir, schemaFile)
+    if (fs.statSync(fp).isFile())
+      schemaJson = JSON.parse(fs.readFileSync(fp, 'utf-8'))
+    if (!schemaJson)
+      return false
+    newPlugin.schemaJson = schemaJson
+
     newPlugin.beforeWidget.url = widgetUrl
 
     if (bucket) newPlugin.bucketName = new RegExp(bucket)
