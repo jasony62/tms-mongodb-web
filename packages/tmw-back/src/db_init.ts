@@ -1,6 +1,7 @@
 import { MongoClient, MongoError, ObjectId } from 'mongodb'
 import * as dayjs from 'dayjs'
 import * as fs from 'fs'
+import * as glob from 'glob'
 import * as path from 'path'
 import { nanoid } from 'nanoid'
 import { program } from 'commander'
@@ -376,32 +377,55 @@ class Handler {
    * 一条初始化数据包含1个数据库，1个文档定义，1个集合，1组文档，和1组标签
    */
   private async parseOne(info) {
+    let counter = 0
     /**
      * 创建数据库
      */
-    const newDb = await this.createDatabase(info.db)
-    /**
-     * 创建schema
-     */
-    const schemaId = await this.createSchema(info.docSchema)
-    /**
-     * 创建集合
-     */
-    const newCl = await this.createCollection(newDb, schemaId, info.cl)
-    /**
-     * 插入文档
-     */
-    await this.createDocument(newDb, newCl, info.docs)
+    let { db, cl, docSchema, docs, tags } = info
+    if (db && typeof db === 'object') {
+      const newDb = await this.createDatabase(db)
+      counter++
+      if (docSchema && typeof docSchema === 'object') {
+        /**
+         * 创建schema
+         */
+        const schemaId = await this.createSchema(docSchema)
+        counter++
+        if (cl && typeof cl === 'object') {
+          /**
+           * 创建集合
+           */
+          const newCl = await this.createCollection(newDb, schemaId, cl)
+          counter++
+          /**
+           * 插入文档
+           */
+          if (Array.isArray(docs) && docs.length) {
+            await this.createDocument(newDb, newCl, docs)
+            counter++
+          }
+        }
+      }
+    }
     /**
      * 创建标签
      */
-    await this.createTag(info.tags)
+    if (Array.isArray(tags) && tags.length) {
+      await this.createTag(tags)
+      counter++
+    }
+
+    return counter
   }
   /**
    * 执行初始化操作
    */
   static async execute(filePath: string, mongoOptions: any, options: any) {
     const initData = require(filePath)
+    if (!Array.isArray(initData) || initData.length === 0) {
+      debug(`文件【${filePath}】的内容不是数组，跳过`)
+      return
+    }
 
     const mongoObj = new Mongo(mongoOptions)
     const client = await mongoObj.client()
@@ -492,12 +516,25 @@ async function start() {
   if (typeof dataFile === 'string') {
     const filePath = path.resolve(dataFile)
     if (fs.existsSync(filePath)) {
-      debug(`指定初始化数据文件：${filePath}`)
-      await Handler.execute(
-        filePath,
-        { host, port, username, password },
-        { replaceExistingSchema, allowReuseSchema, docCreateMode }
-      )
+      if (fs.statSync(filePath).isDirectory()) {
+        let absDir = path.resolve(process.cwd(), filePath)
+        const files = glob.sync(`${absDir}/**/*.@(js|json)`)
+        for (let file of files) {
+          debug(`指定初始化数据文件：${file}`)
+          await Handler.execute(
+            file,
+            { host, port, username, password },
+            { replaceExistingSchema, allowReuseSchema, docCreateMode }
+          )
+        }
+      } else {
+        debug(`指定初始化数据文件：${filePath}`)
+        await Handler.execute(
+          filePath,
+          { host, port, username, password },
+          { replaceExistingSchema, allowReuseSchema, docCreateMode }
+        )
+      }
       debug('完成初始化操作')
     } else {
       debug(`指定的初始数据文件【${filePath}】不存在`)
