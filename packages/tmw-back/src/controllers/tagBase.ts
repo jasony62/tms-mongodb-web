@@ -14,7 +14,7 @@ class TagBase extends Base {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
 
-    this.clMongoObj = this.tagHelper.clMongoObj
+    this.clTagObj = this.tagHelper.clTagObj
 
     return true
   }
@@ -22,11 +22,11 @@ class TagBase extends Base {
    * 查询所有标签
    */
   async list() {
-    const query: any = { type: 'tag' }
+    const query: any = {}
     if (this.bucket && typeof this.bucket === 'object')
       query.bucket = this.bucket.name
 
-    const tmsTags = await this.clMongoObj.find(query).toArray()
+    const tmsTags = await this.clTagObj.find(query).toArray()
 
     return new ResultData(tmsTags)
   }

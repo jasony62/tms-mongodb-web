@@ -46,7 +46,6 @@ class Tag extends TagBase {
     let info = this.request.body
     info.name = info.name.replace(/(^\s*)|(\s*$)/g, '')
 
-    info.type = 'tag'
     if (this.bucket && typeof this.bucket === 'object')
       info.bucket = this.bucket.name
 
@@ -54,7 +53,7 @@ class Tag extends TagBase {
     let existTag = await this.tagHelper.tagByName(info.name)
     if (existTag) return new ResultFault('已存在同名标签')
 
-    return this.clMongoObj.insertOne(info).then((result) => {
+    return this.clTagObj.insertOne(info).then((result) => {
       info._id = result.insertedId
       return new ResultData(info)
     })
@@ -111,7 +110,7 @@ class Tag extends TagBase {
 
     info = _.omit(info, ['_id', 'type', 'bucket'])
 
-    return this.clMongoObj
+    return this.clTagObj
       .updateOne(query, { $set: info }, { upsert: true })
       .then(() => {
         return new ResultData(info)
@@ -152,10 +151,10 @@ class Tag extends TagBase {
       return new ResultFault('标签正在被使用不能删除')
     }
 
-    const query: any = { name: name, type: 'tag' }
+    const query: any = { name: name }
     if (this.bucket) query.bucket = this.bucket.name
 
-    return this.clMongoObj.deleteOne(query).then(() => new ResultData('ok'))
+    return this.clTagObj.deleteOne(query).then(() => new ResultData('ok'))
   }
 }
 

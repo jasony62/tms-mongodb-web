@@ -186,7 +186,17 @@ class Handler {
 
     let tpl = JSON.parse(JSON.stringify(SchemaTemplate))
 
+    if (info.tags) {
+      if (!Array.isArray(info.tags)) {
+        debug('schema定义的标签格式错误')
+        return
+      } else {
+        tpl.tags = info.tags
+      }
+    }
+
     tpl.scope = 'document'
+    if (info._id) tpl._id = new ObjectId(info._id)
     if (info.title) tpl.title = info.title
     if (info.description) tpl.description = info.description
     tpl.body.properties = info.properties
@@ -436,25 +446,25 @@ async function start() {
   const host = options.host
     ? options.host
     : TMW_MONGODB_HOST
-    ? TMW_MONGODB_HOST
-    : 'localhost'
+      ? TMW_MONGODB_HOST
+      : 'localhost'
   const port = options.port
     ? parseInt(options.port)
     : TMW_MONGODB_PORT
-    ? parseInt(TMW_MONGODB_PORT)
-    : 27017
+      ? parseInt(TMW_MONGODB_PORT)
+      : 27017
 
   /**用户名和密码*/
   const username = options.username
     ? options.username
     : TMW_MONGODB_USER
-    ? TMW_MONGODB_USER
-    : false
+      ? TMW_MONGODB_USER
+      : false
   const password = options.password
     ? options.password
     : TMW_MONGODB_PASSWORD
-    ? TMW_MONGODB_PASSWORD
-    : false
+      ? TMW_MONGODB_PASSWORD
+      : false
 
   /**处理同名schema问题*/
   const allowReuseSchema =
@@ -465,8 +475,8 @@ async function start() {
   let docCreateMode = options.docCreateMode
     ? options.docCreateMode
     : TMW_DB_INIT_DOC_CREATE_MODE
-    ? TMW_DB_INIT_DOC_CREATE_MODE
-    : 'stop'
+      ? TMW_DB_INIT_DOC_CREATE_MODE
+      : 'stop'
   if (!/stop|override|merge/i.test(docCreateMode)) docCreateMode = 'stop'
 
   const dataFile = options.file ? options.file : TMW_DB_INIT_DATA_FILE

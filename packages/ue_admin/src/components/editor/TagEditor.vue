@@ -5,6 +5,9 @@
       <el-form-item label="标签名">
         <el-input v-model="tag.name"></el-input>
       </el-form-item>
+      <el-form-item label="用途">
+        <el-input v-model="tag.purpose"></el-input>
+      </el-form-item>
     </el-form>
     <template #footer>
       <el-button type="primary" @click="onSubmit">提交</el-button>
