@@ -149,7 +149,7 @@ importers:
       tms-koa-crypto: ^0.1.0
       tms-template-viz: ^0.0.2
       tms-vue3: ^0.0.5
-      tms-vue3-ui: ^0.0.75
+      tms-vue3-ui: ^0.0.76
       typescript: ^4.9.3
       vite: 3.2.4
       vue: ^3.2.25
@@ -175,7 +175,7 @@ importers:
       tms-koa-crypto: 0.1.0
       tms-template-viz: 0.0.2
       tms-vue3: 0.0.5_debug@4.3.4
-      tms-vue3-ui: 0.0.75
+      tms-vue3-ui: 0.0.76
       vue: 3.2.37
       vue-clipboard3: 2.0.0
       vue-router: 4.1.2_vue@3.2.37
@@ -209,7 +209,7 @@ importers:
       stylelint: ^14.8.0
       stylelint-config-standard: ^26.0.0
       tailwindcss: ^3.0.24
-      tms-vue3-ui: ^0.0.75
+      tms-vue3-ui: ^0.0.76
       typescript: ^4.6.4
       vite: ^3.0.7
       vue: ^3.2.37
@@ -218,7 +218,7 @@ importers:
     dependencies:
       element-plus: 2.2.9_vue@3.2.37
       jsoneditor: 9.9.0
-      tms-vue3-ui: 0.0.75
+      tms-vue3-ui: 0.0.76
       vue: 3.2.37
       vue-router: 4.1.2_vue@3.2.37
     devDependencies:
@@ -7068,8 +7068,8 @@ packages:
       - supports-color
     dev: false
 
-  /tms-vue3-ui/0.0.75:
-    resolution: {integrity: sha512-WV+ezICh4rR53AcQfEg5nE1w80vxFBtAGjJTGP8q4HAKg3sFXjU6he3/eKk161XRobd9Jnl7Dgi3iFy6tHmYzQ==}
+  /tms-vue3-ui/0.0.76:
+    resolution: {integrity: sha512-Z2ZlzTpl3igyLBVKXV/uLs7z+iscIKd0lkSJjKTc/Yt2QrirWo9rwYcavelixMvra1RPBjRgl6QkF+VcPnqg0g==}
     dependencies:
       debug: 4.3.4
       lodash: 4.17.21
