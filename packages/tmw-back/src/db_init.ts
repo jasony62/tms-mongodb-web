@@ -81,25 +81,25 @@ async function start() {
   const host = options.host
     ? options.host
     : TMW_MONGODB_HOST
-    ? TMW_MONGODB_HOST
-    : 'localhost'
+      ? TMW_MONGODB_HOST
+      : 'localhost'
   const port = options.port
     ? parseInt(options.port)
     : TMW_MONGODB_PORT
-    ? parseInt(TMW_MONGODB_PORT)
-    : 27017
+      ? parseInt(TMW_MONGODB_PORT)
+      : 27017
 
   /**用户名和密码*/
   const username = options.username
     ? options.username
     : TMW_MONGODB_USER
-    ? TMW_MONGODB_USER
-    : false
+      ? TMW_MONGODB_USER
+      : false
   const password = options.password
     ? options.password
     : TMW_MONGODB_PASSWORD
-    ? TMW_MONGODB_PASSWORD
-    : false
+      ? TMW_MONGODB_PASSWORD
+      : false
 
   /**处理同名schema问题*/
   const allowReuseSchema =
@@ -114,8 +114,8 @@ async function start() {
   let docCreateMode = options.docCreateMode
     ? options.docCreateMode
     : TMW_DB_INIT_DOC_CREATE_MODE
-    ? TMW_DB_INIT_DOC_CREATE_MODE
-    : 'stop'
+      ? TMW_DB_INIT_DOC_CREATE_MODE
+      : 'stop'
   if (!/stop|override|merge/i.test(docCreateMode)) docCreateMode = 'stop'
 
   const dataFile = options.file ? options.file : TMW_DB_INIT_DATA_FILE

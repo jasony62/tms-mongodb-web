@@ -77,11 +77,13 @@ const CollectionTemplate: any = {
 class Handler {
   client
   cl
+  clTag
   options
 
-  constructor(client: any, cl: any, options: any) {
+  constructor(client: any, cl: any, clTag: any, options: any) {
     this.client = client
     this.cl = cl
+    this.clTag = clTag
     this.options = options
   }
 
@@ -308,12 +310,11 @@ class Handler {
     let counter = 0
     for (const tag of tags) {
       tag.name = tag.name.replace(/(^\s*)|(\s*$)/g, '')
-      tag.type = 'tag'
 
-      const query: any = { name: tag.name, type: 'tag' }
+      const query: any = { name: tag.name }
       if (tag.bucket) query.bucket = tag.bucket
 
-      let existTag = await this.cl.findOne(query)
+      let existTag = await this.clTag.findOne(query)
       if (existTag) {
         debug(`名称为[${tag.name}]的标签已经存在，不能重复创建`)
         return 0
@@ -322,7 +323,7 @@ class Handler {
       if (tag._id && typeof tag._id === 'string') {
         tag._id = new ObjectId(tag._id)
       }
-      const { insertedId } = await this.cl.insertOne({
+      const { insertedId } = await this.clTag.insertOne({
         ...tag,
         TMW_CREATE_TIME,
       })
@@ -386,8 +387,9 @@ async function execute(filePath: string, mongoClient, options: any) {
   }
 
   const cl = mongoClient.db('tms_admin').collection('mongodb_object')
+  const clTag = mongoClient.db('tms_admin').collection('tag_object')
 
-  const init = new Handler(mongoClient, cl, options)
+  const init = new Handler(mongoClient, cl, clTag, options)
   for (const data of initData) {
     await init.parse(data)
   }

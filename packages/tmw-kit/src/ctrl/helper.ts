@@ -20,6 +20,15 @@ class Helper {
     return cl
   }
   /**
+   * 存储标签对象的集合
+   */
+  get clTagObj() {
+    const client = this.ctrl.mongoClient
+    const cl = client.db('tms_admin').collection('tag_object')
+
+    return cl
+  }
+  /**
    * 将请求中指定的分页参数转换为mongodb查询参数
    * @param {object} options - 指定默认值
    * @param {number} [options.defaultSize=10] - 每页包含数量默认值
