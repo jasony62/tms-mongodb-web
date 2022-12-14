@@ -5,7 +5,6 @@
       <div class="flex flex-col gap-2">
         <el-table :data="store.tags" stripe>
           <el-table-column prop="name" label="名称"></el-table-column>
-          <el-table-column prop="purpose" label="用途"></el-table-column>
           <el-table-column label="操作" width="120">
             <template #default="scope">
               <el-button type="primary" link size="small" @click="removeTag(scope.row)">删除</el-button>

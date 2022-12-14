@@ -14,6 +14,7 @@ class TagBase extends Base {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
 
+    this.clMongoObj = this.tagHelper.clMongoObj
     this.clTagObj = this.tagHelper.clTagObj
 
     return true
