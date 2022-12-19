@@ -175,7 +175,7 @@ class Handler {
     }
   }
   /**
-   *
+   * 创建集合
    * @param newDb
    * @param schemaId
    * @param info
