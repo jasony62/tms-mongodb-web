@@ -5,6 +5,7 @@ import DocHttpSend from '@/views/DocHttpSend.vue'
 import DocAgenda from '@/views/DocAgenda.vue'
 import DocCreateAccount from '@/views/DocCreateAccount.vue'
 import DocManageAccount from '@/views/DocManageAccount.vue'
+import DbAdmin from '@/views/DbAdmin.vue'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
   ? import.meta.env.VITE_BASE_URL
@@ -35,6 +36,11 @@ const routes: RouteRecordRaw[] = [
     path: '/doc-manage-account',
     name: 'docManageAccount',
     component: DocManageAccount,
+  },
+  {
+    path: '/db-admin',
+    name: 'dbAdmin',
+    component: DbAdmin,
   },
 ]
 

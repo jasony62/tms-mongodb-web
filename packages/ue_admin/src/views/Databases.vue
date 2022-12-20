@@ -28,19 +28,29 @@
       </div>
     </div>
     <!--right-->
-    <div v-if="!COMPACT">
-      <el-button @click="createDb">添加数据库</el-button>
+    <div class="flex flex-col items-start space-y-3" v-if="!COMPACT">
+      <div>
+        <el-button @click="createDb">添加数据库</el-button>
+      </div>
+      <tmw-plugins :plugins="plugins" :total-by-all="totalByAll" :total-by-filter="totalByFilter"
+        :total-by-checked="totalByChecked" :handle-plugin="handlePlugin"></tmw-plugins>
     </div>
   </div>
+  <tmw-plugin-widget></tmw-plugin-widget>
 </template>
 <script setup lang="ts">
-import { computed, onMounted, reactive, toRaw } from 'vue'
+import { computed, onMounted, reactive, ref, toRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Batch } from 'tms-vue3'
 
 import facStore from '@/store'
 import { openDbEditor } from '@/components/editor'
-import { COMPACT_MODE } from '@/global'
+import { BACK_API_URL, COMPACT_MODE, FS_BASE_URL, getLocalToken } from '@/global'
+import apiPlugin from '@/apis/plugin'
+import TmwPlugins from '@/components/PluginList.vue'
+import TmwPluginWidget from '@/components/PluginWidget.vue'
+import { useTmwPlugins } from '@/composables/plugins'
+import * as _ from 'lodash'
 
 const COMPACT = computed(() => COMPACT_MODE())
 
@@ -53,7 +63,7 @@ const props = defineProps({ bucketName: String })
 
 const criteria = reactive({
   dbBatch: new Batch(() => { }),
-  multipleDb: [],
+  multipleDb: [] as any[],
 })
 const listDbByKw = (keyword: any) => {
   criteria.dbBatch = store.listDatabase({
@@ -105,11 +115,167 @@ const changeDbSize = (size: any) => {
   criteria.dbBatch.size = size
   criteria.dbBatch.goto(1)
 }
-const changeDbSelect = (value: never[]) => {
+const changeDbSelect = (value: any[]) => {
   criteria.multipleDb = value
 }
-onMounted(() => {
-  let bucket = props.bucketName
+
+/**
+ * 设置插件操作的文档参数
+ */
+const setPluginDocParam = (docScope: string) => {
+  if (docScope === 'all') {
+    return { filter: 'ALL' }
+  } else if (docScope === 'checked') {
+    let ids = criteria.multipleDb.map((document: any) => document._id)
+    return { ids }
+  }
+}
+
+const onExecute = (plugin: any,
+  docScope = '',
+  widgetResult = undefined,
+  widgetHandleResponse = false,
+  applyAccessTokenField = '') => {
+  let postBody: any
+  if (plugin.amount === 'one') {
+    if (criteria.multipleDb.length !== 1) return
+    let rawDb = toRaw(criteria.multipleDb[0])
+    postBody = { _id: rawDb._id, name: rawDb.name, sysname: rawDb.sysname, type: 'database' }
+  } else {
+    if (['all', 'filter', 'checked'].includes(docScope))
+      postBody = setPluginDocParam(docScope)
+    else postBody = {}
+  }
+
+  // 携带插件部件的数据
+  if (widgetResult) {
+    if (applyAccessTokenField && typeof applyAccessTokenField === 'string') {
+      let field: string = _.get(widgetResult, applyAccessTokenField)
+      if (field && typeof field === 'string') {
+        /**只有访问自己的后端服务时才添加*/
+        if (field.indexOf(BACK_API_URL()) === 0) {
+          field += field.indexOf('?') > 0 ? '&' : '?'
+          let accessToken = getLocalToken() ?? ''
+          field += `access_token=${accessToken}`
+          _.set(widgetResult, applyAccessTokenField, field)
+        }
+      }
+    }
+    postBody.widget = widgetResult
+  }
+  // 插件执行的基础参数
+  let queryParams = {
+    bucket: props.bucketName ?? '',
+    plugin: plugin.name,
+  }
+
+  // 执行插件方法
+  return apiPlugin.execute(queryParams, postBody).then((result: any) => {
+    if (widgetHandleResponse) {
+      return result
+    }
+    if (typeof result === 'string') {
+      /**返回字符串直接显示内容*/
+      ElMessage.success({
+        message: result,
+        showClose: true,
+      })
+      listDbByKw(null)
+    } else if (result && typeof result === 'object') {
+      /**返回的是对象*/
+      if (result.type === 'documents') {
+        /**返回的是文档数据*/
+        let nInserted = 0,
+          nModified = 0,
+          nRemoved = 0
+        let { inserted, modified, removed } = result
+        /**在当前文档列表中移除删除的记录 */
+        if (Array.isArray(removed) && (nRemoved = removed.length)) {
+          let dbs = store.dbs.filter(
+            (doc) => !removed.includes(doc._id)
+          )
+          store.dbs = dbs
+        }
+        /**在当前文档列表中更新修改的记录 */
+        if (Array.isArray(modified) && (nModified = modified.length)) {
+          let map = modified.reduce((m, doc) => {
+            if (doc._id && typeof doc._id === 'string') m[doc._id] = doc
+            return m
+          }, {})
+          store.dbs.forEach((doc: any, index: number) => {
+            let newDb = map[doc._id]
+            if (newDb) Object.assign(doc, newDb)
+            // store.updateDocument({ index, document: doc })
+          })
+        }
+        /**在当前文档列表中添加插入的记录 */
+        if (Array.isArray(inserted) && (nInserted = inserted.length)) {
+          inserted.forEach((newDb) => {
+            if (newDb._id && typeof newDb._id === 'string')
+              store.dbs.unshift(newDb)
+          })
+        }
+        let msg = `插件[${plugin.title}]执行完毕，添加[${nInserted}]条，修改[${nModified}]条，删除[${nRemoved}]条记录。`
+        ElMessage.success({ message: msg })
+      } else if (result.type === 'numbers') {
+        /**返回操作结果——数量 */
+        let { nInserted, nModified, nRemoved } = result
+        let message = `插件[${plugin.title}]执行完毕，添加[${parseInt(nInserted) || 0
+          }]条，修改[${parseInt(nModified) || 0}]条，删除[${parseInt(nRemoved) || 0
+          }]条记录。`
+        ElMessageBox.confirm(message, '提示', {
+          confirmButtonText: '关闭',
+          cancelButtonText: '刷新数据',
+          showClose: false,
+        }).catch(() => {
+          listDbByKw(null)
+        })
+      } else if (typeof result.url === 'string') {
+        /**下载文件*/
+        let url = FS_BASE_URL() + result.url
+        window.open(url)
+      }
+    } else {
+      ElMessage.success({
+        message: `插件[${plugin.title}]执行完毕。`,
+        showClose: true,
+      })
+      listDbByKw(null)
+    }
+    return 'ok'
+  })
+}
+/**
+ * 插件
+ */
+const { handlePlugin } = useTmwPlugins({
+  bucketName: props.bucketName,
+  onExecute,
+  onCreate: (plugin: any, msg: any) => {
+    if (
+      plugin.amount === 'one' &&
+      criteria.multipleDb.length === 1
+    ) {
+      // 处理单个文档时，将文档数据
+      msg.database = toRaw(criteria.multipleDb[0])
+    }
+  },
+  onClose: () => {
+    listDbByKw(null)
+  }
+})
+
+const totalByAll = computed(() => criteria.dbBatch.total)
+const totalByFilter = computed(() => 0)
+const totalByChecked = computed(() => criteria.multipleDb.length)
+
+const plugins = ref([])
+
+onMounted(async () => {
   listDbByKw(null)
+  let bucket = props.bucketName
+  plugins.value = await apiPlugin.getDatabasePlugins(
+    bucket,
+  )
 })
 </script>

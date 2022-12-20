@@ -6,6 +6,18 @@ type ApiRst = {
 }
 export default {
   /**
+   * 数据库插件
+   * @param bucket 存储空间名称
+   * @returns 可用插件列表
+   */
+  getDatabasePlugins(bucket: string | undefined) {
+    const base = BACK_API_URL() + '/plugins'
+    const params = { bucket }
+    return TmsAxios.ins('mongodb-api')
+      .get(`${base}/list?scope=database`, { params })
+      .then((rst: ApiRst) => rst.data.result)
+  },
+  /**
    * 针对指定集合中的文档的插件
    * @param bucket 存储空间名称
    * @param db 数据库名称
