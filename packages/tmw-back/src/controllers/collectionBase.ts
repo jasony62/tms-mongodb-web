@@ -182,7 +182,13 @@ class CollectionBase extends Base {
     return this['clMongoObj']
       .deleteOne({ _id: existCl._id })
       .then(() =>
-        client.db(this['reqDb'].sysname).dropCollection(existCl.sysname)
+        client
+          .db(this['reqDb'].sysname)
+          .dropCollection(existCl.sysname)
+          .catch((error) => {
+            if (error.message === 'ns not found')
+              return new ResultData('ok')
+          })
       )
       .then(() => new ResultData('ok'))
       .catch((err) => new ResultFault(err.message))
