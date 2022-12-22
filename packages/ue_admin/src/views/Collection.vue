@@ -542,10 +542,11 @@ const { handlePlugin } = useTmwPlugins({
       plugin.amount === 'one' &&
       selectedDocuments.value.length === 1
     ) {
-      // 处理单个文档时，将文档数据和schema传递给插件
+      // 处理单个文档时，将文档数据传递给插件
       msg.document = toRaw(selectedDocuments.value[0])
-      msg.schema = toRaw(collection.schema.body)
     }
+    // 如果插件没有指定schema，传递集合的schema
+    msg.schema ??= toRaw(collection.schema.body)
   },
   onClose: () => {
     listDocByKw()

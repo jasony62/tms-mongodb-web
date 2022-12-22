@@ -13,7 +13,8 @@
     },
     "password": {
       "type": "string",
-      "title": "账号密码"
+      "title": "账号密码",
+      "format": "password"
     },
     "nickname": {
       "type": "string",

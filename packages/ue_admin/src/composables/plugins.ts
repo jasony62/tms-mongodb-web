@@ -31,7 +31,7 @@ export const useTmwPlugins = (options?: UseTmwPluginsOptions) => {
    * @param docScope 插件操作数据的范围
    */
   const handlePlugin = (plugin: any, docScope = '') => {
-    const { beforeWidget, schemaJson: schema } = plugin
+    const { beforeWidget, schemaJson } = plugin
     if (beforeWidget) {
       const { name, url, size } = beforeWidget
       if (name === 'external' && url) {
@@ -60,9 +60,9 @@ export const useTmwPlugins = (options?: UseTmwPluginsOptions) => {
                     ui: toRaw(beforeWidget.ui),
                   },
                 }
-                if (plugin.amount === 'zero') {
+                if (schemaJson && typeof schemaJson === 'object') {
                   // 处理没有文档时，将后端指定的schema传递给插件
-                  msg.schema = toRaw(schema)
+                  msg.schema = toRaw(schemaJson)
                 }
                 if (typeof onCreate === 'function') onCreate(plugin, msg)
                 elPluginWidget.value.contentWindow?.postMessage(msg, '*')
