@@ -15,8 +15,7 @@
           <el-table-column type="selection" width="55"></el-table-column>
           <el-table-column label="集合名称" width="180">
             <template #default="scope">
-              <router-link :to="{ name: 'collection', params: { dbName, clName: scope.row.name } }">{{ scope.row.name }}
-              </router-link>
+              <el-link :underline="false" @click="openCollection(dbName, scope.row)">{{ scope.row.name }}</el-link>
             </template>
           </el-table-column>
           <el-table-column prop="title" label="名称" width="180"></el-table-column>
@@ -51,6 +50,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { Batch } from 'tms-vue3'
 
 import facStore from '@/store'
@@ -61,6 +61,7 @@ import { COMPACT_MODE } from '@/global'
 const COMPACT = computed(() => COMPACT_MODE())
 
 const store = facStore()
+const router = useRouter()
 
 // 查找条件下拉框分页包含记录数
 const LIST_PAGE_SIZE = 100
@@ -76,6 +77,10 @@ onMounted(() => {
   listClByKw()
 })
 
+const openCollection = (dbName: string, row: any) => {
+  if (!row.schema_id) return ElMessageBox.alert('需给集合补充文档内容定义的配置，方便管理文档')
+  router.push({ name: 'collection', params: { dbName, clName: row.name } })
+}
 const createCollection = (() => {
   openCollectionEditor({
     mode: 'create',
