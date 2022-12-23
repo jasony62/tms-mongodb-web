@@ -31,7 +31,6 @@ export class EtlModel extends Base {
   async list(dst: any, scope: TransformScope) {
     const modelCl = new ModelCl(this.mongoClient, this.bucket, this.client)
     const etlCl = await modelCl.byName(ETL_DB_NAME, ETL_CL_NAME)
-    // if (!etlCl) throw Error('数据转换规则数据库集合不存在')
     if (!etlCl) return [true, []]
 
     const filter: any = {
