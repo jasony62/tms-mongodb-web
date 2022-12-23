@@ -15,8 +15,6 @@
           <el-table-column type="selection" width="55"></el-table-column>
           <el-table-column label="集合名称" width="180">
             <template #default="scope">
-              <!-- <router-link :to="{ name: 'collection', params: { dbName, clName: scope.row.name } }">{{ scope.row.name }}
-              </router-link> -->
               <el-link :underline="false" @click="openCollection(dbName, scope.row)">{{ scope.row.name }}</el-link>
             </template>
           </el-table-column>
