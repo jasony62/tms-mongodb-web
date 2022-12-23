@@ -106,7 +106,7 @@ class ReplicaBase extends Base {
   /**
    * 建立映射关系
    *
-   * 两个集合都必须是用户创建的结合。从集合的usage必须等于1。
+   * 两个集合都必须是用户创建的集合。从集合的usage必须等于1。
    *
    * @returns {object} 创建的复制关系对象
    */

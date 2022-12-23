@@ -105,7 +105,7 @@ export class EtlRunner {
   static async create(ctrl, id: string) {
     const modelCl = new ModelCl(ctrl.mongoClient, ctrl.bucket, ctrl.client)
     const etlCl = await modelCl.byName(ETL_DB_NAME, ETL_CL_NAME)
-    if (!etlCl) throw Error('数据转换规则数据库结合不存在')
+    if (!etlCl) throw Error('数据转换规则数据库集合不存在')
 
     const modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
     const etl = await modelDoc.byId(etlCl, id)

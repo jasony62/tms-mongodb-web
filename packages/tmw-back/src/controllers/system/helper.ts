@@ -8,7 +8,7 @@ class Helper {
     this['ctrl'] = ctrl
   }
   /**
-   * 存储管理对象的结合
+   * 存储管理对象的集合
    */
   get clPreset() {
     const client = this['ctrl'].mongoClient
