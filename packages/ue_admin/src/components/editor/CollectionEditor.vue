@@ -361,6 +361,9 @@ const onSubmit = () => {
   if (!reg.test(collection.name)) {
     return ElMessageBox.alert('请输入以英文字母开头的集合名')
   }
+  if (!collection.schema_id) {
+    return ElMessageBox.alert('请指定[集合内容定义(默认)]的值')
+  }
 
   let {
     operateRules: { scope, unrepeat },

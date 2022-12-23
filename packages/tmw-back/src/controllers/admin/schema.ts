@@ -201,7 +201,7 @@ class Schema extends SchemaBase {
       type: 'collection',
     })
     if (rst) {
-      return new ResultFault('文档列定义正在被使用，不能删除')
+      return new ResultFault(`文档列定义正在被[${rst.database}]数据库中的[${rst.name}]集合使用，不能删除`)
     }
     const query = { _id: new ObjectId(id), type: 'schema' }
     if (this['bucket']) query['bucket'] = this['bucket'].name
