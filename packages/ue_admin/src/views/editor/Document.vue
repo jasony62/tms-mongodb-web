@@ -17,8 +17,8 @@
       <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button v-for="ep in etlPlugins" type="success" @click="handleExtract(ep)">{{ ep.title }}</el-button>
     </div>
-    <div class="flex flex-row gap-4 h-full overflow-auto px-4 pb-4" v-if="collection._id && (!docId || document._id)">
-      <div class="w-1/3 h-full overflow-auto">
+    <div class="flex flex-row gap-4 h-full overflow-auto pb-4" v-if="collection._id && (!docId || document._id)">
+      <div class="w-1/3 h-full flex-grow-none overflow-auto">
         <tms-json-doc ref="$jde" :schema="collection.schema.body" :value="document" :enable-paste="true"
           :on-paste="onJdocPaste" :on-file-select="onFileSelect" :on-file-download="onFileDownload"
           :show-field-fullname="showFieldFullname" :hide-root-title="true" :hide-root-description="true"
@@ -51,7 +51,7 @@
           </el-tooltip>
         </div>
         <div class="border border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
-          <pre v-if="previewMode === 'text'">{{ previewResult }}</pre>
+          <pre v-if="previewMode === 'text'" class="whitespace-pre-wrap break-all">{{ previewResult }}</pre>
           <json-diagram-x6 ref="$diagram" v-if="previewMode === 'diagram'" :schema="collection.schema.body"
             :doc="document" @click-value-node="onClickValueNode">
           </json-diagram-x6>
