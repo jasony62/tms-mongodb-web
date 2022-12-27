@@ -71,10 +71,15 @@ class CollectionHelper extends Helper {
 
     // 生成数据库系统名
     let existSysCl, sysname
-    for (let tries = 0; tries <= 2; tries++) {
-      sysname = nanoid(10)
+    if (info.sysname) {
+      sysname = info.sysname
       existSysCl = await modelCl.bySysname(existDb, sysname)
-      if (!existSysCl) break
+    } else {
+      for (let tries = 0; tries <= 2; tries++) {
+        sysname = nanoid(10)
+        existSysCl = await modelCl.bySysname(existDb, sysname)
+        if (!existSysCl) break
+      }
     }
     if (existSysCl) return [false, '无法生成唯一的集合系统名称']
 
@@ -83,6 +88,15 @@ class CollectionHelper extends Helper {
     /**在系统中创建集合后记录集合对象信息 */
     const client = this.ctrl.mongoClient
     const mgdb = client.db(existDb.sysname)
+
+    /**检查集合在数据库中是否已经存在*/
+    const sysCl = mgdb.collection(info.sysname)
+    if (sysCl) {
+      return this.clMongoObj
+        .insertOne(info)
+        .then((result) => [true, result])
+        .catch((err) => [false, err.message])
+    }
 
     return mgdb
       .createCollection(info.sysname)

@@ -1,4 +1,5 @@
 const {
+  TMW_PLUGIN_WIDGET_URL_HOST,
   TMW_PLUGIN_DOC_HTTP_SEND_NAME: Name,
   TMW_PLUGIN_DOC_HTTP_SEND_AMOUNT: Amount,
   TMW_PLUGIN_DOC_HTTP_SEND_BUCKET: Bucket,
@@ -11,8 +12,15 @@ const {
   TMW_PLUGIN_DOC_HTTP_SEND_WIDGET_URL,
 } = process.env
 
+// 插件前端页面地址
+const widgetUrl = TMW_PLUGIN_DOC_HTTP_SEND_WIDGET_URL
+  ? TMW_PLUGIN_DOC_HTTP_SEND_WIDGET_URL
+  : TMW_PLUGIN_WIDGET_URL_HOST
+  ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-http-send'
+  : '/plugin/doc-http-send'
+
 module.exports = {
-  widgetUrl: TMW_PLUGIN_DOC_HTTP_SEND_WIDGET_URL || '/plugin/doc-http-send',
+  widgetUrl,
   name: Name ? Name.split(',') : ['doc-http-send'],
   amount: Amount ? Amount.split(',') : ['many'],
   title: Title ? Title.split(',') : ['发送数据'],

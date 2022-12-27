@@ -1,6 +1,7 @@
 import DbBase from '../dbBase'
 import { ResultData, ResultFault } from 'tms-koa'
 import { ModelDb } from 'tmw-kit'
+import { Double } from 'mongodb'
 
 class Db extends DbBase {
   constructor(...args) {
@@ -323,6 +324,48 @@ class Db extends DbBase {
    */
   async top() {
     return super.top()
+  }
+  /**
+   *
+   */
+  async getProfilingStatus() {
+    const existDb = await this.dbHelper.findRequestDb()
+
+    const client = this.mongoClient
+
+    const db = client.db(existDb.sysname)
+
+    const level = await db.profilingLevel()
+
+    const profile = level === 'all' ? 2 : level === 'slow_only' ? 1 : 0
+
+    const result = await db.command({
+      profile,
+    })
+
+    return new ResultData(result)
+  }
+  /**
+   *
+   */
+  async setProfilingLevel() {
+    const existDb = await this.dbHelper.findRequestDb()
+
+    let { profile = 1, slowms, sampleRate, filter } = this.request.body
+
+    const cmd: any = { profile }
+    if (slowms && parseInt(slowms)) cmd.slowms = parseInt(slowms)
+    if (sampleRate && parseFloat(sampleRate))
+      cmd.sampleRate = new Double(sampleRate)
+    if (filter && typeof filter === 'object') cmd.filter = filter
+
+    const client = this.mongoClient
+
+    const db = client.db(existDb.sysname)
+
+    const result = await db.command(cmd)
+
+    return new ResultData(result.ok === 1)
   }
 }
 

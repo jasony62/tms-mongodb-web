@@ -134,45 +134,12 @@
         <div v-for="ep in etlPlugins">
           <el-button type="success" plain @click="handleExtract(ep)">{{ ep.title }}</el-button>
         </div>
-        <div v-for="p in data.plugins" :key="p.name">
-          <el-button v-if="p.amount === 'zero'" type="success" plain @click="handlePlugin(p)">{{ p.title }}
-          </el-button>
-          <el-button v-else-if="p.amount === 'one'" :disabled="totalByChecked !== 1" type="success" plain
-            @click="handlePlugin(p)">{{ p.title }}
-          </el-button>
-          <el-dropdown v-else>
-            <el-button type="success" plain>{{ p.title }}
-              <el-icon class="el-icon--right">
-                <arrow-down />
-              </el-icon>
-            </el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item>
-                  <el-button text @click="handlePlugin(p, 'all')" :disabled="totalByAll === 0">
-                    按全部({{ totalByAll }})</el-button>
-                </el-dropdown-item>
-                <el-dropdown-item>
-                  <el-button text @click="handlePlugin(p, 'filter')" :disabled="totalByFilter === 0">
-                    按筛选({{ totalByFilter }})</el-button>
-                </el-dropdown-item>
-                <el-dropdown-item>
-                  <el-button text @click="handlePlugin(p, 'checked')" :disabled="totalByChecked === 0">
-                    按选中({{ totalByChecked }})</el-button>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
+        <tmw-plugins :plugins="data.plugins" :total-by-all="totalByAll" :total-by-filter="totalByFilter"
+          :total-by-checked="totalByChecked" :handle-plugin="handlePlugin"></tmw-plugins>
       </div>
     </div>
   </div>
-  <el-drawer v-model="showPluginWidget" :size="pluginWidgetSize" :with-header="false" :show-close="false"
-    :close-on-click-modal="false" :destroy-on-close="true">
-    <div class="h-full w-full relative">
-      <iframe ref="elPluginWidget" class="plugin-widget" :src="pluginWidgetUrl"></iframe>
-    </div>
-  </el-drawer>
+  <tmw-plugin-widget></tmw-plugin-widget>
   <doc-preview-json></doc-preview-json>
 </template>
 
@@ -180,17 +147,13 @@
 #tables :deep(tr.current-row>td.tmw-table__cell) {
   @apply text-red-400;
 }
-
-.plugin-widget {
-  @apply h-full w-full border-0;
-}
 </style>
 
 
 <script setup lang="ts">
 import { onMounted, reactive, ref, computed, toRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowRight, ArrowDown } from '@element-plus/icons-vue'
+import { ArrowRight } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
 import * as _ from 'lodash'
 import * as Handlebars from 'handlebars'
@@ -217,15 +180,13 @@ import { useMitt } from '@/composables/mitt'
 import { useAssistant } from '@/composables/assistant'
 import DocPreviewJson from '@/components/DocPreviewJson.vue'
 import { useDocPreviewJson } from '@/composables/docPreviewJson'
+import TmwPlugins from '@/components/PluginList.vue'
+import TmwPluginWidget from '@/components/PluginWidget.vue'
+import { useTmwPlugins } from '@/composables/plugins'
 
 const COMPACT = computed(() => COMPACT_MODE())
 const EXTRACT = computed(() => EXTRACT_MODE())
 const MULTIPLE = computed(() => MULTIPLE_MODE())
-
-const elPluginWidget = ref<HTMLIFrameElement>()
-const showPluginWidget = ref(false)
-const pluginWidgetUrl = ref('')
-const pluginWidgetSize = ref('')
 
 const store = facStore()
 
@@ -453,7 +414,7 @@ const setPluginDocParam = (docScope: string) => {
  * @param docScope 操作的文档范围类型
  * @param widgetResult 插件部件收集的数据
  */
-function executePlugin(
+function onExecute(
   plugin: any,
   docScope = '',
   widgetResult = undefined,
@@ -571,94 +532,26 @@ function executePlugin(
   })
 }
 /**
- * 执行插件
- *
- * @param plugin 要执行的插件
- * @param docScope 插件操作数据的范围
+ * 插件
  */
-const handlePlugin = (plugin: any, docScope = '') => {
-  const { beforeWidget, schemaJson: schema } = plugin
-  if (beforeWidget) {
-    const { name, url, size } = beforeWidget
-    if (name === 'external' && url) {
-      let fullurl = url + (url.indexOf('?') > 0 ? '&' : '?')
-      showPluginWidget.value = true
-      pluginWidgetUrl.value =
-        fullurl + `bucket=${bucketName ?? ''}&db=${dbName}&cl=${clName}`
-      pluginWidgetSize.value = size ?? '50%'
-      // 收集页面数据
-      const widgetResultListener = (event: MessageEvent) => {
-        const { data, origin } = event
-        if (data) {
-          const {
-            action,
-            result,
-            handleResponse,
-            applyAccessTokenField,
-            reloadOnClose,
-          } = data
-          if (action === 'Created') {
-            // 插件创建成功后，将插件信息传递给插件
-            if (elPluginWidget.value) {
-              const msg: any = {
-                plugin: {
-                  name: toRaw(plugin.name),
-                  ui: toRaw(beforeWidget.ui),
-                },
-              }
-              if (plugin.amount === 'zero') {
-                // 处理没有文档时，将后端指定的schema传递给插件
-                msg.schema = toRaw(schema)
-              }
-              if (
-                plugin.amount === 'one' &&
-                selectedDocuments.value.length === 1
-              ) {
-                // 处理单个文档时，将文档数据和schema传递给插件
-                msg.document = toRaw(selectedDocuments.value[0])
-                msg.schema = toRaw(collection.schema.body)
-              }
-              elPluginWidget.value.contentWindow?.postMessage(msg, '*')
-            }
-          } else if (action === 'Cancel') {
-            window.removeEventListener('message', widgetResultListener)
-            showPluginWidget.value = false
-          } else if (action === 'Execute') {
-            executePlugin(
-              plugin,
-              docScope,
-              result,
-              handleResponse,
-              applyAccessTokenField
-            ).then((response: any) => {
-              if (handleResponse === true) {
-                // 将执行的结果递送给插件
-                if (elPluginWidget.value) {
-                  elPluginWidget.value.contentWindow?.postMessage(
-                    { response },
-                    '*'
-                  )
-                }
-              } else {
-                window.removeEventListener('message', widgetResultListener)
-                showPluginWidget.value = false
-              }
-            })
-          } else if (action === 'Close') {
-            window.removeEventListener('message', widgetResultListener)
-            showPluginWidget.value = false
-            // 关闭后刷新数据
-            if (reloadOnClose) listDocByKw()
-          }
-        }
-      }
-      window.addEventListener('message', widgetResultListener)
-      return
+const { handlePlugin } = useTmwPlugins({
+  bucketName,
+  dbName, clName, onExecute,
+  onCreate: (plugin: any, msg: any) => {
+    if (
+      plugin.amount === 'one' &&
+      selectedDocuments.value.length === 1
+    ) {
+      // 处理单个文档时，将文档数据传递给插件
+      msg.document = toRaw(selectedDocuments.value[0])
     }
-  } else {
-    executePlugin(plugin, docScope)
+    // 如果插件没有指定schema，传递集合的schema
+    msg.schema ??= toRaw(collection.schema.body)
+  },
+  onClose: () => {
+    listDocByKw()
   }
-}
+})
 /**
  * 执行ETL插件的提取操作
  */

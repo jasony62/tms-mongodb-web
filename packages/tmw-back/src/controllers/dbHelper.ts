@@ -51,10 +51,15 @@ class DbHelper extends Helper {
 
     // 生成数据库系统名
     let existSysDb, sysname
-    for (let tries = 0; tries <= 2; tries++) {
-      sysname = nanoid(10)
-      existSysDb = await this.dbBySysname(sysname)
-      if (!existSysDb) break
+    if (info.sysname) {
+      sysname = info.sysname
+      existSysDb = await this.dbBySysname(info.sysname)
+    } else {
+      for (let tries = 0; tries <= 2; tries++) {
+        sysname = nanoid(10)
+        existSysDb = await this.dbBySysname(sysname)
+        if (!existSysDb) break
+      }
     }
     if (existSysDb) return [false, '无法生成有效数据库名称']
 

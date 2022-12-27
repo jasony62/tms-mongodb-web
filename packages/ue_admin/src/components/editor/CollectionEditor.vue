@@ -7,6 +7,9 @@
       <el-tab-pane label="文档编辑转换规则" name="convert"></el-tab-pane>
     </el-tabs>
     <el-form :model="collection" label-position="top" v-show="activeTab === 'info'" :rules="rules">
+      <el-form-item label="集合名称（系统）" prop="sysname">
+        <el-input v-model="collection.sysname" :disabled="mode === 'update'"></el-input>
+      </el-form-item>
       <el-form-item label="集合名称（英文）" prop="name">
         <el-input v-model="collection.name"></el-input>
       </el-form-item>
@@ -162,6 +165,17 @@ const props = defineProps({
   onClose: { type: Function, default: (newCl: any) => { } },
 })
 
+// 设置默认值
+props.collection.custom ??= { docOperations: {} }
+props.collection.operateRules ??= {
+  scope: { unrepeat: false }, unrepeat: {
+    database: {},
+    collection: {},
+    primaryKeys: [],
+    insert: false,
+  }
+}
+
 const dialogVisible = ref(props.dialogVisible)
 const activeTab = ref('info')
 const schemas = ref([] as any[])
@@ -211,9 +225,7 @@ onMounted(() => {
     tags2.forEach((t) => tags.value.push(t))
   })
 
-  let {
-    operateRules: { unrepeat },
-  } = props.collection
+  let unrepeat = props.collection?.operateRules?.unrepeat
 
   if (unrepeat) {
     const dbKey = unrepeat.database.name ? unrepeat.database.name : null
@@ -348,6 +360,9 @@ const onSubmit = () => {
   const reg = /^[a-zA-z]/
   if (!reg.test(collection.name)) {
     return ElMessageBox.alert('请输入以英文字母开头的集合名')
+  }
+  if (!collection.schema_id) {
+    return ElMessageBox.alert('请指定[集合内容定义(默认)]的值')
   }
 
   let {

@@ -1,4 +1,5 @@
 const {
+  TMW_PLUGIN_WIDGET_URL_HOST,
   TMW_PLUGIN_DOC_AGENDA_NAME: Name,
   TMW_PLUGIN_DOC_AGENDA_BUCKET: Bucket,
   TMW_PLUGIN_DOC_AGENDA_DB: Db,
@@ -14,8 +15,15 @@ const {
   TMW_PLUGIN_DOC_AGENDA_JOB_STATE_FIELD: JobStateField,
 } = process.env
 
+// 插件前端页面地址
+const widgetUrl = TMW_PLUGIN_DOC_AGENDA_WIDGET_URL
+  ? TMW_PLUGIN_DOC_AGENDA_WIDGET_URL
+  : TMW_PLUGIN_WIDGET_URL_HOST
+  ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-agenda'
+  : '/plugin/doc-agenda'
+
 module.exports = {
-  widgetUrl: TMW_PLUGIN_DOC_AGENDA_WIDGET_URL || '/plugin/doc-agenda',
+  widgetUrl,
   name: Name ? Name : 'doc-agenda',
   title: Title ? Title : '调度任务',
   bucket: Bucket,

@@ -2,6 +2,9 @@
   <el-dialog title="数据库" v-model="dialogVisible" :destroy-on-close="true" :close-on-click-modal="false"
     :before-close="onBeforeClose">
     <el-form ref="form" :model="database" label-position="top">
+      <el-form-item label="数据库名称（系统）">
+        <el-input v-model="database.sysname" :disabled="mode === 'update'"></el-input>
+      </el-form-item>
       <el-form-item label="数据库名称（英文）">
         <el-input v-model="database.name"></el-input>
       </el-form-item>

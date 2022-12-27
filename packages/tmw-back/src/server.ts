@@ -1,6 +1,7 @@
 import * as log4js from 'log4js'
 import * as path from 'path'
 import * as fs from 'fs'
+import * as glob from 'glob'
 import { nanoid } from 'nanoid'
 
 let cnfpath = path.resolve(process.cwd() + '/config/log4js.js')
@@ -32,12 +33,36 @@ function loadPlugins() {
   let config = loadConfig('plugin')
   PluginContext.init(config)
 }
+/**
+ * 数据初始化
+ */
+async function dbInit(MongoContext) {
+  let config = loadConfig('dbinit')
+  if (!config) return
+  if (!Array.isArray(config.rules) || config.rules.length === 0) return
+
+  const client = await MongoContext.mongoClient()
+
+  logger.info('执行数据初始化', config)
+  const { loadDataFrom } = await import('tmw-kit/dist/util/database')
+  for (let rule of config.rules) {
+    let { file, replaceExistingSchema, allowReuseSchema, docCreateMode } = rule
+
+    if (!fs.existsSync(file)) continue
+
+    await loadDataFrom(file, client, {
+      replaceExistingSchema,
+      allowReuseSchema,
+      docCreateMode,
+    })
+  }
+}
 
 let Replica_Child_Process // 执行集合复制的子进程
 /**
  * 框架完成初始化
  */
-function afterInit() {
+async function afterInit({ MongoContext }) {
   logger.info('已完成框架初始化')
   /**
    * 数据加密基础key
@@ -59,6 +84,10 @@ function afterInit() {
    * 加载插件
    */
   loadPlugins()
+  /**
+   * 数据初始化
+   */
+  if (MongoContext) await dbInit(MongoContext)
   /**
    * 启动集合实时复制
    */

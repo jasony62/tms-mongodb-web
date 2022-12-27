@@ -67,10 +67,10 @@ class Collection extends Base {
    *  检查集合名
    */
   checkClName(clName) {
-    if (new RegExp('^[a-zA-Z]+[0-9a-zA-Z_]{0,63}$').test(clName) !== true)
+    if (new RegExp('^[a-zA-Z]+[0-9a-zA-Z_-]{0,63}$').test(clName) !== true)
       return [
         false,
-        '集合名必须以英文字母开头，仅限英文字母或_或数字组合，且最长64位',
+        '集合名必须以英文字母开头，仅限英文字母或_或-或数字组合，且最长64位',
       ]
 
     // 集合名是否存在关键字中
