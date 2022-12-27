@@ -6,6 +6,7 @@ import * as glob from 'glob'
 import * as path from 'path'
 
 const debug = require('debug')('tmw:db_init')
+const trace = require('debug')('trace:tmw:db_init')
 
 const TMW_CREATE_TIME = dayjs().format('YYYY-MM-DD HH:mm:ss')
 
@@ -158,8 +159,10 @@ class Handler {
     if (info.description) tpl.description = info.description
     tpl.body.properties = info.properties
 
+    trace('新文档定义内容：', JSON.stringify(tpl, null, 2))
     if (replaceExisting) {
-      await this.cl.replaceOne({ _id: existSchema._id }, tpl)
+      let rst = await this.cl.replaceOne({ _id: existSchema._id }, tpl)
+      debug('文档定义替换结果：', JSON.stringify(rst))
       return existSchema._id
     } else {
       const { insertedId } = await this.cl.insertOne(tpl)

@@ -47,8 +47,8 @@
                 <el-button @click="copy" :disabled="!previewResult">复制</el-button>
               </el-tooltip>
             </div>
-            <div class="border border-gray-200 rounded-md p-2 h-full w-full">
-              <pre class="w-full h-full overflow-auto">{{ previewResult }}</pre>
+            <div class="border border-gray-200 rounded-md p-2 h-full w-full overflow-auto">
+              <pre class="whitespace-pre-wrap break-all">{{ previewResult }}</pre>
             </div>
           </div>
         </div>

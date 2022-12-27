@@ -20,9 +20,9 @@
     <div class="flex flex-row gap-4 h-full overflow-auto pb-4" v-if="collection._id && (!docId || document._id)">
       <div class="w-1/3 h-full flex-grow-none overflow-auto">
         <tms-json-doc ref="$jde" :schema="collection.schema.body" :value="document" :enable-paste="true"
-          :on-paste="onJdocPaste" :on-file-select="onFileSelect" :on-file-download="onFileDownload"
-          :show-field-fullname="showFieldFullname" :hide-root-title="true" :hide-root-description="true"
-          @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
+          :on-paste="onJdocPaste" :on-lookup="onJdocLookup" :on-file-select="onFileSelect"
+          :on-file-download="onFileDownload" :show-field-fullname="showFieldFullname" :hide-root-title="true"
+          :hide-root-description="true" @jdoc-focus="onJdocFocus" @jdoc-blur="onJdocBlur"></tms-json-doc>
         <el-form label-position="top">
           <el-form-item label="标签">
             <el-select v-model="docTags" multiple clearable placeholder="请选择">
@@ -339,6 +339,53 @@ function convertExternalData(field: Field, source: string, data: any): any {
 
   return newData
 }
+/**
+ * 执行数据转化操作
+ * @param result 
+ * @param doc 
+ * @param transform 
+ */
+const lookupTransform = (result: any, doc: any, transform: any) => {
+  if (Array.isArray(transform) && transform.length) {
+    transform.forEach((rule) => {
+      let { src, dst } = rule
+      let val = _.get(doc, src)
+      _.set(result, dst, val)
+    })
+  } else
+    result.id = doc._id
+}
+/**
+ * 表单字段要求查询数据
+ * @param field 
+ */
+const onJdocLookup = async (field: Field) => {
+  const { lookup } = field.schemaProp
+  if (!lookup || typeof lookup !== 'object') return
+  const { source, transform } = lookup
+  if (!source || typeof source !== 'object') return
+  if (!source.cl || typeof source.cl !== 'string') return
+
+  return new Promise((resolve) => {
+    const resultListener = async (event: MessageEvent) => {
+      window.removeEventListener('message', resultListener)
+      const { data, origin } = event
+      if (data?.action === 'extract.close') {
+        let result: any = {}
+        let doc = data?.doc
+        if (doc && typeof doc === 'object') {
+          lookupTransform(result, doc, transform)
+        }
+        opened.value = false
+        resolve(result)
+      }
+    }
+    window.addEventListener('message', resultListener)
+    const { opened } = useAssistant({ extract: true, multiple: false, dbName, clName: source.cl })
+    opened.value = true
+  })
+}
+
 const pasteDocPanel = ref(false)
 const elPasteDocEditor = ref<HTMLElement | null>(null)
 let pasteDocEditor: any
