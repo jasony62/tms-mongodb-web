@@ -560,8 +560,8 @@ const handleExtract = (etl: any) => {
     window.removeEventListener('message', resultListener)
     const { data, origin } = event
     if (data?.action === 'extract.close') {
-      let docIds = data?.docIds
-      if (Array.isArray(docIds) && docIds.length) {
+      const docIds = MULTIPLE_MODE() ? data?.docs.map((d: any) => d._id) : [data.doc._id]
+      if (docIds.length) {
         const result = await apiEtl.transform(bucketName, etl._id, docIds)
         for (let proto of result) await apiDoc.create(bucketName, dbName, clName, proto)
         listDocByKw()
@@ -644,20 +644,19 @@ const listDocByKw = () => {
  * etl插件
  */
 const etlPlugins = ref<any[]>([])
-apiEtl.findForDst(bucketName, dbName, clName, 'collection').then((etls: any) => {
-  etls.forEach((etl: any) => etlPlugins.value.push(etl))
-})
+// apiEtl.findForDst(bucketName, dbName, clName, 'collection').then((etls: any) => {
+//   etls.forEach((etl: any) => etlPlugins.value.push(etl))
+// })
 
 if (EXTRACT) {
   const emitter = useMitt()
   emitter.on('extract.confirm', () => {
-    let docIds
     if (MULTIPLE.value === false) {
-      docIds = currentRow.value._id ? [currentRow.value._id] : []
+      emitter.emit('extract.confirm.result', toRaw(currentRow.value))
     } else {
-      docIds = selectedDocuments.value.map(d => d._id)
+      let docs = selectedDocuments.value.map(d => toRaw(d))
+      emitter.emit('extract.confirm.result', docs)
     }
-    emitter.emit('extract.confirm.result', docIds)
   })
 }
 

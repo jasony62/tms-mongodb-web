@@ -43,7 +43,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { COMPACT_MODE, EXTRACT_MODE } from '@/global'
+import { COMPACT_MODE, EXTRACT_MODE, MULTIPLE_MODE } from '@/global'
 import { computed } from 'vue';
 import Assistant from '@/components/Assistant.vue'
 import { useAssistant } from '@/composables/assistant';
@@ -71,10 +71,15 @@ const closeAssistant = () => {
 }
 
 const confirmAssistant = () => {
-  const extractResult = (docIds: any) => {
+  const extractResult = (docOrDocs: any) => {
     const Caller = window.parent
-    if (Caller)
-      Caller.postMessage({ action: 'extract.close', docIds }, '*')
+    if (Caller) {
+      if (MULTIPLE_MODE()) {
+        Caller.postMessage({ action: 'extract.close', docs: docOrDocs }, '*')
+      } else {
+        Caller.postMessage({ action: 'extract.close', doc: docOrDocs }, '*')
+      }
+    }
     emitter.off('extract.confirm.result', extractResult)
   }
   const emitter = useMitt()
