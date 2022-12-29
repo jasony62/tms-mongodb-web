@@ -25,6 +25,8 @@ export const useAssistant = (options?: UseAssistantOptions) => {
   if (dbName && typeof dbName === 'string') {
     if (clName && typeof clName === 'string') {
       path = `/admin/collection/${dbName}/${clName}`
+    } else {
+      path = `/admin/database/${dbName}`
     }
   }
   path ??= '/admin/database/'

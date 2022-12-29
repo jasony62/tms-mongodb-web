@@ -395,7 +395,7 @@ function* _parseOne(
       patternProperties &&
       typeof patternProperties === 'object') ||
     (rawProp.type === 'array' &&
-      items.patternProperties &&
+      items?.patternProperties &&
       typeof items.patternProperties === 'object')
   ) {
     newProp.patternChildren = []

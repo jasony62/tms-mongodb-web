@@ -1,7 +1,6 @@
 import * as log4js from 'log4js'
 import * as path from 'path'
 import * as fs from 'fs'
-import * as glob from 'glob'
 import { nanoid } from 'nanoid'
 
 let cnfpath = path.resolve(process.cwd() + '/config/log4js.js')
