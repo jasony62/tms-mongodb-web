@@ -363,25 +363,28 @@ const onJdocLookup = async (field: Field) => {
   const { lookup } = field.schemaProp
   if (!lookup || typeof lookup !== 'object') return
   const { source, transform } = lookup
-  if (!source || typeof source !== 'object') return
-  if (!source.cl || typeof source.cl !== 'string') return
 
   return new Promise((resolve) => {
     const resultListener = async (event: MessageEvent) => {
       window.removeEventListener('message', resultListener)
       const { data, origin } = event
-      if (data?.action === 'extract.close') {
-        let result: any = {}
-        let doc = data?.doc
-        if (doc && typeof doc === 'object') {
-          lookupTransform(result, doc, transform)
+      if (data && typeof data === 'object') {
+        let { action, result } = data
+        if (action === 'extract.close') {
+          let lookuped: any = {}
+          let { dbName, clName, doc } = result
+          if (doc && typeof doc === 'object') {
+            doc._dbName = dbName
+            doc._clName = clName
+            lookupTransform(lookuped, doc, transform)
+          }
+          opened.value = false
+          resolve(lookuped)
         }
-        opened.value = false
-        resolve(result)
       }
     }
     window.addEventListener('message', resultListener)
-    const { opened } = useAssistant({ extract: true, multiple: false, dbName, clName: source.cl })
+    const { opened } = useAssistant({ extract: true, multiple: false, dbName, clName: source?.cl })
     opened.value = true
   })
 }

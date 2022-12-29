@@ -652,10 +652,10 @@ if (EXTRACT) {
   const emitter = useMitt()
   emitter.on('extract.confirm', () => {
     if (MULTIPLE.value === false) {
-      emitter.emit('extract.confirm.result', toRaw(currentRow.value))
+      emitter.emit('extract.confirm.result', { dbName, clName, doc: toRaw(currentRow.value) })
     } else {
       let docs = selectedDocuments.value.map(d => toRaw(d))
-      emitter.emit('extract.confirm.result', docs)
+      emitter.emit('extract.confirm.result', { dbName, clName, docs })
     }
   })
 }

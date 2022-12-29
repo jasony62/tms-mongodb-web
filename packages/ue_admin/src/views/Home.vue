@@ -71,15 +71,9 @@ const closeAssistant = () => {
 }
 
 const confirmAssistant = () => {
-  const extractResult = (docOrDocs: any) => {
+  const extractResult = (result: any) => {
     const Caller = window.parent
-    if (Caller) {
-      if (MULTIPLE_MODE()) {
-        Caller.postMessage({ action: 'extract.close', docs: docOrDocs }, '*')
-      } else {
-        Caller.postMessage({ action: 'extract.close', doc: docOrDocs }, '*')
-      }
-    }
+    Caller?.postMessage({ action: 'extract.close', result }, '*')
     emitter.off('extract.confirm.result', extractResult)
   }
   const emitter = useMitt()
