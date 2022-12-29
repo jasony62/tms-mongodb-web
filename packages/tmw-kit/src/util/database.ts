@@ -174,7 +174,7 @@ class Handler {
 
       debug(`创建了文档列定义[id=${insertedId}]`)
 
-      return insertedId
+      return insertedId.toString()
     }
   }
   /**
