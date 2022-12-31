@@ -247,6 +247,22 @@ class Document extends Base {
     })
   }
   /**
+   * 新建文档
+   * @param existCl
+   * @param data
+   */
+  async create(existCl, data) {
+    let mongoClient = this.mongoClient
+    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+
+    const newDoc = await sysCl.insertOne(data).then(async (r) => {
+      await this.dataActionLog(r.ops, '创建', existCl.db.name, existCl.name)
+      return data
+    })
+
+    return newDoc
+  }
+  /**
    * 更新指定id的文档
    *
    * 如果更新的是从集合中的数据，改为更新主集合中的数据

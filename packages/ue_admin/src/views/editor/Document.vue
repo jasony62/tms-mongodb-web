@@ -5,12 +5,12 @@
       <el-breadcrumb :separator-icon="ArrowRight">
         <el-breadcrumb-item :to="{ name: 'databases' }">数据库</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'database', params: { dbName } }">{{
-            dbName
-        }}</el-breadcrumb-item>
+    dbName
+}}</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'collection', params: { dbName, clName } }">{{ clName }}</el-breadcrumb-item>
         <el-breadcrumb-item>{{
-            document._id ? document._id : '新建文档'
-        }}</el-breadcrumb-item>
+    document._id ? document._id : '新建文档'
+}}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
     <div class="p-2 border border-gray-200 mb-2 rounded-md text-center">
@@ -34,12 +34,12 @@
       <div v-if="isSmallLeft" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
         <div v-if="activeField?.schemaType === 'json'">
           <el-button type="primary" @click="updateFieldJson" :disabled="!jsonFieldValueChanged">更新【{{
-              activeField.fullname
-          }}】</el-button>
+    activeField.fullname
+}}】</el-button>
         </div>
         <div v-if="activeField?.schemaType === 'json'" ref="elJsonEditor" class="flex-grow"></div>
         <div v-if="/mustache|handlebars/.test(activeField?.schemaProp.attrs?.format)">
-          <handlebars-viz :template-text="activeFieldValue" />
+          <handlebars-viz :vars-root-name="'vars'" :vars="templateVars" :template-text="activeFieldValue" />
         </div>
       </div>
       <div class="h-full flex flex-col gap-2 relative" :class="isSmallLeft ? 'w-1/3' : 'w-2/3'">
@@ -92,7 +92,7 @@
 import { computed, nextTick, ref, inject, watch } from 'vue'
 import TmsJsonDoc, { Field, DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
-import { EXTERNAL_FS_URL, getLocalToken, TMW_APP_TAGS } from '@/global'
+import { EXTERNAL_FS_URL, getLocalToken, TEMPLATE_VARS_API_URL, TMW_APP_TAGS } from '@/global'
 import apiTag from '@/apis/tag'
 import apiCl from '@/apis/collection'
 import apiDoc from '@/apis/document'
@@ -112,6 +112,7 @@ import JsonDiagramX6 from '@/components/JsonDiagramX6.vue'
 import { dialogInjectionKey } from 'gitart-vue-dialog'
 import PropValueEditor from '@/components/PropValueEditor.vue'
 import { useAssistant } from '@/composables/assistant'
+import { TmsAxios } from 'tms-vue3'
 
 // 系统指定的标签字段名称
 const TagsFieldName = TMW_APP_TAGS()
@@ -613,4 +614,28 @@ if (docId)
     let tags: string[] = Array.isArray(doc[TagsFieldName]) ? doc[TagsFieldName] : []
     docTags.value.push(...tags)
   })
+/**
+ * 获得模板变量
+ */
+const templateVars = ref<any[]>([])
+if (TEMPLATE_VARS_API_URL()) {
+  let url = TEMPLATE_VARS_API_URL()
+  url += url.indexOf('?') === -1 ? '?' : '&'
+  if (bucketName) url += `bucket=${bucketName}&`
+  url += `db=${dbName}&cl=${clName}`
+
+  TmsAxios.ins('master-api')
+    .get(url)
+    .then((rsp: any) => {
+      let { vars } = rsp.data
+      if (Array.isArray(vars) && vars.length) {
+        vars.forEach(v => {
+          let { name, title, examples } = v
+          let v2: any = { name, title }
+          if (Array.isArray(examples) && examples.length) v2.example = examples[0]
+          templateVars.value.push(v2)
+        })
+      }
+    })
+}
 </script>

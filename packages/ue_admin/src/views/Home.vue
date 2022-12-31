@@ -43,7 +43,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { COMPACT_MODE, EXTRACT_MODE, MULTIPLE_MODE } from '@/global'
+import { COMPACT_MODE, EXTRACT_MODE } from '@/global'
 import { computed } from 'vue';
 import Assistant from '@/components/Assistant.vue'
 import { useAssistant } from '@/composables/assistant';
