@@ -5,23 +5,26 @@
         <el-menu-item index="/database/">
           <span>数据库</span>
         </el-menu-item>
-        <el-menu-item index="/docSchemas/">
-          <span>文档内容定义</span>
-        </el-menu-item>
-        <el-menu-item index="/dbSchemas/">
-          <span>数据库属性定义</span>
-        </el-menu-item>
-        <el-menu-item index="/clSchemas/">
-          <span>集合属性定义</span>
-        </el-menu-item>
+        <el-sub-menu index="globalSchema">
+          <template #title>属性定义</template>
+          <el-menu-item index="/docSchemas/">
+            <span>文档</span>
+          </el-menu-item>
+          <el-menu-item index="/dbSchemas/">
+            <span>数据库</span>
+          </el-menu-item>
+          <el-menu-item index="/clSchemas/">
+            <span>集合</span>
+          </el-menu-item>
+        </el-sub-menu>
         <el-menu-item index="/tag/">
           <span>标签</span>
         </el-menu-item>
-        <el-menu-item index="/replica/">
-          <span>全量复制定义</span>
-        </el-menu-item>
         <el-menu-item index="/files/">
           <span>文件管理</span>
+        </el-menu-item>
+        <el-menu-item index="/replica/">
+          <span>全量复制定义</span>
         </el-menu-item>
       </el-menu>
       <div class="flex-grow border-t border-r p-4 flex flex-col gap-2">

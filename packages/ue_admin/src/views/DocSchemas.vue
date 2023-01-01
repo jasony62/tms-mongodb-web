@@ -8,8 +8,8 @@
               <router-link
                 :to="{ name: 'schemaEditor', params: { bucketName, scope: 'document', schemaId: scope.row._id } }">
                 {{
-                    scope.row.name
-                }}
+    scope.row.name
+}}
               </router-link>
             </template>
           </el-table-column>
@@ -33,11 +33,10 @@
   </div>
 </template>
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, toRaw } from 'vue'
+import { computed, onMounted, reactive, toRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Batch } from 'tms-vue3'
 import { useRouter } from 'vue-router'
-
 import facStore from '@/store'
 import { openSchemaEditor } from '@/components/editor'
 import { COMPACT_MODE } from '@/global'
@@ -48,23 +47,12 @@ const store = facStore()
 
 const router = useRouter()
 
-const props = defineProps({ bucketName: String })
-
-const criteria = reactive({
-  dbBatch: new Batch(() => { }),
-  multipleDb: [],
-  replicaBatch: new Batch(() => { }),
-  multipleReplica: []
+const props = defineProps({
+  bucketName: String,
+  dbName: { type: String, default: '' }
 })
+
 const createSchema = (scope: string) => {
-  // openSchemaEditor({
-  //   bucketName: props.bucketName,
-  //   schema: { scope, body: { type: 'object' } },
-  //   onBeforeClose: (newSchema?: any) => {
-  //     if (newSchema)
-  //       store.appendSchema({ schema: newSchema })
-  //   }
-  // })
   router.push({ name: 'schemaEditor', params: { bucketName: props.bucketName, scope: scope } })
 }
 const editSchema = (schema: any, scope: string) => {
@@ -106,7 +94,8 @@ const removeSchema = (schema: { title: string }) => {
     }).catch(() => { })
 }
 onMounted(() => {
-  let bucket = props.bucketName
-  store.listSchema({ bucket, scope: 'document' })
+  const bucket = props.bucketName
+  const db = props.dbName
+  store.listSchema({ bucket, db, scope: 'document' })
 })
 </script>

@@ -12,7 +12,14 @@
       <!--left-->
       <div class="flex flex-col gap-4" :class="COMPACT ? 'w-full' : 'w-4/5'">
         <el-table :data="store.collections" stripe @selection-change="changeClSelect">
-          <el-table-column type="selection" width="55"></el-table-column>
+          <el-table-column type="selection" width="40"></el-table-column>
+          <el-table-column type="expand" width="40">
+            <template #default="props">
+              <div class="ml-24 flex flex-row gap-2">
+                <el-link type="danger" @click="removeCollection(props.row)">删除集合</el-link>
+              </div>
+            </template>
+          </el-table-column>
           <el-table-column label="集合名称" width="180">
             <template #default="scope">
               <el-link :underline="false" @click="openCollection(dbName, scope.row)">{{ scope.row.name }}</el-link>
@@ -25,11 +32,10 @@
             </template>
           </el-table-column>
           <el-table-column prop="description" label="说明"></el-table-column>
-          <el-table-column label="操作" width="180">
+          <el-table-column label="操作" width="60">
             <template #default="scope">
               <el-button @click="editCollection(scope.row, scope.$index)" type="primary" link size="small">修改
               </el-button>
-              <el-button @click="removeCollection(scope.row)" type="primary" link size="small">删除</el-button>
             </template>
           </el-table-column>
         </el-table>

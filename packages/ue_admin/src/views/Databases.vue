@@ -3,7 +3,15 @@
     <div :class="COMPACT ? 'w-full' : 'w-4/5'">
       <div class="flex flex-col gap-2">
         <el-table :data="store.dbs" stripe @selection-change="changeDbSelect">
-          <el-table-column type="selection" width="55"></el-table-column>
+          <el-table-column type="selection" width="40"></el-table-column>
+          <el-table-column type="expand" width="40">
+            <template #default="props">
+              <div class="ml-24 flex flex-row gap-2">
+                <el-link type="primary" @click="gotoDocSchemas(props.row)">进入文档定义</el-link>
+                <el-link type="danger" @click="removeDb(props.row)">删除文档</el-link>
+              </div>
+            </template>
+          </el-table-column>
           <el-table-column label="数据库" width="180">
             <template #default="scope">
               <router-link :to="{ name: 'database', params: { dbName: scope.row.name } }">{{ scope.row.name }}
@@ -12,10 +20,9 @@
           </el-table-column>
           <el-table-column prop="title" label="名称" width="180"></el-table-column>
           <el-table-column prop="description" label="说明"></el-table-column>
-          <el-table-column label="操作" width="120">
+          <el-table-column label="操作" width="60">
             <template #default="scope">
               <el-button type="primary" link size="small" @click="editDb(scope.row, scope.$index)">修改</el-button>
-              <el-button type="primary" link size="small" @click="removeDb(scope.row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -51,8 +58,11 @@ import TmwPlugins from '@/components/PluginList.vue'
 import TmwPluginWidget from '@/components/PluginWidget.vue'
 import { useTmwPlugins } from '@/composables/plugins'
 import * as _ from 'lodash'
+import { useRouter } from 'vue-router'
 
 const COMPACT = computed(() => COMPACT_MODE())
+
+const router = useRouter()
 
 const store = facStore()
 
@@ -264,6 +274,10 @@ const { handlePlugin } = useTmwPlugins({
     listDbByKw(null)
   }
 })
+
+const gotoDocSchemas = (db: any) => {
+  router.push({ name: 'databaseDocSchemas', params: { bucketName: props.bucketName, dbName: db.name } })
+}
 
 const totalByAll = computed(() => criteria.dbBatch.total)
 const totalByFilter = computed(() => 0)

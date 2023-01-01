@@ -41,14 +41,6 @@ const router = useRouter()
 const props = defineProps({ bucketName: String })
 
 const createSchema = (scope: string) => {
-  // openSchemaEditor({
-  //   bucketName: props.bucketName,
-  //   schema: { scope, body: { type: 'object' } },
-  //   onBeforeClose: (newSchema?: any) => {
-  //     if (newSchema)
-  //       store.appendSchema({ schema: newSchema })
-  //   }
-  // })
   router.push({ name: 'schemaEditor', params: { bucketName: props.bucketName, scope: scope } })
 }
 const editSchema = (schema: any, scope: string) => {

@@ -77,6 +77,12 @@ const routes: RouteRecordRaw[] = [
         props: true,
       },
       {
+        path: `${BucketPart}/database/:dbName/docSchemas`,
+        name: 'databaseDocSchemas',
+        component: DocSchemas,
+        props: true,
+      },
+      {
         path: `${BucketPart}/collection/:dbName/:clName`,
         name: 'collection',
         component: Collection,
@@ -140,6 +146,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
+  console.log(to, from)
   // 进入页面前检查是否已经通过用户认证
   if (to.name !== 'login') {
     let token = getLocalToken()
