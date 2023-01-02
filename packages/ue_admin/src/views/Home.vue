@@ -6,7 +6,7 @@
           <span>数据库</span>
         </el-menu-item>
         <el-sub-menu index="globalSchema">
-          <template #title>属性定义</template>
+          <template #title>字段定义</template>
           <el-menu-item index="/docSchemas/">
             <span>文档</span>
           </el-menu-item>

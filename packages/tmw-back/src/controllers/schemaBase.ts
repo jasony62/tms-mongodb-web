@@ -9,15 +9,17 @@ const ObjectId = mongodb.ObjectId
  * @extends Base
  */
 class SchemaBase extends Base {
+  schemaHelper
+
   constructor(...args) {
     super(...args)
-    this['schemaHelper'] = new SchemaHelper(this)
+    this.schemaHelper = new SchemaHelper(this)
   }
   async tmsBeforeEach() {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
 
-    this['clMongoObj'] = this['schemaHelper'].clMongoObj
+    this.clMongoObj = this.schemaHelper.clMongoObj
 
     return true
   }
@@ -25,18 +27,16 @@ class SchemaBase extends Base {
    * 完成信息列表
    */
   async list() {
-    let { scope } = this['request'].query
+    let { scope } = this.request.query
 
-    let find = { type: 'schema' }
-    if (scope) {
-      find['scope'] = { $in: scope.split(',') }
-    } else {
-      find['scope'] = 'document'
-    }
-    if (this['bucket']) find['bucket'] = this['bucket'].name
+    let find: any = { type: 'schema' }
+    find.scope = scope ? { $in: scope.split(',') } : 'document'
 
-    return this['clMongoObj']
+    if (this.bucket) find.bucket = this.bucket.name
+
+    return this.clMongoObj
       .find(find)
+      .sort('order', 1)
       .toArray()
       .then((schemas) => new ResultData(schemas))
   }
@@ -44,20 +44,17 @@ class SchemaBase extends Base {
    * 简单信息列表，不包含schema定义
    */
   async listSimple() {
-    let { scope } = this['request'].query
+    let { scope } = this.request.query
 
-    let query = { type: 'schema' }
-    if (scope) {
-      query['scope'] = { $in: scope.split(',') }
-    } else {
-      query['scope'] = 'document'
-    }
-    if (this['bucket']) query['bucket'] = this['bucket'].name
+    let query: any = { type: 'schema' }
+    query.scope = scope ? { $in: scope.split(',') } : 'document'
+    if (this.bucket) query.bucket = this.bucket.name
 
-    return this['clMongoObj']
+    return this.clMongoObj
       .find(query, {
         projection: { _id: 1, title: 1, description: 1, scope: 1 },
       })
+      .sort('order', 1)
       .toArray()
       .then((schemas) => new ResultData(schemas))
   }
@@ -65,13 +62,14 @@ class SchemaBase extends Base {
    * 根据标签查找信息列表
    */
   async listByTag() {
-    let { tag } = this['request'].query
+    let { tag } = this.request.query
 
-    let find = { type: 'schema', tags: { $elemMatch: { $eq: tag } } }
-    if (this['bucket']) find['bucket'] = this['bucket'].name
+    let find: any = { type: 'schema', tags: { $elemMatch: { $eq: tag } } }
+    if (this.bucket) find.bucket = this.bucket.name
 
-    return this['clMongoObj']
+    return this.clMongoObj
       .find(find)
+      .sort('order', 1)
       .toArray()
       .then((schemas) => new ResultData(schemas))
   }
@@ -79,13 +77,13 @@ class SchemaBase extends Base {
    * 根据id查找schema
    */
   async get() {
-    const { id } = this['request'].query
+    const { id } = this.request.query
     if (!id) return new ResultFault('参数不完整')
 
-    const query = { _id: new ObjectId(id), type: 'schema' }
-    if (this['bucket']) query['bucket'] = this['bucket'].name
+    const query: any = { _id: new ObjectId(id), type: 'schema' }
+    if (this.bucket) query.bucket = this.bucket.name
 
-    return this['clMongoObj']
+    return this.clMongoObj
       .findOne(query)
       .then((schema) => new ResultData(schema))
   }
