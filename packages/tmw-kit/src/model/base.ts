@@ -239,6 +239,16 @@ class Base {
 
     return data
   }
+
+  /**
+   * 存储管理对象的集合
+   */
+  get clMongoObj() {
+    const client = this.mongoClient
+    const cl = client.db('tms_admin').collection('mongodb_object')
+
+    return cl
+  }
 }
 
 export default Base

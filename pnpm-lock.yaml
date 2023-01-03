@@ -90,7 +90,7 @@ importers:
       lodash: ^4.17.21
       mongo-escape: ^2.0.6
       mongodb: ^4.8.1
-      nanoid: ^3.3.4
+      nanoid: 3.3.4
       randexp: ^0.5.3
       rimraf: ^3.0.2
       tms-koa: 0.1.6
