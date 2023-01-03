@@ -79,7 +79,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: `${BucketPart}/database/:dbName/docSchemas`,
         name: 'databaseDocSchemas',
-        component: DocSchemas,
+        component: DbSchemas,
         props: true,
       },
       {
