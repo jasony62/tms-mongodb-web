@@ -23,7 +23,7 @@
     "mitt": "^3.0.0",
     "pinia": "^2.0.13",
     "tms-koa-crypto": "^0.1.0",
-    "tms-template-viz": "^0.0.2",
+    "tms-template-viz": "^0.0.4",
     "tms-vue3": "^0.0.5",
     "tms-vue3-ui": "^0.0.80",
     "vue": "^3.2.25",

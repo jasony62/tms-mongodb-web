@@ -196,7 +196,10 @@ class DocBase extends Base {
     this.modelDoc.processBeforeStore(newDoc, 'update', clSchema, existDoc)
 
     // 通过webhook处理数据
-    let beforeRst = await this.docWebhook.beforeUpdate(newDoc, existCl)
+    let beforeRst = await this.docWebhook.beforeUpdate(
+      { _id: id, ...newDoc },
+      existCl
+    )
     if (beforeRst.passed !== true)
       return new ResultFault(
         beforeRst.reason || '操作被Webhook.afterUpdate阻止'
@@ -225,7 +228,10 @@ class DocBase extends Base {
     }
 
     // 通过webhook处理数据
-    let afterRst = await this.docWebhook.afterUpdate(newDoc, existCl)
+    let afterRst = await this.docWebhook.afterUpdate(
+      { _id: id, ...newDoc },
+      existCl
+    )
     if (afterRst.passed !== true)
       return new ResultFault(afterRst.reason || '操作被Webhook.afterUpdate阻止')
 

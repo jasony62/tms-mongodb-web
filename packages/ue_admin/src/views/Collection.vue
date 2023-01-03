@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-2">
     <!--header-->
     <div class="h-12 py-4 px-2">
-      <el-breadcrumb :separator-icon="ArrowRight" v-if="EXTRACT===true">
+      <el-breadcrumb :separator-icon="ArrowRight" v-if="EXTRACT === true">
         <el-breadcrumb-item>数据库</el-breadcrumb-item>
         <el-breadcrumb-item>{{ dbName }}</el-breadcrumb-item>
         <el-breadcrumb-item>{{ clName }}</el-breadcrumb-item>
@@ -19,11 +19,15 @@
         <el-table id="tables" ref="tableRef" :cell-class-name="'tmw-table__cell'" :data="store.documents"
           highlight-current-row stripe @selection-change="handleSelectionChange" @current-change="handleCurrentChange"
           @row-click="handleRowClick">
-          <el-table-column fixed="left" type="index" width="48"></el-table-column>
           <el-table-column type="selection" width="40" v-if="MULTIPLE !== false" />
           <el-table-column type="expand" width="40">
             <template #default="props">
-              <div v-html="renderDocManual(props.row)"></div>
+              <div class="ml-20">
+                <div v-html="renderDocManual(props.row)"></div>
+              </div>
+              <div class="ml-24 flex flex-row gap-2">
+                <el-link type="danger" @click="removeDocument(props.row)">删除文档</el-link>
+              </div>
             </template>
           </el-table-column>
           <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
@@ -36,15 +40,15 @@
             </template>
             <template #default="scope">
               <span v-if="s.type === 'boolean'">{{
-                  scope.row[k] ? '是' : '否'
-              }}</span>
+    scope.row[k] ? '是' : '否'
+}}</span>
               <span v-else-if="
-                s.type === 'array' && s.items && s.items.format === 'file'
-              ">
+  s.type === 'array' && s.items && s.items.format === 'file'
+">
                 <span v-for="(i, v) in scope.row[k]" :key="v">
                   <el-link type="primary" @click="downLoadFile(i)">{{
-                      i.name
-                  }}</el-link>
+    i.name
+}}</el-link>
                   <br />
                 </span>
               </span>
@@ -52,15 +56,15 @@
                 <span v-if="s.enumGroups && s.enumGroups.length">
                   <span v-for="(g, i) in s.enumGroups" :key="i">
                     <span v-if="
-                      scope.row[g.assocEnum.property] === g.assocEnum.value
-                    ">
+  scope.row[g.assocEnum.property] === g.assocEnum.value
+">
                       <span v-for="(e, v) in s.enum" :key="v">
                         <span v-if="
-                          e.group === g.id &&
-                          scope.row[k] &&
-                          scope.row[k].length &&
-                          scope.row[k].includes(e.value)
-                        ">{{ e.label }}&nbsp;</span>
+  e.group === g.id &&
+  scope.row[k] &&
+  scope.row[k].length &&
+  scope.row[k].includes(e.value)
+">{{ e.label }}&nbsp;</span>
                       </span>
                     </span>
                   </span>
@@ -75,8 +79,8 @@
                 <span v-if="s.enumGroups && s.enumGroups.length">
                   <span v-for="(g, i) in s.enumGroups" :key="i">
                     <span v-if="
-                      scope.row[g.assocEnum.property] === g.assocEnum.value
-                    ">
+  scope.row[g.assocEnum.property] === g.assocEnum.value
+">
                       <span v-for="(e, v) in s.enum" :key="v">
                         <span v-if="e.group === g.id && scope.row[k] === e.value">{{ e.label }}</span>
                       </span>
@@ -93,8 +97,8 @@
                 <span v-if="s.enumGroups && s.enumGroups.length">
                   <span v-for="(g, i) in s.enumGroups" :key="i">
                     <span v-if="
-                      scope.row[g.assocEnum.property] === g.assocEnum.value
-                    ">
+  scope.row[g.assocEnum.property] === g.assocEnum.value
+">
                       <span v-for="(e, v) in s.oneOf" :key="v">
                         <span v-if="e.group === g.id && scope.row[k] === e.value">{{ e.label }}</span>
                       </span>
@@ -112,11 +116,10 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column fixed="right" label="操作" width="180">
+          <el-table-column fixed="right" label="操作" width="100">
             <template #default="scope">
-              <el-button type="primary" link size="small" @click="previewDocument(scope.row)">预览</el-button>
+              <el-button type="primary" link size="small" @click="previewDocument(scope.row)">查看</el-button>
               <el-button type="primary" link size="small" @click="editDocument(scope.row)">修改</el-button>
-              <el-button type="primary" link size="small" @click="removeDocument(scope.row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -132,7 +135,9 @@
           <el-button @click="createDocument">添加文档</el-button>
         </div>
         <div v-for="ep in etlPlugins">
-          <el-button type="success" plain @click="handleExtract(ep)">{{ ep.title }}</el-button>
+          <el-button type="success" plain @click="handleExtract(ep)">{{
+    ep.title
+}}</el-button>
         </div>
         <tmw-plugins :plugins="data.plugins" :total-by-all="totalByAll" :total-by-filter="totalByFilter"
           :total-by-checked="totalByChecked" :handle-plugin="handlePlugin"></tmw-plugins>
@@ -144,11 +149,10 @@
 </template>
 
 <style scoped lang="scss">
-#tables :deep(tr.current-row>td.tmw-table__cell) {
+#tables :deep(tr.current-row > td.tmw-table__cell) {
   @apply text-red-400;
 }
 </style>
-
 
 <script setup lang="ts">
 import { onMounted, reactive, ref, computed, toRaw } from 'vue'
@@ -335,16 +339,14 @@ const createDocument = () => {
 }
 /**
  * 通过预览窗口快速编辑文档
- * @param document 
+ * @param document
  */
 const previewDocument = (document: any) => {
   const onSave = (newDoc: any) => {
-    apiDoc
-      .update(bucketName, dbName, clName, document._id, newDoc)
-      .then(() => {
-        Object.assign(document, newDoc)
-        ElMessage.success({ showClose: true, message: '修改成功' })
-      })
+    apiDoc.update(bucketName, dbName, clName, document._id, newDoc).then(() => {
+      Object.assign(document, newDoc)
+      ElMessage.success({ showClose: true, message: '修改成功' })
+    })
   }
   // 打开预览窗口
   const { opened } = useDocPreviewJson({ document, onSave })
@@ -536,12 +538,11 @@ function onExecute(
  */
 const { handlePlugin } = useTmwPlugins({
   bucketName,
-  dbName, clName, onExecute,
+  dbName,
+  clName,
+  onExecute,
   onCreate: (plugin: any, msg: any) => {
-    if (
-      plugin.amount === 'one' &&
-      selectedDocuments.value.length === 1
-    ) {
+    if (plugin.amount === 'one' && selectedDocuments.value.length === 1) {
       // 处理单个文档时，将文档数据传递给插件
       msg.document = toRaw(selectedDocuments.value[0])
     }
@@ -550,7 +551,7 @@ const { handlePlugin } = useTmwPlugins({
   },
   onClose: () => {
     listDocByKw()
-  }
+  },
 })
 /**
  * 执行ETL插件的提取操作
@@ -560,17 +561,24 @@ const handleExtract = (etl: any) => {
     window.removeEventListener('message', resultListener)
     const { data, origin } = event
     if (data?.action === 'extract.close') {
-      const docIds = MULTIPLE_MODE() ? data?.docs.map((d: any) => d._id) : [data.doc._id]
+      const docIds = MULTIPLE_MODE()
+        ? data?.docs.map((d: any) => d._id)
+        : [data.doc._id]
       if (docIds.length) {
         const result = await apiEtl.transform(bucketName, etl._id, docIds)
-        for (let proto of result) await apiDoc.create(bucketName, dbName, clName, proto)
+        for (let proto of result)
+          await apiDoc.create(bucketName, dbName, clName, proto)
         listDocByKw()
       }
       opened.value = false
     }
   }
   window.addEventListener('message', resultListener)
-  const { opened } = useAssistant({ extract: true, dbName: 'e2e5gmx_addrbook', clName: 'account' })
+  const { opened } = useAssistant({
+    extract: true,
+    dbName: 'e2e5gmx_addrbook',
+    clName: 'account',
+  })
   opened.value = true
 }
 
@@ -652,9 +660,13 @@ if (EXTRACT) {
   const emitter = useMitt()
   emitter.on('extract.confirm', () => {
     if (MULTIPLE.value === false) {
-      emitter.emit('extract.confirm.result', { dbName, clName, doc: toRaw(currentRow.value) })
+      emitter.emit('extract.confirm.result', {
+        dbName,
+        clName,
+        doc: toRaw(currentRow.value),
+      })
     } else {
-      let docs = selectedDocuments.value.map(d => toRaw(d))
+      let docs = selectedDocuments.value.map((d) => toRaw(d))
       emitter.emit('extract.confirm.result', { dbName, clName, docs })
     }
   })

@@ -29,8 +29,8 @@ import { Batch } from 'tms-vue3'
 import { useRouter } from 'vue-router'
 
 import facStore from '@/store'
-import { openDbEditor, openTagEditor, openReplicaEditor, openSchemaEditor } from '@/components/editor'
-import { EXTERNAL_FS_URL, getLocalToken, COMPACT_MODE } from '@/global'
+import { openSchemaEditor } from '@/components/editor'
+import { COMPACT_MODE } from '@/global'
 
 const COMPACT = computed(() => COMPACT_MODE())
 
@@ -40,22 +40,7 @@ const router = useRouter()
 
 const props = defineProps({ bucketName: String })
 
-const activeTab = ref('database')
-const criteria = reactive({
-  dbBatch: new Batch(() => { }),
-  multipleDb: [],
-  replicaBatch: new Batch(() => { }),
-  multipleReplica: []
-})
 const createSchema = (scope: string) => {
-  // openSchemaEditor({
-  //   bucketName: props.bucketName,
-  //   schema: { scope, body: { type: 'object' } },
-  //   onBeforeClose: (newSchema?: any) => {
-  //     if (newSchema)
-  //       store.appendSchema({ schema: newSchema })
-  //   }
-  // })
   router.push({ name: 'schemaEditor', params: { bucketName: props.bucketName, scope: scope } })
 }
 const editSchema = (schema: any, scope: string) => {

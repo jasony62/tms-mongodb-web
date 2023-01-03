@@ -5,6 +5,7 @@ type Globalsettings = {
   backApiPort: number
   loginCaptchaDisabled: boolean
   externalFsUrl: string
+  templateVarsApiUrl: string
   tmwAppTags: string // 标签字段名称
   compact: boolean // 精简模式，在iframe打开时使用
   extract: boolean // 提取数据模式，在iframe打开时使用
@@ -21,6 +22,7 @@ let _globalsettings: Globalsettings = {
     import.meta.env.VITE_LOGIN_CAPTCHA_DISABLED
   ),
   externalFsUrl: import.meta.env.VITE_EXTERNAL_FS_URL,
+  templateVarsApiUrl: import.meta.env.VITE_TEMPLATE_VARS_API_URL,
   tmwAppTags: import.meta.env.VITE_TMW_APP_TAGS || 'TMW_TAGS',
   compact: false,
   extract: false,
@@ -39,6 +41,8 @@ export function init(settings: Globalsettings) {
     _globalsettings.loginCaptchaDisabled = settings.loginCaptchaDisabled
   if (settings.externalFsUrl)
     _globalsettings.externalFsUrl = settings.externalFsUrl
+  if (settings.templateVarsApiUrl)
+    _globalsettings.templateVarsApiUrl = settings.templateVarsApiUrl
   if (settings.tmwAppTags) _globalsettings.tmwAppTags = settings.tmwAppTags
   if (settings.compact === true) _globalsettings.compact = true
   if (settings.extract === true) _globalsettings.extract = true
@@ -136,6 +140,10 @@ export const EXTRACT_MODE = () => _globalsettings.extract
  * 提取数据模式，是否多选
  */
 export const MULTIPLE_MODE = () => _globalsettings.multiple
+/**
+ * 获取模板变量地址
+ */
+export const TEMPLATE_VARS_API_URL = () => _globalsettings.templateVarsApiUrl
 
 // 默认的文档对象说明模板
 const DocManualTpl = `<div class="p-4 flex flex-col gap-2"> <div>ID: {{ doc._id }}</div><div>TAGS: {{doc.${TMW_APP_TAGS()}}}</div> </div>`

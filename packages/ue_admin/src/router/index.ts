@@ -77,6 +77,12 @@ const routes: RouteRecordRaw[] = [
         props: true,
       },
       {
+        path: `${BucketPart}/database/:dbName/docSchemas`,
+        name: 'databaseDocSchemas',
+        component: DocSchemas,
+        props: true,
+      },
+      {
         path: `${BucketPart}/collection/:dbName/:clName`,
         name: 'collection',
         component: Collection,

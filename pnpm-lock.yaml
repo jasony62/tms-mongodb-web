@@ -147,7 +147,7 @@ importers:
       stylelint-config-standard: ^29.0.0
       tailwindcss: ^3.2.4
       tms-koa-crypto: ^0.1.0
-      tms-template-viz: ^0.0.2
+      tms-template-viz: ^0.0.4
       tms-vue3: ^0.0.5
       tms-vue3-ui: ^0.0.80
       typescript: ^4.9.3
@@ -173,7 +173,7 @@ importers:
       mitt: 3.0.0
       pinia: 2.0.16_3wuezxkqf7tzkaisjt6ux3jbba
       tms-koa-crypto: 0.1.0
-      tms-template-viz: 0.0.2
+      tms-template-viz: 0.0.4
       tms-vue3: 0.0.5_debug@4.3.4
       tms-vue3-ui: 0.0.80
       vue: 3.2.37
@@ -5332,10 +5332,6 @@ packages:
   /lodash.get/4.4.2:
     resolution: {integrity: sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==}
 
-  /lodash.has/4.5.2:
-    resolution: {integrity: sha512-rnYUdIo6xRCJnQmbVFEwcxF144erlD+M3YcJUVesflU9paQaE8p+fJDcIQrlMYbxoANFL+AB9hZrzSBBk5PL+g==}
-    dev: false
-
   /lodash.includes/4.3.0:
     resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==}
 
@@ -5366,6 +5362,10 @@ packages:
 
   /lodash.once/4.1.1:
     resolution: {integrity: sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==}
+
+  /lodash.set/4.3.2:
+    resolution: {integrity: sha512-4hNPN5jlm/N/HLMCO43v8BXKq9Z7QdAGc/VGrRD61w8gN9g/6jF9A4L1pbUgBLCffi0w9VsXfTOij5x8iTyFvg==}
+    dev: false
 
   /lodash.truncate/4.4.2:
     resolution: {integrity: sha512-jttmRe7bRse52OsWIMDLaXxWqRAmtIUccAQ3garviCqJjafXOfNMO0yMfNpdD6zbGaTU0P5Nz7e7gAT6cKmJRw==}
@@ -7024,22 +7024,24 @@ packages:
       - utf-8-validate
     dev: false
 
-  /tms-template-viz/0.0.2:
-    resolution: {integrity: sha512-EKhbxgpSPMt7AcCcoVDuFTVPE/bI1+fX1ZxQW2IRMl4c/aZjpT/tkVqgRw1rIoO24x7e9aP5FwhpjwwAP9nsfw==}
+  /tms-template-viz/0.0.4:
+    resolution: {integrity: sha512-eqQwxey+IhJFiz5DtZUjYtDyIsl4pLhbhqQyH4AeJG5nxgp7VCG6NQ1+WAxAaJktHxeebeJreqDb5oO0trtDSA==}
     dependencies:
       handlebars: 4.7.7
-      tms-template-wizard: 0.0.2
+      lodash.get: 4.4.2
+      tms-template-wizard: 0.0.4
       vue: 3.2.37
     transitivePeerDependencies:
       - supports-color
     dev: false
 
-  /tms-template-wizard/0.0.2:
-    resolution: {integrity: sha512-hZJ3F5kfVbUle7MnZiu9rMwMvGB7ilDqU6b2wc2MgQyjq8kQZbilvKPPpBhTYiZ20SWCiJJeVxLm0tFWKmfJaQ==}
+  /tms-template-wizard/0.0.4:
+    resolution: {integrity: sha512-CmkhJcJSAMxuscXQLwWnL/IYqQFvlXnAOJeDKXRwtw3XXzAUFHKVrMxu6ym2e/iJr0vKeJKm9t1h0XlKmyVq6A==}
     dependencies:
       debug: 4.3.4
       handlebars: 4.7.7
-      lodash.has: 4.5.2
+      lodash.get: 4.4.2
+      lodash.set: 4.3.2
     transitivePeerDependencies:
       - supports-color
     dev: false

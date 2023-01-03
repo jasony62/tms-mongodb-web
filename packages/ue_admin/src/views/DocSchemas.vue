@@ -2,14 +2,14 @@
   <div class="flex flex-row gap-2 h-full">
     <div :class="COMPACT ? 'w-full' : 'w-4/5'">
       <div class="flex flex-col gap-2">
-        <el-table :data="store.documentSchemas" stripe>
-          <el-table-column label="定义名称" width="180">
+        <el-table :data="topSchemas" row-key="_id" stripe>
+          <el-table-column label="定义名称" width="240">
             <template #default="scope">
               <router-link
                 :to="{ name: 'schemaEditor', params: { bucketName, scope: 'document', schemaId: scope.row._id } }">
                 {{
-                    scope.row.name
-                }}
+    scope.row.name
+}}
               </router-link>
             </template>
           </el-table-column>
@@ -28,16 +28,14 @@
     </div>
     <!--right-->
     <div v-if="!COMPACT">
-      <el-button @click="createSchema('document')">添加文档列定义</el-button>
+      <el-button @click="createSchema('document')">添加文档字段定义</el-button>
     </div>
   </div>
 </template>
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, toRaw } from 'vue'
+import { computed, onMounted, ref, toRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Batch } from 'tms-vue3'
 import { useRouter } from 'vue-router'
-
 import facStore from '@/store'
 import { openSchemaEditor } from '@/components/editor'
 import { COMPACT_MODE } from '@/global'
@@ -48,23 +46,12 @@ const store = facStore()
 
 const router = useRouter()
 
-const props = defineProps({ bucketName: String })
-
-const criteria = reactive({
-  dbBatch: new Batch(() => { }),
-  multipleDb: [],
-  replicaBatch: new Batch(() => { }),
-  multipleReplica: []
+const props = defineProps({
+  bucketName: String,
+  dbName: { type: String, default: '' }
 })
+
 const createSchema = (scope: string) => {
-  // openSchemaEditor({
-  //   bucketName: props.bucketName,
-  //   schema: { scope, body: { type: 'object' } },
-  //   onBeforeClose: (newSchema?: any) => {
-  //     if (newSchema)
-  //       store.appendSchema({ schema: newSchema })
-  //   }
-  // })
   router.push({ name: 'schemaEditor', params: { bucketName: props.bucketName, scope: scope } })
 }
 const editSchema = (schema: any, scope: string) => {
@@ -105,8 +92,32 @@ const removeSchema = (schema: { title: string }) => {
       })
     }).catch(() => { })
 }
+
+// 顶层schema定义
+const topSchemas = ref<any[]>([])
+
 onMounted(() => {
-  let bucket = props.bucketName
-  store.listSchema({ bucket, scope: 'document' })
+  const bucket = props.bucketName
+  const db = props.dbName
+  store.listSchema({ bucket, db, scope: 'document' }).then(({ schemas }: { schemas: any }) => {
+    // 添加辅助字段方便列表显示
+    let cache = new Map<string, any>()
+    let allChildren: any[] = []
+    schemas.forEach((s: any) => {
+      let cloned = JSON.parse(JSON.stringify(s))
+      cache.set(s.name, cloned)
+      // topSchemas.value.push(cloned)
+      if (!cloned.parentName) topSchemas.value.push(cloned)
+      else allChildren.push(cloned)
+    })
+    allChildren.forEach((s: any) => {
+      let { parentName } = s
+      if (parentName && typeof parentName === 'string' && cache.has(parentName)) {
+        let ps = cache.get(parentName)
+        ps.children ??= []
+        ps.children.push(s)
+      }
+    })
+  })
 })
 </script>

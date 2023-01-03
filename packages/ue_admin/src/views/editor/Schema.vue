@@ -2,7 +2,7 @@
   <div id="schemaEditor">
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight">
-        <el-breadcrumb-item :to="{ name: 'docSchemas' }">文档内容定义</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'docSchemas' }">文档字段定义</el-breadcrumb-item>
         <el-breadcrumb-item>{{ title }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
@@ -24,6 +24,12 @@
           </el-form-item>
           <el-form-item label="说明">
             <el-input type="textarea" v-model="schema.description" :disabled="true"></el-input>
+          </el-form-item>
+          <el-form-item label="顺序号">
+            <el-input-number v-model="schema.order"></el-input-number>
+          </el-form-item>
+          <el-form-item label="父定义名称">
+            <el-input v-model="schema.parentName"></el-input>
           </el-form-item>
           <el-form-item label="标签">
             <el-select v-model="schema.tags" multiple clearable placeholder="请选择">
@@ -97,14 +103,14 @@ const submitTitle = computed(() => {
   return editingSchemaId.value ? '修改' : '新建'
 })
 const title = computed(() => {
-  let t = scope === 'document' ? '文档内容定义' : (scope === 'db' ? '数据库属性定义' : '集合属性定义')
+  let t = scope === 'document' ? '文档字段定义' : (scope === 'db' ? '数据库属性定义' : '集合属性定义')
   t += '-' + (editingSchemaId.value ? '修改' : '新建')
   return t
 })
 const activeTab = ref('first')
 const tags = reactive([] as any[])
 
-const schema = ref({ name: '', title: '', description: '', scope: scope, tags: [], body: {} })
+const schema = ref({ name: '', title: '', description: '', order: 9999, parentName: '', scope: scope, tags: [], body: {} })
 const previewResult = ref('')
 
 const onUploadFile = (file: any) => {

@@ -117,6 +117,7 @@ class Schema extends SchemaBase {
     let info = this.request.body
     info.type = 'schema'
     if (!info.scope) info.scope = 'document'
+    if (typeof info.order !== 'number') info.order = 9999
     if (this.bucket) info.bucket = this.bucket.name
 
     return this.clMongoObj.insertOne(info).then((result) => {
@@ -160,13 +161,14 @@ class Schema extends SchemaBase {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async update() {
-    const { id } = this['request'].query
-    let info = this['request'].body
+    const { id } = this.request.query
+    let info = this.request.body
     const { scope } = info
     info = _.omit(info, ['_id', 'scope', 'bucket'])
+    if (typeof info.order !== 'number') info.order = 9999
 
-    const query = { _id: new ObjectId(id), type: 'schema' }
-    if (this['bucket']) query['bucket'] = this['bucket'].name
+    const query: any = { _id: new ObjectId(id), type: 'schema' }
+    if (this.bucket) query.bucket = this.bucket.name
 
     return this['clMongoObj']
       .updateOne(query, { $set: info }, { upsert: true })
@@ -192,20 +194,22 @@ class Schema extends SchemaBase {
    *
    */
   async remove() {
-    const { id } = this['request'].query
+    const { id } = this.request.query
     if (!id) return new ResultFault('参数不完整')
 
     // 是否正在使用
-    let rst = await this['clMongoObj'].findOne({
+    let rst = await this.clMongoObj.findOne({
       schema_id: id,
       type: 'collection',
     })
     if (rst) {
-      return new ResultFault(`文档列定义正在被[${rst.database}]数据库中的[${rst.name}]集合使用，不能删除`)
+      return new ResultFault(
+        `文档列定义正在被[${rst.database}]数据库中的[${rst.name}]集合使用，不能删除`
+      )
     }
-    const query = { _id: new ObjectId(id), type: 'schema' }
-    if (this['bucket']) query['bucket'] = this['bucket'].name
-    return this['clMongoObj'].deleteOne(query).then(() => new ResultData('ok'))
+    const query: any = { _id: new ObjectId(id), type: 'schema' }
+    if (this.bucket) query.bucket = this.bucket.name
+    return this.clMongoObj.deleteOne(query).then(() => new ResultData('ok'))
   }
 }
 
