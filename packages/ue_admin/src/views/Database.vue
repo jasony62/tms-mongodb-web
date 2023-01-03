@@ -25,7 +25,7 @@
               <el-link :underline="false" @click="openCollection(dbName, scope.row)">{{ scope.row.name }}</el-link>
             </template>
           </el-table-column>
-          <el-table-column prop="title" label="名称" width="180"></el-table-column>
+          <el-table-column prop="title" label="标题" width="180"></el-table-column>
           <el-table-column label="集合类型" width="180">
             <template #default="scope">
               <span>{{ "usage" in scope.row ? scope.row.usage == 1 ? "从集合" : "普通集合" : "" }}</span>

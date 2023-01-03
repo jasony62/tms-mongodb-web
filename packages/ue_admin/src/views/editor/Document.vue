@@ -622,7 +622,7 @@ if (TEMPLATE_VARS_API_URL()) {
   let url = TEMPLATE_VARS_API_URL()
   url += url.indexOf('?') === -1 ? '?' : '&'
   if (bucketName) url += `bucket=${bucketName}&`
-  url += `db=${dbName}&cl=${clName}`
+  url += `db=${dbName}`
 
   TmsAxios.ins('master-api')
     .get(url)
