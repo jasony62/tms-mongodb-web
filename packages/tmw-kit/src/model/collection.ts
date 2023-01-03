@@ -1,9 +1,82 @@
 import * as mongodb from 'mongodb'
+import { nanoid } from 'nanoid'
 import Base from './base'
 import unescape from 'mongo-escape'
+
 const ObjectId = mongodb.ObjectId
 
 class Collection extends Base {
+  /**
+   *
+   * @param existDb
+   * @param info
+   * @returns
+   */
+  async create(existDb, info) {
+    // 加工数据
+    this.processBeforeStore(info, 'insert')
+
+    info.type = 'collection'
+    info.database = existDb.name
+
+    info.db = { sysname: existDb.sysname, name: existDb.name }
+    if (this.bucket) info.bucket = this.bucket.name
+
+    // 检查指定的集合名
+    let [passed, nameOrCause] = this.checkClName(info.name)
+    if (passed === false) return [false, nameOrCause]
+    info.name = nameOrCause
+
+    // 查询是否已存在同名集合
+    let existTmwCl = await this.byName(existDb, info.name)
+    if (existTmwCl)
+      return [
+        false,
+        `数据库[name=${existDb.name}]中，已存在同名集合[name=${info.name}]`,
+      ]
+
+    // 检查是否指定了用途
+    let { usage } = info
+    if (usage !== undefined) {
+      if (![0, 1].includes(parseInt(usage)))
+        return [false, `指定了不支持的集合用途值[usage=${usage}]`]
+      info.usage = parseInt(usage)
+    }
+
+    // 生成数据库系统名
+    let existSysCl, sysname
+    if (info.sysname) {
+      sysname = info.sysname
+      existSysCl = await this.bySysname(existDb, sysname)
+    } else {
+      for (let tries = 0; tries <= 2; tries++) {
+        sysname = nanoid(10)
+        existSysCl = await this.bySysname(existDb, sysname)
+        if (!existSysCl) break
+      }
+    }
+    if (existSysCl) return [false, '无法生成唯一的集合系统名称']
+
+    info.sysname = sysname
+
+    /**在系统中创建集合后记录集合对象信息 */
+    const mgdb = this.mongoClient.db(existDb.sysname)
+
+    /**检查集合在数据库中是否已经存在*/
+    const sysCl = mgdb.collection(info.sysname)
+    if (sysCl) {
+      return this.clMongoObj
+        .insertOne(info)
+        .then((result) => [true, result])
+        .catch((err) => [false, err.message])
+    }
+
+    return mgdb
+      .createCollection(info.sysname)
+      .then(() => this.clMongoObj.insertOne(info))
+      .then((result) => [true, result])
+      .catch((err) => [false, err.message])
+  }
   /**
    *
    * @param {object} tmwCl
@@ -119,10 +192,7 @@ class Collection extends Base {
     }
     if (this.bucket) query.bucket = this.bucket.name
 
-    const client = this.mongoClient
-    const clMongoObj = client.db('tms_admin').collection('mongodb_object')
-
-    const cl = await clMongoObj.findOne(query)
+    const cl = await this.clMongoObj.findOne(query)
 
     return cl
   }
