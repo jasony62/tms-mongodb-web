@@ -5,10 +5,10 @@ type ApiRst = {
   data: { result: any }
 }
 export default {
-  list(bucket: any, scope: any) {
+  list(bucket: any, db: any, scope: any) {
     const base = BACK_API_URL() + '/admin/schema'
     const type = typeof scope === 'object' ? scope.join(',') : scope
-    const params = { bucket, scope: type }
+    const params = { bucket, db, scope: type }
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/list`, { params })
       .then((rst: ApiRst) => rst.data.result)
