@@ -3,9 +3,7 @@
     <div :class="COMPACT ? 'w-full' : 'w-4/5'">
       <div class="flex flex-col gap-2">
         <el-table :data="store.dbSchemas" stripe>
-          <el-table-column prop="name" label="列定义名称" width="180" @cell-click=""></el-table-column>
-          <el-table-column prop="title" label="显示名" width="180"></el-table-column>
-          <el-table-column prop="database" label="所属数据库" width="180"></el-table-column>
+          <el-table-column prop="title" label="名称" width="180" @cell-click=""></el-table-column>
           <el-table-column prop="description" label="说明"></el-table-column>
           <el-table-column label="操作" width="180">
             <template #default="scope">
@@ -40,7 +38,7 @@ const store = facStore()
 
 const router = useRouter()
 
-const props = defineProps({ bucketName: String, dbName: String })
+const props = defineProps({ bucketName: String })
 
 const createSchema = (scope: string) => {
   router.push({ name: 'schemaEditor', params: { bucketName: props.bucketName, scope: scope } })
@@ -86,7 +84,6 @@ const removeSchema = (schema: { title: string }) => {
 
 onMounted(() => {
   let bucket = props.bucketName
-  let dbName = props.dbName ?? ""
-  store.listSchema({ bucket, scope: 'db', db: dbName })
+  store.listSchema({ bucket, scope: 'db' })
 })
 </script>
