@@ -10,6 +10,8 @@ const ObjectId = mongodb.ObjectId
  */
 class SchemaBase extends Base {
   schemaHelper
+  reqDb
+  clMongoObj
 
   constructor(...args) {
     super(...args)
@@ -27,9 +29,14 @@ class SchemaBase extends Base {
    * 完成信息列表
    */
   async list() {
-    let { scope } = this.request.query
+    let { scope, db: dbName } = this.request.query 
 
     let find: any = { type: 'schema' }
+
+    let existDb
+    if (dbName) existDb = await this.schemaHelper.findRequestDb()
+    if (existDb) find['db.sysname'] = existDb.sysname
+
     find.scope = scope ? { $in: scope.split(',') } : 'document'
 
     if (this.bucket) find.bucket = this.bucket.name
@@ -44,11 +51,24 @@ class SchemaBase extends Base {
    * 简单信息列表，不包含schema定义
    */
   async listSimple() {
-    let { scope } = this.request.query
+    let { scope, db: database } = this.request.query
 
-    let query: any = { type: 'schema' }
-    query.scope = scope ? { $in: scope.split(',') } : 'document'
+    let query: any = { type: 'schema'}
+
+    scope = scope ? scope.split(',') : null
+    query.scope = scope ? { $in: scope } : 'document'
+
     if (this.bucket) query.bucket = this.bucket.name
+
+    if (scope && scope.length > 1) {
+      query = {
+        "$and": [
+          { type: 'schema' },
+          {"$or": [{ scope: 'db', database }, { scope: 'document' }]}
+        ]
+      }
+      if (this.bucket) query['$and'].push({ bucket: this.bucket.name })
+    }
 
     return this.clMongoObj
       .find(query, {
@@ -86,6 +106,28 @@ class SchemaBase extends Base {
     return this.clMongoObj
       .findOne(query)
       .then((schema) => new ResultData(schema))
+  }
+  /**
+   * 指定数据库下新建文档列定义
+   */
+  async create() {
+    const info = this.request.body
+    if (this.bucket) info.bucket = this.bucket.name
+    if (!info.name) return new ResultFault('文档列定义名称不允许为空')
+
+    const dbName = info.database ? info.database : null 
+    let existDb
+    if (dbName) existDb = await this.schemaHelper.findRequestDb(true, dbName)
+    
+    let [flag, result] = await this.schemaHelper.createCl(existDb, info)
+
+    if (!flag) {
+      return new ResultFault(result)
+    }
+
+    info._id = result.insertedId
+
+    return new ResultData(info)
   }
 }
 
