@@ -1,6 +1,6 @@
 {
   "name": "tmw-kit",
-  "version": "0.0.19",
+  "version": "0.0.21",
   "description": "tms-monogodb-web开发工具包",
   "main": "./dist/index.js",
   "types": "/dist/index.d.ts",
@@ -26,7 +26,7 @@
     "lodash": "^4.17.21",
     "mongo-escape": "^2.0.6",
     "mongodb": "^4.8.1",
-    "nanoid": "^3.3.4",
+    "nanoid": "3.3.4",
     "tmw-data": "workspace:*"
   },
   "devDependencies": {

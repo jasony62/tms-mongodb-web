@@ -84,6 +84,6 @@ const removeSchema = (schema: { title: string }) => {
 
 onMounted(() => {
   let bucket = props.bucketName
-  store.listSchema({ bucket, scope: 'colSchemas' })
+  store.listSchema({ bucket, scope: 'collection' })
 })
 </script>

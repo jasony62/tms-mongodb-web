@@ -8,7 +8,7 @@
             <template #default="props">
               <div class="ml-24 flex flex-row gap-2">
                 <el-link type="primary" @click="gotoDocSchemas(props.row)">进入文档定义</el-link>
-                <el-link type="danger" @click="removeDb(props.row)">删除文档</el-link>
+                <el-link type="danger" @click="removeDb(props.row)">删除数据库</el-link>
               </div>
             </template>
           </el-table-column>

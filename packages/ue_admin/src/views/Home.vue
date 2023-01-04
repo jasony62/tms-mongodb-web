@@ -40,7 +40,7 @@
       </div>
     </div>
     <div class="flex-grow flex flex-col gap-2 mt-4 mx-4 h-full">
-      <router-view></router-view>
+      <router-view :key="$route.path"></router-view>
     </div>
     <assistant></assistant>
   </div>
