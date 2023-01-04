@@ -78,7 +78,7 @@ export default defineStore('mongodb', {
     },
     listSchema(payload: { bucket: any; db?: string; scope: any }) {
       const { bucket, db, scope } = payload
-      return apis.schema.list(bucket, scope).then((schemas: any) => {
+      return apis.schema.list(bucket, db, scope).then((schemas: any) => {
         if (scope === 'document') {
           this.documentSchemas = schemas
         } else if (scope === 'collection') {

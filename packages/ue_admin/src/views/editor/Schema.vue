@@ -19,7 +19,7 @@
           <el-form-item label="列定义名称（英文）" prop="name">
             <el-input v-model="schema.name"></el-input>
           </el-form-item>
-          <el-form-item label="显示名（中文）">
+          <el-form-item label="显示名（中文）【由列定义中的根节点标题自动填充】">
             <el-input v-model="schema.title" :disabled="true"></el-input>
           </el-form-item>
           <el-form-item label="说明">
@@ -34,6 +34,13 @@
           <el-form-item label="标签">
             <el-select v-model="schema.tags" multiple clearable placeholder="请选择">
               <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="所属数据库" v-if="scope === 'db'">
+            <el-select v-model="schema.database" filterable remote placeholder="请输入关键词" :remote-method="fetchDbs"
+              :loading="dbLoading">
+              <el-option v-for="database in databases" :key="database._id" :label="database.title"
+                :value="database.name"></el-option>
             </el-select>
           </el-form-item>
         </el-form>
@@ -87,6 +94,7 @@ import { ElMessage } from 'element-plus'
 import JSONEditor from 'jsoneditor'
 import 'jsoneditor/dist/jsoneditor.css'
 import { watch } from 'vue'
+import apiDb from '@/apis/database'
 
 // JSONSchema编辑器
 const $jse = ref(null as unknown as { editing: () => any })
@@ -110,8 +118,11 @@ const title = computed(() => {
 const activeTab = ref('first')
 const tags = reactive([] as any[])
 
-const schema = ref({ name: '', title: '', description: '', order: 9999, parentName: '', scope: scope, tags: [], body: {} })
+const schema = ref({ name: '', title: '', description: '', order: 9999, parentName: '', scope: scope, tags: [], body: {}, database: "" })
 const previewResult = ref('')
+
+const dbLoading = ref(false)
+const databases = ref<any[]>([])
 
 const onUploadFile = (file: any) => {
   let fileData = new FormData()
@@ -191,6 +202,18 @@ const onMessage = (msg: string) => {
   alert(`报错了:${msg}`)
 }
 
+const fetchDbs = (query: string) => {
+  if (query) {
+    dbLoading.value = true
+    setTimeout(() => {
+      dbLoading.value = false
+      databases.value = apiDb.list(bucketName, query, { page: 1, size: 100 }).then((data: any) => {
+        databases.value = data.databases
+      })
+    }, 200)
+  }
+}
+
 const onSubmit = () => {
   let newBody = $jse.value?.editing()
   if (newBody) {
@@ -231,6 +254,12 @@ if (props.schemaId) {
     data.body.title = title
     data.body.description = description
     schema.value = data
+  })
+}
+
+if (scope === 'db') {
+  apiDb.list(bucketName, "", { page: 1, size: 100 }).then((data: any) => {
+    databases.value = data.databases
   })
 }
 </script>
