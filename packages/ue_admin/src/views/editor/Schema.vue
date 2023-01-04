@@ -2,7 +2,8 @@
   <div id="schemaEditor">
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight">
-        <el-breadcrumb-item :to="{ name: 'docSchemas' }">文档字段定义</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'databaseDocSchemas' }" v-if="dbName">文档字段定义</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'docSchemas' }" v-else>文档字段定义</el-breadcrumb-item>
         <el-breadcrumb-item>{{ title }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
