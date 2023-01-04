@@ -18,7 +18,9 @@
       </el-form-item>
       <el-form-item label="集合文档内容定义（默认）">
         <el-select v-model="collection.schema_id" clearable placeholder="请选择定义名称">
-          <el-option v-for="item in schemas" :key="item._id" :label="item.title" :value="item._id"></el-option>
+          <el-option-group v-for="schema in schemas" :key="schema.label" :label="schema.label">
+            <el-option v-for="item in schema.options" :key="item._id" :label="item.title" :value="item._id" />
+          </el-option-group>
         </el-select>
       </el-form-item>
       <el-form-item label="集合文档内容定义（定制-修改）">
@@ -178,7 +180,13 @@ props.collection.operateRules ??= {
 
 const dialogVisible = ref(props.dialogVisible)
 const activeTab = ref('info')
-const schemas = ref([] as any[])
+const schemas = reactive([{
+  label: 'db',
+  options: [] as any[]
+}, {
+  label: 'document',
+  options: [] as any[]
+}])
 const tags = ref([] as any[])
 const criteria = reactive({
   databaseLoading: false,
@@ -218,8 +226,15 @@ const docFieldConvertRules = computed({
 })
 
 onMounted(() => {
-  apiSchema.listSimple(bucketName).then((schemas2: any[]) => {
-    schemas2.forEach((s) => schemas.value.push(s))
+  apiSchema.listSimple(bucketName, 'document,db', dbName).then((schemas2: any[]) => {
+    schemas2.forEach((s: any) => {
+      if (s.scope === 'db') {
+        schemas[0].options.push(s)
+      } else if (s.scope === 'document') {
+        schemas[1].options.push(s)
+      }
+      //schemas.value.push(s)
+    })
   })
   apiTag.list(props.bucketName).then((tags2: any[]) => {
     tags2.forEach((t) => tags.value.push(t))
