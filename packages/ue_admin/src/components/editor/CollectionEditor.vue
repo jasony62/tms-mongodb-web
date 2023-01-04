@@ -18,7 +18,7 @@
       </el-form-item>
       <el-form-item label="集合文档内容定义（默认）">
         <el-select v-model="collection.schema_id" clearable placeholder="请选择定义名称">
-          <el-option-group v-for="schema in schemas" :key="schema.label" :label="schema.label">
+          <el-option-group v-for="schema in schemas" :key="schema.value" :label="schema.label">
             <el-option v-for="item in schema.options" :key="item._id" :label="item.title" :value="item._id" />
           </el-option-group>
         </el-select>
@@ -181,10 +181,12 @@ props.collection.operateRules ??= {
 const dialogVisible = ref(props.dialogVisible)
 const activeTab = ref('info')
 const schemas = reactive([{
-  label: 'db',
+  value: 'db',
+  label: '数据库',
   options: [] as any[]
 }, {
-  label: 'document',
+  value: 'document',
+  label: '文档',
   options: [] as any[]
 }])
 const tags = ref([] as any[])
@@ -233,7 +235,6 @@ onMounted(() => {
       } else if (s.scope === 'document') {
         schemas[1].options.push(s)
       }
-      //schemas.value.push(s)
     })
   })
   apiTag.list(props.bucketName).then((tags2: any[]) => {
