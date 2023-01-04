@@ -52,11 +52,15 @@ const props = defineProps({
 })
 
 const createSchema = (scope: string) => {
-  router.push({ name: 'schemaEditor', params: { bucketName: props.bucketName, scope: scope } })
+  let args = { bucketName: props.bucketName, scope: scope }
+  if (props.dbName) Object.assign(args, { dbName: props.dbName })
+  router.push({ name: 'schemaEditor', params: args })
 }
 const editSchema = (schema: any, scope: string) => {
   store.documentSchemas = [schema]
-  router.push({ name: 'schemaEditor', params: { bucketName: props.bucketName, scope: scope, schemaId: schema._id } })
+  let args = { bucketName: props.bucketName, scope: scope, schemaId: schema._id }
+  if (props.dbName) Object.assign(args, { dbName: props.dbName })
+  router.push({ name: 'schemaEditor', params: args })
 }
 const copySchema = (schema: any, index: any, isCopy = false) => {
   let newObj = { ...schema }

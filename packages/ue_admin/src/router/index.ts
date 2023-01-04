@@ -79,7 +79,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: `${BucketPart}/database/:dbName/docSchemas`,
         name: 'databaseDocSchemas',
-        component: DbSchemas,
+        component: DocSchemas,
         props: true,
       },
       {
@@ -101,7 +101,7 @@ const routes: RouteRecordRaw[] = [
         props: true,
       },
       {
-        path: `${BucketPart}/schema/:scope/:schemaId?`,
+        path: `${BucketPart}/schema/:dbName?/:scope/:schemaId?`,
         name: 'schemaEditor',
         component: SchemaEditor,
         props: true,
