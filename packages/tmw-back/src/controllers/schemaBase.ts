@@ -38,6 +38,8 @@ class SchemaBase extends Base {
     if (existDb) find['db.sysname'] = existDb.sysname
 
     find.scope = scope ? { $in: scope.split(',') } : 'document'
+    
+    if (!dbName && scope === 'document') find.db = null
 
     if (this.bucket) find.bucket = this.bucket.name
 
