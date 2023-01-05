@@ -112,7 +112,7 @@ const title = computed(() => {
 const activeTab = ref('first')
 const tags = reactive([] as any[])
 
-const schema = ref({ name: '', title: '', description: '', order: 9999, parentName: '', scope: scope, tags: [], body: {} })
+const schema = ref({ name: '', title: '', description: '', order: 99999, parentName: '', scope: scope, tags: [], body: {} })
 if (dbName) Object.assign(schema.value, { database: dbName })
 const previewResult = ref('')
 

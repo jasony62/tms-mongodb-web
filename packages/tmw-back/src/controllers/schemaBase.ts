@@ -29,7 +29,7 @@ class SchemaBase extends Base {
    * 完成信息列表
    */
   async list() {
-    let { scope, db: dbName } = this.request.query 
+    let { scope, db: dbName } = this.request.query
 
     let find: any = { type: 'schema' }
 
@@ -38,7 +38,7 @@ class SchemaBase extends Base {
     if (existDb) find['db.sysname'] = existDb.sysname
 
     find.scope = scope ? { $in: scope.split(',') } : 'document'
-    
+
     if (!dbName && scope === 'document') find.db = null
 
     if (this.bucket) find.bucket = this.bucket.name
@@ -60,16 +60,16 @@ class SchemaBase extends Base {
 
     if (database) {
       query = {
-        "$and": [
+        $and: [
           { type: 'schema', scope },
-          {"$or": [{ database }, { database: '' }, { database: null }]}
-        ]
+          { $or: [{ database }, { database: '' }, { database: null }] },
+        ],
       }
       if (this.bucket) query['$and'].push({ bucket: this.bucket.name })
     } else {
       query = {
         type: 'schema',
-        scope: scope
+        scope: scope,
       }
       if (this.bucket) query.bucket = this.bucket.name
     }
@@ -119,11 +119,11 @@ class SchemaBase extends Base {
     if (this.bucket) info.bucket = this.bucket.name
     if (!info.name) return new ResultFault('文档列定义名称不允许为空')
 
-    const dbName = info.database ? info.database : null 
+    const dbName = info.database ? info.database : null
     let existDb
     if (dbName) existDb = await this.schemaHelper.findRequestDb(true, dbName)
-    
-    let [flag, result] = await this.schemaHelper.createCl(existDb, info)
+
+    let [flag, result] = await this.schemaHelper.createDocSchema(existDb, info)
 
     if (!flag) {
       return new ResultFault(result)

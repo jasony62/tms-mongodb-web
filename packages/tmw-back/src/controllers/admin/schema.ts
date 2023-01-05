@@ -156,7 +156,7 @@ class Schema extends SchemaBase {
     let info = this.request.body
     const { scope } = info
     info = _.omit(info, ['_id', 'scope', 'bucket'])
-    if (typeof info.order !== 'number') info.order = 9999
+    if (typeof info.order !== 'number') info.order = 99999
 
     const query: any = { _id: new ObjectId(id), type: 'schema' }
     if (this.bucket) query.bucket = this.bucket.name

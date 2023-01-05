@@ -8,7 +8,7 @@ class SchemaHelper extends Helper {
   /**
    * 新建文档列定义
    */
-  async createCl(existDb, info) {
+  async createDocSchema(existDb, info) {
     info.type = 'schema'
 
     if (existDb) {
@@ -17,7 +17,7 @@ class SchemaHelper extends Helper {
     }
 
     if (!info.scope) info.scope = 'document'
-    if (typeof info.order !== 'number') info.order = 9999
+    if (typeof info.order !== 'number') info.order = 99999
     if (this.bucket) info.bucket = this.bucket.name
 
     return this.clMongoObj
