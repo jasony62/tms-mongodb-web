@@ -24,9 +24,10 @@ class Schema extends Base {
    * 根据名称获得字段定义
    * @param {string} name
    */
-  async byName(name: string, { onlyProperties = true } = {}) {
+  async byName(name: string, { onlyProperties = true, dbName = null } = {}) {
     let query: any = { name, type: 'schema' }
     if (this.bucket) query.bucket = this.bucket.name
+    if (dbName) query['db.name'] = dbName
 
     return this.clMongoObj.findOne(query).then((schema) => {
       if (onlyProperties === true) {

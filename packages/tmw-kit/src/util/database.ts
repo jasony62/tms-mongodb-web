@@ -178,6 +178,19 @@ class Handler {
     tpl.body.properties = info.properties
     tpl.order = typeof info.order === 'number' ? info.order : 99999
     if (info.parentName) tpl.parentName = info.parentName
+    if (info.db && typeof info.db === 'object') {
+      let { db } = info
+      if (db && typeof db === 'object') {
+        let { name, sysname } = db
+        if (
+          name &&
+          typeof name === 'string' &&
+          sysname &&
+          typeof sysname === 'string'
+        )
+          tpl.db = { name, sysname }
+      }
+    }
 
     trace('新文档定义内容：', JSON.stringify(tpl, null, 2))
     if (replaceExisting) {

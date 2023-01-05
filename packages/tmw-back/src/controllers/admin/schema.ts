@@ -161,7 +161,7 @@ class Schema extends SchemaBase {
     const query: any = { _id: new ObjectId(id), type: 'schema' }
     if (this.bucket) query.bucket = this.bucket.name
 
-    return this['clMongoObj']
+    return this.clMongoObj
       .updateOne(query, { $set: info }, { upsert: true })
       .then(() => {
         info.scope = scope
