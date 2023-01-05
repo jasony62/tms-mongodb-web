@@ -131,23 +131,41 @@ class Handler {
       process.exit(0)
     }
 
-    const query: any = { title: info.title, scope: 'document' }
+    const query: any = { name: info.name, scope: 'document' }
     if (info.bucket) query.bucket = info.bucket
 
     let replaceExisting = false // 替换已有数据
     let existSchema = await this.cl.findOne(query)
     if (existSchema) {
       if (this.options.replaceExistingSchema === true) {
-        debug(`标题为[${info.title}]的文档列定义已经存在，需要替换`)
+        debug(`名称为[${info.name}]的文档列定义已经存在，需要替换`)
         replaceExisting = true
       } else if (this.options.allowReuseSchema === true) {
-        debug(`标题为[${info.title}]的文档列定义已经存在，允许复用`)
+        debug(`名称为[${info.name}]的文档列定义已经存在，允许复用`)
         return existSchema._id
       } else {
         debug(
-          `标题为[${info.title}]的文档列定义已经存在，不能重复创建，停止后续操作`
+          `名称为[${info.name}]的文档列定义已经存在，不能重复创建，停止后续操作`
         )
         process.exit(0)
+      }
+    } else {
+      delete query.name
+      query.title = info.title
+      existSchema = await this.cl.findOne(query)
+      if (existSchema) {
+        if (this.options.replaceExistingSchema === true) {
+          debug(`标题为[${info.title}]的文档列定义已经存在，需要替换`)
+          replaceExisting = true
+        } else if (this.options.allowReuseSchema === true) {
+          debug(`标题为[${info.title}]的文档列定义已经存在，允许复用`)
+          return existSchema._id
+        } else {
+          debug(
+            `标题为[${info.title}]的文档列定义已经存在，不能重复创建，停止后续操作`
+          )
+          process.exit(0)
+        }
       }
     }
 
