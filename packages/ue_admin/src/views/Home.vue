@@ -20,10 +20,10 @@
         <el-menu-item index="/tag/">
           <span>标签</span>
         </el-menu-item>
-        <el-menu-item index="/files/">
+        <el-menu-item index="/files/" v-if="EXTERNALFSURL">
           <span>文件管理</span>
         </el-menu-item>
-        <el-menu-item index="/replica/">
+        <el-menu-item index="/replica/" v-if="REPLICA">
           <span>全量复制定义</span>
         </el-menu-item>
       </el-menu>
@@ -46,7 +46,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { COMPACT_MODE, EXTRACT_MODE } from '@/global'
+import { COMPACT_MODE, EXTRACT_MODE, EXTERNAL_FS_URL, REPLICA_MODE } from '@/global'
 import { computed } from 'vue';
 import Assistant from '@/components/Assistant.vue'
 import { useAssistant } from '@/composables/assistant';
@@ -54,6 +54,8 @@ import { useMitt } from '@/composables/mitt';
 
 const COMPACT = computed(() => COMPACT_MODE())
 const EXTRACT = computed(() => EXTRACT_MODE())
+const EXTERNALFSURL = computed(() => EXTERNAL_FS_URL())
+const REPLICA = computed(() => REPLICA_MODE())
 
 const { opened } = useAssistant()
 
