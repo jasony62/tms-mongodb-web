@@ -38,6 +38,8 @@ class SchemaBase extends Base {
     if (existDb) find['db.sysname'] = existDb.sysname
 
     find.scope = scope ? { $in: scope.split(',') } : 'document'
+    
+    if (!dbName && scope === 'document') find.db = null
 
     if (this.bucket) find.bucket = this.bucket.name
 
@@ -52,27 +54,29 @@ class SchemaBase extends Base {
    */
   async listSimple() {
     let { scope, db: database } = this.request.query
+    scope = scope ? { $in: scope.split(',') } : 'document'
 
-    let query: any = { type: 'schema'}
+    let query: any = {}
 
-    scope = scope ? scope.split(',') : null
-    query.scope = scope ? { $in: scope } : 'document'
-
-    if (this.bucket) query.bucket = this.bucket.name
-
-    if (scope && scope.length > 1) {
+    if (database) {
       query = {
         "$and": [
-          { type: 'schema' },
-          {"$or": [{ scope: 'db', database }, { scope: 'document' }]}
+          { type: 'schema', scope },
+          {"$or": [{ database }, { database: '' }, { database: null }]}
         ]
       }
       if (this.bucket) query['$and'].push({ bucket: this.bucket.name })
+    } else {
+      query = {
+        type: 'schema',
+        scope: scope
+      }
+      if (this.bucket) query.bucket = this.bucket.name
     }
 
     return this.clMongoObj
       .find(query, {
-        projection: { _id: 1, title: 1, description: 1, scope: 1 },
+        projection: { _id: 1, title: 1, description: 1, scope: 1, db: 1 },
       })
       .sort('order', 1)
       .toArray()

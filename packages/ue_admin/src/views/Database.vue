@@ -15,9 +15,6 @@
           <el-table-column type="selection" width="40"></el-table-column>
           <el-table-column type="expand" width="40">
             <template #default="props">
-              <div class="ml-24 flex flex-row gap-2">
-                <el-link type="danger" @click="removeCollection(props.row)">删除集合</el-link>
-              </div>
             </template>
           </el-table-column>
           <el-table-column label="集合名称" width="180">
@@ -32,10 +29,22 @@
             </template>
           </el-table-column>
           <el-table-column prop="description" label="说明"></el-table-column>
-          <el-table-column label="操作" width="60">
+          <el-table-column label="操作" width="120">
             <template #default="scope">
               <el-button @click="editCollection(scope.row, scope.$index)" type="primary" link size="small">修改
               </el-button>
+              <el-dropdown class="tmw-opt__dropdown">
+                <el-button type="primary" link size="small">更多
+                  <el-icon class="el-icon--right"><arrow-down /></el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item>
+                      <el-button type="danger" link size="small" @click="removeCollection(scope.row)">删除集合</el-button>
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </template>
           </el-table-column>
         </el-table>
@@ -55,6 +64,7 @@
 </template>
 
 <script setup lang="ts">
+import { ArrowDown } from '@element-plus/icons-vue'
 import { onMounted, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Batch } from 'tms-vue3'

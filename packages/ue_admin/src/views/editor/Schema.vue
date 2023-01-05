@@ -2,7 +2,8 @@
   <div id="schemaEditor">
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight">
-        <el-breadcrumb-item :to="{ name: 'docSchemas' }">文档字段定义</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'databaseDocSchemas' }" v-if="dbName">文档字段定义</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'docSchemas' }" v-else>文档字段定义</el-breadcrumb-item>
         <el-breadcrumb-item>{{ title }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
@@ -34,13 +35,6 @@
           <el-form-item label="标签">
             <el-select v-model="schema.tags" multiple clearable placeholder="请选择">
               <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item label="所属数据库" v-if="scope === 'db'">
-            <el-select v-model="schema.database" filterable remote placeholder="请输入关键词" :remote-method="fetchDbs"
-              :loading="dbLoading">
-              <el-option v-for="database in databases" :key="database._id" :label="database.title"
-                :value="database.name"></el-option>
             </el-select>
           </el-form-item>
         </el-form>
@@ -94,7 +88,6 @@ import { ElMessage } from 'element-plus'
 import JSONEditor from 'jsoneditor'
 import 'jsoneditor/dist/jsoneditor.css'
 import { watch } from 'vue'
-import apiDb from '@/apis/database'
 
 // JSONSchema编辑器
 const $jse = ref(null as unknown as { editing: () => any })
@@ -103,8 +96,9 @@ const props = defineProps({
   bucketName: { type: String, default: '' },
   scope: { type: String, default: '' },
   schemaId: { type: String, default: '' },
+  dbName: { type: String, default: '' }
 })
-const { bucketName, scope } = props
+const { bucketName, scope, dbName } = props
 const editingSchemaId = ref(props.schemaId)
 
 const submitTitle = computed(() => {
@@ -118,11 +112,9 @@ const title = computed(() => {
 const activeTab = ref('first')
 const tags = reactive([] as any[])
 
-const schema = ref({ name: '', title: '', description: '', order: 9999, parentName: '', scope: scope, tags: [], body: {}, database: "" })
+const schema = ref({ name: '', title: '', description: '', order: 9999, parentName: '', scope: scope, tags: [], body: {} })
+if (dbName) Object.assign(schema.value, { database: dbName })
 const previewResult = ref('')
-
-const dbLoading = ref(false)
-const databases = ref<any[]>([])
 
 const onUploadFile = (file: any) => {
   let fileData = new FormData()
@@ -202,18 +194,6 @@ const onMessage = (msg: string) => {
   alert(`报错了:${msg}`)
 }
 
-const fetchDbs = (query: string) => {
-  if (query) {
-    dbLoading.value = true
-    setTimeout(() => {
-      dbLoading.value = false
-      databases.value = apiDb.list(bucketName, query, { page: 1, size: 100 }).then((data: any) => {
-        databases.value = data.databases
-      })
-    }, 200)
-  }
-}
-
 const onSubmit = () => {
   let newBody = $jse.value?.editing()
   if (newBody) {
@@ -254,12 +234,6 @@ if (props.schemaId) {
     data.body.title = title
     data.body.description = description
     schema.value = data
-  })
-}
-
-if (scope === 'db') {
-  apiDb.list(bucketName, "", { page: 1, size: 100 }).then((data: any) => {
-    databases.value = data.databases
   })
 }
 </script>
