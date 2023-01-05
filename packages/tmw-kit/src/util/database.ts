@@ -158,6 +158,8 @@ class Handler {
     if (info.title) tpl.title = info.title
     if (info.description) tpl.description = info.description
     tpl.body.properties = info.properties
+    tpl.order = typeof info.order === 'number' ? info.order : 99999
+    if (info.parentName) tpl.parentName = info.parentName
 
     trace('新文档定义内容：', JSON.stringify(tpl, null, 2))
     if (replaceExisting) {
