@@ -8,8 +8,8 @@
               <router-link
                 :to="{ name: 'schemaEditor', params: { bucketName, scope: 'document', schemaId: scope.row._id } }">
                 {{
-    scope.row.name
-}}
+                  scope.row.name
+                }}
               </router-link>
             </template>
           </el-table-column>
@@ -91,7 +91,16 @@ const removeSchema = (schema: { title: string }) => {
       type: 'warning',
 
     }).then(() => {
-      store.removeSchema({ bucket: props.bucketName, schema }).then(() => {
+      store.removeSchema({ bucket: props.bucketName, schema }).then((data: any) => {
+        let schema = data.schema
+
+        if (schema.parentName) {
+          let ps = topSchemas.value.find(ts => ts.name === schema.parentName)
+          ps.children.splice(ps.children.indexOf(schema), 1)
+        } else {
+          topSchemas.value.splice(topSchemas.value.indexOf(schema), 1)
+        }
+
         ElMessage({ message: '文档列定义已删除', type: 'success' })
       })
     }).catch(() => { })
