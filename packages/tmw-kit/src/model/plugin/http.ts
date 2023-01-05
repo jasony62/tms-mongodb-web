@@ -98,7 +98,6 @@ export abstract class PluginHttpSendDocs extends PluginHttpSend {
         case 'post':
           let body = await this.getBody(ctrl, tmwCl)
           return axiosInstance.post(url, body, config).then(({ data }) => data)
-
         case 'get':
           return axiosInstance.get(url, config).then(({ data }) => data)
         case 'delete':
