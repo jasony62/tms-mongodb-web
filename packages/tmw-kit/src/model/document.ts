@@ -250,8 +250,9 @@ class Document extends Base {
    * 新建文档
    * @param existCl
    * @param data
+   * @param schema
    */
-  async create(existCl, data) {
+  async create(existCl, data: any) {
     let mongoClient = this.mongoClient
     let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
 

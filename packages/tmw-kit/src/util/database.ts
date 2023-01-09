@@ -124,8 +124,9 @@ class Handler {
 
   /**
    * 创建文档列定义
+   * 返回文档字段定义的字符串类型id
    */
-  private async createSchema(info) {
+  private async createSchema(info): Promise<string> {
     if (!info && info !== 'object') {
       debug('缺少要创建的schema列定义')
       process.exit(0)
@@ -142,7 +143,7 @@ class Handler {
         replaceExisting = true
       } else if (this.options.allowReuseSchema === true) {
         debug(`名称为[${info.name}]的文档列定义已经存在，允许复用`)
-        return existSchema._id
+        return existSchema._id.toString()
       } else {
         debug(
           `名称为[${info.name}]的文档列定义已经存在，不能重复创建，停止后续操作`
@@ -159,7 +160,7 @@ class Handler {
           replaceExisting = true
         } else if (this.options.allowReuseSchema === true) {
           debug(`标题为[${info.title}]的文档列定义已经存在，允许复用`)
-          return existSchema._id
+          return existSchema._id.toString()
         } else {
           debug(
             `标题为[${info.title}]的文档列定义已经存在，不能重复创建，停止后续操作`
@@ -178,12 +179,25 @@ class Handler {
     tpl.body.properties = info.properties
     tpl.order = typeof info.order === 'number' ? info.order : 99999
     if (info.parentName) tpl.parentName = info.parentName
+    if (info.db && typeof info.db === 'object') {
+      let { db } = info
+      if (db && typeof db === 'object') {
+        let { name, sysname } = db
+        if (
+          name &&
+          typeof name === 'string' &&
+          sysname &&
+          typeof sysname === 'string'
+        )
+          tpl.db = { name, sysname }
+      }
+    }
 
     trace('新文档定义内容：', JSON.stringify(tpl, null, 2))
     if (replaceExisting) {
       let rst = await this.cl.replaceOne({ _id: existSchema._id }, tpl)
       debug('文档定义替换结果：', JSON.stringify(rst))
-      return existSchema._id
+      return existSchema._id.toString()
     } else {
       const { insertedId } = await this.cl.insertOne(tpl)
 
