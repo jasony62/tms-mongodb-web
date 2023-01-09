@@ -135,17 +135,17 @@ export default defineStore('mongodb', {
           .list(bucket, db, { keyword, ...batchArg })
           .then((result: { collections: never[] }) => {
             //this.collections = result.collections
-            let collections: any[] = [], allChildren: any[] = []
+            let collections: any[] = [], allChildren: any[] = [],cache = new Map<string, any>()
             result.collections.forEach((c: any) => {
               let cloned = JSON.parse(JSON.stringify(c))
-              this.collCache.set(c.name, cloned)
+              cache.set(c.name, cloned)
               if (!cloned.schema_parentName) collections.push(cloned)
               else allChildren.push(cloned)
             })
             allChildren.forEach((s: any) => {
               let { schema_parentName } = s
-              if (schema_parentName && typeof schema_parentName === 'string' && this.collCache.has(schema_parentName)) {
-                let ps = this.collCache.get(schema_parentName)
+              if (schema_parentName && typeof schema_parentName === 'string' && cache.has(schema_parentName)) {
+                let ps = cache.get(schema_parentName)
                 ps.children ??= []
                 ps.children.push(s)
               }
