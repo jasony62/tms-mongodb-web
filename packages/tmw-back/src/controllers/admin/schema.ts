@@ -1,5 +1,4 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import * as _ from 'lodash'
 import SchemaBase from '../schemaBase'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
@@ -152,21 +151,7 @@ class Schema extends SchemaBase {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async update() {
-    const { id } = this.request.query
-    let info = this.request.body
-    const { scope } = info
-    info = _.omit(info, ['_id', 'scope', 'bucket'])
-    if (typeof info.order !== 'number') info.order = 99999
-
-    const query: any = { _id: new ObjectId(id), type: 'schema' }
-    if (this.bucket) query.bucket = this.bucket.name
-
-    return this['clMongoObj']
-      .updateOne(query, { $set: info }, { upsert: true })
-      .then(() => {
-        info.scope = scope
-        return new ResultData(info)
-      })
+    return super.update()
   }
   /**
    * @swagger
