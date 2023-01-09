@@ -19,6 +19,7 @@ export default defineStore('mongodb', {
       documents: [] as any[],
       conditions: [] as any[],
       replicas: [] as any[],
+      collCache: new Map<string, any>(),
     }
   },
   actions: {
@@ -133,7 +134,23 @@ export default defineStore('mongodb', {
         return apis.collection
           .list(bucket, db, { keyword, ...batchArg })
           .then((result: { collections: never[] }) => {
-            this.collections = result.collections
+            //this.collections = result.collections
+            let collections: any[] = [], allChildren: any[] = []
+            result.collections.forEach((c: any) => {
+              let cloned = JSON.parse(JSON.stringify(c))
+              this.collCache.set(c.name, cloned)
+              if (!cloned.schema_parentName) collections.push(cloned)
+              else allChildren.push(cloned)
+            })
+            allChildren.forEach((s: any) => {
+              let { schema_parentName } = s
+              if (schema_parentName && typeof schema_parentName === 'string' && this.collCache.has(schema_parentName)) {
+                let ps = this.collCache.get(schema_parentName)
+                ps.children ??= []
+                ps.children.push(s)
+              }
+            })
+            this.collections = collections            
             return result
           })
       }

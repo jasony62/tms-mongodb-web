@@ -1,6 +1,7 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import CollectionHelper from './collectionHelper'
 import ReplicaHelper from './replicaHelper'
+import SchemaHelper from './schemaHelper'
 import { ModelCl } from 'tmw-kit'
 import Base from 'tmw-kit/dist/ctrl/base'
 import * as mongodb from 'mongodb'
@@ -19,6 +20,7 @@ class CollectionBase extends Base {
     super(...args)
     this.clHelper = new CollectionHelper(this)
     this.rpHelper = new ReplicaHelper(this)
+    this.schemaHelper = new SchemaHelper(this)
   }
   /** 执行每个方法前执行 */
   async tmsBeforeEach() {
@@ -80,12 +82,23 @@ class CollectionBase extends Base {
       .find(query, options)
       .sort({ _id: -1 })
       .toArray()
+      
+    // 填充集合对应的schema信息
+    const newTmwCls = await this.processCl(tmwCls)
+
+    // 按order排序
+    newTmwCls.sort((a, b) => {
+      if (!a.schema_order) a.schema_order = 999999
+      if (!b.schema_order) b.schema_order = 999999
+      return a.schema_order - b.schema_order
+    })
+
     if (typeof skip === 'number') {
       let total = await this.clMongoObj.countDocuments(query)
-      return new ResultData({ collections: tmwCls, total })
+      return new ResultData({ collections: newTmwCls, total })
     }
 
-    return new ResultData(tmwCls)
+    return new ResultData(newTmwCls)
   }
   /**
    * 指定数据库下新建集合
@@ -190,6 +203,24 @@ class CollectionBase extends Base {
       )
       .then(() => new ResultData('ok'))
       .catch((err) => new ResultFault(err.message))
+  }
+  /**
+   * 填充集合对应的schema信息
+   */
+  async processCl(tmwCls) {
+    const result = tmwCls.map(async (tmwCl) => {
+      const schema_id = new ObjectId(tmwCl.schema_id)
+      const { name, parentName, order } = await this.schemaHelper.schemaById(schema_id)
+      
+      tmwCl.schema_name = name
+      tmwCl.schema_parentName = parentName
+      tmwCl.schema_order = order
+
+      return tmwCl
+    })
+    return Promise.all(result).then((newTmwCls) => {
+      return newTmwCls
+    })
   }
 }
 

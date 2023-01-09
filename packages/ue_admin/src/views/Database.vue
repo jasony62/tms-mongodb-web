@@ -11,13 +11,9 @@
     <div class="flex flex-row gap-2">
       <!--left-->
       <div class="flex flex-col gap-4" :class="COMPACT ? 'w-full' : 'w-4/5'">
-        <el-table :data="store.collections" stripe>
+        <el-table :data="store.collections" row-key="_id" stripe>
           <el-table-column type="selection" width="40"></el-table-column>
-          <el-table-column type="expand" width="40">
-            <template #default="props">
-            </template>
-          </el-table-column>
-          <el-table-column label="集合名称" width="180">
+          <el-table-column label="集合名称">
             <template #default="scope">
               <el-link :underline="false" @click="openCollection(dbName, scope.row)">{{ scope.row.name }}</el-link>
             </template>
@@ -49,9 +45,9 @@
           </el-table-column>
         </el-table>
         <div class="flex flex-row gap-4 p-2 items-center justify-between">
-          <el-pagination layout="total, sizes, prev, pager, next" background :total="data.clBatch.total"
+          <!-- <el-pagination layout="total, sizes, prev, pager, next" background :total="data.clBatch.total"
             :page-sizes="[10, 25, 50, 100]" :current-page="data.clBatch.page" :page-size="data.clBatch.size"
-            @current-change="changeClPage" @size-change="changeClSize"></el-pagination>
+            @current-change="changeClPage" @size-change="changeClSize"></el-pagination> -->
         </div>
       </div>
       <!--right-->
@@ -79,7 +75,7 @@ const store = facStore()
 const router = useRouter()
 
 // 查找条件下拉框分页包含记录数
-const LIST_PAGE_SIZE = 100
+const LIST_PAGE_SIZE = 10000
 
 const props = defineProps(['bucketName', 'dbName'])
 
@@ -101,8 +97,10 @@ const createCollection = (() => {
     bucketName: props.bucketName,
     dbName: props.dbName,
     onBeforeClose: (newCollection?: any) => {
-      if (newCollection)
+      if (newCollection) {
         store.appendCollection({ collection: newCollection })
+        listClByKw()
+      }
     }
   })
 })
@@ -113,8 +111,10 @@ const editCollection = ((collection: any, index: number) => {
     dbName: props.dbName,
     collection,
     onBeforeClose: (newCollection?: any) => {
-      if (newCollection)
+      if (newCollection) {
         store.updateCollection({ collection: newCollection, index })
+        listClByKw()
+      }
     }
   })
 })
@@ -133,6 +133,7 @@ const removeCollection = ((collection: any) => {
         collection
       }).then(() => {
         ElMessage({ message: '集合已删除', type: 'success' })
+        listClByKw()
       })
     }).catch(() => { })
 })
