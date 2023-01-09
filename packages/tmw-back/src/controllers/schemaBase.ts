@@ -1,6 +1,7 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import Base from 'tmw-kit/dist/ctrl/base'
 import SchemaHelper from './schemaHelper'
+import * as _ from 'lodash'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
@@ -121,6 +122,11 @@ class SchemaBase extends Base {
     if (this.bucket) info.bucket = this.bucket.name
     if (!info.name) return new ResultFault('文档列定义名称不允许为空')
 
+    if (!info.scope) info.scope = 'document'
+    // 查询是否存在同名文档列定义
+    const [existFlag, existResult] = await this.schemaHelper.schemaByName(info)
+    if (!existFlag) return new ResultFault(existResult)
+
     const dbName = info.database ? info.database : null
     let existDb
     if (dbName) existDb = await this.schemaHelper.findRequestDb(true, dbName)
@@ -134,6 +140,30 @@ class SchemaBase extends Base {
     info._id = result.insertedId
 
     return new ResultData(info)
+  }
+  /**
+   * 更新文档列定义
+   */
+  async update() {
+    const { id } = this.request.query
+    let info = this.request.body
+    const { scope } = info
+    info = _.omit(info, ['_id', 'scope', 'bucket'])
+    if (typeof info.order !== 'number') info.order = 99999
+
+    // 查询是否存在同名文档列定义
+    const [flag, result] = await this.schemaHelper.schemaByName(info, scope, id)
+    if (!flag) return new ResultFault(result)
+
+    const query: any = { _id: new ObjectId(id), type: 'schema' }
+    if (this.bucket) query.bucket = this.bucket.name
+
+    return this.clMongoObj
+      .updateOne(query, { $set: info }, { upsert: true })
+      .then(() => {
+        info.scope = scope
+        return new ResultData(info)
+      })
   }
 }
 
