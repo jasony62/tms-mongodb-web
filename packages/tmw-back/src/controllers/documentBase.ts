@@ -21,7 +21,7 @@ class DocBase extends Base {
    *
    * @param schema_id
    */
-  private async getClSchema(schema_id) {
+  private async getDocSchema(schema_id) {
     const modelSchema = new ModelSchema(
       this.mongoClient,
       this.bucket,
@@ -29,11 +29,11 @@ class DocBase extends Base {
     )
 
     // 集合的schema定义
-    let clSchema
+    let docSchema
     if (schema_id && typeof schema_id === 'string')
-      clSchema = await modelSchema.bySchemaId(schema_id)
+      docSchema = await modelSchema.bySchemaId(schema_id)
 
-    return clSchema
+    return docSchema
   }
   /**
    * 根据ID返回单个文档的数据
@@ -56,26 +56,30 @@ class DocBase extends Base {
   async create() {
     const existCl = await this.docHelper.findRequestCl()
 
-    const { name: clName, schema_id, extensionInfo } = existCl
-
-    let doc = this.request.body
-
     const modelSchema = new ModelSchema(
       this.mongoClient,
       this.bucket,
       this.client
     )
+    const { schema_id, extensionInfo } = existCl
 
-    // 集合的schema定义
-    let clSchema
+    let docSchema // 集合的文档字段定义
     if (schema_id && typeof schema_id === 'string')
-      clSchema = await modelSchema.bySchemaId(schema_id)
+      docSchema = await modelSchema.bySchemaId(schema_id)
+
+    if (!docSchema)
+      return new ResultFault(
+        `在集合${existCl.name}/${existCl.sysname}创建文档时，没有提供schema`
+      )
+
+    // 要新建的文档数据
+    let docData = this.request.body
 
     // 去重校验
     const result = this.modelDoc.findUnRepeatRule(existCl)
     if (result[0]) {
       const { dbName, clName: collName, keys, insert } = result[1]
-      const curDoc = [doc]
+      const curDoc = [docData]
       const curConfig = {
         config: {
           columns: keys,
@@ -88,22 +92,25 @@ class DocBase extends Base {
       if (repeated.length === 0)
         return new ResultFault('添加失败,当前数据已存在')
     }
-    // 补充公共属性
+
+    /**
+     * 补充公共属性
+     */
     if (extensionInfo) {
       const { info, schemaId } = extensionInfo
       if (schemaId) {
         const publicSchema = await modelSchema.bySchemaId(schemaId)
         Object.keys(publicSchema).forEach((schema) => {
-          doc[schema] = info[schema] ? info[schema] : ''
+          docData[schema] = info[schema] ? info[schema] : ''
         })
       }
     }
 
     // 加工数据
-    this.modelDoc.processBeforeStore(doc, 'insert', clSchema)
+    this.modelDoc.processBeforeStore(docData, 'insert', docSchema)
 
     // 通过webhook处理数据
-    let beforeRst = await this.docWebhook.beforeCreate(doc, existCl)
+    let beforeRst = await this.docWebhook.beforeCreate(docData, existCl)
 
     if (beforeRst.passed !== true)
       return new ResultFault(
@@ -111,21 +118,9 @@ class DocBase extends Base {
       )
 
     if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
-      doc = beforeRst.rewrited
+      docData = beforeRst.rewrited
 
-    // 在数据库中创建
-    const newDoc = await this.docHelper
-      .findSysColl(existCl)
-      .insertOne(doc)
-      .then(async (r) => {
-        await this.modelDoc.dataActionLog(
-          r.ops,
-          '创建',
-          existCl.db.name,
-          clName
-        )
-        return doc
-      })
+    const newDoc = await this.modelDoc.create(existCl, docData, docSchema)
 
     // 通过webhook处理数据
     let afterRst = await this.docWebhook.afterCreate(newDoc, existCl)
@@ -133,10 +128,10 @@ class DocBase extends Base {
       return new ResultFault(afterRst.reason || '操作被Webhook.afterCreate阻止')
 
     if (afterRst.rewrited && typeof afterRst.rewrited === 'object')
-      doc = afterRst.rewrited
+      docData = afterRst.rewrited
 
     // 返回结果
-    return new ResultData(doc)
+    return new ResultData(docData)
   }
   /**
    * 删除文档
@@ -191,9 +186,14 @@ class DocBase extends Base {
     if (!existDoc) return new ResultFault('要更新的文档不存在')
 
     let newDoc = this.request.body
+    const docSchema = await this.getDocSchema(schema_id)
+    if (!docSchema || typeof docSchema !== 'object')
+      throw Error(
+        `在集合${existCl.name}/${existCl.sysname}更新文档时，没有提供schema`
+      )
+
     // 加工数据
-    const clSchema = await this.getClSchema(schema_id)
-    this.modelDoc.processBeforeStore(newDoc, 'update', clSchema, existDoc)
+    this.modelDoc.processBeforeStore(newDoc, 'update', docSchema, existDoc)
 
     // 通过webhook处理数据
     let beforeRst = await this.docWebhook.beforeUpdate(
@@ -215,7 +215,7 @@ class DocBase extends Base {
     // 日志
     if (this.tmwConfig.TMW_APP_DATA_ACTION_LOG === 'Y') {
       let beforeDoc = {}
-      beforeDoc[existDoc._id] = existDoc
+      beforeDoc[existDoc._id] = beforeDoc
       this.modelDoc.dataActionLog(
         newDoc,
         '修改',

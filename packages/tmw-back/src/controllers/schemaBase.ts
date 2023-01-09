@@ -63,7 +63,9 @@ class SchemaBase extends Base {
       query = {
         $and: [
           { type: 'schema', scope },
-          { $or: [{ database }, { database: '' }, { database: null }] },
+          {
+            $or: [{ 'db.name': database }, { db: null }],
+          },
         ],
       }
       if (this.bucket) query['$and'].push({ bucket: this.bucket.name })

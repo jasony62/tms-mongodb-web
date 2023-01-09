@@ -13,7 +13,6 @@ class SchemaHelper extends Helper {
     info.type = 'schema'
 
     if (existDb) {
-      info.database = existDb.name
       info.db = { sysname: existDb.sysname, name: existDb.name }
     }
 
