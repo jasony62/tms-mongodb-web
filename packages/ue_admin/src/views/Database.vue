@@ -11,7 +11,7 @@
     <div class="flex flex-row gap-2">
       <!--left-->
       <div class="flex flex-col gap-4" :class="COMPACT ? 'w-full' : 'w-4/5'">
-        <el-table :data="store.collections" stripe @selection-change="changeClSelect">
+        <el-table :data="store.collections" stripe>
           <el-table-column type="selection" width="40"></el-table-column>
           <el-table-column type="expand" width="40">
             <template #default="props">
@@ -49,7 +49,6 @@
           </el-table-column>
         </el-table>
         <div class="flex flex-row gap-4 p-2 items-center justify-between">
-          <span>已选中 {{ data.multipleCl.length }} 条数据</span>
           <el-pagination layout="total, sizes, prev, pager, next" background :total="data.clBatch.total"
             :page-sizes="[10, 25, 50, 100]" :current-page="data.clBatch.page" :page-size="data.clBatch.size"
             @current-change="changeClPage" @size-change="changeClSize"></el-pagination>
@@ -85,8 +84,7 @@ const LIST_PAGE_SIZE = 100
 const props = defineProps(['bucketName', 'dbName'])
 
 const data = reactive({
-  clBatch: new Batch(() => { }),
-  multipleCl: [] as any[]
+  clBatch: new Batch(() => { })
 })
 
 onMounted(() => {
@@ -152,8 +150,5 @@ const changeClPage = ((page: number) => {
 const changeClSize = ((size: number) => {
   data.clBatch.size = size
   data.clBatch.goto(1)
-})
-const changeClSelect = ((val: any[]) => {
-  data.multipleCl = val
 })
 </script>
