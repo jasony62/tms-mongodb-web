@@ -61,7 +61,6 @@ class DocBase extends Base {
       this.bucket,
       this.client
     )
-    console.log('sssss', existCl)
     const { schema_id, extensionInfo } = existCl
 
     let docSchema // 集合的文档字段定义

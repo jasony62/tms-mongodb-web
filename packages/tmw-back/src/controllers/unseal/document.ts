@@ -42,7 +42,7 @@ class Document extends Base {
    * @param schema_id
    * @returns
    */
-  private async getClSchema(schema_id: string) {
+  private async getDocSchema(schema_id: string) {
     const modelSchema = new ModelSchema(
       this.mongoClient,
       this.bucket,
@@ -73,8 +73,8 @@ class Document extends Base {
 
     /**解封加密数据*/
     // 集合的schema定义
-    const clSchema = await this.getClSchema(schema_id)
-    const schemaIter = new SchemaIter({ type: 'object', properties: clSchema })
+    const docSchema = await this.getDocSchema(schema_id)
+    const schemaIter = new SchemaIter({ type: 'object', properties: docSchema })
     for (let schemaProp of schemaIter) {
       let { fullname, attrs } = schemaProp
       if (attrs.format === 'password') {
@@ -114,7 +114,7 @@ class Document extends Base {
 
     if (result.total) {
       /**解封加密数据*/
-      const clSchema = await this.getClSchema(schema_id)
+      const clSchema = await this.getDocSchema(schema_id)
       const schemaIter = new SchemaIter({
         type: 'object',
         properties: clSchema,
@@ -151,7 +151,7 @@ class Document extends Base {
     if (!existDoc) return new ResultFault('指定的文档不存在')
 
     /**解封加密数据*/
-    const clSchema = await this.getClSchema(schema_id)
+    const clSchema = await this.getDocSchema(schema_id)
     const schemaIter = new SchemaIter({ type: 'object', properties: clSchema })
     for (let schemaProp of schemaIter) {
       let { fullname, attrs } = schemaProp
