@@ -82,7 +82,7 @@ class CollectionBase extends Base {
       .find(query, options)
       .sort({ _id: -1 })
       .toArray()
-      
+
     // 填充集合对应的schema信息
     const newTmwCls = await this.processCl(tmwCls)
 
@@ -209,15 +209,23 @@ class CollectionBase extends Base {
    */
   async processCl(tmwCls) {
     const result = tmwCls.map(async (tmwCl) => {
+      // 集合没有指定有效的schema_id
+      if (!tmwCl.schema_id || typeof tmwCl.schema_id !== 'string') return tmwCl
+
       const schema_id = new ObjectId(tmwCl.schema_id)
-      const { name, parentName, order } = await this.schemaHelper.schemaById(schema_id)
-      
+      const schema = await this.schemaHelper.schemaById(schema_id)
+      // 集合指定的schema不存在
+      if (schema) return tmwCl
+
+      const { name, parentName, order } = schema
+
       tmwCl.schema_name = name
       tmwCl.schema_parentName = parentName
       tmwCl.schema_order = order
 
       return tmwCl
     })
+
     return Promise.all(result).then((newTmwCls) => {
       return newTmwCls
     })
