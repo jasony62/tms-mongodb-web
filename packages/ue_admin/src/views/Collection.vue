@@ -40,15 +40,15 @@
             </template>
             <template #default="scope">
               <span v-if="s.type === 'boolean'">{{
-    scope.row[k] ? '是' : '否'
-}}</span>
+                scope.row[k] ? '是' : '否'
+              }}</span>
               <span v-else-if="
-  s.type === 'array' && s.items && s.items.format === 'file'
-">
+                s.type === 'array' && s.items && s.items.format === 'file'
+              ">
                 <span v-for="(i, v) in scope.row[k]" :key="v">
                   <el-link type="primary" @click="downLoadFile(i)">{{
-    i.name
-}}</el-link>
+                    i.name
+                  }}</el-link>
                   <br />
                 </span>
               </span>
@@ -56,15 +56,15 @@
                 <span v-if="s.enumGroups && s.enumGroups.length">
                   <span v-for="(g, i) in s.enumGroups" :key="i">
                     <span v-if="
-  scope.row[g.assocEnum.property] === g.assocEnum.value
-">
+                      scope.row[g.assocEnum.property] === g.assocEnum.value
+                    ">
                       <span v-for="(e, v) in s.enum" :key="v">
                         <span v-if="
-  e.group === g.id &&
-  scope.row[k] &&
-  scope.row[k].length &&
-  scope.row[k].includes(e.value)
-">{{ e.label }}&nbsp;</span>
+                          e.group === g.id &&
+                          scope.row[k] &&
+                          scope.row[k].length &&
+                          scope.row[k].includes(e.value)
+                        ">{{ e.label }}&nbsp;</span>
                       </span>
                     </span>
                   </span>
@@ -79,8 +79,8 @@
                 <span v-if="s.enumGroups && s.enumGroups.length">
                   <span v-for="(g, i) in s.enumGroups" :key="i">
                     <span v-if="
-  scope.row[g.assocEnum.property] === g.assocEnum.value
-">
+                      scope.row[g.assocEnum.property] === g.assocEnum.value
+                    ">
                       <span v-for="(e, v) in s.enum" :key="v">
                         <span v-if="e.group === g.id && scope.row[k] === e.value">{{ e.label }}</span>
                       </span>
@@ -97,8 +97,8 @@
                 <span v-if="s.enumGroups && s.enumGroups.length">
                   <span v-for="(g, i) in s.enumGroups" :key="i">
                     <span v-if="
-  scope.row[g.assocEnum.property] === g.assocEnum.value
-">
+                      scope.row[g.assocEnum.property] === g.assocEnum.value
+                    ">
                       <span v-for="(e, v) in s.oneOf" :key="v">
                         <span v-if="e.group === g.id && scope.row[k] === e.value">{{ e.label }}</span>
                       </span>
@@ -136,8 +136,8 @@
         </div>
         <div v-for="ep in etlPlugins">
           <el-button type="success" plain @click="handleExtract(ep)">{{
-    ep.title
-}}</el-button>
+            ep.title
+          }}</el-button>
         </div>
         <tmw-plugins :plugins="data.plugins" :total-by-all="totalByAll" :total-by-filter="totalByFilter"
           :total-by-checked="totalByChecked" :handle-plugin="handlePlugin"></tmw-plugins>
@@ -215,7 +215,6 @@ const { bucketName, dbName, clName } = props
 const data = reactive({
   docBatch: new Batch(() => { }),
   properties: {} as any,
-  documents: [] as any[],
   plugins: [] as any[],
   filter: reactive({}),
 })
@@ -421,6 +420,7 @@ function onExecute(
   docScope = '',
   widgetResult = undefined,
   widgetHandleResponse = false,
+  widgetDefaultHandleResponseRequired = false,
   applyAccessTokenField = ''
 ) {
   let postBody: any
@@ -459,9 +459,9 @@ function onExecute(
 
   // 执行插件方法
   return apiPlugin.execute(queryParams, postBody).then((result: any) => {
-    if (widgetHandleResponse) {
+    if (widgetHandleResponse && widgetDefaultHandleResponseRequired === false)
       return result
-    }
+
     if (typeof result === 'string') {
       /**返回字符串直接显示内容*/
       ElMessage.success({
@@ -470,41 +470,53 @@ function onExecute(
       })
       listDocByKw()
     } else if (result && typeof result === 'object') {
-      /**返回的是对象*/
+      /**
+       * 返回的是对象
+       */
       if (result.type === 'documents') {
-        /**返回的是文档数据*/
+        /**
+         * 返回的是文档数据
+         */
         let nInserted = 0,
           nModified = 0,
           nRemoved = 0
         let { inserted, modified, removed } = result
-        /**在当前文档列表中移除删除的记录 */
+        /**
+         * 在当前文档列表中移除删除的记录 
+         */
         if (Array.isArray(removed) && (nRemoved = removed.length)) {
-          let documents = data.documents.filter(
+          let documents = store.documents.filter(
             (doc) => !removed.includes(doc._id)
           )
           store.documents = documents
         }
-        /**在当前文档列表中更新修改的记录 */
+        /**
+         * 在当前文档列表中更新修改的记录 
+         */
         if (Array.isArray(modified) && (nModified = modified.length)) {
           let map = modified.reduce((m, doc) => {
             if (doc._id && typeof doc._id === 'string') m[doc._id] = doc
             return m
           }, {})
-          data.documents.forEach((doc: any, index: number) => {
+          store.documents.forEach((doc: any, index: number) => {
             let newDoc = map[doc._id]
-            if (newDoc) Object.assign(doc, newDoc)
-            store.updateDocument({ index, document: doc })
+            if (newDoc) {
+              Object.assign(doc, newDoc)
+              store.updateDocument({ index, document: doc })
+            }
           })
         }
-        /**在当前文档列表中添加插入的记录 */
+        /**
+         * 在当前文档列表中添加插入的记录 
+         */
         if (Array.isArray(inserted) && (nInserted = inserted.length)) {
           inserted.forEach((newDoc) => {
             if (newDoc._id && typeof newDoc._id === 'string')
-              data.documents.unshift(newDoc)
+              store.documents.unshift(newDoc)
           })
         }
         let msg = `插件[${plugin.title}]执行完毕，添加[${nInserted}]条，修改[${nModified}]条，删除[${nRemoved}]条记录。`
-        ElMessage.success({ message: msg })
+        ElMessage.success({ message: msg, showClose: true })
       } else if (result.type === 'numbers') {
         /**返回操作结果——数量 */
         let { nInserted, nModified, nRemoved } = result
@@ -530,6 +542,9 @@ function onExecute(
       })
       listDocByKw()
     }
+
+    if (widgetHandleResponse === true) return result
+
     return 'ok'
   })
 }
