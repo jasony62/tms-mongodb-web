@@ -215,7 +215,7 @@ class CollectionBase extends Base {
       const schema_id = new ObjectId(tmwCl.schema_id)
       const schema = await this.schemaHelper.schemaById(schema_id)
       // 集合指定的schema不存在
-      if (schema) return tmwCl
+      if (!schema) return tmwCl
 
       const { name, parentName, order } = schema
 
