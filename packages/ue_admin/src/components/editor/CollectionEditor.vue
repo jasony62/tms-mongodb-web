@@ -380,6 +380,11 @@ const onSubmit = () => {
   if (!collection.schema_id)
     return ElMessageBox.alert('请指定[集合内容定义(默认)]的值')
 
+      //清除附加字段
+      ;['schema_name', 'schema_order', 'schema_parentName', 'children'].forEach(item => {
+        if (collection.hasOwnProperty(item)) delete collection[item]
+      })
+
   let {
     operateRules: { scope, unrepeat },
   } = collection
