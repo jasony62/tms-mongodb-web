@@ -12,7 +12,7 @@
       <!--left-->
       <div class="flex flex-col gap-4" :class="COMPACT ? 'w-full' : 'w-4/5'">
         <el-table :data="store.collections" row-key="_id" stripe>
-          <el-table-column type="selection" width="40"></el-table-column>
+          <el-table-column type="selection" width="48"></el-table-column>
           <el-table-column label="集合名称">
             <template #default="scope">
               <el-link :underline="false" @click="openCollection(dbName, scope.row)">{{ scope.row.name }}</el-link>

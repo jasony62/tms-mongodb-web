@@ -271,20 +271,21 @@ class Document extends Base {
    * @param {object} existCl - 文档对象所在集合
    * @param {string} id - 文档对象id
    * @param {object} updated - 更新的数据
+   * @param {object} removed - 清除的数据
    *
    * @returns {boolean} 是否更新成功
    */
-  async update(existCl, id, updated) {
+  async update(existCl, id: string, updated: any, removed?: any) {
     let mongoClient = this.mongoClient
     let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
     if (existCl.usage !== 1) {
+      let ops = {}
+      if (updated && typeof updated === 'object' && Object.keys(updated).length)
+        ops['$set'] = updated
+      if (removed && typeof removed === 'object' && Object.keys(removed).length)
+        ops['$unset'] = removed
       return sysCl
-        .updateOne(
-          {
-            _id: new ObjectId(id),
-          },
-          { $set: updated }
-        )
+        .updateOne({ _id: new ObjectId(id) }, ops)
         .then(({ modifiedCount }) => modifiedCount === 1)
     } else {
       let __pri

@@ -153,6 +153,7 @@ const onExecute = (plugin: any,
   docScope = '',
   widgetResult = undefined,
   widgetHandleResponse = false,
+  widgetDefaultHandleResponseRequired = false,
   applyAccessTokenField = '') => {
   let postBody: any
   if (plugin.amount === 'one') {

@@ -153,8 +153,11 @@ class CollectionBase extends Base {
     const { _id, sysname, database, db, type, bucket, usage, ...updatedInfo } =
       info
 
+    // 需要清除的字段。应该考虑根据schema做清除。
+    const cleaned = { children: '' }
+
     const rst = await this.clMongoObj
-      .updateOne({ _id: existCl._id }, { $set: updatedInfo })
+      .updateOne({ _id: existCl._id }, { $set: updatedInfo, $unset: cleaned })
       .then((rst) => [true, rst.result])
       .catch((err) => [false, err.message])
 
@@ -215,7 +218,7 @@ class CollectionBase extends Base {
       const schema_id = new ObjectId(tmwCl.schema_id)
       const schema = await this.schemaHelper.schemaById(schema_id)
       // 集合指定的schema不存在
-      if (schema) return tmwCl
+      if (!schema) return tmwCl
 
       const { name, parentName, order } = schema
 

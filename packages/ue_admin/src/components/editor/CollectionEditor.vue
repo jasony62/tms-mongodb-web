@@ -88,8 +88,10 @@
           <el-option v-for="item in criteria.properties" :key="item.value" :label="item.label" :value="item.value">
           </el-option>
         </el-select>
-        <el-select v-model="collection.operateRules.unrepeat.insert" placeholder="是否插入当前表"
-          v-if="collection.operateRules.unrepeat.collection.sysname !== collection.sysname">
+        <el-select v-model="collection.operateRules.unrepeat.insert" placeholder="是否插入当前表" v-if="
+          collection.operateRules.unrepeat.collection.sysname !==
+          collection.sysname
+        ">
           <el-option label="是" :value="true"></el-option>
           <el-option label="否" :value="false"></el-option>
         </el-select>
@@ -111,7 +113,7 @@ import apiDb from '@/apis/database'
 import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, toRaw } from 'vue'
 import { FormRules, ElMessage, ElMessageBox } from 'element-plus'
 
 // 查找条件下拉框分页包含记录数
@@ -160,7 +162,7 @@ const props = defineProps({
             insert: false,
           },
         },
-        docFieldConvertRules: {}
+        docFieldConvertRules: {},
       }
     },
   },
@@ -170,23 +172,27 @@ const props = defineProps({
 // 设置默认值
 props.collection.custom ??= { docOperations: {} }
 props.collection.operateRules ??= {
-  scope: { unrepeat: false }, unrepeat: {
+  scope: { unrepeat: false },
+  unrepeat: {
     database: {},
     collection: {},
     primaryKeys: [],
     insert: false,
-  }
+  },
 }
 
 const dialogVisible = ref(props.dialogVisible)
 const activeTab = ref('info')
-const schemas = reactive([{
-  label: '数据库',
-  options: [] as any[]
-}, {
-  label: '全局',
-  options: [] as any[]
-}])
+const schemas = reactive([
+  {
+    label: '数据库',
+    options: [] as any[],
+  },
+  {
+    label: '全局',
+    options: [] as any[],
+  },
+])
 const tags = ref([] as any[])
 const criteria = reactive({
   databaseLoading: false,
@@ -222,15 +228,17 @@ const docFieldConvertRules = computed({
     } catch (e) {
       // 什么也不做
     }
-  }
+  },
 })
 
 onMounted(() => {
-  apiSchema.listSimple(bucketName, 'document', dbName).then((schemas2: any[]) => {
-    schemas2.forEach((s: any) => {
-      s.db ? schemas[0].options.push(s) : schemas[1].options.push(s)
+  apiSchema
+    .listSimple(bucketName, 'document', dbName)
+    .then((schemas2: any[]) => {
+      schemas2.forEach((s: any) => {
+        s.db ? schemas[0].options.push(s) : schemas[1].options.push(s)
+      })
     })
-  })
   apiTag.list(props.bucketName).then((tags2: any[]) => {
     tags2.forEach((t) => tags.value.push(t))
   })
@@ -284,21 +292,19 @@ const changeCl = () => {
 }
 const listProperties = () => {
   let { database, collection } = props.collection.operateRules.unrepeat
-  apiCollection
-    .byName(props.bucketName, database.name, collection.name)
-    .then(
-      (result: {
-        schema: {
-          body: { properties: { [s: string]: any } | ArrayLike<unknown> }
-        }
-      }) => {
-        criteria.properties = Object.entries(result.schema.body.properties).map(
-          ([key, value]) => {
-            return { value: key, label: `${value.title} (${key})` }
-          }
-        )
+  apiCollection.byName(props.bucketName, database.name, collection.name).then(
+    (result: {
+      schema: {
+        body: { properties: { [s: string]: any } | ArrayLike<unknown> }
       }
-    )
+    }) => {
+      criteria.properties = Object.entries(result.schema.body.properties).map(
+        ([key, value]) => {
+          return { value: key, label: `${value.title} (${key})` }
+        }
+      )
+    }
+  )
 }
 const listDbByKw = (keyword: string) => {
   criteria.dbBatch = startBatch(batchDatabase, [keyword], {
@@ -368,12 +374,16 @@ const changeClPage = (page: number) => {
 
 const onSubmit = () => {
   const reg = /^[a-zA-z]/
-  if (!reg.test(collection.name)) {
+  if (!reg.test(collection.name))
     return ElMessageBox.alert('请输入以英文字母开头的集合名')
-  }
-  if (!collection.schema_id) {
+
+  if (!collection.schema_id)
     return ElMessageBox.alert('请指定[集合内容定义(默认)]的值')
-  }
+
+      //清除附加字段
+      ;['schema_name', 'schema_order', 'schema_parentName', 'children'].forEach(item => {
+        if (collection.hasOwnProperty(item)) delete collection[item]
+      })
 
   let {
     operateRules: { scope, unrepeat },
@@ -397,12 +407,16 @@ const onSubmit = () => {
         emit('submit', newCollection)
         closeDialog(newCollection)
       })
-  else if (mode === 'update')
+  else if (mode === 'update') {
+    // 解决添加的children字段的问题
+    let newCl = JSON.parse(JSON.stringify(toRaw(collection)))
+    delete newCl.children
     apiCollection
-      .update(bucketName, dbName, clBeforeName, collection)
+      .update(bucketName, dbName, clBeforeName, newCl)
       .then((newCollection: any) => {
         emit('submit', newCollection)
         closeDialog(newCollection)
       })
+  }
 }
 </script>
