@@ -81,7 +81,12 @@ const copySchema = (schema: any, index: any, isCopy = false) => {
     }
   })
 }
-const removeSchema = (schema: { title: string }) => {
+const removeSchema = (schema: any) => {
+  if (schema.children && schema.children.length) {
+    ElMessage({ message: '存在子定义不允许删除', type: 'error' })
+    return
+  }
+
   ElMessageBox.confirm(
     `是否要删除文档列定义【${schema.title}】?`,
     `请确认`,

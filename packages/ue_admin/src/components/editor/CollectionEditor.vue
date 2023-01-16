@@ -16,7 +16,7 @@
       <el-form-item label="集合显示名（中文）" prop="title">
         <el-input v-model="collection.title"></el-input>
       </el-form-item>
-      <el-form-item label="集合文档内容定义（默认）">
+      <el-form-item label="集合文档内容定义（默认）" prop="schema_id">
         <el-select v-model="collection.schema_id" clearable placeholder="请选择定义名称">
           <el-option-group v-for="schema in schemas" :key="schema.label" :label="schema.label">
             <el-option v-for="item in schema.options" :key="item._id" :label="item.title" :value="item._id" />
@@ -267,6 +267,7 @@ const onBeforeClose = () => {
 const rules = reactive<FormRules>({
   name: [{ required: true, message: '集合名称不允许为空' }],
   usage: [{ required: true, message: '集合用途不允许为空' }],
+  schema_id: [{ required: true, message: '集合文档定义不允许为空' }]
 })
 const changeDb = () => {
   collection.operateRules.unrepeat.collection = {}

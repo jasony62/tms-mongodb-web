@@ -119,6 +119,11 @@ const editCollection = ((collection: any, index: number) => {
   })
 })
 const removeCollection = ((collection: any) => {
+  if (collection.children && collection.children.length) {
+    ElMessage({ message: '存在子集不允许删除', type: 'error' })
+    return
+  }
+
   ElMessageBox.confirm(
     `是否要删除集合【${collection.title}(${collection.name})】?`,
     `请确认`,
