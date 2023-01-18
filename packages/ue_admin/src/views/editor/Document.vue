@@ -641,7 +641,7 @@ if (TEMPLATE_VARS_API_URL()) {
         vars.forEach(v => {
           let { name, title, examples } = v
           let v2: any = { name, title }
-          if (Array.isArray(examples) && examples.length) v2.example = examples[0]
+          if (Array.isArray(examples) && examples.length) v2.examples = examples
           templateVars.value.push(v2)
         })
       }
