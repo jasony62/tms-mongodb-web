@@ -62,7 +62,7 @@ window.addEventListener('message', (event) => {
 function onExecute() {
   let newDoc = $jde.value?.editing()
   if (Caller && Object.keys(newDoc).length !== 0) {
-    const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: newDoc, handleResponse: true, applyAccessTokenField: 'url' }
+    const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: newDoc, applyAccessTokenField: 'url' }
     try {
       // 给调用方发送数据
       Caller.postMessage(message, '*')
