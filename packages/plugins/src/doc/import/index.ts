@@ -3,6 +3,7 @@ import { loadConfig, ModelSchema, ModelDoc } from 'tmw-kit'
 import { createDocWebhook } from 'tmw-kit/dist/webhook/document'
 import * as path from 'path'
 import { pinyin } from 'pinyin-pro'
+import * as _ from 'lodash'
 import Debug from 'debug'
 
 const debug = Debug('tmw:plugins:doc-import')
@@ -122,27 +123,24 @@ class ImportPlugin extends PluginBase {
         }
       }
       
-      let extra = {}
+      let extra = process.env.TMW_PLUGIN_DOC_IMPORT_EXTRA_KEY_NAME || 'extra'
       for (let k in row) {
-        let oneRow = row[k]
+        let oneRow = _.get(row, k)
+
         if (typeof oneRow === 'number')
           oneRow = String(oneRow)
 
         if (schemaStr.indexOf(k) > -1) {
-          if (newRow[k] === null) newRow[k] = oneRow
+          if (newRow[k] === null) _.set(newRow, k, oneRow)
         } else {
           // 检查是否包含中文
           if (/[\u4E00-\u9FA5]+/g.test(k)) {
-            // const { pinyin } = require('pinyin-pro')
             k = pinyin(k, { toneType: 'none' })
             k = k.replace(/ +/g, '_')
           }
-          extra[k] = oneRow
+          _.set(newRow, [extra, k], oneRow)
         }
       }
-      newRow.extra = extra
-
-      if (JSON.stringify(newRow.extra) === '{}') delete newRow.extra
 
       // 加工数据
       modelDoc.processBeforeStore(newRow, 'insert', columns)
