@@ -112,6 +112,7 @@ import { dialogInjectionKey } from 'gitart-vue-dialog'
 import PropValueEditor from '@/components/PropValueEditor.vue'
 import { useAssistant } from '@/composables/assistant'
 import { TmsAxios } from 'tms-vue3'
+import { transform } from '@/data-aid.js/transform'
 
 // 系统指定的标签字段名称
 const TagsFieldName = TMW_APP_TAGS()
@@ -260,7 +261,6 @@ function convertExternalData(field: Field, source: string, data: any): any {
   const newData =
     dataType === 'object' ? {} : dataType === 'array' ? [] : undefined
   if (!newData) return newData
-
   log(
     `字段【${field.fullname}】从【${source}】获得外部数据\n` +
     JSON.stringify(data, null, 2)
@@ -318,26 +318,8 @@ function convertExternalData(field: Field, source: string, data: any): any {
     `字段【${field.fullname}】有【${source}】数据转换规则\n` +
     JSON.stringify(usedRule, null, 2)
   )
-  let converted = _.transform(
-    usedRule,
-    (result: any, dataDef: any, docKey: string) => {
-      if (dataDef) {
-        if (typeof dataDef === 'string') {
-          // 定义的是外部数据的key
-          let val = _.get(data, dataDef)
-          _.set(result, docKey, val)
-        } else if (Array.isArray(dataDef) && dataDef.length) {
-          // 不支持
-        } else if (typeof dataDef === 'object') {
-          // 定义的是固定的值
-          if (dataDef.value ?? false) {
-            _.set(result, docKey, dataDef.value)
-          }
-        }
-      }
-    },
-    {}
-  )
+  let converted = {}
+  transform(usedRule, data, converted)
 
   log(
     `字段【${field.fullname}】获得【${source}】转换后数据\n` +

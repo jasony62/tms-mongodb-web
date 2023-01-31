@@ -138,6 +138,7 @@ importers:
       gitart-vue-dialog: ^2.4.0
       handlebars: ^4.7.7
       jsoneditor: ^9.9.0
+      jsonpath-plus: ^7.2.0
       lodash: ^4.17.21
       mitt: ^3.0.0
       pinia: ^2.0.13
@@ -147,9 +148,9 @@ importers:
       stylelint-config-standard: ^29.0.0
       tailwindcss: ^3.2.4
       tms-koa-crypto: ^0.1.0
-      tms-template-viz: ^0.0.7
+      tms-template-viz: ^0.0.9
       tms-vue3: ^0.0.5
-      tms-vue3-ui: ^0.0.80
+      tms-vue3-ui: ^0.0.81
       typescript: ^4.9.3
       vite: 3.2.4
       vue: ^3.2.25
@@ -169,13 +170,14 @@ importers:
       gitart-vue-dialog: 2.4.0_vue@3.2.37
       handlebars: 4.7.7
       jsoneditor: 9.9.0
+      jsonpath-plus: 7.2.0
       lodash: 4.17.21
       mitt: 3.0.0
       pinia: 2.0.16_3wuezxkqf7tzkaisjt6ux3jbba
       tms-koa-crypto: 0.1.0
-      tms-template-viz: 0.0.7
+      tms-template-viz: 0.0.9
       tms-vue3: 0.0.5_debug@4.3.4
-      tms-vue3-ui: 0.0.80
+      tms-vue3-ui: 0.0.81
       vue: 3.2.37
       vue-clipboard3: 2.0.0
       vue-router: 4.1.2_vue@3.2.37
@@ -209,7 +211,7 @@ importers:
       stylelint: ^14.8.0
       stylelint-config-standard: ^26.0.0
       tailwindcss: ^3.0.24
-      tms-vue3-ui: ^0.0.80
+      tms-vue3-ui: ^0.0.81
       typescript: ^4.6.4
       vite: ^3.0.7
       vue: ^3.2.37
@@ -218,7 +220,7 @@ importers:
     dependencies:
       element-plus: 2.2.9_vue@3.2.37
       jsoneditor: 9.9.0
-      tms-vue3-ui: 0.0.80
+      tms-vue3-ui: 0.0.81
       vue: 3.2.37
       vue-router: 4.1.2_vue@3.2.37
     devDependencies:
@@ -7092,19 +7094,19 @@ packages:
       - utf-8-validate
     dev: false
 
-  /tms-template-viz/0.0.7:
-    resolution: {integrity: sha512-3OegMvPNq7UjUi7wc6GLa9WEQnB4w5ZADRPP55nTHX5Ohjo/gbsS6EWniHqxxRsJRckWEiGz2VBC1NHlT+aAig==}
+  /tms-template-viz/0.0.9:
+    resolution: {integrity: sha512-pOgI9PV5tSmc1f3KUT5QbsgGOBE9Wpr6YDnarW7ukM0IqosyUFCoyiAuStmINFw8t8HDA+TGTEuDLyF0toMRyg==}
     dependencies:
       handlebars: 4.7.7
       lodash.get: 4.4.2
-      tms-template-wizard: 0.0.7
+      tms-template-wizard: 0.0.9
       vue: 3.2.37
     transitivePeerDependencies:
       - supports-color
     dev: false
 
-  /tms-template-wizard/0.0.7:
-    resolution: {integrity: sha512-bx2sI99q7TekygxbxTgtJBHDkL9BHFUwetNOF888e3axcmHUHlby6cOXwWPv9wpLL9Xiwl+oXzHgG3MWXcf9IA==}
+  /tms-template-wizard/0.0.9:
+    resolution: {integrity: sha512-Lh95Z7wNJLjkUBhT/aObMnrMj9a3dBEoAXOKXhTPykBoBguuidbhYvJ3vDPWg2imgyLj5nPoe439OvC+n4+6wA==}
     dependencies:
       debug: 4.3.4
       handlebars: 4.7.7
@@ -7114,8 +7116,8 @@ packages:
       - supports-color
     dev: false
 
-  /tms-vue3-ui/0.0.80:
-    resolution: {integrity: sha512-yWXnInOUn6Frem1ni4stOy/Ojh3ZNRSMSVXQMDwI6AU2p/emfSEObHyB4IprdroXhlg4kuGNlGFvhaSF0DG/rA==}
+  /tms-vue3-ui/0.0.81:
+    resolution: {integrity: sha512-nQ+d4Wm74ekEcxjxYius9Cz50uLDzVsFgzQGVZS5edGgmKQS8FCmoMLnFH+XGcG3lc1Azz6+6UXdYm6aCZR+ug==}
     dependencies:
       debug: 4.3.4
       lodash: 4.17.21
