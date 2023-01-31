@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
-import DocImportJson from '@/views/DocImportJson.vue'
+import DocImport from '@/views/DocImport.vue'
 import DocHttpSend from '@/views/DocHttpSend.vue'
 import DocAgenda from '@/views/DocAgenda.vue'
 import DocCreateAccount from '@/views/DocCreateAccount.vue'
@@ -13,9 +13,9 @@ const BASE_URL = import.meta.env.VITE_BASE_URL
 
 const routes: RouteRecordRaw[] = [
   {
-    path: '/doc-import-json',
-    name: 'docImportJson',
-    component: DocImportJson,
+    path: '/doc-import',
+    name: 'docImport',
+    component: DocImport,
   },
   {
     path: '/doc-http-send',
