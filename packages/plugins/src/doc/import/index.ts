@@ -80,6 +80,7 @@ class ImportPlugin extends PluginBase {
     }
     debug(`schemaStr[${schemaStr}]`)
 
+    let extra = process.env.TMW_PLUGIN_DOC_IMPORT_EXTRA_KEY_NAME || 'extra'
     let finishRows = rowsJson.map((row) => {
       let newRow: any = {}
       if (columns) {
@@ -123,7 +124,6 @@ class ImportPlugin extends PluginBase {
         }
       }
       
-      let extra = process.env.TMW_PLUGIN_DOC_IMPORT_EXTRA_KEY_NAME || 'extra'
       for (let k in row) {
         let oneRow = _.get(row, k)
 
