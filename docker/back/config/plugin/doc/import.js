@@ -19,7 +19,7 @@ const widgetUrl = TMW_PLUGIN_DOC_IMPORT_WIDGET_URL
 module.exports = {
   widgetUrl,
   name: Name ? Name : 'doc-import',
-  title: Title ? Title : '导入文档(EXCEL/JSON)',
+  title: Title ? Title : '从文件导入数据',
   bucket: Bucket,
   db: Db,
   cl: Cl,
