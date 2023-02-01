@@ -26,7 +26,7 @@
                 <div v-html="renderDocManual(props.row)"></div>
               </div>
               <div class="ml-24 flex flex-row gap-2">
-                <el-link type="danger" @click="removeDocument(props.row)">删除文档</el-link>
+                <el-link v-if="docOperations.remove" type="danger" @click="removeDocument(props.row)">删除文档</el-link>
               </div>
             </template>
           </el-table-column>
@@ -119,7 +119,8 @@
           <el-table-column fixed="right" label="操作" width="100">
             <template #default="scope">
               <el-button type="primary" link size="small" @click="previewDocument(scope.row)">查看</el-button>
-              <el-button type="primary" link size="small" @click="editDocument(scope.row)">修改</el-button>
+              <el-button v-if="docOperations.edit" type="primary" link size="small"
+                @click="editDocument(scope.row)">修改</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -132,7 +133,7 @@
       </div>
       <div class="flex flex-col items-start space-y-3" v-if="!COMPACT">
         <div>
-          <el-button @click="createDocument">添加文档</el-button>
+          <el-button v-if="docOperations.create" @click="createDocument">添加文档</el-button>
         </div>
         <div v-for="ep in etlPlugins">
           <el-button type="success" plain @click="handleExtract(ep)">{{
@@ -203,6 +204,20 @@ let collection = reactive({
   schema: {
     body: { properties: {} },
   },
+  custom: {
+    docOperations: {} as any
+  }
+})
+const docOperations = reactive({
+  create: true,
+  edit: true,
+  remove: true,
+  editMany: true,
+  removeMany: true,
+  transferMany: true,
+  import: true,
+  export: true,
+  copyMany: true
 })
 const props = defineProps({
   bucketName: { type: String, defalut: '' },
@@ -694,6 +709,23 @@ onMounted(async () => {
     dbName,
     clName
   )
+  /**集合定制功能设置 */
+  const { custom } = collection
+  if (custom) {
+    const { docOperations: docOps } = collection.custom
+    /**支持的文档操作 */
+    if (docOps && typeof docOps === 'object') {
+      if (docOps.create === false) docOperations.create = false
+      if (docOps.edit === false) docOperations.edit = false
+      if (docOps.remove === false) docOperations.remove = false
+      if (docOps.editMany === false) docOperations.editMany = false
+      if (docOps.removeMany === false) docOperations.removeMany = false
+      if (docOps.transferMany === false) docOperations.transferMany = false
+      if (docOps.import === false) docOperations.import = false
+      if (docOps.export === false) docOperations.export = false
+      if (docOps.copyMany === false) docOperations.copyMany = false
+    }
+  }
   await setTableColumnsFromSchema()
   listDocByKw()
 })
