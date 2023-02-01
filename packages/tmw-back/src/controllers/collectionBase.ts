@@ -82,7 +82,7 @@ class CollectionBase extends Base {
       .find(query, options)
       .sort({ _id: -1 })
       .toArray()
-
+      
     // 填充集合对应的schema信息
     const newTmwCls = await this.processCl(tmwCls)
 
@@ -228,7 +228,6 @@ class CollectionBase extends Base {
 
       return tmwCl
     })
-
     return Promise.all(result).then((newTmwCls) => {
       return newTmwCls
     })
