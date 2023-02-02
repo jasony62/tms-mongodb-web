@@ -1,105 +1,108 @@
 <template>
   <el-dialog title="集合" v-model="dialogVisible" :destroy-on-close="true" :close-on-click-modal="false"
     :before-close="onBeforeClose">
-    <el-tabs v-model="activeTab" type="card">
-      <el-tab-pane label="基本信息" name="info"></el-tab-pane>
-      <el-tab-pane label="设置" name="setting"></el-tab-pane>
-      <el-tab-pane label="文档编辑转换规则" name="convert"></el-tab-pane>
-    </el-tabs>
-    <el-form :model="collection" label-position="top" v-show="activeTab === 'info'" :rules="rules">
-      <el-form-item label="集合名称（系统）" prop="sysname">
-        <el-input v-model="collection.sysname" :disabled="mode === 'update'"></el-input>
-      </el-form-item>
-      <el-form-item label="集合名称（英文）" prop="name">
-        <el-input v-model="collection.name"></el-input>
-      </el-form-item>
-      <el-form-item label="集合显示名（中文）" prop="title">
-        <el-input v-model="collection.title"></el-input>
-      </el-form-item>
-      <el-form-item label="集合文档内容定义（默认）" prop="schema_id">
-        <el-select v-model="collection.schema_id" clearable placeholder="请选择定义名称">
-          <el-option-group v-for="schema in schemas" :key="schema.label" :label="schema.label">
-            <el-option v-for="item in schema.options" :key="item._id" :label="item.title" :value="item._id" />
-          </el-option-group>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="集合文档内容定义（定制-修改）">
-        <el-select v-model="collection.schema_tags" clearable multiple placeholder="请选择定义标签">
-          <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="集合文档内容定义（定制-展示）">
-        <el-select v-model="collection.schema_default_tags" clearable multiple placeholder="请选择定义标签">
-          <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="集合标签">
-        <el-select v-model="collection.tags" clearable multiple placeholder="请选择集合标签">
-          <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="集合用途" prop="usage">
-        <el-select v-model="collection.usage" clearable placeholder="请选择集合用途">
-          <el-option label="普通集合" :value="0"></el-option>
-          <el-option label="从集合" :value="1"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="说明">
-        <el-input type="textarea" v-model="collection.description"></el-input>
-      </el-form-item>
-    </el-form>
-    <el-form :model="collection.custom" label-position="top" v-show="activeTab === 'setting'">
-      <el-form-item label="文档操作">
-        <el-checkbox v-model="collection.custom.docOperations.create">添加数据</el-checkbox>
-        <el-checkbox v-model="collection.custom.docOperations.edit">修改</el-checkbox>
-        <el-checkbox v-model="collection.custom.docOperations.remove">删除</el-checkbox>
-        <el-checkbox v-model="collection.custom.docOperations.editMany">批量修改</el-checkbox>
-        <el-checkbox v-model="collection.custom.docOperations.removeMany">批量删除</el-checkbox>
-        <el-checkbox v-model="collection.custom.docOperations.transferMany">批量迁移</el-checkbox>
-        <el-checkbox v-model="collection.custom.docOperations.import">导入数据</el-checkbox>
-        <el-checkbox v-model="collection.custom.docOperations.export">导出数据</el-checkbox>
-        <el-checkbox v-model="collection.custom.docOperations.copyMany">批量复制</el-checkbox>
-      </el-form-item>
-      <el-form-item label="文档操作规则">
-        <el-checkbox v-model="collection.operateRules.scope.unrepeat">添加/导入数据时去重</el-checkbox>
-      </el-form-item>
-      <el-form-item label="设置去重规则" v-if="collection.operateRules.scope.unrepeat === true" class="tmw-formItem__flex">
-        <el-select v-model="collection.operateRules.unrepeat.database" value-key="sysname" @clear="listDbByKw"
-          @change="changeDb" placeholder="请选择数据库" clearable filterable remote :remote-method="listDbByKw"
-          :loading="criteria.databaseLoading">
-          <el-option v-for="item in criteria.databases" :key="item._id" :label="item.label" :value="item"></el-option>
-          <el-option :disabled="true" value="" v-if="criteria.dbBatch.pages > 1">
-            <el-pagination :current-page="criteria.dbBatch.page" :total="criteria.dbBatch.total"
-              :page-size="criteria.dbBatch.size" layout="prev, next" @current-change="changeDbPage">
-            </el-pagination>
-          </el-option>
-        </el-select>
-        <el-select v-model="collection.operateRules.unrepeat.collection" value-key="sysname" @clear="listClByKw"
-          @change="changeCl" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw"
-          :loading="criteria.collectionLoading">
-          <el-option v-for="item in criteria.collections" :key="item._id" :label="item.label" :value="item"></el-option>
-          <el-option :disabled="true" value="" v-if="criteria.clBatch.pages > 1">
-            <el-pagination :current-page="criteria.clBatch.page" :total="criteria.clBatch.total"
-              :page-size="criteria.clBatch.size" layout="prev, next" @current-change="changeClPage">
-            </el-pagination>
-          </el-option>
-        </el-select>
-        <el-select v-model="collection.operateRules.unrepeat.primaryKeys" placeholder="请选择列" filterable multiple>
-          <el-option v-for="item in criteria.properties" :key="item.value" :label="item.label" :value="item.value">
-          </el-option>
-        </el-select>
-        <el-select v-model="collection.operateRules.unrepeat.insert" placeholder="是否插入当前表" v-if="
-          collection.operateRules.unrepeat.collection.sysname !==
-          collection.sysname
-        ">
-          <el-option label="是" :value="true"></el-option>
-          <el-option label="否" :value="false"></el-option>
-        </el-select>
-      </el-form-item>
-    </el-form>
-    <div v-show="activeTab === 'convert'" class="h-96">
-      <textarea ref="elConvEditor" class="h-full w-full border border-gray-200 p-2"
-        v-model="docFieldConvertRules"></textarea>
+    <div class="el-dialog-div">
+      <el-tabs v-model="activeTab" type="card">
+        <el-tab-pane label="基本信息" name="info"></el-tab-pane>
+        <el-tab-pane label="设置" name="setting"></el-tab-pane>
+        <el-tab-pane label="文档编辑转换规则" name="convert"></el-tab-pane>
+      </el-tabs>
+      <el-form :model="collection" label-position="top" v-show="activeTab === 'info'" :rules="rules">
+        <el-form-item label="集合名称（系统）" prop="sysname">
+          <el-input v-model="collection.sysname" :disabled="mode === 'update'"></el-input>
+        </el-form-item>
+        <el-form-item label="集合名称（英文）" prop="name">
+          <el-input v-model="collection.name"></el-input>
+        </el-form-item>
+        <el-form-item label="集合显示名（中文）" prop="title">
+          <el-input v-model="collection.title"></el-input>
+        </el-form-item>
+        <el-form-item label="集合文档内容定义（默认）" prop="schema_id">
+          <el-select v-model="collection.schema_id" clearable placeholder="请选择定义名称">
+            <el-option-group v-for="schema in schemas" :key="schema.label" :label="schema.label">
+              <el-option v-for="item in schema.options" :key="item._id" :label="item.title" :value="item._id" />
+            </el-option-group>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="集合文档内容定义（定制-修改）">
+          <el-select v-model="collection.schema_tags" clearable multiple placeholder="请选择定义标签">
+            <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="集合文档内容定义（定制-展示）">
+          <el-select v-model="collection.schema_default_tags" clearable multiple placeholder="请选择定义标签">
+            <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="集合标签">
+          <el-select v-model="collection.tags" clearable multiple placeholder="请选择集合标签">
+            <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="集合用途" prop="usage">
+          <el-select v-model="collection.usage" clearable placeholder="请选择集合用途">
+            <el-option label="普通集合" :value="0"></el-option>
+            <el-option label="从集合" :value="1"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="说明">
+          <el-input type="textarea" v-model="collection.description"></el-input>
+        </el-form-item>
+      </el-form>
+      <el-form :model="collection.custom" label-position="top" v-show="activeTab === 'setting'">
+        <el-form-item label="文档操作">
+          <el-checkbox v-model="collection.custom.docOperations.create">添加数据</el-checkbox>
+          <el-checkbox v-model="collection.custom.docOperations.edit">修改</el-checkbox>
+          <el-checkbox v-model="collection.custom.docOperations.remove">删除</el-checkbox>
+          <el-checkbox v-model="collection.custom.docOperations.editMany">批量修改</el-checkbox>
+          <el-checkbox v-model="collection.custom.docOperations.removeMany">批量删除</el-checkbox>
+          <el-checkbox v-model="collection.custom.docOperations.transferMany">批量迁移</el-checkbox>
+          <el-checkbox v-model="collection.custom.docOperations.import">导入数据</el-checkbox>
+          <el-checkbox v-model="collection.custom.docOperations.export">导出数据</el-checkbox>
+          <el-checkbox v-model="collection.custom.docOperations.copyMany">批量复制</el-checkbox>
+        </el-form-item>
+        <el-form-item label="文档操作规则">
+          <el-checkbox v-model="collection.operateRules.scope.unrepeat">添加/导入数据时去重</el-checkbox>
+        </el-form-item>
+        <el-form-item label="设置去重规则" v-if="collection.operateRules.scope.unrepeat === true" class="tmw-formItem__flex">
+          <el-select v-model="collection.operateRules.unrepeat.database" value-key="sysname" @clear="listDbByKw"
+            @change="changeDb" placeholder="请选择数据库" clearable filterable remote :remote-method="listDbByKw"
+            :loading="criteria.databaseLoading">
+            <el-option v-for="item in criteria.databases" :key="item._id" :label="item.label" :value="item"></el-option>
+            <el-option :disabled="true" value="" v-if="criteria.dbBatch.pages > 1">
+              <el-pagination :current-page="criteria.dbBatch.page" :total="criteria.dbBatch.total"
+                :page-size="criteria.dbBatch.size" layout="prev, next" @current-change="changeDbPage">
+              </el-pagination>
+            </el-option>
+          </el-select>
+          <el-select v-model="collection.operateRules.unrepeat.collection" value-key="sysname" @clear="listClByKw"
+            @change="changeCl" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw"
+            :loading="criteria.collectionLoading">
+            <el-option v-for="item in criteria.collections" :key="item._id" :label="item.label"
+              :value="item"></el-option>
+            <el-option :disabled="true" value="" v-if="criteria.clBatch.pages > 1">
+              <el-pagination :current-page="criteria.clBatch.page" :total="criteria.clBatch.total"
+                :page-size="criteria.clBatch.size" layout="prev, next" @current-change="changeClPage">
+              </el-pagination>
+            </el-option>
+          </el-select>
+          <el-select v-model="collection.operateRules.unrepeat.primaryKeys" placeholder="请选择列" filterable multiple>
+            <el-option v-for="item in criteria.properties" :key="item.value" :label="item.label" :value="item.value">
+            </el-option>
+          </el-select>
+          <el-select v-model="collection.operateRules.unrepeat.insert" placeholder="是否插入当前表" v-if="
+            collection.operateRules.unrepeat.collection.sysname !==
+            collection.sysname
+          ">
+            <el-option label="是" :value="true"></el-option>
+            <el-option label="否" :value="false"></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div v-show="activeTab === 'convert'" class="h-96">
+        <textarea ref="elConvEditor" class="h-full w-full border border-gray-200 p-2"
+          v-model="docFieldConvertRules"></textarea>
+      </div>
     </div>
     <template #footer>
       <el-button type="primary" @click="onSubmit">提交</el-button>

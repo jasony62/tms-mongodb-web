@@ -27,7 +27,7 @@ module.exports = {
   schemaBlacklist: SchemaBlacklist,
   widgetUrl,
   name: Name ? Name : 'doc-import',
-  title: Title ? Title : '导入文档(EXCEL/JSON)',
+  title: Title ? Title : '从文件导入数据',
   bucket: Bucket,
   db: Db,
   cl: Cl,
