@@ -1,4 +1,8 @@
 const {
+  TMW_PLUGIN_DOC_AGENDA_DISABLED: Disabled,
+  TMW_PLUGIN_DOC_AGENDA_DB_BLACK_LIST: DbBlacklist,
+  TMW_PLUGIN_DOC_AGENDA_CL_BLACK_LIST: ClBlacklist,
+  TMW_PLUGIN_DOC_AGENDA_SCHEMA_BLACK_LIST: SchemaBlacklist,
   TMW_PLUGIN_WIDGET_URL_HOST,
   TMW_PLUGIN_DOC_AGENDA_NAME: Name,
   TMW_PLUGIN_DOC_AGENDA_BUCKET: Bucket,
@@ -23,13 +27,17 @@ const widgetUrl = TMW_PLUGIN_DOC_AGENDA_WIDGET_URL
   : '/plugin/doc-agenda'
 
 module.exports = {
+  disabled: /true|yes/i.test(Disabled),
+  dbBlacklist: DbBlacklist,
+  clBlacklist: ClBlacklist,
+  schemaBlacklist: SchemaBlacklist,
   widgetUrl,
   name: Name ? Name : 'doc-agenda',
   title: Title ? Title : '调度任务',
   bucket: Bucket,
   db: Db,
   cl: Cl,
-  schema: Schema || 'tmw_agenda',
+  schema: Schema || `^tmw_agenda$`,
   jobFields: {
     name: JobNameField ? JobNameField : 'name',
     interval: JobIntervalField ? JobIntervalField : 'interval',

@@ -1,4 +1,8 @@
 const {
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_DISABLED: Disabled,
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_DB_BLACK_LIST: DbBlacklist,
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_CL_BLACK_LIST: ClBlacklist,
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_SCHEMA_BLACK_LIST: SchemaBlacklist,
   TMW_PLUGIN_WIDGET_URL_HOST,
   TMW_PLUGIN_DOC_CREATE_ACCOUNT_NAME: Name,
   TMW_PLUGIN_DOC_CREATE_ACCOUNT_BUCKET: Bucket,
@@ -18,12 +22,16 @@ const widgetUrl = TMW_PLUGIN_DOC_CREATE_ACCOUNT_WIDGET_URL
   : '/plugin/doc-create-account'
 
 module.exports = {
+  disabled: /true|yes/i.test(Disabled),
+  dbBlacklist: DbBlacklist,
+  clBlacklist: ClBlacklist,
+  schemaBlacklist: SchemaBlacklist,
   widgetUrl,
   name: Name ? Name : 'doc-create-account',
   title: Title ? Title : '创建账号',
   bucket: Bucket,
-  db: Db || 'tmw_account',
-  cl: Cl || 'account',
+  db: Db || `^tmw_account$`,
+  cl: Cl || `^account$`,
   schema: Schema,
   schemaFile: SchemaFile
     ? SchemaFile

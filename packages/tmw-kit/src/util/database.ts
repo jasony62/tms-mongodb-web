@@ -251,6 +251,7 @@ class Handler {
     if (info.title) tpl.title = info.title
     if (info.description) tpl.description = info.description
     if (info.bucket) tpl.bucket = info.bucket
+    if (info.docFieldConvertRules) tpl.docFieldConvertRules = info.docFieldConvertRules
 
     // 查询是否存在同名集合
     // let query = { name: cl_info.name, type: 'collection' }
@@ -273,8 +274,11 @@ class Handler {
     const existCl = await this.cl.findOne(query)
     if (existCl) {
       debug(
-        `数据库[name=${newDb.name}]中，已存在同名集合[name=${tpl.name}]，不用新建`
+        `数据库[name=${newDb.name}]中，已存在同名集合[name=${tpl.name}]，不用新建，只更新集合属性`
       )
+      const { name, sysname, database, db, schema_id, bucket, ...updatedInfo } = tpl
+      await this.cl.updateOne({ _id: existCl._id }, { $set: updatedInfo })
+
       return existCl
     }
 

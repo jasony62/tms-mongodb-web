@@ -1,4 +1,8 @@
 const {
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_DISABLED: Disabled,
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_DB_BLACK_LIST: DbBlacklist,
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_CL_BLACK_LIST: ClBlacklist,
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_SCHEMA_BLACK_LIST: SchemaBlacklist,
   TMW_PLUGIN_WIDGET_URL_HOST,
   TMW_PLUGIN_DOC_MANAGE_ACCOUNT_NAME: Name,
   TMW_PLUGIN_DOC_MANAGE_ACCOUNT_BUCKET: Bucket,
@@ -18,6 +22,10 @@ const widgetUrl = TMW_PLUGIN_DOC_MANAGE_ACCOUNT_WIDGET_URL
   : '/plugin/doc-manage-account'
 
 module.exports = {
+  disabled: /true|yes/i.test(Disabled),
+  dbBlacklist: DbBlacklist,
+  clBlacklist: ClBlacklist,
+  schemaBlacklist: SchemaBlacklist,
   widgetUrl,
   name: Name ? Name : 'doc-manage-account',
   title: Title ? Title : '账号管理',

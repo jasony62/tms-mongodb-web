@@ -97,7 +97,23 @@ class Plugin extends CtrlBase {
         excludeTags,
         everyTags,
         someTags,
+        dbBlacklist,
+        clBlacklist,
+        schemaBlacklist
       } = plugin
+
+      // check black list
+      if (dbBlacklist && dbBlacklist instanceof RegExp)
+        if (dbBlacklist.test(db) === true) return false
+
+      if (clBlacklist && clBlacklist instanceof RegExp) {
+        if (clBlacklist.test(cl) === true) return false
+      }
+      if (schemaBlacklist && schemaBlacklist instanceof RegExp) {
+        if (!clSchema?.name) return false
+        if (schemaBlacklist.test(clSchema.name) === true) return false
+      }
+
       if (bucketName && bucketName instanceof RegExp && this.bucket) {
         if (bucketName.test(this.bucket) === false) return false
       }
