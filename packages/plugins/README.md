@@ -4,26 +4,31 @@
 
 ## 插件属性
 
-| 属性             | 用途                                              | 类型   | 默认值        | 必填 |
-| ---------------- | ------------------------------------------------- | ------ | ------------- | ---- |
-| **基本信息**     |                                                   |        |               |      |
-| name             | 插件名称。需要有唯一性，同名插件只会加载一次。    | string | doc-http-send | 是   |
-| scope            | 插件适用的数据对象类型。只用于文档类型。          | string | document      | 是   |
-| title            | 插件在页面上的显示内容。                          | string | 发送数据      | 是   |
-| amount           | 操作的数据量，可选择包括：`zero`，`one`，`many`。 | string | many          | 是   |
-| bucketName       | 匹配的存储空间名称。                              | RegExp | 无            | 否   |
-| dbName           | 匹配的数据库名称。                                | RegExp | 无            | 否   |
-| clName           | 匹配的集合名称。                                  | RegExp | 无            | 否   |
-| **部件基本信息** |                                                   |        |               |      |
-| beforeWidget     |                                                   |        |               |      |
-| --name           | 部件名称。指明是自定义外部部件。                  | string | external      | 是   |
-| --url            | 部件获取地址。通过配置文件指定。                  | string | 无            | 是   |
-| --size           | 部件在页面上的宽度。                              | string | 40%           | 是   |
-| **部件用户输入** |                                                   |        |               |      |
-| beforeWidget.ui  |                                                   |        |               |      |
-| --url            | 文档数据的发送地址。                              | object | 无            | 否   |
-| --method         | 发送数据的 http 方法。                            | object | 无            | 否   |
-| --excludeId      | 发送的文档数据是否清楚`_id`字段。                 | object | 无            | 否   |
+| 属性             | 用途                                              | 类型    | 默认值        | 必填 |
+| ---------------- | ------------------------------------------------- | ------- | ------------- | ---- |
+| **基本信息**     |                                                   |         |               |      |
+| name             | 插件名称。需要有唯一性，同名插件只会加载一次。    | string  | doc-http-send | 是   |
+| scope            | 插件适用的数据对象类型。只用于文档类型。          | string  | document      | 是   |
+| title            | 插件在页面上的显示内容。                          | string  | 发送数据      | 是   |
+| amount           | 操作的数据量，可选择包括：`zero`，`one`，`many`。 | string  | many          | 是   |
+| bucketName       | 匹配的存储空间名称。                              | RegExp  | 无            | 否   |
+| dbName           | 匹配的数据库名称。                                | RegExp  | 无            | 否   |
+| clName           | 匹配的集合名称。                                  | RegExp  | 无            | 否   |
+| schemaName       | 匹配的文档列定义。                                | RegExp  | 无            | 否   |
+| disabled         | 是否禁用插件                                      | boolean | false         | 否   |
+| dbBlacklist      | 根据数据库名称匹配的黑名单。                      | RegExp  | 无            | 否   |
+| clBlacklist      | 根据集合名称匹配的黑名单。                        | RegExp  | 无            | 否   |
+| schemaBlacklist  | 根据文档列定义名称匹配的黑名单。                  | RegExp  | 无            | 否   |
+| **部件基本信息** |                                                   |         |               |      |
+| beforeWidget     |                                                   |         |               |      |
+| --name           | 部件名称。指明是自定义外部部件。                  | string  | external      | 是   |
+| --url            | 部件获取地址。通过配置文件指定。                  | string  | 无            | 是   |
+| --size           | 部件在页面上的宽度。                              | string  | 40%           | 是   |
+| **部件用户输入** |                                                   |         |               |      |
+| beforeWidget.ui  |                                                   |         |               |      |
+| --url            | 文档数据的发送地址。                              | object  | 无            | 否   |
+| --method         | 发送数据的 http 方法。                            | object  | 无            | 否   |
+| --excludeId      | 发送的文档数据是否清楚`_id`字段。                 | object  | 无            | 否   |
 
 **注：**部件用户输入的属性的类型都是对象，都用`value`记录属性的值。
 
@@ -63,7 +68,14 @@
 
 ```js
 const {
+  TMW_PLUGIN_DOC_HTTP_SEND_DISABLED: Disabled,
+  TMW_PLUGIN_DOC_HTTP_SEND_DB_BLACK_LIST: DbBlacklist,
+  TMW_PLUGIN_DOC_HTTP_SEND_CL_BLACK_LIST: ClBlacklist,
+  TMW_PLUGIN_DOC_HTTP_SEND_SCHEMA_BLACK_LIST: SchemaBlacklist,
+  TMW_PLUGIN_DOC_HTTP_SEND_SCHEMA: Schema,
+  TMW_PLUGIN_WIDGET_URL_HOST,
   TMW_PLUGIN_DOC_HTTP_SEND_NAME: Name,
+  TMW_PLUGIN_DOC_HTTP_SEND_AMOUNT: Amount,
   TMW_PLUGIN_DOC_HTTP_SEND_BUCKET: Bucket,
   TMW_PLUGIN_DOC_HTTP_SEND_DB: Db,
   TMW_PLUGIN_DOC_HTTP_SEND_CL: Cl,
@@ -74,9 +86,22 @@ const {
   TMW_PLUGIN_DOC_HTTP_SEND_WIDGET_URL,
 } = process.env
 
+// 插件前端页面地址
+const widgetUrl = TMW_PLUGIN_DOC_HTTP_SEND_WIDGET_URL
+  ? TMW_PLUGIN_DOC_HTTP_SEND_WIDGET_URL
+  : TMW_PLUGIN_WIDGET_URL_HOST
+  ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-http-send'
+  : '/plugin/doc-http-send'
+
 module.exports = {
-  widgetUrl: TMW_PLUGIN_DOC_HTTP_SEND_WIDGET_URL,
+  disabled: Disabled ? Disabled.split(',') : [],
+  dbBlacklist: DbBlacklist ? DbBlacklist.split(',') : [],
+  clBlacklist: ClBlacklist ? ClBlacklist.split(',') : [],
+  schemaBlacklist: SchemaBlacklist ? SchemaBlacklist.split(',') : [],
+  schema: Schema ? Schema.split(',') : [],
+  widgetUrl,
   name: Name ? Name.split(',') : ['doc-http-send'],
+  amount: Amount ? Amount.split(',') : ['many'],
   title: Title ? Title.split(',') : ['发送数据'],
   url: Url ? Url.split(',') : [],
   method: Method ? Method.split(',') : [],
@@ -111,32 +136,41 @@ module.exports = {
 
 本插件实现将选择的文档数据作为调度任务的定义参数。
 
-| 属性             | 用途                                           | 类型   | 默认值     | 必填 |
-| ---------------- | ---------------------------------------------- | ------ | ---------- | ---- |
-| **基本信息**     |                                                |        |            |      |
-| name             | 插件名称。需要有唯一性，同名插件只会加载一次。 | string | doc-agenda | 是   |
-| scope            | 插件适用的数据对象类型。只用于文档类型。       | string | document   | 是   |
-| title            | 插件在页面上的显示内容。                       | string | 调度任务   | 是   |
-| amount           | 操作的数据量。                                 | string | many       | 是   |
-| bucketName       | 匹配的存储空间名称。                           | RegExp | 无         | 否   |
-| dbName           | 匹配的数据库名称。                             | RegExp | 无         | 否   |
-| clName           | 匹配的集合名称。                               | RegExp | 无         | 否   |
-| schemaName       | 匹配的文档列定义名称。                         | RegExp | 无         | 否   |
-| jobFields        | 任务字段和文档字段的对应关系。                 | Object |            | 是   |
-| --name           | 任务名称字段。                                 | string | name       | 是   |
-| --interval       | 执行计划字段。                                 | string | interval   | 是   |
-| --url            | 调用 url 字段。                                | string | url        | 是   |
-| --method         | 调用 http 方法字段。                           | string | method     | 是   |
-| --body           | 调用发送消息体字段。                           | string | body       | 是   |
-| --state          | 任务状体字段。                                 | string | state      | 是   |
-| **部件基本信息** |                                                |        |            |      |
-| beforeWidget     |                                                |        |            |      |
-| --name           | 部件名称。指明是自定义外部部件。               | string | external   | 是   |
-| --url            | 部件获取地址。通过配置文件指定。               | string | 无         | 是   |
-| --size           | 部件在页面上的宽度。                           | string | 40%        | 是   |
+| 属性             | 用途                                           | 类型    | 默认值     | 必填 |
+| ---------------- | ---------------------------------------------- | ------- | ---------- | ---- |
+| **基本信息**     |                                                |         |            |      |
+| name             | 插件名称。需要有唯一性，同名插件只会加载一次。 | string  | doc-agenda | 是   |
+| scope            | 插件适用的数据对象类型。只用于文档类型。       | string  | document   | 是   |
+| title            | 插件在页面上的显示内容。                       | string  | 调度任务   | 是   |
+| amount           | 操作的数据量。                                 | string  | many       | 是   |
+| bucketName       | 匹配的存储空间名称。                           | RegExp  | 无         | 否   |
+| dbName           | 匹配的数据库名称。                             | RegExp  | 无         | 否   |
+| clName           | 匹配的集合名称。                               | RegExp  | 无         | 否   |
+| schemaName       | 匹配的文档列定义名称。                         | RegExp  | 无         | 否   |
+| disabled         | 是否禁用插件                                   | boolean | false      | 否   |
+| dbBlacklist      | 根据数据库名称匹配的黑名单。                   | RegExp  | 无         | 否   |
+| clBlacklist      | 根据集合名称匹配的黑名单。                     | RegExp  | 无         | 否   |
+| schemaBlacklist  | 根据文档列定义名称匹配的黑名单。               | RegExp  | 无         | 否   |
+| jobFields        | 任务字段和文档字段的对应关系。                 | Object  |            | 是   |
+| --name           | 任务名称字段。                                 | string  | name       | 是   |
+| --interval       | 执行计划字段。                                 | string  | interval   | 是   |
+| --url            | 调用 url 字段。                                | string  | url        | 是   |
+| --method         | 调用 http 方法字段。                           | string  | method     | 是   |
+| --body           | 调用发送消息体字段。                           | string  | body       | 是   |
+| --state          | 任务状体字段。                                 | string  | state      | 是   |
+| **部件基本信息** |                                                |         |            |      |
+| beforeWidget     |                                                |         |            |      |
+| --name           | 部件名称。指明是自定义外部部件。               | string  | external   | 是   |
+| --url            | 部件获取地址。通过配置文件指定。               | string  | 无         | 是   |
+| --size           | 部件在页面上的宽度。                           | string  | 40%        | 是   |
 
 ```js
 const {
+  TMW_PLUGIN_DOC_AGENDA_DISABLED: Disabled,
+  TMW_PLUGIN_DOC_AGENDA_DB_BLACK_LIST: DbBlacklist,
+  TMW_PLUGIN_DOC_AGENDA_CL_BLACK_LIST: ClBlacklist,
+  TMW_PLUGIN_DOC_AGENDA_SCHEMA_BLACK_LIST: SchemaBlacklist,
+  TMW_PLUGIN_WIDGET_URL_HOST,
   TMW_PLUGIN_DOC_AGENDA_NAME: Name,
   TMW_PLUGIN_DOC_AGENDA_BUCKET: Bucket,
   TMW_PLUGIN_DOC_AGENDA_DB: Db,
@@ -152,14 +186,25 @@ const {
   TMW_PLUGIN_DOC_AGENDA_JOB_STATE_FIELD: JobStateField,
 } = process.env
 
+// 插件前端页面地址
+const widgetUrl = TMW_PLUGIN_DOC_AGENDA_WIDGET_URL
+  ? TMW_PLUGIN_DOC_AGENDA_WIDGET_URL
+  : TMW_PLUGIN_WIDGET_URL_HOST
+  ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-agenda'
+  : '/plugin/doc-agenda'
+
 module.exports = {
-  widgetUrl: TMW_PLUGIN_DOC_AGENDA_WIDGET_URL || '/plugin/doc-agenda',
+  disabled: /true|yes/i.test(Disabled),
+  dbBlacklist: DbBlacklist,
+  clBlacklist: ClBlacklist,
+  schemaBlacklist: SchemaBlacklist,
+  widgetUrl,
   name: Name ? Name : 'doc-agenda',
   title: Title ? Title : '调度任务',
   bucket: Bucket,
   db: Db,
   cl: Cl,
-  schema: Schema || 'tmw_agenda',
+  schema: Schema || `^tmw_agenda$`,
   jobFields: {
     name: JobNameField ? JobNameField : 'name',
     interval: JobIntervalField ? JobIntervalField : 'interval',
@@ -187,6 +232,10 @@ module.exports = {
 | clName           | 匹配的集合名称。                               | RegExp | 无                 | 否   |
 | schemaName       | 匹配的文档列定义名称。                         | RegExp | 无                 | 否   |
 | schemaFile | 指定schema，前端根据schema自动生成表单。 | json | ./plugin/doc/create_account/schema.json | 否 |
+| disabled | 是否禁用插件 | boolean | false | 否 |
+| dbBlacklist | 根据数据库名称匹配的黑名单。 | RegExp | 无 | 否 |
+| clBlacklist | 根据集合名称匹配的黑名单。 | RegExp | 无 | 否 |
+| schemaBlacklist | 根据文档列定义名称匹配的黑名单。 | RegExp | 无 | 否 |
 | **部件基本信息** |                                                |        |                    |      |
 | beforeWidget     |                                                |        |                    |      |
 | --name           | 部件名称。指明是自定义外部部件。               | string | external           | 是   |
@@ -200,6 +249,11 @@ module.exports = {
 
 ```js
 const {
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_DISABLED: Disabled,
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_DB_BLACK_LIST: DbBlacklist,
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_CL_BLACK_LIST: ClBlacklist,
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_SCHEMA_BLACK_LIST: SchemaBlacklist,
+  TMW_PLUGIN_WIDGET_URL_HOST,
   TMW_PLUGIN_DOC_CREATE_ACCOUNT_NAME: Name,
   TMW_PLUGIN_DOC_CREATE_ACCOUNT_BUCKET: Bucket,
   TMW_PLUGIN_DOC_CREATE_ACCOUNT_DB: Db,
@@ -210,16 +264,28 @@ const {
   TMW_PLUGIN_DOC_CREATE_ACCOUNT_SCHEMA_FILE: SchemaFile
 } = process.env
 
+// 插件前端页面地址
+const widgetUrl = TMW_PLUGIN_DOC_CREATE_ACCOUNT_WIDGET_URL
+  ? TMW_PLUGIN_DOC_CREATE_ACCOUNT_WIDGET_URL
+  : TMW_PLUGIN_WIDGET_URL_HOST
+  ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-create-account'
+  : '/plugin/doc-create-account'
+
 module.exports = {
-  widgetUrl:
-    TMW_PLUGIN_DOC_CREATE_ACCOUNT_WIDGET_URL || '/plugin/doc-create-account',
+  disabled: /true|yes/i.test(Disabled),
+  dbBlacklist: DbBlacklist,
+  clBlacklist: ClBlacklist,
+  schemaBlacklist: SchemaBlacklist,
+  widgetUrl,
   name: Name ? Name : 'doc-create-account',
   title: Title ? Title : '创建账号',
   bucket: Bucket,
-  db: Db,
-  cl: Cl,
-  schemaFile: SchemaFile ? SchemaFile : './plugin/doc/create_account/schema.json',
+  db: Db || `^tmw_account$`,
+  cl: Cl || `^account$`,
   schema: Schema,
+  schemaFile: SchemaFile
+    ? SchemaFile
+    : './plugin/doc/create_account/schema.json',
 }
 ```
 
@@ -238,6 +304,10 @@ module.exports = {
 | dbName           | 匹配的数据库名称。                             | RegExp  | 无                 | 否   |
 | clName           | 匹配的集合名称。                               | RegExp  | 无                 | 否   |
 | schemaName       | 匹配的文档列定义名称。                         | RegExp  | 无                 | 否   |
+| disabled | 是否禁用插件 | boolean | false | 否 |
+| dbBlacklist | 根据数据库名称匹配的黑名单。 | RegExp | 无 | 否 |
+| clBlacklist | 根据集合名称匹配的黑名单。 | RegExp | 无 | 否 |
+| schemaBlacklist | 根据文档列定义名称匹配的黑名单。 | RegExp | 无 | 否 |
 | **部件基本信息** |                                                |         |                    |      |
 | beforeWidget     |                                                |         |                    |      |
 | --name           | 部件名称。指明是自定义外部部件。               | string  | external           | 是   |
@@ -252,6 +322,11 @@ module.exports = {
 
 ```js
 const {
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_DISABLED: Disabled,
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_DB_BLACK_LIST: DbBlacklist,
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_CL_BLACK_LIST: ClBlacklist,
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_SCHEMA_BLACK_LIST: SchemaBlacklist,
+  TMW_PLUGIN_WIDGET_URL_HOST,
   TMW_PLUGIN_DOC_MANAGE_ACCOUNT_NAME: Name,
   TMW_PLUGIN_DOC_MANAGE_ACCOUNT_BUCKET: Bucket,
   TMW_PLUGIN_DOC_MANAGE_ACCOUNT_DB: Db,
@@ -262,15 +337,91 @@ const {
   TMW_PLUGIN_DOC_MANAGE_ACCOUNT_SCHEMA_FILE: SchemaFile
 } = process.env
 
+// 插件前端页面地址
+const widgetUrl = TMW_PLUGIN_DOC_MANAGE_ACCOUNT_WIDGET_URL
+  ? TMW_PLUGIN_DOC_MANAGE_ACCOUNT_WIDGET_URL
+  : TMW_PLUGIN_WIDGET_URL_HOST
+  ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-manage-account'
+  : '/plugin/doc-manage-account'
+
 module.exports = {
-  widgetUrl:
-    TMW_PLUGIN_DOC_MANAGE_ACCOUNT_WIDGET_URL || '/plugin/doc-manage-account',
+  disabled: /true|yes/i.test(Disabled),
+  dbBlacklist: DbBlacklist,
+  clBlacklist: ClBlacklist,
+  schemaBlacklist: SchemaBlacklist,
+  widgetUrl,
   name: Name ? Name : 'doc-manage-account',
   title: Title ? Title : '账号管理',
   bucket: Bucket,
+  db: Db || 'tmw_account',
+  cl: Cl || 'account',
+  schema: Schema,
+  schemaFile: SchemaFile
+    ? SchemaFile
+    : './plugin/doc/manage_account/schema.json',
+}
+```
+
+# doc-import
+
+本插件实现从文件导入数据功能，支持excel和json格式文件。
+
+| 属性             | 用途                                           | 类型    | 默认值         | 必填 |
+| ---------------- | ---------------------------------------------- | ------- | -------------- | ---- |
+| **基本信息**     |                                                |         |                |      |
+| name             | 插件名称。需要有唯一性，同名插件只会加载一次。 | string  | doc-import     | 是   |
+| scope            | 插件适用的数据对象类型。只用于文档类型。       | string  | document       | 是   |
+| title            | 插件在页面上的显示内容。                       | string  | 从文件导入数据 | 是   |
+| amount           | 操作的数据量。                                 | string  | zero           | 是   |
+| bucketName       | 匹配的存储空间名称。                           | RegExp  | 无             | 否   |
+| dbName           | 匹配的数据库名称。                             | RegExp  | 无             | 否   |
+| clName           | 匹配的集合名称。                               | RegExp  | 无             | 否   |
+| schemaName       | 匹配的文档列定义名称。                         | RegExp  | 无             | 否   |
+| disabled         | 是否禁用插件                                   | boolean | false          | 否   |
+| dbBlacklist      | 根据数据库名称匹配的黑名单。                   | RegExp  | 无             | 否   |
+| clBlacklist      | 根据集合名称匹配的黑名单。                     | RegExp  | 无             | 否   |
+| schemaBlacklist  | 根据文档列定义名称匹配的黑名单。               | RegExp  | 无             | 否   |
+| **部件基本信息** |                                                |         |                |      |
+| beforeWidget     |                                                |         |                |      |
+| --name           | 部件名称。指明是自定义外部部件。               | string  | external       | 是   |
+| --url            | 部件获取地址。通过配置文件指定。               | string  | 无             | 是   |
+| --size           | 部件在页面上的宽度。                           | string  | 40%            | 是   |
+
+```js
+const {
+  TMW_PLUGIN_DOC_IMPORT_DISABLED: Disabled,
+  TMW_PLUGIN_DOC_IMPORT_DB_BLACK_LIST: DbBlacklist,
+  TMW_PLUGIN_DOC_IMPORT_CL_BLACK_LIST: ClBlacklist,
+  TMW_PLUGIN_DOC_IMPORT_SCHEMA_BLACK_LIST: SchemaBlacklist,
+  TMW_PLUGIN_WIDGET_URL_HOST,
+  TMW_PLUGIN_DOC_IMPORT_NAME: Name,
+  TMW_PLUGIN_DOC_IMPORT_BUCKET: Bucket,
+  TMW_PLUGIN_DOC_IMPORT_DB: Db,
+  TMW_PLUGIN_DOC_IMPORT_CL: Cl,
+  TMW_PLUGIN_DOC_IMPORT_SCHEMA: Schema,
+  TMW_PLUGIN_DOC_IMPORT_TITLE: Title,
+  TMW_PLUGIN_DOC_IMPORT_WIDGET_URL,
+} = process.env
+
+// 插件前端页面地址
+const widgetUrl = TMW_PLUGIN_DOC_IMPORT_WIDGET_URL
+  ? TMW_PLUGIN_DOC_IMPORT_WIDGET_URL
+  : TMW_PLUGIN_WIDGET_URL_HOST
+  ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-import'
+  : '/plugin/doc-import'
+
+module.exports = {
+  disabled: /true|yes/i.test(Disabled),
+  dbBlacklist: DbBlacklist,
+  clBlacklist: ClBlacklist,
+  schemaBlacklist: SchemaBlacklist,
+  widgetUrl,
+  name: Name ? Name : 'doc-import',
+  title: Title ? Title : '从文件导入数据',
+  bucket: Bucket,
   db: Db,
   cl: Cl,
-  schemaFile: SchemaFile ? SchemaFile : './plugin/doc/manage_account/schema.json',
   schema: Schema,
 }
 ```
+

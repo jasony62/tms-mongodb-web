@@ -100,6 +100,11 @@ export function createPlugin(file: any) {
       url,
       method,
       excludeId,
+      disabled,
+      dbBlacklist,
+      clBlacklist,
+      schemaBlacklist,
+      schema
     } = config
 
     // const disabled = widgetUrl && widgetUrl.indexOf('http') === 0 ? false : true
@@ -112,6 +117,21 @@ export function createPlugin(file: any) {
       // widgetUrl
       newPlugin.beforeWidget.url = widgetUrl
 
+      if (Array.isArray(disabled) && index < disabled.length && disabled[index]) {
+        newPlugin.disabled = disabled[index]
+      }
+      if (Array.isArray(dbBlacklist) && index < dbBlacklist.length && dbBlacklist[index]) {
+        newPlugin.dbBlacklist = new RegExp(dbBlacklist[index])
+      }
+      if (Array.isArray(clBlacklist) && index < clBlacklist.length && clBlacklist[index]) {
+        newPlugin.clBlacklist = new RegExp(clBlacklist[index])
+      }
+      if (Array.isArray(schemaBlacklist) && index < schemaBlacklist.length && schemaBlacklist[index]) {
+        newPlugin.schemaBlacklist = new RegExp(schemaBlacklist[index])
+      }
+      if (Array.isArray(schema) && index < schema.length && schema[index]) {
+        newPlugin.schemaName = new RegExp(schema[index])
+      }
       // title
       if (Array.isArray(title) && index < title.length && title[index]) {
         newPlugin.title = title[index]

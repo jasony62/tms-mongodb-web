@@ -94,4 +94,19 @@ export interface PluginProfile {
    * 内置部件参数
    */
   remoteWidgetOptions?: Function
+  /**
+   * 数据库黑名单
+   * 和数据库名称匹配的正则表达式
+   */
+  dbBlacklist?: RegExp
+  /**
+   * 集合黑名单
+   * 和集合名称匹配的正则表达式
+   */
+  clBlacklist?: RegExp
+  /**
+   * 文档列定义
+   * 和文档列定义名称匹配的正则表达式
+   */
+  schemaBlacklist?: RegExp
 }

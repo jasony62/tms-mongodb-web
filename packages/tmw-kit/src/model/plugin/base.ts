@@ -26,6 +26,9 @@ export abstract class PluginBase implements PluginProfile {
   disabled?: boolean
   beforeWidget?: any
   remoteWidgetOptions?: Function
+  dbBlacklist?: RegExp // 黑名单，和数据库名称匹配的正则表达式
+  clBlacklist?: RegExp // 黑名单，和集合名称匹配的正则表达式
+  schemaBlacklist?: RegExp // 黑名单，和文档列定义名称匹配的正则表达式
 
   /**
    * 创建插件
@@ -128,6 +131,9 @@ export abstract class PluginBase implements PluginProfile {
       amount,
       disabled,
       visible,
+      dbBlacklist,
+      clBlacklist,
+      schemaBlacklist
     } = this
 
     return {
@@ -147,6 +153,9 @@ export abstract class PluginBase implements PluginProfile {
       amount,
       disabled,
       visible,
+      dbBlacklist,
+      clBlacklist,
+      schemaBlacklist
     }
   }
 }

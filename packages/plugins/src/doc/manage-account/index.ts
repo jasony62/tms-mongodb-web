@@ -91,7 +91,8 @@ export function createPlugin(file: string) {
   let config
   if (ConfigFile) config = loadConfig(ConfigDir, ConfigFile)
   if (config && typeof config === 'object') {
-    let { widgetUrl, bucket, db, cl, schema, title, schemaFile } = config
+    let { widgetUrl, bucket, db, cl, schema, title, schemaFile,
+      disabled, dbBlacklist, clBlacklist, schemaBlacklist } = config
     const newPlugin = new ManageAccountPlugin(file)
 
     let schemaJson
@@ -110,6 +111,11 @@ export function createPlugin(file: string) {
     if (schema) newPlugin.schemaName = new RegExp(schema)
 
     if (title && typeof title === 'string') newPlugin.title = title
+
+    if (disabled) newPlugin.disabled = disabled
+    if (dbBlacklist) newPlugin.dbBlacklist = new RegExp(dbBlacklist)
+    if (clBlacklist) newPlugin.clBlacklist = new RegExp(clBlacklist)
+    if (schemaBlacklist) newPlugin.schemaBlacklist = new RegExp(schemaBlacklist)
 
     return newPlugin
   }

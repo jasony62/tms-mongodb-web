@@ -25,7 +25,7 @@ class ImportPlugin extends PluginBase {
   constructor(file: string) {
     super(file)
     this.name = 'doc-import'
-    this.title = '导入文档(EXCEL/JSON)'
+    this.title = '从文件导入数据'
     this.description = '导入excel、json文件格式的数据，并导入集合中。'
     this.scope = 'document'
     this.amount = 'zero'
@@ -198,7 +198,8 @@ export function createPlugin(file: string) {
   let config
   if (ConfigFile) config = loadConfig(ConfigDir, ConfigFile)
   if (config && typeof config === 'object') {
-    let { widgetUrl, bucket, db, cl, schema, title } = config
+    let { widgetUrl, bucket, db, cl, schema, title,
+      disabled, dbBlacklist, clBlacklist, schemaBlacklist } = config
     const newPlugin = new ImportPlugin(file)
     newPlugin.beforeWidget.url = widgetUrl
 
@@ -208,6 +209,11 @@ export function createPlugin(file: string) {
     if (schema) newPlugin.schemaName = new RegExp(schema)
 
     if (title && typeof title === 'string') newPlugin.title = title
+
+    if (disabled) newPlugin.disabled = disabled
+    if (dbBlacklist) newPlugin.dbBlacklist = new RegExp(dbBlacklist)
+    if (clBlacklist) newPlugin.clBlacklist = new RegExp(clBlacklist)
+    if (schemaBlacklist) newPlugin.schemaBlacklist = new RegExp(schemaBlacklist)
 
     return newPlugin
   }
