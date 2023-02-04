@@ -252,6 +252,7 @@ class Handler {
     if (info.description) tpl.description = info.description
     if (info.bucket) tpl.bucket = info.bucket
     if (info.docFieldConvertRules) tpl.docFieldConvertRules = info.docFieldConvertRules
+    if (info.custom) tpl.custom = info.custom
 
     // 查询是否存在同名集合
     // let query = { name: cl_info.name, type: 'collection' }
