@@ -11,9 +11,9 @@
   "dependencies": {
     "element-plus": "^2.2.8",
     "jsoneditor": "^9.9.0",
-    "vue": "^3.2.37",
+    "vue": "3.2.25",
     "vue-router": "4",
-    "tms-vue3-ui": "^0.0.81",
+    "tms-vue3-ui": "^0.0.82",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

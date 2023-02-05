@@ -16,5 +16,6 @@ dist
 /patch/
 /volumes/
 
+pnpm-lock.yaml
 .pnpm-debug.log
 docker/standalone/back
