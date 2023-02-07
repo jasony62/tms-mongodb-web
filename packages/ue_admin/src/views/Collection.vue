@@ -118,9 +118,9 @@
           </el-table-column>
           <el-table-column fixed="right" label="操作" width="100">
             <template #default="scope">
-              <el-button type="primary" link size="small" @click="previewDocument(scope.row)">查看</el-button>
+              <el-button type="primary" link size="small" @click.stop="previewDocument(scope.row)">查看</el-button>
               <el-button v-if="docOperations.edit" type="primary" link size="small"
-                @click="editDocument(scope.row)">修改</el-button>
+                @click.stop="editDocument(scope.row)">修改</el-button>
             </template>
           </el-table-column>
         </el-table>
