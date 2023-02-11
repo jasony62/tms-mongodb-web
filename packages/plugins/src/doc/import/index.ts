@@ -132,6 +132,8 @@ class ImportPlugin extends PluginBase {
 
         if (schemaStr.indexOf(k) > -1) {
           if (newRow[k] === null) _.set(newRow, k, oneRow)
+        } else if (k.indexOf('.') > -1 && typeof _.get(columns, k) === 'object') {
+          _.set(newRow, k.split('.'), oneRow)
         } else {
           // 检查是否包含中文
           if (/[\u4E00-\u9FA5]+/g.test(k)) {
