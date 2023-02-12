@@ -19,7 +19,7 @@
     </div>
     <div class="flex flex-row gap-4 h-full overflow-auto pb-4" v-if="collection._id && (!docId || document._id)">
       <div class="w-1/3 h-full flex-grow-none overflow-auto">
-        <tms-json-doc ref="$jdeDoc" :schema="collection.schema.body" :value="document" :enable-paste="true"
+        <tms-json-doc ref="elJdeDoc" :schema="collection.schema.body" :value="document" :enable-paste="true"
           :on-paste="onJdocPaste" :on-lookup="onJdocLookup" :on-file-select="onFileSelect"
           :on-file-download="onFileDownload" :show-field-fullname="showFieldFullname" :hide-root-title="true"
           :hide-root-description="true" @jdoc-focus="onJdocFocus"></tms-json-doc>
@@ -31,17 +31,20 @@
           </el-form-item>
         </el-form>
       </div>
-      <div v-if="isSmallLeft" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
+      <div v-if="isJsonField" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
         <div>
           <el-button type="primary" @click="updateFieldValue">更新【{{ activeField?.fullname }}】</el-button>
         </div>
-        <div v-if="activeField?.schemaType === 'json'" ref="elJsonEditor" class="flex-grow"></div>
-        <div v-if="/mustache|handlebars/.test(activeField?.schemaProp.attrs?.format)">
-          <handlebars-viz ref="$ttvField" :vars-root-name="'vars'" :vars="templateVars"
-            :template-text="activeFieldValue" />
-        </div>
+        <div ref="elJsonEditor" class="flex-grow"></div>
       </div>
-      <div class="h-full flex flex-col gap-2 relative" :class="isSmallLeft ? 'w-1/3' : 'w-2/3'">
+      <div v-if="isHandlebarsField" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
+        <div>
+          <el-button type="primary" @click="updateFieldValue">更新【{{ activeField?.fullname }}】</el-button>
+        </div>
+        <handlebars-viz ref="elTtvField" :vars-root-name="'vars'" :vars="templateVars"
+          :template-text="activeFieldValue" />
+      </div>
+      <div class="h-full flex flex-col gap-2 relative" :class="isJsonField || isHandlebarsField ? 'w-1/3' : 'w-2/3'">
         <div class="absolute top-0 right-0" style="z-index: 999">
           <el-button @click="diagram">图形</el-button>
           <el-button @click="preview">预览</el-button>
@@ -51,7 +54,7 @@
         </div>
         <div class="border border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
           <pre v-if="previewMode === 'text'" class="whitespace-pre-wrap break-all">{{ previewResult }}</pre>
-          <json-diagram-x6 ref="$diagram" v-if="previewMode === 'diagram'" :schema="collection.schema.body"
+          <json-diagram-x6 ref="elDiagram" v-if="previewMode === 'diagram'" :schema="collection.schema.body"
             :doc="document" @click-value-node="onClickValueNode">
           </json-diagram-x6>
         </div>
@@ -128,11 +131,11 @@ const props = defineProps({
 
 const { bucketName, dbName, clName, docId } = props
 // 文档编辑器
-const $jdeDoc = ref<{ editing: () => any; editDoc: DocAsArray } | null>(null)
+const elJdeDoc = ref<{ editing: () => any; editDoc: DocAsArray } | null>(null)
 // JSON字段编辑器
 const elJsonEditor = ref<HTMLElement | null>(null)
 // 模板字段编辑器
-const $ttvField = ref<{ editing: () => string } | null>(null)
+const elTtvField = ref<{ editing: () => string } | null>(null)
 
 const collection = ref<any>({ schema: { body: {} } })
 const document = ref({ _id: '' })
@@ -158,12 +161,19 @@ const options = {
   },
 }
 /**
- * 显示辅助编辑窗口
+ * 显示Json字段辅助编辑窗口
  */
-const isSmallLeft = computed(() => {
+const isJsonField = computed(() => {
   if (activeField.value?.schemaType === 'json') {
     return true
-  } else if (activeField.value?.schemaType === 'string') {
+  }
+  return false
+})
+/**
+ * 显示模板字段辅助编辑窗口
+ */
+const isHandlebarsField = computed(() => {
+  if (activeField.value?.schemaType === 'string') {
     if (['mustache', 'handlebars'].includes(activeField.value.schemaProp.attrs?.format)) {
       return true
     }
@@ -184,7 +194,7 @@ const onJdocFocus = (field: Field) => {
           if (child) elJsonEditor.value.removeChild(child)
           // @ts-ignore
           jsonEditor = new JSONEditor(elJsonEditor.value, options)
-          let fieldValue = $jdeDoc.value?.editDoc.get(field.fullname)
+          let fieldValue = elJdeDoc.value?.editDoc.get(field.fullname)
           jsonEditor.set(fieldValue ?? '')
         }
       })
@@ -200,11 +210,11 @@ const updateFieldValue = () => {
   switch (true) {
     case activeField.value.schemaType === 'json':
       newVal = jsonEditor.get()
-      $jdeDoc.value?.editDoc.set(activeField.value.fullname, newVal)
+      elJdeDoc.value?.editDoc.set(activeField.value.fullname, newVal)
       break
     case /mustache|handlebars/.test(activeField.value.schemaProp.attrs?.format):
-      newVal = $ttvField.value?.editing()
-      $jdeDoc.value?.editDoc.set(activeField.value.fullname, newVal)
+      newVal = elTtvField.value?.editing()
+      elJdeDoc.value?.editDoc.set(activeField.value.fullname, newVal)
       break
   }
 }
@@ -212,20 +222,20 @@ const updateFieldValue = () => {
 const activeFieldValue = computed<string>(() => {
   let field = activeField.value
   if (field) {
-    let fieldValue = $jdeDoc.value?.editDoc.get(field.fullname)
+    let fieldValue = elJdeDoc.value?.editDoc.get(field.fullname)
     return fieldValue
   }
   return ''
 })
 
-const $diagram = ref<{ setPropertyValue: (field: Field, newVal: any) => void } | null>(null)
+const elDiagram = ref<{ setPropertyValue: (field: Field, newVal: any) => void } | null>(null)
 const $dialog = inject(dialogInjectionKey)
 /**
  * 在图表上选中了一个值节点
  */
 const onClickValueNode = (field: Field) => {
   if ($dialog) {
-    const editDoc = $jdeDoc.value?.editDoc
+    const editDoc = elJdeDoc.value?.editDoc
     $dialog.addDialog({
       component: PropValueEditor,
       props: {
@@ -233,9 +243,9 @@ const onClickValueNode = (field: Field) => {
         editDoc,
         onSubmit: (newVal: any) => {
           // 修改表单中的数据
-          $jdeDoc.value?.editDoc.set(field.fullname, newVal)
+          elJdeDoc.value?.editDoc.set(field.fullname, newVal)
           // 修改图标中的数据
-          $diagram.value?.setPropertyValue(field, newVal)
+          elDiagram.value?.setPropertyValue(field, newVal)
         }
       },
     })
@@ -483,7 +493,7 @@ const previewResult = ref('')
 const diagram = () => {
   const switchToDiagram = () => {
     previewMode.value = 'diagram'
-    previewData.value = $jdeDoc.value?.editing() || {}
+    previewData.value = elJdeDoc.value?.editing() || {}
   }
   if (previewMode.value === 'diagram') {
     /**重新生成图表对象*/
@@ -498,7 +508,7 @@ const diagram = () => {
 
 const preview = () => {
   previewMode.value = 'text'
-  previewResult.value = JSON.stringify($jdeDoc.value?.editing(), null, 2)
+  previewResult.value = JSON.stringify(elJdeDoc.value?.editing(), null, 2)
 }
 
 const copyTooltipVisible = ref(false)
@@ -531,7 +541,7 @@ const updatePreview = () => {
 }
 
 const onSubmit = () => {
-  let newDoc = $jdeDoc.value?.editing()
+  let newDoc = elJdeDoc.value?.editing()
   if (newDoc) {
     newDoc[TagsFieldName] = docTags.value
     if (document.value._id) {
@@ -567,7 +577,7 @@ const handleExtract = (etl: any) => {
         const result = await apiEtl.transform(bucketName, etl._id, docIds)
         if (Array.isArray(result) && result.length)
           for (let key in result[0])
-            $jdeDoc.value?.editDoc.set(key, result[0][key])
+            elJdeDoc.value?.editDoc.set(key, result[0][key])
       }
       opened.value = false
     }
