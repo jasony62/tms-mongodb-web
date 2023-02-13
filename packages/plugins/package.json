@@ -15,7 +15,8 @@
     "axios": "^0.27.2",
     "debug": "^4.3.4",
     "pinyin-pro": "^3.13.0",
-    "tmw-kit": "workspace:*"
+    "tmw-kit": "workspace:*",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "lodash": "^4.17.21",

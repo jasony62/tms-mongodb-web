@@ -4,6 +4,7 @@ import { createDocWebhook } from 'tmw-kit/dist/webhook/document'
 import * as path from 'path'
 import { pinyin } from 'pinyin-pro'
 import * as _ from 'lodash'
+import * as fs from 'fs'
 import Debug from 'debug'
 
 const debug = Debug('tmw:plugins:doc-import')
@@ -22,6 +23,8 @@ const ConfigFile =
  * 导入数据到集合中
  */
 class ImportPlugin extends PluginBase {
+  DownloadHost: string
+
   constructor(file: string) {
     super(file)
     this.name = 'doc-import'
@@ -37,19 +40,8 @@ class ImportPlugin extends PluginBase {
 
     if (ok === false) return { code: 10001, msg: docsOrCause }
 
-    const file = ctrl.request.body.widget.file
-    if (!file) {
-      return { code: 10001, msg: '文件上传失败' }
-    }
-
-    let rowsJson = JSON.parse(file)
-    if (!Array.isArray(rowsJson) || rowsJson.length === 0)
-      return { code: 10001, msg: '上传的文件数据为空或格式错误' }
-
+    const { widget } = ctrl.request.body
     const { name: clName, schema_id, extensionInfo } = tmwCl
-
-    const modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
-    const docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK)
 
     const modelSchema = new ModelSchema(
       ctrl.mongoClient,
@@ -60,6 +52,23 @@ class ImportPlugin extends PluginBase {
     let columns
     if (schema_id && typeof schema_id === 'string')
       columns = await modelSchema.bySchemaId(schema_id)
+
+    if (widget.action === 'download') {
+      if (!this.DownloadHost) return { code: 10001, msg: '未配置文件下载服务地址' }
+
+      const processRst = this.processExcelTemplate(ctrl, columns, ctrl.request.query.cl)
+      const publicpath = this.publicPath(ctrl, processRst)
+      return { code: 0, msg: { filePath: this.DownloadHost + publicpath } }
+    }
+
+    const file = widget.file
+    if (!file) {
+      return { code: 10001, msg: '文件上传失败' }
+    }
+
+    let rowsJson = JSON.parse(file)
+    if (!Array.isArray(rowsJson) || rowsJson.length === 0)
+      return { code: 10001, msg: '上传的文件数据为空或格式错误' }
 
     // 补充公共属性
     if (extensionInfo) {
@@ -79,6 +88,9 @@ class ImportPlugin extends PluginBase {
       }
     }
     debug(`schemaStr[${schemaStr}]`)
+
+    const modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
+    const docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK)
 
     let extra = process.env.TMW_PLUGIN_DOC_IMPORT_EXTRA_KEY_NAME || 'extra'
     let finishRows = rowsJson.map((row) => {
@@ -196,13 +208,69 @@ class ImportPlugin extends PluginBase {
 
     return sysCl
   }
+  /**
+   * 生成excel模板
+   */
+  private processExcelTemplate(ctrl, columns, sheetName) {
+    const XLSX = require('xlsx')
+    
+    let fieldAry = []
+    const processData = (data, childK) => {
+      for (const k in data) {
+        if (childK) 
+          fieldAry.push(childK +'.'+ k)
+        else
+          fieldAry.push(k)
+        
+        const childProperties = data[k]['properties']
+        if (childProperties && typeof childProperties === 'object')
+          processData(childProperties, childK ? childK +'.'+ k : k)
+      }
+    }
+    processData(columns, null)
+    
+    const filePath = path.join(this.createDir(ctrl), 'excel数据模板.xlsx')
+    const ws = XLSX.utils.aoa_to_sheet([fieldAry])
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, sheetName)
+    XLSX.writeFile(wb, filePath)
+
+    return filePath
+  }
+  /**
+   * 处理文件目录
+   */
+  private createDir(ctrl) {
+    const domain = ctrl.domain ? ctrl.domain.name : 'download'
+    let space = path.join(ctrl.fsContext.rootDir, domain)
+    if (ctrl.bucket) {
+      ctrl.bucket = ctrl.bucket.replace(/^\/|\/$/g, '')
+      space += `/${ctrl.bucket}`
+    }
+    if (!fs.existsSync(space)) fs.mkdirSync(space)
+
+    return space
+  }
+  /**
+   * 用于公开访问的文件路径
+   */
+  private publicPath(ctrl, fullpath) {
+    let publicPath = fullpath.replace(path.normalize(ctrl.fsContext.rootDir), '')
+
+    /* 如果开放了文件下载服务添加前缀 */
+    const { AppContext } = ctrl.tmsContext
+    const prefix = _.get(AppContext.insSync(), 'router.fsdomain.prefix')
+    if (prefix) publicPath = path.join(prefix, publicPath)
+
+    return publicPath
+  }
 }
 
 export function createPlugin(file: string) {
   let config
   if (ConfigFile) config = loadConfig(ConfigDir, ConfigFile)
   if (config && typeof config === 'object') {
-    let { widgetUrl, bucket, db, cl, schema, title,
+    let { widgetUrl, bucket, db, cl, schema, title, downloadHost,
       disabled, dbBlacklist, clBlacklist, schemaBlacklist } = config
     const newPlugin = new ImportPlugin(file)
     newPlugin.beforeWidget.url = widgetUrl
@@ -218,6 +286,8 @@ export function createPlugin(file: string) {
     if (dbBlacklist) newPlugin.dbBlacklist = new RegExp(dbBlacklist)
     if (clBlacklist) newPlugin.clBlacklist = new RegExp(clBlacklist)
     if (schemaBlacklist) newPlugin.schemaBlacklist = new RegExp(schemaBlacklist)
+
+    if (downloadHost) newPlugin.DownloadHost = downloadHost
 
     return newPlugin
   }

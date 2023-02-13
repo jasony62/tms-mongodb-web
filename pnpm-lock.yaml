@@ -12,12 +12,14 @@ importers:
       rimraf: ^3.0.2
       tms-koa-account: ^0.1.6
       tmw-kit: workspace:*
+      xlsx: ^0.18.5
     dependencies:
       '@types/node': 18.7.14
       axios: 0.27.2_debug@4.3.4
       debug: 4.3.4
       pinyin-pro: 3.13.0
       tmw-kit: link:../tmw-kit
+      xlsx: 0.18.5
     devDependencies:
       lodash: 4.17.21
       rimraf: 3.0.2

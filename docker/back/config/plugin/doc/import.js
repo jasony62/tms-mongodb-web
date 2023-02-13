@@ -11,6 +11,7 @@ const {
   TMW_PLUGIN_DOC_IMPORT_SCHEMA: Schema,
   TMW_PLUGIN_DOC_IMPORT_TITLE: Title,
   TMW_PLUGIN_DOC_IMPORT_WIDGET_URL,
+  TMW_PLUGIN_DOC_IMPORT_DOWNLOAD_HOST: DownloadHost
 } = process.env
 
 // 插件前端页面地址
@@ -32,4 +33,5 @@ module.exports = {
   db: Db,
   cl: Cl,
   schema: Schema,
+  downloadHost: DownloadHost
 }
