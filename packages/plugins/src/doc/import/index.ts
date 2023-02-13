@@ -123,7 +123,7 @@ class ImportPlugin extends PluginBase {
           }
         }
       }
-      
+
       for (let k in row) {
         let oneRow = _.get(row, k)
 
@@ -132,6 +132,10 @@ class ImportPlugin extends PluginBase {
 
         if (schemaStr.indexOf(k) > -1) {
           if (newRow[k] === null) _.set(newRow, k, oneRow)
+        } else if (k.indexOf('.') > -1) {
+          const objKey = k.replace(/\./g, '.properties.')
+          if (typeof _.get(columns, objKey) === 'object')
+            _.set(newRow, k.split('.'), oneRow)
         } else {
           // 检查是否包含中文
           if (/[\u4E00-\u9FA5]+/g.test(k)) {
@@ -160,7 +164,7 @@ class ImportPlugin extends PluginBase {
 
       if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
         finishRows = beforeRst.rewrited
-    
+
       // 数据存储到集合中
       const rst = await this.findSysColl(ctrl, tmwCl)
         .insertMany(finishRows)
