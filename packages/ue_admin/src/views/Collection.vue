@@ -126,11 +126,11 @@
                   <el-dropdown-menu>
                     <el-dropdown-item>
                       <el-button v-if="docOperations.copy" type="primary" link size="small"
-                        @click="copyDocument(scope.row)">复制文档</el-button>
+                        @click="copyDocument(scope.row)">复制</el-button>
                     </el-dropdown-item>
                     <el-dropdown-item>
                       <el-button v-if="docOperations.remove" type="danger" link size="small"
-                        @click="removeDocument(scope.row)">删除文档</el-button>
+                        @click="removeDocument(scope.row)">删除</el-button>
                     </el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
