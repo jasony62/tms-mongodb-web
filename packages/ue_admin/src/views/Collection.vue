@@ -25,9 +25,6 @@
               <div class="ml-20">
                 <div v-html="renderDocManual(props.row)"></div>
               </div>
-              <div class="ml-24 flex flex-row gap-2">
-                <el-link v-if="docOperations.remove" type="danger" @click="removeDocument(props.row)">删除文档</el-link>
-              </div>
             </template>
           </el-table-column>
           <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
@@ -116,11 +113,28 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column fixed="right" label="操作" width="100">
+          <el-table-column fixed="right" label="操作" width="140" class-name="tmw-opt__column">
             <template #default="scope">
-              <el-button type="primary" link size="small" @click="previewDocument(scope.row)">查看</el-button>
+              <el-button type="primary" link size="small" @click.stop="previewDocument(scope.row)">查看</el-button>
               <el-button v-if="docOperations.edit" type="primary" link size="small"
-                @click="editDocument(scope.row)">修改</el-button>
+                @click.stop="editDocument(scope.row)" class="ml-0">修改</el-button>
+              <el-dropdown class="tmw-opt__dropdown">
+                <el-button type="primary" link size="small">更多
+                  <el-icon class="el-icon--right"><arrow-down /></el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item>
+                      <el-button v-if="docOperations.copy" type="primary" link size="small"
+                        @click="copyDocument(scope.row)">复制文档</el-button>
+                    </el-dropdown-item>
+                    <el-dropdown-item>
+                      <el-button v-if="docOperations.remove" type="danger" link size="small"
+                        @click="removeDocument(scope.row)">删除文档</el-button>
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </template>
           </el-table-column>
         </el-table>
@@ -158,7 +172,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, computed, toRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowRight } from '@element-plus/icons-vue'
+import { ArrowRight, ArrowDown } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
 import * as _ from 'lodash'
 import * as Handlebars from 'handlebars'
@@ -217,7 +231,8 @@ const docOperations = reactive({
   transferMany: true,
   import: true,
   export: true,
-  copyMany: true
+  copyMany: true,
+  copy: true
 })
 const props = defineProps({
   bucketName: { type: String, defalut: '' },
@@ -392,6 +407,14 @@ const removeDocument = (document: any) => {
         })
     })
     .catch(() => { })
+}
+
+const copyDocument = (document: any) => {
+  if (document.name) document.name += '_复制'
+  document = _.omit(document, ['_id'])
+  apiDoc.create(bucketName, dbName, clName, document).then(() => {
+    listDocByKw()
+  })
 }
 /**
  * 文档对象的说明
@@ -724,9 +747,22 @@ onMounted(async () => {
       if (docOps.import === false) docOperations.import = false
       if (docOps.export === false) docOperations.export = false
       if (docOps.copyMany === false) docOperations.copyMany = false
+      if (docOps.copy === false) docOperations.copy = false
     }
   }
   await setTableColumnsFromSchema()
   listDocByKw()
 })
 </script>
+
+<style lang="scss">
+.tmw-opt__column {
+  .cell {
+    @apply flex flex-row justify-between;
+
+    .el-button+.el-button {
+      margin-left: 0;
+    }
+  }
+}
+</style>

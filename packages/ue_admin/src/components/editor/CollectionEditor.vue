@@ -54,6 +54,7 @@
           <el-checkbox v-model="collection.custom.docOperations.create">添加数据</el-checkbox>
           <el-checkbox v-model="collection.custom.docOperations.edit">修改</el-checkbox>
           <el-checkbox v-model="collection.custom.docOperations.remove">删除</el-checkbox>
+          <el-checkbox v-model="collection.custom.docOperations.copy">复制</el-checkbox>
           <el-checkbox v-model="collection.custom.docOperations.editMany">批量修改</el-checkbox>
           <el-checkbox v-model="collection.custom.docOperations.removeMany">批量删除</el-checkbox>
           <el-checkbox v-model="collection.custom.docOperations.transferMany">批量迁移</el-checkbox>
@@ -152,6 +153,7 @@ const props = defineProps({
             import: true,
             export: true,
             copyMany: true,
+            copy: true
           },
         },
         operateRules: {
