@@ -154,7 +154,7 @@ importers:
       stylelint-config-standard: ^29.0.0
       tailwindcss: ^3.2.4
       tms-koa-crypto: ^0.1.0
-      tms-template-viz: ^0.0.10
+      tms-template-viz: ^0.0.11
       tms-vue3: ^0.0.5
       tms-vue3-ui: ^0.0.86
       typescript: ^4.9.3
@@ -181,7 +181,7 @@ importers:
       mitt: 3.0.0
       pinia: 2.0.16_tm4djmomwvpbxsx52ql5y7fjm4
       tms-koa-crypto: 0.1.0
-      tms-template-viz: 0.0.10
+      tms-template-viz: 0.0.11
       tms-vue3: 0.0.5_debug@4.3.4
       tms-vue3-ui: 0.0.86
       vue: 3.2.25
@@ -7081,9 +7081,10 @@ packages:
       - utf-8-validate
     dev: false
 
-  /tms-template-viz/0.0.10:
-    resolution: {integrity: sha512-sE2td3u7xHLOZkgB8wNbr/tJsRctRN5D54ovJpvim3Yl4zY8Cah074iFDuX7madAeGGL8TJcStxCjGjReeEQEQ==}
+  /tms-template-viz/0.0.11:
+    resolution: {integrity: sha512-IvltnCU6ErRC/lgu32MUA7dJSzDcwJScSQ1KM/DFy12ZReakOzan+/p+mcUybL9u2hJHzZSGvxD8x6V8ZrCMCg==}
     dependencies:
+      debug: 4.3.4
       handlebars: 4.7.7
       lodash.get: 4.4.2
       tms-template-wizard: 0.0.9

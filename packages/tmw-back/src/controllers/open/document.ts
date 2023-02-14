@@ -2,6 +2,7 @@ import { ResultData, ResultFault } from 'tms-koa'
 import Base from 'tmw-kit/dist/ctrl/base'
 import DocumentHelper from '../documentHelper'
 import { ModelDoc, ModelSchema, makeTagsFilter, makeProjection } from 'tmw-kit'
+import Debug from 'debug'
 
 /**
  * 开放端文档对象控制器
@@ -26,12 +27,19 @@ class Document extends Base {
    * @returns
    */
   async get() {
+    const { id, fields, debug } = this.request.query
+
+    let deglog // 输出调试信息
+    if (/y|yes|true/i.test(debug)) deglog = Debug('tmw:controllers:open:get')
+
     const existCl = await this.docHelper.findRequestCl()
 
-    const { id, fields } = this.request.query
-
     let projection = makeProjection(fields)
+    if (deglog && fields)
+      deglog('请求返回的字段', fields, JSON.stringify(projection))
+
     let existDoc = await this.modelDoc.byId(existCl, id, projection)
+
     if (!existDoc) return new ResultFault('指定的文档不存在')
 
     return new ResultData(existDoc)
@@ -41,14 +49,28 @@ class Document extends Base {
    * @returns
    */
   async list() {
+    const { page, size, tags, fields, debug } = this.request.query
+
+    let deglog // 输出调试信息
+    if (/y|yes|true/i.test(debug))
+      deglog = Debug('tmw:controllers:open:document:list')
+
+    let projection = makeProjection(fields)
+    if (deglog && fields)
+      deglog('请求返回的字段', fields, JSON.stringify(projection))
+
     const existCl = await this.docHelper.findRequestCl()
 
-    const { page, size, tags, fields } = this.request.query
-    let { filter, orderBy } = this.request.body
-    let projection = makeProjection(fields)
+    let { filter: rawFilter, orderBy } = this.request.body
 
-    // 包含全部标签
-    filter = makeTagsFilter(tags, filter)
+    // 标签加入筛选条件
+    let filter
+    if (Array.isArray(tags) && tags.length)
+      filter = makeTagsFilter(tags, rawFilter)
+    else filter = rawFilter
+
+    if (deglog && rawFilter)
+      deglog('请求的过滤条件', rawFilter, JSON.stringify(filter))
 
     let [ok, result] = await this.modelDoc.list(
       existCl,
@@ -57,6 +79,7 @@ class Document extends Base {
       true,
       projection
     )
+
     if (ok === false) return new ResultFault(result)
 
     return new ResultData(result)
