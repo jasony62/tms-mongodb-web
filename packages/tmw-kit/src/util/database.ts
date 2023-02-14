@@ -192,7 +192,7 @@ class Handler {
           tpl.db = { name, sysname }
       }
     }
-    if (info.lookup) tpl.lookup = info.lookup
+    if (info.lookup) tpl.body.lookup = info.lookup
 
     trace('新文档定义内容：', JSON.stringify(tpl, null, 2))
     if (replaceExisting) {
