@@ -38,17 +38,15 @@
                     <el-dropdown-item>
                       <el-button type="danger" link size="small" @click="removeCollection(scope.row)">删除集合</el-button>
                     </el-dropdown-item>
+                    <el-dropdown-item>
+                      <el-button type="danger" link size="small" @click="emptyCollection(scope.row)">清空集合</el-button>
+                    </el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
             </template>
           </el-table-column>
         </el-table>
-        <div class="flex flex-row gap-4 p-2 items-center justify-between">
-          <!-- <el-pagination layout="total, sizes, prev, pager, next" background :total="data.clBatch.total"
-            :page-sizes="[10, 25, 50, 100]" :current-page="data.clBatch.page" :page-size="data.clBatch.size"
-            @current-change="changeClPage" @size-change="changeClSize"></el-pagination> -->
-        </div>
       </div>
       <!--right-->
       <div v-if="!COMPACT">
@@ -61,7 +59,7 @@
 <script setup lang="ts">
 import { ArrowDown } from '@element-plus/icons-vue'
 import { onMounted, reactive, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { Batch } from 'tms-vue3'
 
 import facStore from '@/store'
@@ -85,6 +83,12 @@ const data = reactive({
 
 onMounted(() => {
   listClByKw()
+})
+onBeforeRouteLeave((to, from) => {
+  /**
+   * 离开页面时，清空store中的集合列表数据
+   */
+  store.collections.splice(0, store.collections.length)
 })
 
 const openCollection = (dbName: string, row: any) => {
@@ -142,6 +146,25 @@ const removeCollection = ((collection: any) => {
       })
     }).catch(() => { })
 })
+const emptyCollection = ((collection: any) => {
+  ElMessageBox.confirm(
+    `是否要清除集合【${collection.title}(${collection.name})】中的文档?`,
+    `请确认`,
+    {
+      confirmButtonText: '是',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }).then(() => {
+      store.emptyCollection({
+        bucket: props.bucketName,
+        db: props.dbName,
+        collection
+      }).then(() => {
+        ElMessage({ message: '集合已清空', type: 'success' })
+        listClByKw()
+      })
+    }).catch(() => { })
+})
 const listClByKw = ((keyword?: string) => {
   data.clBatch = store.listCollection({
     bucket: props.bucketName,
@@ -149,12 +172,5 @@ const listClByKw = ((keyword?: string) => {
     keyword: keyword,
     size: LIST_PAGE_SIZE
   })
-})
-const changeClPage = ((page: number) => {
-  data.clBatch.goto(page)
-})
-const changeClSize = ((size: number) => {
-  data.clBatch.size = size
-  data.clBatch.goto(1)
 })
 </script>

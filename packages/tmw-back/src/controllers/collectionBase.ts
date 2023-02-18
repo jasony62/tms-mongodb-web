@@ -22,7 +22,9 @@ class CollectionBase extends Base {
     this.rpHelper = new ReplicaHelper(this)
     this.schemaHelper = new SchemaHelper(this)
   }
-  /** 执行每个方法前执行 */
+  /**
+   * 执行每个方法前执行
+   */
   async tmsBeforeEach() {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
@@ -82,7 +84,7 @@ class CollectionBase extends Base {
       .find(query, options)
       .sort({ _id: -1 })
       .toArray()
-      
+
     // 填充集合对应的schema信息
     const newTmwCls = await this.processCl(tmwCls)
 

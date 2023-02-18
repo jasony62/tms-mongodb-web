@@ -135,7 +135,9 @@ export default defineStore('mongodb', {
           .list(bucket, db, { keyword, ...batchArg })
           .then((result: { collections: never[] }) => {
             //this.collections = result.collections
-            let collections: any[] = [], allChildren: any[] = [],cache = new Map<string, any>()
+            let collections: any[] = [],
+              allChildren: any[] = [],
+              cache = new Map<string, any>()
             result.collections.forEach((c: any) => {
               let cloned = JSON.parse(JSON.stringify(c))
               cache.set(c.name, cloned)
@@ -144,13 +146,17 @@ export default defineStore('mongodb', {
             })
             allChildren.forEach((s: any) => {
               let { schema_parentName } = s
-              if (schema_parentName && typeof schema_parentName === 'string' && cache.has(schema_parentName)) {
+              if (
+                schema_parentName &&
+                typeof schema_parentName === 'string' &&
+                cache.has(schema_parentName)
+              ) {
                 let ps = cache.get(schema_parentName)
                 ps.children ??= []
                 ps.children.push(s)
               }
             })
-            this.collections = collections            
+            this.collections = collections
             return result
           })
       }
@@ -172,6 +178,12 @@ export default defineStore('mongodb', {
       return apis.collection.remove(bucket, db, collection.name).then(() => {
         this.collections.splice(this.collections.indexOf(collection), 1)
         return { collection }
+      })
+    },
+    emptyCollection(payload: { bucket: any; db: any; collection: any }) {
+      const { bucket, db, collection } = payload
+      return apis.collection.empty(bucket, db, collection.name).then(() => {
+        return true
       })
     },
     listDocument(payload: {

@@ -355,21 +355,21 @@ class DocBase extends Base {
    * 批量删除
    */
   async removeMany() {
-    const existCl = await this['docHelper'].findRequestCl()
+    const { docHelper, modelDoc } = this
+    const existCl = await docHelper.findRequestCl()
 
-    const { query, operation, errCause } =
-      this['docHelper'].getRequestBatchQuery()
+    const { query, operation, errCause } = docHelper.getRequestBatchQuery()
     if (errCause) return new ResultFault(errCause)
 
-    let total = await this['modelDoc'].count(existCl, query)
+    let total = await modelDoc.count(existCl, query)
     if (total === 0)
       return new ResultFault('没有符合条件的数据，未执行删除操作')
 
     if (this.tmwConfig.TMW_APP_DATA_ACTION_LOG === 'Y') {
       // 记录操作日志
-      let sysCl = this['docHelper'].findSysColl(existCl)
+      let sysCl = docHelper.findSysColl(existCl)
       let removedDocs = await sysCl.find(query).toArray()
-      await this['modelDoc'].dataActionLog(
+      await modelDoc.dataActionLog(
         removedDocs,
         `${operation}删除`,
         existCl.db.name,
@@ -377,7 +377,7 @@ class DocBase extends Base {
       )
     }
 
-    return this['modelDoc']
+    return modelDoc
       .removeMany(existCl, query)
       .then((deletedCount) => new ResultData({ total, deletedCount }))
   }

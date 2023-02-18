@@ -11,15 +11,15 @@
   "dependencies": {
     "element-plus": "^2.2.8",
     "jsoneditor": "^9.9.0",
-    "vue": "3.2.25",
-    "vue-router": "4",
     "tms-vue3-ui": "^0.0.86",
+    "vue": "3.2.47",
+    "vue-router": "4",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/jsoneditor": "^9.5.1",
     "@types/node": "^18.7.13",
-    "@vitejs/plugin-vue": "^3.0.3",
+    "@vitejs/plugin-vue": "4.0.0",
     "autoprefixer": "^10.4.5",
     "postcss": "^8.4.12",
     "sass": "^1.50.1",
@@ -27,7 +27,7 @@
     "stylelint-config-standard": "^26.0.0",
     "tailwindcss": "^3.0.24",
     "typescript": "^4.6.4",
-    "vite": "^3.0.7",
-    "vue-tsc": "^0.39.5"
+    "vite": "4.1.2",
+    "vue-tsc": "1.1.3"
   }
 }

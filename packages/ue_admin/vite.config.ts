@@ -26,14 +26,6 @@ export default ({ mode }) => {
           find: '@',
           replacement: resolve(__dirname, 'src'),
         },
-        {
-          find: '@antv/x6',
-          replacement: '@antv/x6/dist/x6.js',
-        },
-        {
-          find: '@antv/x6-vue-shape',
-          replacement: '@antv/x6-vue-shape/lib',
-        },
       ],
     },
     plugins: [vue()],

@@ -44,4 +44,18 @@ export default {
       .get(`${base}/remove`, { params })
       .then((rst: ApiRst) => rst.data.result)
   },
+  /**
+   * 清空集合中的文档
+   * @param bucket
+   * @param dbName
+   * @param clName
+   * @returns
+   */
+  empty(bucket: any, dbName: string, clName: string) {
+    const base = BACK_API_URL() + '/admin/document'
+    const params = { bucket, db: dbName, cl: clName }
+    return TmsAxios.ins('mongodb-api')
+      .post(`${base}/removeMany`, { filter: 'all' }, { params })
+      .then((rst: ApiRst) => rst.data.result)
+  },
 }

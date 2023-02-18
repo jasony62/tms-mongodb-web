@@ -41,10 +41,7 @@ onMounted(async () => {
   X6Graph = new Graph({
     container: document.getElementById('container')!,
     async: false,
-    frozen: false,
-    scroller: true,
     interacting: false,
-    sorting: 'approx',
     connecting: {
       anchor: 'orth',
       connector: 'rounded',

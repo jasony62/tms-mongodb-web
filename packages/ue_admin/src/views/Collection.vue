@@ -169,6 +169,18 @@
 }
 </style>
 
+<style lang="scss">
+.tmw-opt__column {
+  .cell {
+    @apply flex flex-row justify-between;
+
+    .el-button+.el-button {
+      margin-left: 0;
+    }
+  }
+}
+</style>
+
 <script setup lang="ts">
 import { onMounted, reactive, ref, computed, toRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -193,7 +205,7 @@ import {
 
 import facStore from '@/store'
 import { openSelectConditionEditor } from '@/components/editor'
-import { useRouter } from 'vue-router'
+import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { ElTable } from 'element-plus'
 import { useMitt } from '@/composables/mitt'
 import { useAssistant } from '@/composables/assistant'
@@ -753,16 +765,10 @@ onMounted(async () => {
   await setTableColumnsFromSchema()
   listDocByKw()
 })
+onBeforeRouteLeave((to, from) => {
+  /**
+   * 离开页面时，清空store中的文档列表数据
+   */
+  store.documents.splice(0, store.documents.length)
+})
 </script>
-
-<style lang="scss">
-.tmw-opt__column {
-  .cell {
-    @apply flex flex-row justify-between;
-
-    .el-button+.el-button {
-      margin-left: 0;
-    }
-  }
-}
-</style>
