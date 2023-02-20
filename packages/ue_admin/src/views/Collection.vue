@@ -116,8 +116,8 @@
           <el-table-column fixed="right" label="操作" width="140" class-name="tmw-opt__column">
             <template #default="scope">
               <el-button type="primary" link size="small" @click.stop="previewDocument(scope.row)">查看</el-button>
-              <el-button v-if="docOperations.edit" type="primary" link size="small"
-                @click.stop="editDocument(scope.row)" class="ml-0">修改</el-button>
+              <el-button v-if="docOperations.edit" type="primary" link size="small" @click.stop="editDocument(scope.row)"
+                class="ml-0">修改</el-button>
               <el-dropdown class="tmw-opt__dropdown">
                 <el-button type="primary" link size="small">更多
                   <el-icon class="el-icon--right"><arrow-down /></el-icon>
@@ -139,10 +139,13 @@
           </el-table-column>
         </el-table>
         <div class="flex flex-row gap-4 p-2 items-center justify-between">
-          <span>已选中 {{ selectedDocuments.length }} 条数据</span>
-          <el-pagination layout="total, sizes, prev, pager, next" background :total="data.docBatch.total"
-            :page-sizes="[10, 25, 50, 100]" :current-page="data.docBatch.page" :page-size="data.docBatch.size"
-            @current-change="changeDocPage" @size-change="changeDocSize"></el-pagination>
+          <span class="tmw-pagination__text">已选中 {{ selectedDocuments.length }} 条数据</span>
+          <div class="flex flex-row gap-4">
+            <el-pagination layout="total, sizes, prev, pager, next" background :total="data.docBatch.total"
+              :page-sizes="[10, 25, 50, 100]" :current-page="data.docBatch.page" :page-size="data.docBatch.size"
+              @current-change="changeDocPage" @size-change="changeDocSize"></el-pagination>
+            <el-button @click="listDocByKw">刷新</el-button>
+          </div>
         </div>
       </div>
       <div class="flex flex-col items-start space-y-3" v-if="!COMPACT">
