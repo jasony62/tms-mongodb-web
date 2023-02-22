@@ -53,7 +53,7 @@ location /admin {
 }
 ```
 
-该文件中的配置信息必须与`tmw-back`中的配置信息一致。在构建节点为配置环境变量，运行阶段也未配置`settings.json`，那么前端页面就会采用通过 nginx 代理的方式访问 API。
+该文件中的配置信息必须与`tmw-back`中的配置信息一致。在构建节点未配置环境变量，运行阶段也未配置`settings.json`，那么前端页面就会采用通过 nginx 代理的方式访问 API。
 
 ```nginx
 location / {

@@ -11,3 +11,7 @@ html, body, #app {
   height: 55vh;
   overflow-y: auto;
 }
+.tmw-pagination__text {
+  color: var(--el-text-color-regular);
+  font-size: var(--el-font-size-base);
+}
