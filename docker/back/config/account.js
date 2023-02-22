@@ -10,7 +10,7 @@ module.exports = {
     collection: env.TMW_APP_AUTH_CLIENT_MONGODB_COLLECTION || 'account',
   },
   authConfig: {
-    pwdErrMaxNum: 5, // int 密码错误次数限制 0 不限制
+    pwdErrMaxNum: env.TMW_APP_PWD_ERR_MAX_NUM || 5, // int 密码错误次数限制 0 不限制
     authLockDUR: 20, // int 登录锁定时长 （秒）
     pwdStrengthCheck: {
       min: 8, // 密码最小长度
