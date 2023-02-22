@@ -20,5 +20,6 @@ export default defineConfig({
   },
   server: {
     port: parseInt(process.env.DEV_SERVER_PORT) || 9001,
+    host: '0.0.0.0'
   },
 })

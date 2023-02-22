@@ -6,6 +6,7 @@ import DocAgenda from '@/views/DocAgenda.vue'
 import DocCreateAccount from '@/views/DocCreateAccount.vue'
 import DocManageAccount from '@/views/DocManageAccount.vue'
 import DbAdmin from '@/views/DbAdmin.vue'
+import DocExport from '@/views/DocExport.vue'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
   ? import.meta.env.VITE_BASE_URL
@@ -41,6 +42,11 @@ const routes: RouteRecordRaw[] = [
     path: '/db-admin',
     name: 'dbAdmin',
     component: DbAdmin,
+  },
+  {
+    path: '/doc-export',
+    name: 'docExport',
+    component: DocExport,
   },
 ]
 
