@@ -31,7 +31,7 @@ export function exportJSON(Context, domain, data, fileName, options) {
   const tmsFs = new LocalFS(Context, domain)
   const uploadObj = new Upload(tmsFs)
 
-  let { forceReplace = 'Y', dir = '' } = options
+  let { forceReplace = 'Y', dir = '', outAmount } = options
   dir = dir ? tmsFs.fullpath(dir) : ''
 
   // 导出目录
@@ -46,14 +46,19 @@ export function exportJSON(Context, domain, data, fileName, options) {
   }
 
   const space = filePath.replace('.zip', '')
-  if (!fs.existsSync(space)) {
-    fs.mkdirSync(space, { recursive: true })
+  if (fs.existsSync(space)) {
+    fs.rmSync(space, { recursive: true })
   }
+  fs.mkdirSync(space, { recursive: true })
 
-  // 数据写入json文件
-  data.forEach((data) => {
-    fs.writeFileSync(space + '/' + data._id + '.json', JSON.stringify(data))
-  })
+  // 数据写入文件
+  if (outAmount === 'one') {
+    fs.writeFileSync(space + '/' + fileName + '.json', JSON.stringify(data))
+  } else if (outAmount === 'more') {
+    data.forEach((d) => {
+      fs.writeFileSync(space + '/' + d._id + '.json', JSON.stringify(d))
+    })
+  }
 
   // 打包成zip
   zipByArchive(space)
