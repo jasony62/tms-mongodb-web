@@ -35,6 +35,7 @@ export default ({ mode }) => {
         strict: false,
         allow: [],
       },
+      host: '0.0.0.0'
     },
   })
 }
