@@ -21,6 +21,7 @@
   "devDependencies": {
     "lodash": "^4.17.21",
     "rimraf": "^3.0.2",
+    "tms-koa": "^0.1.6",
     "tms-koa-account": "^0.1.6"
   }
 }
