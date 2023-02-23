@@ -1,5 +1,5 @@
 import { PluginBase } from 'tmw-kit/dist/model'
-import { loadConfig, ModelSchema, ModelDoc } from 'tmw-kit'
+import { loadConfig, ModelSchema, ModelDoc, SchemaIter } from 'tmw-kit'
 import { createDocWebhook } from 'tmw-kit/dist/webhook/document'
 import * as path from 'path'
 import { pinyin } from 'pinyin-pro'
@@ -56,7 +56,8 @@ class ImportPlugin extends PluginBase {
     if (widget.action === 'download') {
       if (!this.DownloadHost) return { code: 10001, msg: '未配置文件下载服务地址' }
 
-      const processRst = this.processExcelTemplate(ctrl, columns, ctrl.request.query.cl)
+      const schemaIter = new SchemaIter({ type: 'object', properties: columns })
+      const processRst = this.processExcelTemplate(ctrl, schemaIter, widget.leafLevel)
       const publicpath = this.publicPath(ctrl, processRst)
       return { code: 0, msg: { filePath: this.DownloadHost + publicpath } }
     }
@@ -211,28 +212,26 @@ class ImportPlugin extends PluginBase {
   /**
    * 生成excel模板
    */
-  private processExcelTemplate(ctrl, columns, sheetName) {
+  private processExcelTemplate(ctrl, schemaIter, leafLevel) {
     const XLSX = require('xlsx')
     
     let fieldAry = []
-    const processData = (data, childK) => {
-      for (const k in data) {
-        if (childK) 
-          fieldAry.push(childK +'.'+ k)
-        else
-          fieldAry.push(k)
-        
-        const childProperties = data[k]['properties']
-        if (childProperties && typeof childProperties === 'object')
-          processData(childProperties, childK ? childK +'.'+ k : k)
-      }
+    leafLevel = leafLevel ? leafLevel : 0
+    for (let schemaProp of schemaIter) {
+      let { fullname, _path, _name } = schemaProp
+      if (!_name 
+        || fullname.replace(/\^\\/, '').indexOf('w+$') > -1
+        || (leafLevel > 0 && fullname.split(/\./g).length-1 >= leafLevel)
+      ) continue
+      
+      fieldAry.push(fullname)
+      if (_path && fieldAry.indexOf(_path) > -1) fieldAry.splice(fieldAry.indexOf(_path), 1)
     }
-    processData(columns, null)
     
     const filePath = path.join(this.createDir(ctrl), 'excel数据模板.xlsx')
     const ws = XLSX.utils.aoa_to_sheet([fieldAry])
     const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, sheetName)
+    XLSX.utils.book_append_sheet(wb, ws)
     XLSX.writeFile(wb, filePath)
 
     return filePath
