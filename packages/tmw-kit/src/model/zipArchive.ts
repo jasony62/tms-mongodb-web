@@ -53,10 +53,10 @@ export function exportJSON(Context, domain, data, fileName, options) {
 
   // 数据写入文件
   if (outAmount === 'one') {
-    fs.writeFileSync(space + '/' + fileName + '.json', JSON.stringify(data))
+    fs.writeFileSync(PATH.join(space, `${fileName}.json`), JSON.stringify(data))
   } else if (outAmount === 'more') {
     data.forEach((d) => {
-      fs.writeFileSync(space + '/' + d._id + '.json', JSON.stringify(d))
+      fs.writeFileSync(PATH.join(space, `${d._id}.json`), JSON.stringify(d))
     })
   }
 

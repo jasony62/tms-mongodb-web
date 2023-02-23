@@ -72,13 +72,14 @@ class ExportPlugin extends PluginBase {
       docsOrCause.forEach((doc) => {
         let middleAry = {}
         for (let schemaProp of schemaIter) {
-          const { fullname, _name } = schemaProp
+          const { fullname, _path, _name } = schemaProp
           if (!_name) continue
           if (leafLevel > 0 && fullname.split(/\./g).length-1 >= leafLevel) continue
           let val = _.get(doc, fullname)
           if (!val) continue
           if (typeof val === 'object') val = JSON.stringify(val)
           middleAry[fullname] = val
+          if (_path && middleAry[_path]) delete middleAry[_path]
         }
         newDocs.push(middleAry)
       })
