@@ -1,26 +1,40 @@
 <template>
   <div class="flex flex-col gap-4 h-full w-full">
     <div>
-      <el-form size="large">
-        <el-form-item label="上传文件">
-          <el-upload ref="upload" :action="''" :http-request="handleUpload" :file-list="fileList" :auto-upload="false"
-            :limit="1" :on-change="handleChange">
-            <el-button slot="trigger" type="primary">选取文件</el-button>
-            <template #tip>
-              <div class="el-upload__tip">需上传.xls、.xlsx、.json类型的文件，且不超过10MB</div>
-            </template>
-          </el-upload>
-        </el-form-item>
-        <el-form-item label="下载文件">
-          <el-button slot="trigger" type="primary" @click="onExecute('download')">下载excel模板文件</el-button>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="onExecute('upload')" :disabled="noUpload">执行</el-button>
-          <el-button @click="onCancel" v-if="!executed">取消</el-button>
-          <el-button @click="onClose" v-if="executed">关闭</el-button>
-        </el-form-item>
-      </el-form>
+      <el-button @click="onCancel" v-if="!executed">取消</el-button>
+      <el-button @click="onClose" v-if="executed">关闭</el-button>
     </div>
+    <el-tabs type="border-card">
+      <el-tab-pane label="上传文件">
+        <el-form>
+          <el-form-item>
+            <el-upload ref="upload" :action="''" :http-request="handleUpload" :file-list="fileList" :auto-upload="false"
+              :limit="1" :on-change="handleChange">
+              <el-button slot="trigger" type="primary">选取文件</el-button>
+              <template #tip>
+                <div class="el-upload__tip">需上传.xls、.xlsx、.json类型的文件，且不超过10MB</div>
+              </template>
+            </el-upload>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="onExecute('upload')" :disabled="noUpload">执行</el-button>
+          </el-form-item>
+        </el-form>
+      </el-tab-pane>
+      <el-tab-pane label="下载excel模板文件">
+        <el-form>
+          <el-form-item label="叶子节点数">
+            <div>
+              <el-input-number v-model="leafLevel" :step="1" :min="0" step-strictly @change="setLevel" />
+              <div class="el-upload__tip">* 0代表导出所有节点</div>
+            </div>
+          </el-form-item>
+          <el-form-item>
+            <el-button slot="trigger" type="primary" @click="onExecute('download')">执行</el-button>
+          </el-form-item>
+        </el-form>
+      </el-tab-pane>
+    </el-tabs>
     <div class="response-content flex-grow border border-gray-200 rounded-md overflow-auto" v-if="responseContent">
       <pre>{{ responseContent }}</pre>
     </div>
@@ -37,6 +51,7 @@ const responseContent = ref<string>("");
 const fileList = ref([]);
 const upload = ref<any>(null)
 const noUpload = ref(true)
+const leafLevel = ref<number>(0)
 
 enum PluginWidgetAction {
   Created = "Created",
@@ -78,6 +93,10 @@ window.addEventListener("message", (event) => {
 
 function handleChange(file: any, files: any) {
   if (files.length) noUpload.value = false
+}
+
+function setLevel(value: number) {
+  if (Number.isNaN(value)) ElMessage.error('不支持的数据格式')
 }
 
 function handleUpload(req: any) {
@@ -133,8 +152,7 @@ function onExecute(action: string) {
     if (Caller) {
       const message: PluginWidgetResult = {
         action: PluginWidgetAction.Execute,
-        result: { action: 'download' },
-        //pplyAccessTokenField: "url",
+        result: { action: 'download', leafLevel: leafLevel.value },
         handleResponse: true
       };
       try {

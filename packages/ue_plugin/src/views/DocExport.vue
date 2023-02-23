@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-4 h-full w-full doc-export">
+  <div class="flex flex-col gap-4 h-full w-full">
     <div>
       <el-form size="large" label-position="right">
         <el-form-item label="导出类型">
@@ -14,9 +14,11 @@
             <el-radio label="more" size="large">作为独立文件保存为压缩文件</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="叶子节点数" v-if="outType === 'excel'" class="form-item">
-          <el-input-number v-model="leafLevel" :step="1" :min="0" step-strictly @change="handleChange" />
-          <div class="form-item__tip">* 0代表导出所有节点</div>
+        <el-form-item label="叶子节点数" v-if="outType === 'excel'">
+          <div>
+            <el-input-number v-model="leafLevel" :step="1" :min="0" step-strictly @change="handleChange" />
+            <div class="el-upload__tip">* 0代表导出所有节点</div>
+          </div>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="onExecute" :disabled="!outType">执行</el-button>
@@ -123,20 +125,3 @@ function onClose() {
   }
 }
 </script>
-
-<style scoped lang="scss">
-.doc-export {
-
-  .form-item {
-    :deep(.el-form-item__content) {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .form-item__tip {
-      font-size: 12px;
-      color: var(--el-text-color-regular);
-    }
-  }
-}
-</style>
