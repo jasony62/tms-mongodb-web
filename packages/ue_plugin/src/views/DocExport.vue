@@ -8,10 +8,10 @@
             <el-radio label="excel" size="large">Excel</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="压缩后的文件数量" v-if="outType === 'json'">
+        <el-form-item label="保存方式" v-if="outType === 'json'">
           <el-radio-group v-model="outAmount" class="ml-4">
-            <el-radio label="one" size="large">one</el-radio>
-            <el-radio label="more" size="large">more</el-radio>
+            <el-radio label="one" size="large">选中文档以数组方式保存为1个文件</el-radio>
+            <el-radio label="more" size="large">选中文档作为独立文件保存到1个压缩文件</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="叶子节点数" v-if="outType === 'excel'" class="form-item">
