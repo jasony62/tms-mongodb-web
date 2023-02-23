@@ -3,6 +3,9 @@ import { PluginBase } from 'tmw-kit/dist/model'
 import * as path from 'path'
 import axios from 'axios'
 import { ModelDoc } from 'tmw-kit'
+import Debug from 'debug'
+
+const debug = Debug('tmw:plugins:agenda')
 
 /**配置文件存放位置*/
 const ConfigDir = path.resolve(
@@ -50,13 +53,10 @@ class AgendaDocPlugin extends PluginBase {
   async execute(ctrl: any, tmwCl: any) {
     const { widget } = ctrl.request.body
     const { AgendaContext } = ctrl.tmsContext
-    if (!AgendaContext) {
-      return { code: -1, msg: '没有可用的调度服务' }
-    }
+    if (!AgendaContext) return { code: -1, msg: '没有可用的调度服务' }
+
     const { agenda } = await AgendaContext.ins()
-    if (!AgendaContext) {
-      return { code: -1, msg: '没有可用的调度服务实例' }
-    }
+    if (!AgendaContext) return { code: -1, msg: '没有可用的调度服务实例' }
 
     const modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
 
@@ -64,51 +64,70 @@ class AgendaDocPlugin extends PluginBase {
     if (ok === false) return { code: 10001, msg: docsOrCause }
 
     let result: any = { success: [] }
-    const fail = (fieldName, doc) => {
-      ;(result.error ?? []).push({ id: doc._id, reason: fieldName })
+    /**
+     * 记录单个文档的执行情况
+     * @param reason
+     * @param doc
+     */
+    const fail = (reason, doc) => {
+      result.error ??= []
+      result.error.push({ id: doc._id, reason })
+    }
+    /**
+     * 获得文档中指定的http调用参数
+     * @param doc
+     * @param onFail
+     * @returns
+     */
+    const getHttpParams = (doc, onFail) => {
+      let url = doc[this.jobFields.url]
+      if (!url || typeof url !== 'string') {
+        onFail('【url】为空', doc)
+        return false
+      }
+
+      let method = doc[this.jobFields.method]
+      if (!method || typeof method !== 'string') {
+        onFail('【method】为空', doc)
+        return false
+      }
+
+      let body = doc[this.jobFields.body]
+
+      return { url, method, body }
     }
     switch (widget.action) {
       case 'create':
         // 执行任务
         for (let doc of docsOrCause) {
+          let state = doc[this.jobFields.state]
+          if (!state || typeof state !== 'string') {
+            fail('【state】为空', doc)
+            continue
+          }
+          if (state === 'running') continue
+
           let name = doc[this.jobFields.name]
           if (!name || typeof name !== 'string') {
-            fail('name', doc)
+            fail('【name】为空', doc)
             continue
           }
 
           let interval = doc[this.jobFields.interval]
           if (!interval || typeof interval !== 'string') {
-            fail('interval', doc)
+            fail('【interval】为空', doc)
             continue
           }
+          let httpParams: any = getHttpParams(doc, fail)
+          if (!httpParams) continue
 
-          let url = doc[this.jobFields.url]
-          if (!url || typeof url !== 'string') {
-            fail('url', doc)
-            continue
-          }
-
-          let method = doc[this.jobFields.method]
-          if (!method || typeof method !== 'string') {
-            fail('method', doc)
-            continue
-          }
-
-          let body = doc[this.jobFields.body]
-
-          let state = doc[this.jobFields.state]
-          if (!state || typeof state !== 'string') {
-            fail('state', doc)
-            continue
-          }
-
-          if (state === 'running') continue
           // 定制任务
           agenda.define(name, async (job) => {
+            let { method, url, body } = httpParams
             await this.sendHttp(method, url, body)
           })
           await agenda.every(interval, name)
+
           // 更新任务状态
           let rst = await modelDoc.update(tmwCl, doc._id, { state: 'running' })
 
@@ -139,7 +158,9 @@ class AgendaDocPlugin extends PluginBase {
         break
     }
 
-    return { code: 0, msg: result.success }
+    if (result.error) debug('插件执行错误', result.error)
+
+    return { code: 0, msg: result }
   }
 }
 
@@ -147,8 +168,19 @@ export function createPlugin(file: string) {
   let config
   if (ConfigFile) config = loadConfig(ConfigDir, ConfigFile)
   if (config && typeof config === 'object') {
-    let { widgetUrl, bucket, db, cl, schema, title, jobFields,
-      disabled, dbBlacklist, clBlacklist, schemaBlacklist } = config
+    let {
+      widgetUrl,
+      bucket,
+      db,
+      cl,
+      schema,
+      title,
+      jobFields,
+      disabled,
+      dbBlacklist,
+      clBlacklist,
+      schemaBlacklist,
+    } = config
     const newPlugin = new AgendaDocPlugin(file)
     newPlugin.beforeWidget.url = widgetUrl
 
