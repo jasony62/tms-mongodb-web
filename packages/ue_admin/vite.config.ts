@@ -34,8 +34,7 @@ export default ({ mode }) => {
       fs: {
         strict: false,
         allow: [],
-      },
-      host: '0.0.0.0'
+      }
     },
   })
 }
