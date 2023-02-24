@@ -158,7 +158,8 @@
           }}</el-button>
         </div>
         <tmw-plugins :plugins="data.plugins" :total-by-all="totalByAll" :total-by-filter="totalByFilter"
-          :total-by-checked="totalByChecked" :handle-plugin="handlePlugin"></tmw-plugins>
+          :total-by-checked="totalByChecked" :handle-plugin="handlePlugin"
+          :docslen="store.documents.length"></tmw-plugins>
       </div>
     </div>
   </div>
@@ -610,9 +611,17 @@ const { handlePlugin } = useTmwPlugins({
   clName,
   onExecute,
   onCreate: (plugin: any, msg: any) => {
-    if (plugin.amount === 'one' && selectedDocuments.value.length === 1) {
+    if (plugin.amount === 'one') {
+      let checkedDocument
+      if (store.documents.length === 1) {
+        checkedDocument = toRaw(store.documents[0])
+      } else {
+        if (selectedDocuments.value.length === 1) {
+          checkedDocument = toRaw(selectedDocuments.value[0])
+        }
+      }
       // 处理单个文档时，将文档数据传递给插件
-      msg.document = toRaw(selectedDocuments.value[0])
+      msg.document = toRaw(checkedDocument)
     }
     // 如果插件没有指定schema，传递集合的schema
     msg.schema ??= toRaw(collection.schema.body)

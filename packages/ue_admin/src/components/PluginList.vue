@@ -2,9 +2,11 @@
   <div v-for="p in plugins" :key="p.name">
     <el-button v-if="p.amount === 'zero'" type="success" plain @click="handlePlugin(p)">{{ p.title }}
     </el-button>
-    <el-button v-else-if="p.amount === 'one'" :disabled="totalByChecked !== 1" type="success" plain
-      @click="handlePlugin(p)">{{ p.title }}
-    </el-button>
+    <div v-else-if="p.amount === 'one'">
+      <el-button :disabled="!(totalByChecked === 1 || docslen === 1)" type="success" plain @click="handlePlugin(p)">{{
+        p.title
+      }}</el-button>
+    </div>
     <el-dropdown v-else>
       <el-button type="success" plain>{{ p.title }}
         <el-icon class="el-icon--right">
@@ -41,7 +43,8 @@ const props = defineProps(
     totalByAll: { type: Number },
     totalByFilter: { type: Number },
     totalByChecked: { type: Number },
-    handlePlugin: { type: Function }
+    handlePlugin: { type: Function },
+    docslen: { type: Number }
   })
 const handlePlugin = (plugin: any, scope = '') => {
   if (props.handlePlugin)
