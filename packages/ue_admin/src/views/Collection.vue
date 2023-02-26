@@ -479,8 +479,14 @@ function onExecute(
 ) {
   let postBody: any
   if (plugin.amount === 'one') {
-    if (selectedDocuments.value.length !== 1) return
-    postBody = { docId: toRaw(selectedDocuments.value[0]._id) }
+    let checkedDocument
+    if (selectedDocuments.value.length === 1) {
+      checkedDocument = toRaw(selectedDocuments.value[0])
+    } else if (store.documents.length === 1) {
+      checkedDocument = toRaw(store.documents[0])
+    }
+    if (!checkedDocument) return Promise.reject('没有获得要操作的文档')
+    postBody = { docId: toRaw(checkedDocument._id) }
   } else {
     if (['all', 'filter', 'checked'].includes(docScope))
       postBody = setPluginDocParam(docScope)
@@ -613,15 +619,14 @@ const { handlePlugin } = useTmwPlugins({
   onCreate: (plugin: any, msg: any) => {
     if (plugin.amount === 'one') {
       let checkedDocument
-      if (store.documents.length === 1) {
+      if (selectedDocuments.value.length === 1) {
+        checkedDocument = toRaw(selectedDocuments.value[0])
+      } else if (store.documents.length === 1) {
         checkedDocument = toRaw(store.documents[0])
-      } else {
-        if (selectedDocuments.value.length === 1) {
-          checkedDocument = toRaw(selectedDocuments.value[0])
-        }
       }
       // 处理单个文档时，将文档数据传递给插件
-      msg.document = toRaw(checkedDocument)
+      if (checkedDocument)
+        msg.document = toRaw(checkedDocument)
     }
     // 如果插件没有指定schema，传递集合的schema
     msg.schema ??= toRaw(collection.schema.body)

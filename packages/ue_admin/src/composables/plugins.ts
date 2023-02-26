@@ -139,20 +139,27 @@ export const useTmwPlugins = (options?: UseTmwPluginsOptions) => {
                   handleResponse,
                   defaultHandleResponseRequired,
                   applyAccessTokenField
-                ).then((response: any) => {
-                  if (handleResponse === true) {
-                    // 将执行的结果递送给插件
-                    if (elPluginWidget.value) {
-                      elPluginWidget.value.contentWindow?.postMessage(
-                        { response },
-                        '*'
+                )
+                  .then((response: any) => {
+                    if (handleResponse === true) {
+                      // 将执行的结果递送给插件
+                      if (elPluginWidget.value) {
+                        elPluginWidget.value.contentWindow?.postMessage(
+                          { response },
+                          '*'
+                        )
+                      }
+                    } else {
+                      window.removeEventListener(
+                        'message',
+                        widgetResultListener
                       )
+                      showPluginWidget.value = false
                     }
-                  } else {
-                    window.removeEventListener('message', widgetResultListener)
-                    showPluginWidget.value = false
-                  }
-                })
+                  })
+                  .catch(() => {
+                    // 无法执行
+                  })
                 break
               case 'Close':
                 window.removeEventListener('message', widgetResultListener)
