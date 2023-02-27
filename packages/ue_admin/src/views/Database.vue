@@ -3,7 +3,7 @@
     <!--header-->
     <div class="h-12 py-4 px-2">
       <el-breadcrumb separator-class="el-icon-arrow-right">
-        <el-breadcrumb-item :to="{ name: 'databases' }">数据库</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'databases' }">{{ DbLabel }}</el-breadcrumb-item>
         <el-breadcrumb-item>{{ dbName }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
@@ -65,9 +65,10 @@ import { Batch } from 'tms-vue3'
 import facStore from '@/store'
 import { openCollectionEditor, } from '@/components/editor'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { COMPACT_MODE } from '@/global'
+import { COMPACT_MODE, LABEL } from '@/global'
 
 const COMPACT = computed(() => COMPACT_MODE())
+const DbLabel = computed(() => LABEL('database', '数据库'))
 
 const store = facStore()
 const router = useRouter()

@@ -8,7 +8,7 @@
         <el-breadcrumb-item>{{ clName }}</el-breadcrumb-item>
       </el-breadcrumb>
       <el-breadcrumb :separator-icon="ArrowRight" v-else>
-        <el-breadcrumb-item :to="{ name: 'databases' }">数据库</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'databases' }">{{ DbLabel }}</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'database', params: { dbName: dbName } }">{{ dbName }}</el-breadcrumb-item>
         <el-breadcrumb-item>{{ clName }}</el-breadcrumb-item>
       </el-breadcrumb>
@@ -205,6 +205,7 @@ import {
   DOC_MANUAL,
   EXTRACT_MODE,
   MULTIPLE_MODE,
+  LABEL,
 } from '@/global'
 
 import facStore from '@/store'
@@ -222,6 +223,7 @@ import { useTmwPlugins } from '@/composables/plugins'
 const COMPACT = computed(() => COMPACT_MODE())
 const EXTRACT = computed(() => EXTRACT_MODE())
 const MULTIPLE = computed(() => MULTIPLE_MODE())
+const DbLabel = computed(() => LABEL('database', '数据库'))
 
 const store = facStore()
 

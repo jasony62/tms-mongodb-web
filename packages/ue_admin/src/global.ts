@@ -11,6 +11,7 @@ type Globalsettings = {
   extract: boolean // 提取数据模式，在iframe打开时使用
   multiple: boolean // 提取数据模式下，是否支持多选
   manual?: any // 在线用户手册
+  labels?: { [k: string]: string } // 标题定义
   replica: boolean // 是否开启全量复制定义
 }
 
@@ -28,7 +29,7 @@ let _globalsettings: Globalsettings = {
   compact: false,
   extract: false,
   multiple: true,
-  replica: /yes|true/i.test(import.meta.env.VITE_TMW_APP_REPLICA)
+  replica: /yes|true/i.test(import.meta.env.VITE_TMW_APP_REPLICA),
 }
 /**
  * 根据在线获取的全局设置
@@ -51,6 +52,8 @@ export function init(settings: Globalsettings) {
   if (settings.multiple === false) _globalsettings.multiple = false
   if (settings.manual && typeof settings.manual === 'object')
     _globalsettings.manual = settings.manual
+  if (settings.labels && typeof settings.labels === 'object')
+    _globalsettings.labels = settings.labels
   if (settings.replica) _globalsettings.replica = settings.replica
 }
 /**
@@ -172,6 +175,17 @@ export const DOC_MANUAL = (dbName: string, clName: string) => {
   }
 
   return tpl ? tpl : DocManualTpl
+}
+/**
+ * 标题
+ */
+export const LABEL = (key: string, defaultValue?: string) => {
+  const { labels } = _globalsettings
+  if (labels && typeof labels === 'object') {
+    let val = labels[key]
+    return val
+  }
+  return defaultValue
 }
 /**
  * 是否开启全量复制定义

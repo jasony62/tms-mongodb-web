@@ -3,7 +3,7 @@
     <!--header-->
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight">
-        <el-breadcrumb-item :to="{ name: 'databases' }">数据库</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'databases' }">{{ DbLabel }}</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'database', params: { dbName } }">{{
           dbName
         }}</el-breadcrumb-item>
@@ -94,7 +94,7 @@
 import { computed, nextTick, ref, inject, watch } from 'vue'
 import TmsJsonDoc, { Field, DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
-import { EXTERNAL_FS_URL, getLocalToken, TEMPLATE_VARS_API_URL, TMW_APP_TAGS } from '@/global'
+import { EXTERNAL_FS_URL, getLocalToken, LABEL, TEMPLATE_VARS_API_URL, TMW_APP_TAGS } from '@/global'
 import apiTag from '@/apis/tag'
 import apiCl from '@/apis/collection'
 import apiDoc from '@/apis/document'
@@ -119,6 +119,7 @@ import { transform } from '@/data-aid.js/transform'
 
 // 系统指定的标签字段名称
 const TagsFieldName = TMW_APP_TAGS()
+const DbLabel = computed(() => LABEL('database', '数据库'))
 
 const debug = Debug('tmw:doc-editor')
 

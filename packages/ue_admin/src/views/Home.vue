@@ -3,7 +3,7 @@
     <div class="w-36 flex-none h-full flex flex-col">
       <el-menu v-if="EXTRACT !== true" class="overflow-auto flex-none" default-active="/database/" router>
         <el-menu-item index="/database/">
-          <span>数据库</span>
+          <span>{{ DbLabel }}</span>
         </el-menu-item>
         <el-sub-menu index="globalSchema">
           <template #title>字段定义</template>
@@ -11,7 +11,7 @@
             <span>文档</span>
           </el-menu-item>
           <el-menu-item index="/dbSchemas/">
-            <span>数据库</span>
+            <span>{{ DbLabel }}</span>
           </el-menu-item>
           <el-menu-item index="/clSchemas/">
             <span>集合</span>
@@ -46,7 +46,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { COMPACT_MODE, EXTRACT_MODE, EXTERNAL_FS_URL, REPLICA_MODE } from '@/global'
+import { COMPACT_MODE, EXTRACT_MODE, EXTERNAL_FS_URL, REPLICA_MODE, LABEL } from '@/global'
 import { computed } from 'vue';
 import Assistant from '@/components/Assistant.vue'
 import { useAssistant } from '@/composables/assistant';
@@ -56,6 +56,7 @@ const COMPACT = computed(() => COMPACT_MODE())
 const EXTRACT = computed(() => EXTRACT_MODE())
 const EXTERNALFSURL = computed(() => EXTERNAL_FS_URL())
 const REPLICA = computed(() => REPLICA_MODE())
+const DbLabel = computed(() => LABEL('database', '数据库'))
 
 const { opened } = useAssistant()
 
