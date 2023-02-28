@@ -32,7 +32,7 @@ const fnSuccessLogin = (response: LoginResponse) => {
 
     const history = proxy.$tmsRouterHistory.history
     const path = history.slice(-2, -1).join()
-    if (history && ['/register', '/Smscode'].indexOf(path) === -1) {
+    if (path && ['/register', '/Smscode'].indexOf(path) === -1) {
       router.back()
     } else {
       router.push({ name: 'home' })
