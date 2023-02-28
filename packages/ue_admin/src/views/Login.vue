@@ -29,7 +29,10 @@ const router = useRouter()
 const fnSuccessLogin = (response: LoginResponse) => {
   if (response.result && response.result.access_token) {
     setLocalToken(response.result.access_token)
-    if (proxy.$tmsRouterHistory.canBack()) {
+
+    const history = proxy.$tmsRouterHistory.history
+    const path = history.slice(-2, -1).join()
+    if (history && ['/register', '/Smscode'].indexOf(path) === -1) {
       router.back()
     } else {
       router.push({ name: 'home' })
