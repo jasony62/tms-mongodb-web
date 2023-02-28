@@ -147,7 +147,8 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   // 进入页面前检查是否已经通过用户认证
-  if (to.name !== 'login') {
+  //@ts-ignore
+  if (['login', 'register', 'smscode'].indexOf(to.name) === -1) {    
     let token = getLocalToken()
     if (!token) {
       new TmsRouterHistory().push(to.path)
