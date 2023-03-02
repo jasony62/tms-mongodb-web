@@ -57,7 +57,7 @@ class ImportPlugin extends PluginBase {
       if (!this.DownloadHost) return { code: 10001, msg: '未配置文件下载服务地址' }
 
       const schemaIter = new SchemaIter({ type: 'object', properties: columns })
-      const processRst = this.processExcelTemplate(ctrl, schemaIter, widget.leafLevel)
+      const processRst = this.processExcelTemplate(ctrl, clName, schemaIter, widget.leafLevel)
       const publicpath = this.publicPath(ctrl, processRst)
       return { code: 0, msg: { filePath: this.DownloadHost + publicpath } }
     }
@@ -212,7 +212,7 @@ class ImportPlugin extends PluginBase {
   /**
    * 生成excel模板
    */
-  private processExcelTemplate(ctrl, schemaIter, leafLevel) {
+  private processExcelTemplate(ctrl, clName, schemaIter, leafLevel) {
     const XLSX = require('xlsx')
     
     let fieldAry = []
@@ -228,7 +228,7 @@ class ImportPlugin extends PluginBase {
       if (_path && fieldAry.indexOf(_path) > -1) fieldAry.splice(fieldAry.indexOf(_path), 1)
     }
     
-    const filePath = path.join(this.createDir(ctrl), 'excel数据模板.xlsx')
+    const filePath = path.join(this.createDir(ctrl), `${clName}.xlsx`)
     const ws = XLSX.utils.aoa_to_sheet([fieldAry])
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws)

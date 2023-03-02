@@ -494,3 +494,54 @@ module.exports = {
 
 ```
 
+# doc-import-collection
+
+本插件实现在指定数据库下通过导入excel，新建schema，collection和文档。
+
+| 属性             | 用途                                           | 类型    | 默认值                | 必填 |
+| ---------------- | ---------------------------------------------- | ------- | --------------------- | ---- |
+| **基本信息**     |                                                |         |                       |      |
+| name             | 插件名称。需要有唯一性，同名插件只会加载一次。 | string  | doc-import-collection | 是   |
+| scope            | 插件适用的数据对象类型。只用于文档类型。       | string  | collection            | 是   |
+| title            | 插件在页面上的显示内容。                       | string  | 导入集合              | 是   |
+| amount           | 操作的数据量。                                 | string  | zero                  | 是   |
+| bucketName       | 匹配的存储空间名称。                           | RegExp  | 无                    | 否   |
+| dbName           | 匹配的数据库名称。                             | RegExp  | 无                    | 否   |
+| disabled         | 是否禁用插件                                   | boolean | false                 | 否   |
+| dbBlacklist      | 根据数据库名称匹配的黑名单。                   | RegExp  | 无                    | 否   |
+| **部件基本信息** |                                                |         |                       |      |
+| beforeWidget     |                                                |         |                       |      |
+| --name           | 部件名称。指明是自定义外部部件。               | string  | external              | 是   |
+| --url            | 部件获取地址。通过配置文件指定。               | string  | 无                    | 是   |
+| --size           | 部件在页面上的宽度。                           | string  | 40%                   | 是   |
+
+```js
+const {
+  TMW_PLUGIN_DOC_IMPORT_COLLECTION_DISABLED: Disabled,
+  TMW_PLUGIN_DOC_IMPORT_COLLECTION_DB_BLACK_LIST: DbBlacklist,
+  TMW_PLUGIN_WIDGET_URL_HOST,
+  TMW_PLUGIN_DOC_IMPORT_COLLECTION_NAME: Name,
+  TMW_PLUGIN_DOC_IMPORT_COLLECTION_BUCKET: Bucket,
+  TMW_PLUGIN_DOC_IMPORT_COLLECTION_DB: Db,
+  TMW_PLUGIN_DOC_IMPORT_COLLECTION_TITLE: Title,
+  TMW_PLUGIN_DOC_IMPORT_COLLECTION_WIDGET_URL
+} = process.env
+
+// 插件前端页面地址
+const widgetUrl = TMW_PLUGIN_DOC_IMPORT_COLLECTION_WIDGET_URL
+  ? TMW_PLUGIN_DOC_IMPORT_COLLECTION_WIDGET_URL
+  : TMW_PLUGIN_WIDGET_URL_HOST
+  ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-import-collection'
+  : '/plugin/doc-import-collection'
+
+module.exports = {
+  disabled: /true|yes/i.test(Disabled),
+  dbBlacklist: DbBlacklist,
+  widgetUrl,
+  name: Name ? Name : 'doc-import-collection',
+  title: Title ? Title : '导入集合',
+  bucket: Bucket,
+  db: Db
+}
+```
+
