@@ -250,7 +250,7 @@ class DocBase extends Base {
     let { filter, orderBy } = this.request.body
 
     // 包含全部标签
-    filter = makeTagsFilter(tags, filter)
+    if (tags) filter = makeTagsFilter(tags, filter)
 
     let [ok, result] = await this.modelDoc.list(
       existCl,

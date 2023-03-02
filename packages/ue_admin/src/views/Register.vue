@@ -19,8 +19,8 @@ import router from '@/router/index'
 
 const { fnCaptcha, fnRegister } = apiLogin
 
-const fnSuccessToken = (token: string) => {
-  if (token) {
+const fnSuccessToken = (data: any) => {
+  if (data.result) {
     ElMessage({
       showClose: true,
       message: '注册成功，即将跳转登录。',
@@ -30,7 +30,6 @@ const fnSuccessToken = (token: string) => {
       }
     })
   }
-
 }
 const fnFailToken = (response: any) => {
   ElMessage.error(response.msg || '注册失败')
