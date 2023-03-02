@@ -7,6 +7,7 @@ import DocCreateAccount from '@/views/DocCreateAccount.vue'
 import DocManageAccount from '@/views/DocManageAccount.vue'
 import DbAdmin from '@/views/DbAdmin.vue'
 import DocExport from '@/views/DocExport.vue'
+import clImport from '@/views/clImport.vue'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
   ? import.meta.env.VITE_BASE_URL
@@ -47,6 +48,11 @@ const routes: RouteRecordRaw[] = [
     path: '/doc-export',
     name: 'docExport',
     component: DocExport,
+  },
+  {
+    path: '/cl-import',
+    name: 'clImport',
+    component: clImport,
   },
 ]
 

@@ -15,6 +15,7 @@
     </div>
     <!--content-->
     <div class="flex flex-row gap-2">
+      <!--left-->
       <div class="flex flex-col gap-4" :class="COMPACT ? 'w-full' : 'w-4/5'">
         <el-table id="tables" ref="tableRef" :cell-class-name="'tmw-table__cell'" :data="store.documents"
           highlight-current-row stripe @selection-change="handleSelectionChange" @current-change="handleCurrentChange"
@@ -148,6 +149,7 @@
           </div>
         </div>
       </div>
+      <!--right-->
       <div class="flex flex-col items-start space-y-3" v-if="!COMPACT">
         <div>
           <el-button v-if="docOperations.create" @click="createDocument">添加文档</el-button>

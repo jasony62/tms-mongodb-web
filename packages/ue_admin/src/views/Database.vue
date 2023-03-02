@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-2">
     <!--header-->
     <div class="h-12 py-4 px-2">
-      <el-breadcrumb separator-class="el-icon-arrow-right">
+      <el-breadcrumb :separator-icon="ArrowRight">
         <el-breadcrumb-item :to="{ name: 'databases' }">{{ DbLabel }}</el-breadcrumb-item>
         <el-breadcrumb-item>{{ dbName }}</el-breadcrumb-item>
       </el-breadcrumb>
@@ -11,7 +11,7 @@
     <div class="flex flex-row gap-2">
       <!--left-->
       <div class="flex flex-col gap-4" :class="COMPACT ? 'w-full' : 'w-4/5'">
-        <el-table :data="store.collections" row-key="_id" stripe>
+        <el-table :data="store.collections" stripe @selection-change="changeClSelect">
           <el-table-column type="selection" width="48"></el-table-column>
           <el-table-column label="集合名称">
             <template #default="scope">
@@ -47,25 +47,36 @@
             </template>
           </el-table-column>
         </el-table>
+        <div class="flex flex-row gap-4 p-2 items-center justify-between">
+          <span class="tmw-pagination__text">已选中 {{ data.multipleCl.length }} 条数据</span>
+        </div>
       </div>
       <!--right-->
-      <div v-if="!COMPACT">
+      <div class="flex flex-col items-start space-y-3" v-if="!COMPACT">
         <el-button @click="createCollection">添加集合</el-button>
+        <tmw-plugins :plugins="plugins" :total-by-all="totalByAll" :total-by-filter="totalByFilter"
+          :total-by-checked="totalByChecked" :handle-plugin="handlePlugin"></tmw-plugins>
       </div>
     </div>
   </div>
+  <tmw-plugin-widget></tmw-plugin-widget>
 </template>
 
 <script setup lang="ts">
-import { ArrowDown } from '@element-plus/icons-vue'
-import { onMounted, reactive, computed } from 'vue'
+import { ArrowDown, ArrowRight } from '@element-plus/icons-vue'
+import { onMounted, reactive, computed, ref, toRaw } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { Batch } from 'tms-vue3'
 
 import facStore from '@/store'
 import { openCollectionEditor, } from '@/components/editor'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { COMPACT_MODE, LABEL } from '@/global'
+import { COMPACT_MODE, LABEL, BACK_API_URL, FS_BASE_URL, getLocalToken } from '@/global'
+import apiPlugin from '@/apis/plugin'
+import TmwPlugins from '@/components/PluginList.vue'
+import TmwPluginWidget from '@/components/PluginWidget.vue'
+import { useTmwPlugins } from '@/composables/plugins'
+import * as _ from 'lodash'
 
 const COMPACT = computed(() => COMPACT_MODE())
 const DbLabel = computed(() => LABEL('database', '数据库'))
@@ -78,12 +89,22 @@ const LIST_PAGE_SIZE = 10000
 
 const props = defineProps(['bucketName', 'dbName'])
 
+const totalByAll = computed(() => data.clBatch.total)
+const totalByFilter = computed(() => 0)
+const totalByChecked = computed(() => data.multipleCl.length)
+
+const plugins = ref([])
+
 const data = reactive({
-  clBatch: new Batch(() => { })
+  clBatch: new Batch(() => { }),
+  multipleCl: [] as any[]
 })
 
-onMounted(() => {
+onMounted(async () => {
   listClByKw()
+  plugins.value = await apiPlugin.getCollectionPlugins(
+    props.bucketName, props.dbName
+  )
 })
 onBeforeRouteLeave((to, from) => {
   /**
@@ -165,6 +186,162 @@ const emptyCollection = ((collection: any) => {
         listClByKw()
       })
     }).catch(() => { })
+})
+const changeClSelect = (value: any[]) => {
+  data.multipleCl = value
+}
+/**
+ * 设置插件操作的文档参数
+ */
+const setPluginDocParam = (docScope: string) => {
+  if (docScope === 'all') {
+    return { filter: 'ALL' }
+  } else if (docScope === 'checked') {
+    let ids = data.multipleCl.map((collection: any) => collection._id)
+    return { ids }
+  }
+}
+const onExecute = (plugin: any,
+  docScope = '',
+  widgetResult = undefined,
+  widgetHandleResponse = false,
+  widgetDefaultHandleResponseRequired = false,
+  applyAccessTokenField = '') => {
+  let postBody: any
+  if (plugin.amount === 'one') {
+    let checkedColl
+    if (data.multipleCl.length === 1) {
+      checkedColl = toRaw(data.multipleCl[0])
+    } else if (store.collections.length === 1) {
+      checkedColl = toRaw(store.collections[0])
+    }
+    if (!checkedColl) return Promise.reject('没有获得要操作的文档')
+    //if (data.multipleCl.length !== 1) return
+    let rawCl = toRaw(checkedColl)
+    postBody = { _id: rawCl._id, name: rawCl.name, sysname: rawCl.sysname, type: 'collection' }
+  } else {
+    if (['all', 'filter', 'checked'].includes(docScope))
+      postBody = setPluginDocParam(docScope)
+    else postBody = {}
+  }
+
+  // 携带插件部件的数据
+  if (widgetResult) {
+    if (applyAccessTokenField && typeof applyAccessTokenField === 'string') {
+      let field: string = _.get(widgetResult, applyAccessTokenField)
+      if (field && typeof field === 'string') {
+        /**只有访问自己的后端服务时才添加*/
+        if (field.indexOf(BACK_API_URL()) === 0) {
+          field += field.indexOf('?') > 0 ? '&' : '?'
+          let accessToken = getLocalToken() ?? ''
+          field += `access_token=${accessToken}`
+          _.set(widgetResult, applyAccessTokenField, field)
+        }
+      }
+    }
+    postBody.widget = widgetResult
+  }
+  // 插件执行的基础参数
+  let queryParams = {
+    bucket: props.bucketName ?? '',
+    plugin: plugin.name,
+    db: props.dbName
+  }
+
+  // 执行插件方法
+  return apiPlugin.execute(queryParams, postBody).then((result: any) => {
+    if (widgetHandleResponse) {
+      return result
+    }
+    if (typeof result === 'string') {
+      /**返回字符串直接显示内容*/
+      ElMessage.success({
+        message: result,
+        showClose: true,
+      })
+      listClByKw()
+    } else if (result && typeof result === 'object') {
+      /**返回的是对象*/
+      if (result.type === 'documents') {
+        /**返回的是文档数据*/
+        let nInserted = 0,
+          nModified = 0,
+          nRemoved = 0
+        let { inserted, modified, removed } = result
+        /**在当前文档列表中移除删除的记录 */
+        if (Array.isArray(removed) && (nRemoved = removed.length)) {
+          let dbs = store.dbs.filter(
+            (doc) => !removed.includes(doc._id)
+          )
+          store.dbs = dbs
+        }
+        /**在当前文档列表中更新修改的记录 */
+        if (Array.isArray(modified) && (nModified = modified.length)) {
+          let map = modified.reduce((m, doc) => {
+            if (doc._id && typeof doc._id === 'string') m[doc._id] = doc
+            return m
+          }, {})
+          store.dbs.forEach((doc: any, index: number) => {
+            let newDb = map[doc._id]
+            if (newDb) Object.assign(doc, newDb)
+            // store.updateDocument({ index, document: doc })
+          })
+        }
+        /**在当前文档列表中添加插入的记录 */
+        if (Array.isArray(inserted) && (nInserted = inserted.length)) {
+          inserted.forEach((newDb) => {
+            if (newDb._id && typeof newDb._id === 'string')
+              store.dbs.unshift(newDb)
+          })
+        }
+        let msg = `插件[${plugin.title}]执行完毕，添加[${nInserted}]条，修改[${nModified}]条，删除[${nRemoved}]条记录。`
+        ElMessage.success({ message: msg })
+      } else if (result.type === 'numbers') {
+        /**返回操作结果——数量 */
+        let { nInserted, nModified, nRemoved } = result
+        let message = `插件[${plugin.title}]执行完毕，添加[${parseInt(nInserted) || 0
+          }]条，修改[${parseInt(nModified) || 0}]条，删除[${parseInt(nRemoved) || 0
+          }]条记录。`
+        ElMessageBox.confirm(message, '提示', {
+          confirmButtonText: '关闭',
+          cancelButtonText: '刷新数据',
+          showClose: false,
+        }).catch(() => {
+          listClByKw()
+        })
+      } else if (typeof result.url === 'string') {
+        /**下载文件*/
+        let url = FS_BASE_URL() + result.url
+        window.open(url)
+      }
+    } else {
+      ElMessage.success({
+        message: `插件[${plugin.title}]执行完毕。`,
+        showClose: true,
+      })
+      listClByKw()
+    }
+    return 'ok'
+  })
+}
+/**
+ * 插件
+ */
+const { handlePlugin } = useTmwPlugins({
+  bucketName: props.bucketName,
+  onExecute,
+  onCreate: (plugin: any, msg: any) => {
+    if (
+      plugin.amount === 'one' &&
+      data.multipleCl.length === 1
+    ) {
+      // 处理单个文档时，将文档数据
+      msg.database = toRaw(data.multipleCl[0])
+    }
+  },
+  onClose: () => {
+    listClByKw()
+  }
 })
 const listClByKw = ((keyword?: string) => {
   data.clBatch = store.listCollection({
