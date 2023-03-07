@@ -208,6 +208,7 @@ import {
   EXTRACT_MODE,
   MULTIPLE_MODE,
   LABEL,
+  PAGINATION_DOC_SIZE
 } from '@/global'
 
 import facStore from '@/store'
@@ -229,8 +230,8 @@ const DbLabel = computed(() => LABEL('database', '数据库'))
 
 const store = facStore()
 
-// 查找条件下拉框分页包含记录数
-const LIST_DB_PAGE_SIZE = 100
+// 查找条件下拉框分页包含记录数（筛选下拉框没有分页所以设置分页值太小会导致加载不完数据）
+// const LIST_DB_PAGE_SIZE = 100
 
 let collection = reactive({
   schema_tags: [] as any[],
@@ -729,7 +730,7 @@ const listDocByKw = () => {
     bucket: bucketName,
     db: dbName,
     cl: clName,
-    size: LIST_DB_PAGE_SIZE,
+    size: PAGINATION_DOC_SIZE(),
     criterais,
   })
 }

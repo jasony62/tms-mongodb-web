@@ -13,6 +13,7 @@ type Globalsettings = {
   manual?: any // 在线用户手册
   labels?: { [k: string]: string } // 标题定义
   replica: boolean // 是否开启全量复制定义
+  pagination?: { [k: string]: {[k: string]: number} } // 每页条数
 }
 
 let _globalsettings: Globalsettings = {
@@ -55,6 +56,9 @@ export function init(settings: Globalsettings) {
   if (settings.labels && typeof settings.labels === 'object')
     _globalsettings.labels = settings.labels
   if (settings.replica) _globalsettings.replica = settings.replica
+  if (settings.pagination && typeof settings.pagination === 'object') {
+    _globalsettings.pagination = settings.pagination
+  }
 }
 /**
  * 根据环境变量设置认证服务起始地址
@@ -240,3 +244,9 @@ export function parseLocation(url: string): any | null {
     hash: aEl.hash,
   }
 }
+
+export const PAGINATION_DB_SIZE = () => _globalsettings.pagination?.database?.size || 100
+
+export const PAGINATION_COL_SIZE = () => _globalsettings.pagination?.collection?.size || 100
+
+export const PAGINATION_DOC_SIZE = () => _globalsettings.pagination?.document?.size || 100

@@ -71,7 +71,7 @@ import { Batch } from 'tms-vue3'
 import facStore from '@/store'
 import { openCollectionEditor, } from '@/components/editor'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { COMPACT_MODE, LABEL, BACK_API_URL, FS_BASE_URL, getLocalToken } from '@/global'
+import { COMPACT_MODE, LABEL, BACK_API_URL, FS_BASE_URL, getLocalToken, PAGINATION_COL_SIZE } from '@/global'
 import apiPlugin from '@/apis/plugin'
 import TmwPlugins from '@/components/PluginList.vue'
 import TmwPluginWidget from '@/components/PluginWidget.vue'
@@ -83,9 +83,6 @@ const DbLabel = computed(() => LABEL('database', '数据库'))
 
 const store = facStore()
 const router = useRouter()
-
-// 查找条件下拉框分页包含记录数
-const LIST_PAGE_SIZE = 10000
 
 const props = defineProps(['bucketName', 'dbName'])
 
@@ -348,7 +345,7 @@ const listClByKw = ((keyword?: string) => {
     bucket: props.bucketName,
     db: props.dbName,
     keyword: keyword,
-    size: LIST_PAGE_SIZE
+    size: PAGINATION_COL_SIZE()
   })
 })
 </script>
