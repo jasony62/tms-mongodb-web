@@ -59,7 +59,7 @@ import { Batch } from 'tms-vue3'
 
 import facStore from '@/store'
 import { openDbEditor } from '@/components/editor'
-import { BACK_API_URL, COMPACT_MODE, FS_BASE_URL, getLocalToken, LABEL } from '@/global'
+import { BACK_API_URL, COMPACT_MODE, FS_BASE_URL, getLocalToken, LABEL, PAGINATION_DB_SIZE } from '@/global'
 import apiPlugin from '@/apis/plugin'
 import TmwPlugins from '@/components/PluginList.vue'
 import TmwPluginWidget from '@/components/PluginWidget.vue'
@@ -68,14 +68,12 @@ import * as _ from 'lodash'
 import { useRouter } from 'vue-router'
 
 const COMPACT = computed(() => COMPACT_MODE())
-const DbLabel = computed(() => LABEL('database', '数据库'))
 
 const router = useRouter()
 
 const store = facStore()
 
 // 查找条件下拉框分页包含记录数
-const LIST_DB_PAGE_SIZE = 100
 
 const props = defineProps({ bucketName: String })
 
@@ -87,7 +85,7 @@ const listDbByKw = (keyword: any) => {
   criteria.dbBatch = store.listDatabase({
     bucket: props.bucketName,
     keyword: keyword,
-    size: LIST_DB_PAGE_SIZE
+    size: PAGINATION_DB_SIZE()
   })
 }
 const createDb = () => {
