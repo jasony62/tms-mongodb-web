@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "useDefineForClassFields": true,
+    "forceConsistentCasingInFileNames": true,
     "module": "esnext",
     "moduleResolution": "node",
     "strict": true,
@@ -12,6 +13,8 @@
     "esModuleInterop": false,
     "lib": ["esnext", "dom"],
     "skipLibCheck": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
     "baseUrl": "./",
     "paths": {
       "@/*": ["./src/*"]

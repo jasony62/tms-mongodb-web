@@ -79,7 +79,6 @@ RUN echo VITE_BASE_URL=$vite_plugin_base_url >> /usr/src/tmw/ue_plugin/.env
 RUN cd /usr/src/tmw/ue_plugin && pnpm build
 
 # 生成运行镜像
-
 FROM node:16.15-alpine3.15 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
   && apk update && apk add bash tzdata \

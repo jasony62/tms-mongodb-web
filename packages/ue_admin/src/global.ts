@@ -13,7 +13,7 @@ type Globalsettings = {
   manual?: any // 在线用户手册
   labels?: { [k: string]: string } // 标题定义
   replica: boolean // 是否开启全量复制定义
-  pagination?: { [k: string]: {[k: string]: number} } // 每页条数
+  pagination?: { [k: string]: { [k: string]: number } } // 分页参数
 }
 
 let _globalsettings: Globalsettings = {
@@ -245,8 +245,11 @@ export function parseLocation(url: string): any | null {
   }
 }
 
-export const PAGINATION_DB_SIZE = () => _globalsettings.pagination?.database?.size || 100
+export const PAGINATION_DB_SIZE = () =>
+  _globalsettings.pagination?.database?.size || 100
 
-export const PAGINATION_COL_SIZE = () => _globalsettings.pagination?.collection?.size || 100
+export const PAGINATION_COL_SIZE = () =>
+  _globalsettings.pagination?.collection?.size || 100
 
-export const PAGINATION_DOC_SIZE = () => _globalsettings.pagination?.document?.size || 100
+export const PAGINATION_DOC_SIZE = () =>
+  _globalsettings.pagination?.document?.size || 100
