@@ -35,14 +35,22 @@ class ImportPlugin extends PluginBase {
   }
 
   async execute(ctrl: any) {
-    let { file, fileName, headers: sheetHeader } = ctrl.request.body.widget
+    let { file, fileName, clName, headers: headersName, headersTitle } = ctrl.request.body.widget
     const dbName = ctrl.request.query.db
 
     if (!file) return { code: 10001, msg: '文件上传失败' }
 
     if (!fileName) return { code: 10001, msg: '解析上传的文件名称失败' }
     fileName = fileName.substr(0, fileName.lastIndexOf('.'))
-    debug(`默认以文件名【${fileName}】做为文档列定义和集合的名称`)
+    debug(`默认以文件名【${fileName}】做为文档列定义和集合的标题`)
+
+    if (new RegExp('^[a-zA-Z]+[0-9a-zA-Z_]{0,63}$').test(clName) !== true)
+      return { code: 10001, msg: '集合名必须以英文字母开头，仅限英文字母或_或数字组合，且最长64位' }
+
+    for(const name of headersName) {
+      if (new RegExp('[\u4E00-\u9FA5]+').test(name) == true)
+        return { code: 10001, msg: '指定的列定义名称不能包含中文' }
+    }
 
     const modelDb = new ModelDb(ctrl.mongoClient, ctrl.bucket, ctrl.client)
     const existDb = await modelDb.byName(dbName)
@@ -53,33 +61,43 @@ class ImportPlugin extends PluginBase {
     const [existFlag, existResult] = await this.schemaByName(
       ctrl,
       existDb,
-      fileName
+      clName
     )
     if (!existFlag) return { code: 10001, msg: existResult }
 
     let rowsJson = JSON.parse(file)
     if (!Array.isArray(rowsJson) || rowsJson.length === 0)
       return { code: 10001, msg: '上传的文件数据为空或格式错误' }
+    
+    // if (headersTitle) delete rowsJson[0]
 
     // 创建文档列定义
     const [schemaFlag, schemaRst] = await this.createDocSchema(
       ctrl,
       existDb,
-      fileName,
-      sheetHeader
+      {
+        clName,
+        "clTitle": fileName,
+        headersName,
+        headersTitle
+      }
     )
     if (!schemaFlag) return { code: 10001, msg: schemaRst }
     debug(`创建了文档列定义[id=${schemaRst}]`)
 
+    // 创建集合
     const [clFlag, clRst] = await this.createCl(
       ctrl,
       existDb,
-      fileName,
-      schemaRst
+      {
+        clName,
+        title: fileName,
+        schema_id: schemaRst
+      }
     )
     if (!clFlag) return { code: 10001, msg: clRst }
     debug(
-      `创建集合对象[db.name=${existDb.name}][db.sysname=${existDb.sysname}][name=${fileName}][sysname=${fileName}]`
+      `创建集合对象[db.name=${existDb.name}][db.sysname=${existDb.sysname}][name=${clName}][sysname=${clName}]`
     )
 
     const modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
@@ -112,11 +130,11 @@ class ImportPlugin extends PluginBase {
         finishRows = beforeRst.rewrited
 
       // 数据存储到集合中
-      const rst = await this.findSysColl(ctrl, existDb, fileName)
+      const rst = await this.findSysColl(ctrl, existDb, clName)
         .insertMany(finishRows)
         .then(async (r) => {
-          debug(`导入的数据已存储到[db=${existDb.name}][cl=${fileName}]`)
-          await modelDoc.dataActionLog(r.ops, '创建', existDb.name, fileName)
+          debug(`导入的数据已存储到[db=${existDb.name}][cl=${clName}]`)
+          await modelDoc.dataActionLog(r.ops, '创建', existDb.name, clName)
           return finishRows
         })
 
@@ -144,18 +162,18 @@ class ImportPlugin extends PluginBase {
     return cl
   }
 
-  private findSysColl(ctrl, existDb, fileName) {
+  private findSysColl(ctrl, existDb, clName) {
     let { mongoClient } = ctrl
-    let sysCl = mongoClient.db(existDb.sysname).collection(fileName)
+    let sysCl = mongoClient.db(existDb.sysname).collection(clName)
 
     return sysCl
   }
   /**
    * 按名称查找文档列定义
    */
-  async schemaByName(ctrl, existDb, fileName) {
+  async schemaByName(ctrl, existDb, clName) {
     const find: any = {
-      name: fileName,
+      name: clName,
       type: 'schema',
     }
     if (existDb) find['db.sysname'] = existDb.sysname
@@ -171,7 +189,7 @@ class ImportPlugin extends PluginBase {
   /**
    * 新建文档列定义
    */
-  async createDocSchema(ctrl, existDb, fileName, info) {
+  async createDocSchema(ctrl, existDb, info) {
     /**
      * 文档定义模板
      */
@@ -189,12 +207,24 @@ class ImportPlugin extends PluginBase {
         properties: {},
       },
       type: 'schema',
-      order: 99999,
-      // TMW_CREATE_TIME,
+      order: 99999
     }
 
+    const {
+      clName: schemaName,
+      clTitle: schemaTitle,
+      headersName,
+      headersTitle
+    } = info
+
+    let mergeObj = {}
+    headersName.map((v, i) => {
+      mergeObj[headersName[i]] = headersTitle && headersTitle[i] ? headersTitle[i] : headersName[i]
+    })
+
     let properties = {}
-    for (const k of info) {
+    for (const k of headersName) {
+      if (!k) continue
       if (k.indexOf('.') > -1) {
         const childKey = k.split('.')
         const setKey = []
@@ -224,12 +254,12 @@ class ImportPlugin extends PluginBase {
           }
         }
       } else {
-        properties[k] = { type: 'string', title: k }
+        properties[k] = { type: 'string', title: mergeObj[k] }
       }
     }
 
-    tpl.name = fileName
-    tpl.title = fileName
+    tpl.name = schemaName
+    tpl.title = schemaTitle
     if (existDb) {
       tpl.db = { sysname: existDb.sysname, name: existDb.name }
     }
@@ -245,7 +275,7 @@ class ImportPlugin extends PluginBase {
   /**
    * 新建集合
    */
-  async createCl(ctrl, existDb, fileName, schema_id) {
+  async createCl(ctrl, existDb, info) {
     // 创建集合
     const modelCl = new ModelCl(ctrl.mongoClient, ctrl.bucket, ctrl.client)
     /**
@@ -269,8 +299,11 @@ class ImportPlugin extends PluginBase {
         },
       },
     }
-    clTpl.name = fileName
-    clTpl.sysname = fileName
+
+    const { clName, title, schema_id } = info
+    clTpl.name = clName
+    clTpl.sysname = clName
+    clTpl.title = title
     clTpl.schema_id = schema_id
     return await modelCl.create(existDb, clTpl)
   }
