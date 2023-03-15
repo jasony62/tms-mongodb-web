@@ -41,9 +41,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref } from "vue";
 import * as XLSX from 'xlsx';
-import { ElMessage, ElMessageBox, FormRules } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 const executed = ref(false);
 const responseContent = ref<string>("");

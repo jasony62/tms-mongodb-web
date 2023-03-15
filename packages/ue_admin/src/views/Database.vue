@@ -11,7 +11,7 @@
     <div class="flex flex-row gap-2">
       <!--left-->
       <div class="flex flex-col gap-4" :class="COMPACT ? 'w-full' : 'w-4/5'">
-        <el-table :data="store.collections" stripe @selection-change="changeClSelect">
+        <el-table :data="store.collections" row-key="_id" stripe @selection-change="changeClSelect">
           <el-table-column type="selection" width="48"></el-table-column>
           <el-table-column label="集合名称">
             <template #default="scope">

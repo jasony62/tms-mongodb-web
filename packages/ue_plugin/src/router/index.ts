@@ -7,7 +7,7 @@ import DocCreateAccount from '@/views/DocCreateAccount.vue'
 import DocManageAccount from '@/views/DocManageAccount.vue'
 import DbAdmin from '@/views/DbAdmin.vue'
 import DocExport from '@/views/DocExport.vue'
-import ClImport from '@/views/ClImport.vue'
+import ClImport from '@/views/ClImport2.vue'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
   ? import.meta.env.VITE_BASE_URL
