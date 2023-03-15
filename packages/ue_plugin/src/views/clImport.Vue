@@ -1,6 +1,24 @@
 <template>
   <div class="flex flex-col gap-4 h-full w-full">
-    <el-form>
+    <el-form label-position="top">
+      <el-form-item label="列名称（英文）行号">
+        <div>
+          <el-input-number v-model="nameRow" :step="1" :min="1" disabled step-strictly />
+          <div class="el-upload__tip">* 默认按顺序以英文字母作为列名称</div>
+        </div>
+      </el-form-item>
+      <el-form-item label="列标题名称（中文）行号">
+        <div>
+          <el-input-number v-model="titleRow" :step="1" step-strictly />
+          <div class="el-upload__tip">* 默认与列名称一致</div>
+        </div>
+      </el-form-item>
+      <el-form-item label="集合名称">
+        <div>
+          <el-input v-model="clName"></el-input>
+          <div class="el-upload__tip">* 应符合集合名称（英文）规则</div>
+        </div>
+      </el-form-item>
       <el-form-item>
         <el-upload ref="upload" :action="''" :http-request="handleUpload" :file-list="fileList" :auto-upload="false"
           :limit="1" :on-change="handleChange">
@@ -11,7 +29,7 @@
         </el-upload>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="onExecute('upload')" :disabled="noUpload">执行</el-button>
+        <el-button type="primary" @click="onExecute" :disabled="noUpload">执行</el-button>
         <el-button @click="onCancel" v-if="!executed">取消</el-button>
         <el-button @click="onClose" v-if="executed">关闭</el-button>
       </el-form-item>
@@ -23,15 +41,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, reactive } from "vue";
 import * as XLSX from 'xlsx';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox, FormRules } from 'element-plus';
 
 const executed = ref(false);
 const responseContent = ref<string>("");
 const fileList = ref([]);
 const upload = ref<any>(null)
 const noUpload = ref(true)
+
+const nameRow = ref(1)
+const titleRow = ref()
+const clName = ref("")
 
 enum PluginWidgetAction {
   Created = "Created",
@@ -89,13 +111,22 @@ function handleUpload(req: any) {
     const wb = XLSX.read(fileData, { type: 'binary' })
     const firstSheetName = wb.SheetNames[0]
     const sh = wb.Sheets[firstSheetName]
-    let rowsJson = XLSX.utils.sheet_to_json(sh)
-    let sheetHeader = XLSX.utils.sheet_to_json(sh, { header: 1 })[0]
+    let data = XLSX.utils.sheet_to_json(sh)
+    const excelJson = XLSX.utils.sheet_to_json(sh, { header: 1 })
+    const headersName = nameRow.value ? excelJson[nameRow.value - 1] : excelJson[0]
+    const headersTitle = titleRow.value ? excelJson[titleRow.value - 1] : null
+    data = headersTitle ? data.slice(1) : data
 
-    if (Caller && typeof rowsJson === 'object') {
+    if (Caller && typeof data === 'object') {
       const message: PluginWidgetResult = {
         action: PluginWidgetAction.Execute,
-        result: { file: JSON.stringify(rowsJson), headers: sheetHeader, fileName: req.file.name },
+        result: {
+          file: JSON.stringify(data),
+          fileName: req.file.name,
+          headers: headersName,
+          headersTitle,
+          clName: clName.value
+        },
         applyAccessTokenField: "url",
       };
       try {
@@ -109,7 +140,11 @@ function handleUpload(req: any) {
   }
 }
 
-function onExecute(action: string) {
+function onExecute() {
+  const reg = /^[a-zA-z]/
+  if (!reg.test(clName.value)) {
+    return ElMessageBox.alert('请输入以英文字母开头的集合名称')
+  }
   if (!noUpload.value) upload.value?.submit()
 }
 
