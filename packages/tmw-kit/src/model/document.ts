@@ -354,6 +354,39 @@ class Document extends Base {
     }
   }
   /**
+   * 替换指定id的文档
+   *
+   * 如果更新的是从集合中的数据，改为更新主集合中的数据
+   *
+   * @param {object} existCl - 文档对象所在集合
+   * @param {string} id - 文档对象id
+   * @param {object} newDoc - 替换的数据
+   *
+   * @returns {boolean} 是否替换成功
+   */
+  async replace(existCl, id: string, newDoc: any) {
+    let mongoClient = this.mongoClient
+    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+    if (existCl.usage !== 1) {
+      return sysCl
+        .replaceOne({ _id: new ObjectId(id) }, newDoc)
+        .then(({ modifiedCount }) => modifiedCount === 1)
+    } else {
+      let __pri
+      if (newDoc.__pri) {
+        __pri = newDoc.__pri
+      } else {
+        let doc = await sysCl.findOne({ _id: new ObjectId(id) })
+        if (!doc) return false
+        __pri = doc.__pri
+      }
+      let priCl = mongoClient.db(__pri.db).collection(__pri.cl)
+      return priCl
+        .replaceOne({ _id: new ObjectId(__pri.id) }, newDoc)
+        .then(({ modifiedCount }) => modifiedCount === 1)
+    }
+  }
+  /**
    * 模糊搜索数据
    * @param {object} existCl
    * @param {object} [options={}]

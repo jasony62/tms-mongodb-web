@@ -87,7 +87,7 @@ export default {
     }
     const base = BACK_API_URL() + '/admin/document'
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/update`, updated, { params })
+      .post(`${base}/replace`, updated, { params })
       .then((rst: ApiRst) => rst.data.result)
   },
   remove(bucket: any, dbName: string, clName: string, id: string) {

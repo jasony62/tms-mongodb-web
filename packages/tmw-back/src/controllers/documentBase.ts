@@ -241,6 +241,73 @@ class DocBase extends Base {
     return new ResultData(newDoc)
   }
   /**
+   * 替换指定数据库指定集合下的文档
+   */
+  async replace() {
+    const existCl = await this.docHelper.findRequestCl()
+    const { name: clName, schema_id } = existCl
+
+    const { id } = this.request.query
+
+    let existDoc = await this.modelDoc.byId(existCl, id)
+    if (!existDoc) return new ResultFault('要更新的文档不存在')
+
+    let newDoc = this.request.body
+    const docSchema = await this.getDocSchema(schema_id)
+    if (!docSchema || typeof docSchema !== 'object')
+      throw Error(
+        `在集合${existCl.name}/${existCl.sysname}更新文档时，没有提供schema`
+      )
+
+    // 加工数据
+    this.modelDoc.processBeforeStore(newDoc, 'update', docSchema, existDoc)
+
+    // 通过webhook处理数据
+    let beforeRst = await this.docWebhook.beforeUpdate(
+      { _id: id, ...newDoc },
+      existCl
+    )
+    if (beforeRst.passed !== true)
+      return new ResultFault(
+        beforeRst.reason || '操作被Webhook.afterUpdate阻止'
+      )
+    if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
+      newDoc = beforeRst.rewrited
+
+    let updated = _.omit(newDoc, ['_id', 'bucket'])
+    const isOk = await this.modelDoc.replace(existCl, id, updated)
+
+    if (!isOk) return new ResultFault('更新文档失败')
+
+    // 日志
+    if (this.tmwConfig.TMW_APP_DATA_ACTION_LOG === 'Y') {
+      let beforeDoc = {}
+      beforeDoc[existDoc._id] = beforeDoc
+      this.modelDoc.dataActionLog(
+        newDoc,
+        '修改',
+        existCl.db.name,
+        clName,
+        '',
+        '',
+        beforeDoc
+      )
+    }
+
+    // 通过webhook处理数据
+    let afterRst = await this.docWebhook.afterUpdate(
+      { _id: id, ...newDoc },
+      existCl
+    )
+    if (afterRst.passed !== true)
+      return new ResultFault(afterRst.reason || '操作被Webhook.afterUpdate阻止')
+
+    if (afterRst.rewrited && typeof afterRst.rewrited === 'object')
+      newDoc = afterRst.rewrited
+
+    return new ResultData(newDoc)
+  }
+  /**
    * 获得指定数据库指定集合下的文档
    */
   async list() {
