@@ -8,10 +8,10 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 RUN npm config set registry https://registry.npmmirror.com
 
 # 安装基础包
-RUN npm install --location=global pnpm typescript
+RUN npm install --location=global pnpm typescript@4.6.4
 
-# # 安装sharp包需要的工具
-# RUN apk add python3 make
+# 安装sharp包需要的工具
+RUN apk add python3 make g++
 # # 解决sharp依赖的libvips包下载慢的问题
 # COPY ../docker/back/npmlibs/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br /root/.npm/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br
 
@@ -26,7 +26,8 @@ RUN cd /usr/src/tmw/data && pnpm i --strict-peer-dependencies=false && pnpm buil
 ## kit
 COPY ../packages/tmw-kit /usr/src/tmw/kit
 RUN sed -i 's/"tmw-data": "workspace:\*"/"tmw-data": "file:\.\.\/data"/g' /usr/src/tmw/kit/package.json
-RUN cd /usr/src/tmw/kit && pnpm i --strict-peer-dependencies=false && pnpm build 
+### 不单独安装better-sqlite3会失败
+RUN cd /usr/src/tmw/kit && pnpm add better-sqlite3 && pnpm i --strict-peer-dependencies=false && pnpm build 
 # ### 去掉不必要的依赖包
 # RUN rm -rf /usr/src/tmw/kit/node_modules
 # RUN cd /usr/src/tmw/kit && pnpm i --production --strict-peer-dependencies=false
@@ -34,7 +35,8 @@ RUN cd /usr/src/tmw/kit && pnpm i --strict-peer-dependencies=false && pnpm build
 ## plugin
 COPY ../packages/plugins /usr/src/tmw/plugins
 RUN sed -i 's/"tmw-kit": "workspace:\*"/"tmw-kit": "file:\.\.\/kit"/g' /usr/src/tmw/plugins/package.json
-RUN cd /usr/src/tmw/plugins && pnpm i --strict-peer-dependencies=false && pnpm build 
+### 不单独安装better-sqlite3会失败
+RUN cd /usr/src/tmw/plugins && pnpm add better-sqlite3 && pnpm i --strict-peer-dependencies=false && pnpm build 
 ### 去掉不必要的依赖包
 # RUN rm -rf /usr/src/tmw/plugins/node_modules
 # RUN cd /usr/src/tmw/plugins && pnpm i --production --strict-peer-dependencies=false
@@ -43,7 +45,8 @@ RUN cd /usr/src/tmw/plugins && pnpm i --strict-peer-dependencies=false && pnpm b
 COPY ../packages/tmw-back/package.json /usr/src/tmw/back/package.json
 RUN sed -i 's/"tmw-data": "workspace:\*"/"tmw-data": "file:\.\.\/data"/g' /usr/src/tmw/back/package.json
 RUN sed -i 's/"tmw-kit": "workspace:\*"/"tmw-kit": "file:\.\.\/kit"/g' /usr/src/tmw/back/package.json
-RUN cd /usr/src/tmw/back && pnpm i --strict-peer-dependencies=false
+### 不单独安装better-sqlite3会失败
+RUN cd /usr/src/tmw/back && pnpm add better-sqlite3 && pnpm i --strict-peer-dependencies=false
 
 ## ue_admin安装依赖包
 COPY ../packages/ue_admin/package.json /usr/src/tmw/ue_admin/package.json
@@ -53,7 +56,7 @@ RUN cd /usr/src/tmw/ue_admin && pnpm i --strict-peer-dependencies=false
 COPY ../packages/ue_plugin/package.json /usr/src/tmw/ue_plugin/package.json
 RUN cd /usr/src/tmw/ue_plugin && pnpm i --strict-peer-dependencies=false
 
-# 编译源代码
+# 编译源代码（先安装包再编译是为了提高效率）
 ## back
 COPY ../packages/tmw-back /usr/src/tmw/back
 RUN sed -i 's/"tmw-data": "workspace:\*"/"tmw-data": "file:\.\.\/data"/g' /usr/src/tmw/back/package.json
@@ -62,7 +65,7 @@ RUN cd /usr/src/tmw/back && pnpm build
 
 ### 去掉不必要的包，重新安装生产版本的包
 # RUN rm -rf /usr/src/tmw/back/node_modules
-RUN cd /usr/src/tmw/back && pnpm i --production --strict-peer-dependencies=false
+RUN cd /usr/src/tmw/back && pnpm add better-sqlite3 && pnpm i --production --strict-peer-dependencies=false
 # RUN cd /usr/src/tmw/back/node_modules/tmw-data && pnpm i --production --strict-peer-dependencies=false
 # RUN cd /usr/src/tmw/back/node_modules/tmw-kit && pnpm i --production --strict-peer-dependencies=false
 
