@@ -74,6 +74,8 @@ COPY ../packages/ue_admin /usr/src/tmw/ue_admin
 ARG vite_admin_base_url
 RUN echo VITE_BASE_URL=$vite_admin_base_url >> /usr/src/tmw/ue_admin/.env
 RUN cd /usr/src/tmw/ue_admin && pnpm build
+### 建立空的前端配置文件
+RUN echo '{}' >> /usr/src/tfd/ue/dist/${vite_base_url:-admin}/settings.json
 
 ## ue_plugin
 COPY ../packages/ue_plugin /usr/src/tmw/ue_plugin
