@@ -26,13 +26,13 @@ export class ZipCtrl {
     const tmsFs = new LocalFS(Context, this['domain'])
     const uploadObj = new Upload(tmsFs)
 
-    dir = dir ? tmsFs.fullpath(dir) : ''
+    dir = dir ? tmsFs.pathWithRoot(dir) : ''
 
     // 导出目录
     fileName = fileName ? fileName : uploadObj.autoname() + '.zip'
     let filePath = dir
       ? PATH.join(dir, fileName)
-      : tmsFs.fullpath(PATH.join(uploadObj.autodir(), fileName))
+      : tmsFs.pathWithRoot(PATH.join(uploadObj.autodir(), fileName))
     if (forceReplace === 'N') {
       // 如果文件已经存在
       if (fs.existsSync(filePath)) {
@@ -53,7 +53,7 @@ export class ZipCtrl {
     // 打包成zip
     this.zipByArchive(space)
 
-    return [true, tmsFs.publicPath(filePath)]
+    return [true, tmsFs.pathWithPrefix(filePath)]
   }
   /**
    * 打包工具-archiver

@@ -107,6 +107,7 @@
 </style>
 
 <script setup lang="ts">
+// @ts-nocheck
 import { computed, nextTick, ref, inject, watch, onMounted } from 'vue'
 import TmsJsonDoc, { Field, DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
@@ -245,7 +246,6 @@ const onJdocFocus = (field: Field) => {
         if (elJsonEditor.value) {
           let child = elJsonEditor.value.querySelector('.jsoneditor')
           if (child) elJsonEditor.value.removeChild(child)
-          // @ts-ignore
           jsonEditor = new JSONEditor(elJsonEditor.value, options)
           let fieldValue = elJdeDoc.value?.editDoc.get(field.fullname)
           jsonEditor.set(fieldValue ?? '')

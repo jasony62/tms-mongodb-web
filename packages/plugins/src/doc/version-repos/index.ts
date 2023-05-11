@@ -88,7 +88,7 @@ class LocalFsRepos {
     }
     let filepath =
       path.join(filedir, filename) + '.' + (config.extensionName ?? 'json')
-    let fullpath = path.join(tmsFs.rootDir, filepath)
+    let fullpath = path.join(tmsFs.appRootDir, filepath)
     /**
      * 检查文件是否存在，如果存在，已有文件作为历史版本
      */
@@ -141,7 +141,7 @@ class LocalFsRepos {
     if (config.field && typeof config.field === 'string') {
       filedir = path.join(filedir, config.field)
     }
-    let fulldir = path.join(tmsFs.rootDir, filedir)
+    let fulldir = path.join(tmsFs.appRootDir, filedir)
     /**
      * 检查文件是否存在，如果存在，已有文件作为历史版本
      */

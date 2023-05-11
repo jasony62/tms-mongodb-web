@@ -32,13 +32,13 @@ export function exportJSON(Context, domain, data, fileName, options) {
   const uploadObj = new Upload(tmsFs)
 
   let { forceReplace = 'Y', dir = '', outAmount } = options
-  dir = dir ? tmsFs.fullpath(dir) : ''
+  dir = dir ? tmsFs.pathWithRoot(dir) : ''
 
   // 导出目录
   fileName = fileName ? fileName : uploadObj.autoname() + '.zip'
   let filePath = dir
     ? PATH.join(dir, fileName)
-    : tmsFs.fullpath(PATH.join(uploadObj.autodir(), fileName))
+    : tmsFs.pathWithRoot(PATH.join(uploadObj.autodir(), fileName))
 
   if (forceReplace === 'N') {
     // 如果文件已经存在
@@ -63,5 +63,5 @@ export function exportJSON(Context, domain, data, fileName, options) {
   // 打包成zip
   zipByArchive(space)
 
-  return tmsFs.publicPath(filePath)
+  return tmsFs.pathWithPrefix(filePath)
 }

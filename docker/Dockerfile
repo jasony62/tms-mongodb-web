@@ -7,6 +7,9 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 # 修改npm源
 RUN npm config set registry https://registry.npmmirror.com
 
+RUN npm config set sharp_binary_host https://npmmirror.com/mirrors/sharp
+RUN npm config set sharp_libvips_binary_host https://npmmirror.com/mirrors/sharp-libvips
+
 # 安装基础包
 RUN npm install --location=global pnpm typescript@4.6.4
 
@@ -75,7 +78,7 @@ ARG vite_admin_base_url
 RUN echo VITE_BASE_URL=$vite_admin_base_url >> /usr/src/tmw/ue_admin/.env
 RUN cd /usr/src/tmw/ue_admin && pnpm build
 ### 建立空的前端配置文件
-RUN echo '{}' >> /usr/src/tfd/ue/dist/${vite_base_url:-admin}/settings.json
+RUN mkdir -p /usr/src/tfd/ue/dist/${vite_base_url:-admin} && echo '{}' >> /usr/src/tfd/ue/dist/${vite_base_url:-admin}/settings.json
 
 ## ue_plugin
 COPY ../packages/ue_plugin /usr/src/tmw/ue_plugin

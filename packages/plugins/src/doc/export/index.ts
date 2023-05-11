@@ -12,8 +12,7 @@ const ConfigDir = path.resolve(
 
 // 插件配置文件地址
 const ConfigFile =
-  process.env.TMW_PLUGIN_DOC_EXPORT_CONFIG_NAME ||
-  './plugin/doc/export'
+  process.env.TMW_PLUGIN_DOC_EXPORT_CONFIG_NAME || './plugin/doc/export'
 
 /**
  * 将集合中的文档数据导出为json或者excel文件
@@ -42,7 +41,7 @@ class ExportPlugin extends PluginBase {
 
     // 文件名同时也做为目录名
     const { name: fileName, schema_id } = tmwCl
-    let filePath = tmsFs.fullpath(fileName)
+    let filePath = tmsFs.pathWithRoot(fileName)
 
     if (fs.existsSync(filePath)) {
       fs.rmSync(filePath, { recursive: true })
@@ -56,7 +55,7 @@ class ExportPlugin extends PluginBase {
 
       leafLevel = leafLevel ? leafLevel : 0
       filePath = path.join(filePath, `${fileName}.xlsx`)
-      
+
       // 集合的schema定义
       const modelSchema = new ModelSchema(
         ctrl.mongoClient,
@@ -67,14 +66,18 @@ class ExportPlugin extends PluginBase {
       if (schema_id && typeof schema_id === 'string')
         docSchema = await modelSchema.bySchemaId(schema_id)
 
-      const schemaIter = new SchemaIter({ type: 'object', properties: docSchema })
+      const schemaIter = new SchemaIter({
+        type: 'object',
+        properties: docSchema,
+      })
       let newDocs = []
       docsOrCause.forEach((doc) => {
         let middleAry = {}
         for (let schemaProp of schemaIter) {
           const { fullname, _path, _name } = schemaProp
           if (!_name) continue
-          if (leafLevel > 0 && fullname.split(/\./g).length-1 >= leafLevel) continue
+          if (leafLevel > 0 && fullname.split(/\./g).length - 1 >= leafLevel)
+            continue
           let val = _.get(doc, fullname)
           if (!val) continue
           if (typeof val === 'object') val = JSON.stringify(val)
@@ -89,7 +92,7 @@ class ExportPlugin extends PluginBase {
       XLSX.utils.book_append_sheet(wb, ws)
       XLSX.writeFile(wb, filePath)
 
-      url = tmsFs.publicPath(filePath)
+      url = tmsFs.pathWithPrefix(filePath)
     } else if (outType === 'json') {
       url = exportJSON(
         ctrl.tmsContext,
@@ -98,7 +101,7 @@ class ExportPlugin extends PluginBase {
         `${fileName}.zip`,
         {
           dir: fileName,
-          outAmount
+          outAmount,
         }
       )
     }
@@ -111,8 +114,18 @@ export function createPlugin(file: string) {
   let config
   if (ConfigFile) config = loadConfig(ConfigDir, ConfigFile)
   if (config && typeof config === 'object') {
-    let { widgetUrl, bucket, db, cl, schema, title,
-      disabled, dbBlacklist, clBlacklist, schemaBlacklist } = config
+    let {
+      widgetUrl,
+      bucket,
+      db,
+      cl,
+      schema,
+      title,
+      disabled,
+      dbBlacklist,
+      clBlacklist,
+      schemaBlacklist,
+    } = config
     const newPlugin = new ExportPlugin(file)
     newPlugin.beforeWidget.url = widgetUrl
 
