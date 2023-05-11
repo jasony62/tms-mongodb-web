@@ -44,6 +44,12 @@
         <handlebars-viz ref="elTtvField" :vars-root-name="'vars'" :vars="templateVars"
           :template-text="activeFieldValue" />
       </div>
+      <div v-if="isXmlField" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
+        <div class="w-full">{{ activeFieldValue }}</div>
+      </div>
+      <div v-if="isYamlField" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
+        <div class="w-full">{{ activeFieldValue }}</div>
+      </div>
       <div class="h-full flex flex-col gap-2 relative" :class="isJsonField || isHandlebarsField ? 'w-1/3' : 'w-2/3'">
         <div class="absolute top-0 right-0" style="z-index: 999">
           <el-button @click="diagram">图形</el-button>
@@ -176,6 +182,28 @@ const isJsonField = computed(() => {
 const isHandlebarsField = computed(() => {
   if (activeField.value?.schemaType === 'string') {
     if (['mustache', 'handlebars'].includes(activeField.value.schemaProp.attrs?.format)) {
+      return true
+    }
+  }
+  return false
+})
+/**
+ * 显示xml字段辅助编辑窗口
+ */
+const isXmlField = computed(() => {
+  if (activeField.value?.schemaType === 'string') {
+    if (['xml'].includes(activeField.value.schemaProp.attrs?.format)) {
+      return true
+    }
+  }
+  return false
+})
+/**
+ * 显示xml字段辅助编辑窗口
+ */
+const isYamlField = computed(() => {
+  if (activeField.value?.schemaType === 'string') {
+    if (['yaml'].includes(activeField.value.schemaProp.attrs?.format)) {
       return true
     }
   }

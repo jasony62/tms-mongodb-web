@@ -7,6 +7,7 @@ import DocCreateAccount from '@/views/DocCreateAccount.vue'
 import DocManageAccount from '@/views/DocManageAccount.vue'
 import DbAdmin from '@/views/DbAdmin.vue'
 import DocExport from '@/views/DocExport.vue'
+import DocVersionRepos from '@/views/DocVersionRepos.vue'
 import ClImport from '@/views/ClImport.vue'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
@@ -53,6 +54,11 @@ const routes: RouteRecordRaw[] = [
     path: '/cl-import',
     name: 'clImport',
     component: ClImport,
+  },
+  {
+    path: '/doc-version-repos',
+    name: 'docVersionRepos',
+    component: DocVersionRepos,
   },
 ]
 

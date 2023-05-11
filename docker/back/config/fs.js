@@ -8,6 +8,7 @@ module.exports = {
     domains: {
       upload: { customName: isCustomName },
       download: { customName: isCustomName },
+      repos: { customName: false },
     },
     defaultDomain: 'upload',
   },
