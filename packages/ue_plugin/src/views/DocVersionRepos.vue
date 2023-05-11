@@ -1,13 +1,13 @@
 <template>
   <div class="flex flex-col gap-4 h-full w-full">
     <div>
-      <el-form size="large" label-position="right">
+      <el-form size="large" label-position="top">
         <el-form-item>
           <el-button @click="onCreateCommit">保存新版本</el-button>
           <el-button @click="onListCommit">列出已有版本</el-button>
           <el-button @click="onClose">关闭</el-button>
         </el-form-item>
-        <el-form-item label="指定字段">
+        <el-form-item label="指定保存的字段">
           <el-input v-model="userConfig.field" placeholder="请输入字段名称" />
         </el-form-item>
         <el-form-item label="指定版本文件扩展名">

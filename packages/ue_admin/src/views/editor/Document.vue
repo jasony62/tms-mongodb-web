@@ -1,5 +1,5 @@
 <template>
-  <div id="docEditor">
+  <div ref="elDocEditor" id="docEditor">
     <!--header-->
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight">
@@ -45,12 +45,19 @@
           :template-text="activeFieldValue" />
       </div>
       <div v-if="isXmlField" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
-        <div class="w-full">{{ activeFieldValue }}</div>
+        <div>
+          <el-button type="primary" @click="updateFieldValue">更新【{{ activeField?.fullname }}】</el-button>
+        </div>
+        <div ref="elXmlEditor" class="w-full border border-gray-300 rounded-md"></div>
       </div>
       <div v-if="isYamlField" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
-        <div class="w-full">{{ activeFieldValue }}</div>
+        <div>
+          <el-button type="primary" @click="updateFieldValue">更新【{{ activeField?.fullname }}】</el-button>
+        </div>
+        <div ref="elYamlEditor" class="w-full border border-gray-300 rounded-md"></div>
       </div>
-      <div class="h-full flex flex-col gap-2 relative" :class="isJsonField || isHandlebarsField ? 'w-1/3' : 'w-2/3'">
+      <div class="h-full flex flex-col gap-2 relative"
+        :class="isJsonField || isHandlebarsField || isXmlField || isYamlField ? 'w-1/3' : 'w-2/3'">
         <div class="absolute top-0 right-0" style="z-index: 999">
           <el-button @click="diagram">图形</el-button>
           <el-button @click="preview">预览</el-button>
@@ -93,11 +100,14 @@
     }
   }
 
+  .cm-editor {
+    @apply w-full;
+  }
 }
 </style>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, inject, watch } from 'vue'
+import { computed, nextTick, ref, inject, watch, onMounted } from 'vue'
 import TmsJsonDoc, { Field, DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 import { EXTERNAL_FS_URL, getLocalToken, LABEL, TEMPLATE_VARS_API_URL, TMW_APP_TAGS } from '@/global'
@@ -122,6 +132,7 @@ import PropValueEditor from '@/components/PropValueEditor.vue'
 import { useAssistant } from '@/composables/assistant'
 import { TmsAxios } from 'tms-vue3'
 import { transform } from '@/data-aid.js/transform'
+import { EditorView } from "@codemirror/view"
 
 // 系统指定的标签字段名称
 const TagsFieldName = TMW_APP_TAGS()
@@ -141,6 +152,10 @@ const { bucketName, dbName, clName, docId } = props
 const elJdeDoc = ref<{ editing: () => any; editDoc: DocAsArray } | null>(null)
 // JSON字段编辑器
 const elJsonEditor = ref<HTMLElement | null>(null)
+// XML文本编辑器
+const elXmlEditor = ref<HTMLElement | undefined>(undefined)
+// YAML文本编辑器
+const elYamlEditor = ref<HTMLElement | undefined>(undefined)
 // 模板字段编辑器
 const elTtvField = ref<{ editing: () => string } | null>(null)
 
@@ -150,6 +165,14 @@ const showFieldFullname = ref(false)
 const { toClipboard } = useClipboard()
 const activeField = ref<Field>() // 正在编辑的字段
 const jsonFieldValueChanged = ref(false)
+
+// 页面初始化
+const elDocEditor = ref<HTMLElement | null>(null)
+onMounted(() => {
+  if (elDocEditor.value) {
+    elDocEditor.value.style.width = `${elDocEditor.value.clientWidth}px`
+  }
+})
 
 // 文档字段转化规则
 const DocFieldConvertRules = computed(() =>
@@ -211,7 +234,8 @@ const isYamlField = computed(() => {
 })
 
 let jsonEditor: any = null
-
+let xmlEditor: any = null
+let yamlEditor: any = null
 const onJdocFocus = (field: Field) => {
   if (activeField.value === field) return
   activeField.value = field
@@ -225,6 +249,32 @@ const onJdocFocus = (field: Field) => {
           jsonEditor = new JSONEditor(elJsonEditor.value, options)
           let fieldValue = elJdeDoc.value?.editDoc.get(field.fullname)
           jsonEditor.set(fieldValue ?? '')
+        }
+      })
+      break
+    case field.schemaProp.attrs?.format === 'xml':
+      nextTick(() => {
+        if (elXmlEditor.value) {
+          elXmlEditor.value.childNodes.forEach(c => elXmlEditor.value?.removeChild(c))
+          let fieldValue = elJdeDoc.value?.editDoc.get(field.fullname)
+          xmlEditor = new EditorView({
+            doc: fieldValue ?? '',
+            extensions: [],
+            parent: elXmlEditor.value
+          })
+        }
+      })
+      break
+    case field.schemaProp.attrs?.format === 'yaml':
+      nextTick(() => {
+        if (elYamlEditor.value) {
+          elYamlEditor.value.childNodes.forEach(c => elYamlEditor.value?.removeChild(c))
+          let fieldValue = elJdeDoc.value?.editDoc.get(field.fullname)
+          yamlEditor = new EditorView({
+            doc: fieldValue ?? '',
+            extensions: [],
+            parent: elYamlEditor.value
+          })
         }
       })
       break
@@ -244,6 +294,18 @@ const updateFieldValue = () => {
     case /mustache|handlebars/.test(activeField.value.schemaProp.attrs?.format):
       newVal = elTtvField.value?.editing()
       elJdeDoc.value?.editDoc.set(activeField.value.fullname, newVal)
+      break
+    case /xml/.test(activeField.value.schemaProp.attrs?.format):
+      if (xmlEditor) {
+        newVal = xmlEditor.state.doc.toString()
+        elJdeDoc.value?.editDoc.set(activeField.value.fullname, newVal)
+      }
+      break
+    case /yaml/.test(activeField.value.schemaProp.attrs?.format):
+      if (yamlEditor) {
+        newVal = yamlEditor.state.doc.toString()
+        elJdeDoc.value?.editDoc.set(activeField.value.fullname, newVal)
+      }
       break
   }
 }

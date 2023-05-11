@@ -11,6 +11,7 @@
   "dependencies": {
     "@antv/layout": "^0.3.5",
     "@antv/x6": "2.4.0",
+    "@codemirror/view": "^6.11.1",
     "@element-plus/icons-vue": "^2.0.6",
     "add": "^2.0.6",
     "debug": "^4.3.4",
