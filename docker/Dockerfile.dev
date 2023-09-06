@@ -7,3 +7,5 @@ RUN npm config set registry https://registry.npmmirror.com
 # 为了后续安装扩展插件做准备。需要增加120M左右。
 ## 基础工具
 RUN npm install --location=global pnpm typescript
+## 安装sharp包需要的工具
+RUN apk add python3 make

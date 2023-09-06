@@ -40,7 +40,7 @@
       </div>
     </div>
     <div class="flex-grow flex flex-col gap-2 mt-4 mx-4 h-full">
-      <router-view :key="$route.path"></router-view>
+      <router-view :key="route.path"></router-view>
     </div>
     <assistant></assistant>
   </div>
@@ -51,6 +51,9 @@ import { computed } from 'vue';
 import Assistant from '@/components/Assistant.vue'
 import { useAssistant } from '@/composables/assistant';
 import { useMitt } from '@/composables/mitt';
+import { useRoute } from 'vue-router';
+
+const route = useRoute()
 
 const COMPACT = computed(() => COMPACT_MODE())
 const EXTRACT = computed(() => EXTRACT_MODE())
