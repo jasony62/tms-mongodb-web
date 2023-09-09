@@ -21,7 +21,7 @@
 </template>
 <script>
 import { JsonSchema as TmsJsonSchema } from 'tms-vue-ui'
-import apiSchema from '../apis/schema'
+import apiSchema from '../apis/schema.js'
 
 export default {
   name: 'SchemaEditor',
@@ -31,7 +31,7 @@ export default {
     bucketName: { type: String },
     schema: {
       type: Object,
-      default: function() {
+      default: function () {
         return { title: '', description: '', scope: '', body: {} }
       }
     }
@@ -44,7 +44,7 @@ export default {
     }
   },
   methods: {
-    onTabClick() {},
+    onTabClick() { },
     onSubmit() {
       if (this.schema._id) {
         apiSchema

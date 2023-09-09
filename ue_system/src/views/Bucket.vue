@@ -10,9 +10,9 @@
         <el-table-column label="ID" width="180">
           <template slot-scope="scope">
             <router-link :to="{
-                name: 'home',
-                params: { bucketName: scope.row.name }
-              }">{{ scope.row.name }}</router-link>
+              name: 'home',
+              params: { bucketName: scope.row.name }
+            }">{{ scope.row.name }}</router-link>
           </template>
         </el-table-column>
         <el-table-column prop="title" label="名称" width="180"></el-table-column>
@@ -36,7 +36,7 @@ import Vue from 'vue'
 import { mapState, mapMutations, mapActions } from 'vuex'
 import { Frame, Flex } from 'tms-vue-ui'
 Vue.use(Frame).use(Flex)
-import BucketEditor from '../components/BucketEditor.vue'
+import BucketEditor from '../components/BucketEditor.vue.js'
 
 export default {
   name: 'Bucket',

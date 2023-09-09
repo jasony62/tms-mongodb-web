@@ -1,12 +1,12 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import SchemaBase from '../schemaBase'
-import * as mongodb from 'mongodb'
+import SchemaBase from '../schemaBase.js'
+import mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
 /** 管理端文档列定义对象控制器 */
 class Schema extends SchemaBase {
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
   /**
    * @swagger
@@ -184,9 +184,9 @@ class Schema extends SchemaBase {
       )
     }
     const query: any = { _id: new ObjectId(id), type: 'schema' }
-    if (this.bucket) query.bucket = this.bucket.name
+    if (this.bucketObj) query.bucket = this.bucketObj.name
     return this.clMongoObj.deleteOne(query).then(() => new ResultData('ok'))
   }
 }
 
-export = Schema
+export default Schema

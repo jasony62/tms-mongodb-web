@@ -1,6 +1,6 @@
 const _ = require('lodash')
 import { ResultFault, ResultData } from 'tms-koa'
-import PluginHelper from './pluginHelper'
+import PluginHelper from './pluginHelper.js'
 import { PluginContext, ModelSchema } from 'tmw-kit'
 import { PluginProfile } from 'tmw-data'
 import { Base as CtrlBase } from 'tmw-kit/dist/ctrl'
@@ -11,8 +11,8 @@ import { Base as CtrlBase } from 'tmw-kit/dist/ctrl'
 class Plugin extends CtrlBase {
   pluginHelper
 
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
     this.pluginHelper = new PluginHelper(this)
   }
   /**
@@ -99,7 +99,7 @@ class Plugin extends CtrlBase {
         someTags,
         dbBlacklist,
         clBlacklist,
-        schemaBlacklist
+        schemaBlacklist,
       } = plugin
 
       // check black list

@@ -1,6 +1,6 @@
 import { loadConfig } from 'tmw-kit'
-import { PluginHttpSendDocs } from 'tmw-kit/dist/model/plugin'
-import * as path from 'path'
+import { PluginHttpSendDocs } from 'tmw-kit/dist/model/plugin/index.js'
+import path from 'path'
 
 /**配置文件存放位置*/
 const ConfigDir = path.resolve(
@@ -83,10 +83,10 @@ class HttpSendDocPlugin extends PluginHttpSendDocs {
  * @param file
  * @returns
  */
-export function createPlugin(file: any) {
+export async function createPlugin(file: any) {
   let config: any
 
-  if (ConfigFile) config = loadConfig(ConfigDir, ConfigFile)
+  if (ConfigFile) config = await loadConfig(ConfigDir, ConfigFile)
 
   if (config && typeof config === 'object') {
     let {
@@ -104,7 +104,7 @@ export function createPlugin(file: any) {
       dbBlacklist,
       clBlacklist,
       schemaBlacklist,
-      schema
+      schema,
     } = config
 
     // const disabled = widgetUrl && widgetUrl.indexOf('http') === 0 ? false : true
@@ -117,16 +117,32 @@ export function createPlugin(file: any) {
       // widgetUrl
       newPlugin.beforeWidget.url = widgetUrl
 
-      if (Array.isArray(disabled) && index < disabled.length && disabled[index]) {
+      if (
+        Array.isArray(disabled) &&
+        index < disabled.length &&
+        disabled[index]
+      ) {
         newPlugin.disabled = disabled[index]
       }
-      if (Array.isArray(dbBlacklist) && index < dbBlacklist.length && dbBlacklist[index]) {
+      if (
+        Array.isArray(dbBlacklist) &&
+        index < dbBlacklist.length &&
+        dbBlacklist[index]
+      ) {
         newPlugin.dbBlacklist = new RegExp(dbBlacklist[index])
       }
-      if (Array.isArray(clBlacklist) && index < clBlacklist.length && clBlacklist[index]) {
+      if (
+        Array.isArray(clBlacklist) &&
+        index < clBlacklist.length &&
+        clBlacklist[index]
+      ) {
         newPlugin.clBlacklist = new RegExp(clBlacklist[index])
       }
-      if (Array.isArray(schemaBlacklist) && index < schemaBlacklist.length && schemaBlacklist[index]) {
+      if (
+        Array.isArray(schemaBlacklist) &&
+        index < schemaBlacklist.length &&
+        schemaBlacklist[index]
+      ) {
         newPlugin.schemaBlacklist = new RegExp(schemaBlacklist[index])
       }
       if (Array.isArray(schema) && index < schema.length && schema[index]) {

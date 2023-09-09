@@ -24,7 +24,7 @@ const widgetUrl = TMW_PLUGIN_DOC_HTTP_SEND_WIDGET_URL
   ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-http-send'
   : '/plugin/doc-http-send'
 
-module.exports = {
+export default {
   disabled: Disabled ? Disabled.split(',') : [],
   dbBlacklist: DbBlacklist ? DbBlacklist.split(',') : [],
   clBlacklist: ClBlacklist ? ClBlacklist.split(',') : [],

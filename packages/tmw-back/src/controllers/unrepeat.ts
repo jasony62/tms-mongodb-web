@@ -1,6 +1,6 @@
 import * as _ from 'lodash'
-import Helper from 'tmw-kit/dist/ctrl/helper'
-import unrepeatByArray from '../tms/utilities'
+import Helper from 'tmw-kit/dist/ctrl/helper.js'
+import unrepeatByArray from '../tms/utilities.js'
 
 export default async function unrepeat(ctrl, data, transform) {
   let { columns, db: dbName, cl: clName, insert } = transform.config

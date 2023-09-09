@@ -1,6 +1,6 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import Base from 'tmw-kit/dist/ctrl/base'
-import DocumentHelper from '../documentHelper'
+import Base from 'tmw-kit/dist/ctrl/base.js'
+import DocumentHelper from '../documentHelper.js'
 import { ModelDoc, ModelSchema, makeTagsFilter, makeProjection } from 'tmw-kit'
 import Debug from 'debug'
 
@@ -11,8 +11,8 @@ class Document extends Base {
   docHelper: DocumentHelper
   modelDoc: ModelDoc
 
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
     this.docHelper = new DocumentHelper(this)
     this.modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
   }
@@ -160,7 +160,7 @@ class Document extends Base {
     //   if (schemaId) {
     //     const modelSchema = new ModelSchema(
     //       this['mongoClient'],
-    //       this['bucket'],
+    //      this.bucketObj,
     //       this['client']
     //     )
     //     const publicSchema = await modelSchema.bySchemaId(schemaId)

@@ -4,9 +4,9 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { Graph, PropertyNode, ValueNode, OwnPropertyEdge } from './x6'
+import { Graph, PropertyNode, ValueNode, OwnPropertyEdge } from './x6.js'
 import { Cell } from '@antv/x6';
-import { Builder } from './builder'
+import { Builder } from './builder.js'
 import { Field } from 'tms-vue3-ui/dist/es/json-doc';
 
 const props = defineProps({

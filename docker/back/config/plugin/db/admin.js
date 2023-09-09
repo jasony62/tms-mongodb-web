@@ -15,7 +15,7 @@ const widgetUrl = TMW_PLUGIN_DB_ADMIN_WIDGET_URL
   ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/db-admin'
   : '/plugin/db-admin'
 
-module.exports = {
+export default {
   widgetUrl,
   name: Name ? Name : 'db-admin',
   title: Title ? Title : '数据库管理',

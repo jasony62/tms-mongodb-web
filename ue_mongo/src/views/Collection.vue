@@ -3,8 +3,8 @@
     <template v-slot:header>
       <el-breadcrumb separator-class="el-icon-arrow-right">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ name: 'database', params: { dbName: dbName } }">{{dbName}}</el-breadcrumb-item>
-        <el-breadcrumb-item>{{clName}}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'database', params: { dbName: dbName } }">{{ dbName }}</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ clName }}</el-breadcrumb-item>
       </el-breadcrumb>
     </template>
     <template v-slot:center>
@@ -28,7 +28,7 @@ export default {
     clName: String
   },
   mounted() {
-    import('../../../ue_comp/src/List.vue').then(Module => {
+    import('../../../ue_comp/src/List.vue.js').then(Module => {
       Module.createAndMount(
         Vue,
         {

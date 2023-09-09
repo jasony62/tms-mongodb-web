@@ -1,5 +1,5 @@
 import { ref, toRaw } from 'vue'
-import { useAssistant } from './assistant'
+import { useAssistant } from './assistant.js'
 import * as _ from 'lodash'
 
 const elPluginWidget = ref<HTMLIFrameElement>()

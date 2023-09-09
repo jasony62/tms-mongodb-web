@@ -21,7 +21,7 @@ const widgetUrl = TMW_PLUGIN_DOC_VERSION_REPOS_WIDGET_URL
   ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-version-repos'
   : '/plugin/doc-version-repos'
 
-module.exports = {
+export default {
   disabled: !/true|yes/i.test(Enabled),
   dbBlacklist: DbBlacklist,
   clBlacklist: ClBlacklist,

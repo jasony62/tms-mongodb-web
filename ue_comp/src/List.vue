@@ -7,7 +7,8 @@
             <el-button @click="resetSelectedGroupNode" type="text">清除选择</el-button>
           </tms-flex>
         </div>
-        <el-tree ref="groupNodeTree" :highlight-current="true" :data="groupData" default-expand-all node-key="id" :props="defaultProps" @node-click="selectGroupNode">
+        <el-tree ref="groupNodeTree" :highlight-current="true" :data="groupData" default-expand-all node-key="id"
+          :props="defaultProps" @node-click="selectGroupNode">
           <span class="custom-tree-node" slot-scope="{ node, data }">
             <span>
               {{ node.label }}
@@ -18,71 +19,79 @@
       </el-card>
     </template>
     <template v-slot:center>
-      <div class="tmw-buttons" v-if="!frameDisplay.right" style="flex-direction:row-reverse;display:flex;margin-top:10px;margin-bottom:10px">
+      <div class="tmw-buttons" v-if="!frameDisplay.right"
+        style="flex-direction:row-reverse;display:flex;margin-top:10px;margin-bottom:10px">
         <div v-for="p in pluginsSub" :key="p.name">
-          <el-button v-if="p.transData==='nothing'" type="success" plain @click="handlePlugins(p)">{{p.title}}</el-button>
+          <el-button v-if="p.transData === 'nothing'" type="success" plain @click="handlePlugins(p)">{{ p.title
+          }}</el-button>
           <el-dropdown v-else>
-            <el-button type="success" plain>{{p.title}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+            <el-button type="success" plain>{{ p.title }}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(p, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
+                <el-button type="text" @click="handlePlugins(p, 'all')" :disabled="totalByAll == 0">按全部({{ totalByAll
+                }})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(p, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
+                <el-button type="text" @click="handlePlugins(p, 'filter')" :disabled="totalByFilter == 0">按筛选({{
+                  totalByFilter }})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(p, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
+                <el-button type="text" @click="handlePlugins(p, 'checked')" :disabled="totalByChecked == 0">按选中({{
+                  totalByChecked }})</el-button>
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </div>
       </div>
-      <el-table id="table" :data="documents" stripe ref="documentsTable" :max-height="tableHeight" @selection-change="handleSelectDocument">
+      <el-table id="table" :data="documents" stripe ref="documentsTable" :max-height="tableHeight"
+        @selection-change="handleSelectDocument">
         <el-table-column fixed="left" type="selection" width="55"></el-table-column>
         <el-table-column v-for="(s, k) in properties" :key="k" :prop="k">
           <template slot="header">
             <i v-if="s.description" class="el-icon-info" :title="s.description"></i>
             <i v-if="s.required" style="color:red">*</i>
-            <span>{{s.title}}</span>
+            <span>{{ s.title }}</span>
             <img src="../assets/icon_filter.png" class="icon_filter" @click="handleFilterByColumn(s, k)" />
           </template>
           <template slot-scope="scope">
-            <span v-if="s.type==='boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
-            <span v-else-if="s.type==='array'&& s.items && s.items.format==='file'">
+            <span v-if="s.type === 'boolean'">{{ scope.row[k] ? '是' : '否' }}</span>
+            <span v-else-if="s.type === 'array' && s.items && s.items.format === 'file'">
               <span v-for="(i, v) in scope.row[k]" :key="v">
-                <a href="#" @click="handleDownload(i)">{{i.name}}</a>
+                <a href="#" @click="handleDownload(i)">{{ i.name }}</a>
                 <br />
               </span>
             </span>
             <span v-else-if="s.type === 'array' && s.enum && s.enum.length">
               <span v-if="s.enumGroups && s.enumGroups.length">
                 <span v-for="(g, i) in s.enumGroups" :key="i">
-                  <span v-if="scope.row[g.assocEnum.property]===g.assocEnum.value">
+                  <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value">
                     <span v-for="(e, v) in s.enum" :key="v">
-                      <span v-if="e.group===g.id && scope.row[k] && scope.row[k].length && scope.row[k].includes(e.value)">{{e.label}}&nbsp;</span>
+                      <span
+                        v-if="e.group === g.id && scope.row[k] && scope.row[k].length && scope.row[k].includes(e.value)">{{
+                          e.label }}&nbsp;</span>
                     </span>
                   </span>
                 </span>
               </span>
               <span v-else>
                 <span v-for="(i, v) in s.enum" :key="v">
-                  <span v-if="scope.row[k] && scope.row[k].includes(i.value)">{{i.label}}&nbsp;</span>
+                  <span v-if="scope.row[k] && scope.row[k].includes(i.value)">{{ i.label }}&nbsp;</span>
                 </span>
               </span>
             </span>
             <span v-else-if="s.type === 'string' && s.enum && s.enum.length">
               <span v-if="s.enumGroups && s.enumGroups.length">
                 <span v-for="(g, i) in s.enumGroups" :key="i">
-                  <span v-if="scope.row[g.assocEnum.property]===g.assocEnum.value">
+                  <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value">
                     <span v-for="(e, v) in s.enum" :key="v">
-                      <span v-if="e.group===g.id && scope.row[k] === e.value">{{e.label}}</span>
+                      <span v-if="e.group === g.id && scope.row[k] === e.value">{{ e.label }}</span>
                     </span>
                   </span>
                 </span>
               </span>
               <span v-else>
                 <span v-for="(i, v) in s.enum" :key="v">
-                  <span v-if="scope.row[k] === i.value">{{i.label}}</span>
+                  <span v-if="scope.row[k] === i.value">{{ i.label }}</span>
                 </span>
               </span>
             </span>
@@ -94,15 +103,19 @@
             <el-button v-if="docOperations.edit" size="mini" @click="editDocument(scope.row)">修改</el-button>
             <el-button v-if="docOperations.remove" size="mini" @click="removeDocument(scope.row)">删除</el-button>
             <div v-for="p in pluginsCenter" :key="p.name">
-              <el-button size="mini" v-if="p.visible && scope.row[p.visible.key] === p.visible.value" type="success" plain @click="handlePlugins(p, scope.row)">{{p.title}}</el-button>
-              <el-button v-if="!p.visible" size="mini" type="success" plain @click="handlePlugins(p, scope.row)">{{p.title}}</el-button>
+              <el-button size="mini" v-if="p.visible && scope.row[p.visible.key] === p.visible.value" type="success" plain
+                @click="handlePlugins(p, scope.row)">{{ p.title }}</el-button>
+              <el-button v-if="!p.visible" size="mini" type="success" plain @click="handlePlugins(p, scope.row)">{{
+                p.title }}</el-button>
             </div>
           </template>
         </el-table-column>
       </el-table>
       <tms-flex class="tmw-pagination">
-        <div class="tmw-pagination__text">已选中 {{totalByChecked}} 条数据</div>
-        <el-pagination background @size-change="handleSize" @current-change="handleCurrentPage" :current-page.sync="page.at" :page-sizes="[10, 25, 50, 100]" :page-size="page.size" layout="total, sizes, prev, pager, next" :total="page.total"></el-pagination>
+        <div class="tmw-pagination__text">已选中 {{ totalByChecked }} 条数据</div>
+        <el-pagination background @size-change="handleSize" @current-change="handleCurrentPage"
+          :current-page.sync="page.at" :page-sizes="[10, 25, 50, 100]" :page-size="page.size"
+          layout="total, sizes, prev, pager, next" :total="page.total"></el-pagination>
       </tms-flex>
     </template>
     <template v-slot:right>
@@ -116,57 +129,66 @@
         <el-dropdown v-if="docOperations.editMany" @command="editManyDocument">
           <el-button>批量修改<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
-            <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
-            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
+            <el-dropdown-item command="all" :disabled="totalByAll == 0">按全部({{ totalByAll }})</el-dropdown-item>
+            <el-dropdown-item command="filter" :disabled="totalByFilter == 0">按筛选({{ totalByFilter }})</el-dropdown-item>
+            <el-dropdown-item command="checked" :disabled="totalByChecked == 0">按选中({{ totalByChecked
+            }})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
         <el-dropdown v-if="docOperations.removeMany" @command="removeManyDocument">
           <el-button>批量删除<i class="el-icon-arrow-down el-icon--right"></i>
           </el-button>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
-            <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
-            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
+            <el-dropdown-item command="all" :disabled="totalByAll == 0">按全部({{ totalByAll }})</el-dropdown-item>
+            <el-dropdown-item command="filter" :disabled="totalByFilter == 0">按筛选({{ totalByFilter }})</el-dropdown-item>
+            <el-dropdown-item command="checked" :disabled="totalByChecked == 0">按选中({{ totalByChecked
+            }})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
         <el-dropdown v-if="docOperations.copyMany" @command="copyManyDocument">
           <el-button>批量复制<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
-            <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
-            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
+            <el-dropdown-item command="all" :disabled="totalByAll == 0">按全部({{ totalByAll }})</el-dropdown-item>
+            <el-dropdown-item command="filter" :disabled="totalByFilter == 0">按筛选({{ totalByFilter }})</el-dropdown-item>
+            <el-dropdown-item command="checked" :disabled="totalByChecked == 0">按选中({{ totalByChecked
+            }})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
         <el-dropdown v-if="docOperations.transferMany" @command="transferManyDocument">
           <el-button>批量迁移<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
-            <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
-            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
+            <el-dropdown-item command="all" :disabled="totalByAll == 0">按全部({{ totalByAll }})</el-dropdown-item>
+            <el-dropdown-item command="filter" :disabled="totalByFilter == 0">按筛选({{ totalByFilter }})</el-dropdown-item>
+            <el-dropdown-item command="checked" :disabled="totalByChecked == 0">按选中({{ totalByChecked
+            }})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
         <el-dropdown v-if="docOperations.export" @command="exportDocument">
           <el-button>导出数据<i class="el-icon-arrow-down el-icon--right"></i></el-button>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="all" :disabled="totalByAll==0">按全部({{totalByAll}})</el-dropdown-item>
-            <el-dropdown-item command="filter" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-dropdown-item>
-            <el-dropdown-item command="checked" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-dropdown-item>
+            <el-dropdown-item command="all" :disabled="totalByAll == 0">按全部({{ totalByAll }})</el-dropdown-item>
+            <el-dropdown-item command="filter" :disabled="totalByFilter == 0">按筛选({{ totalByFilter }})</el-dropdown-item>
+            <el-dropdown-item command="checked" :disabled="totalByChecked == 0">按选中({{ totalByChecked
+            }})</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
         <div v-for="p in pluginsAside" :key="p.name">
-          <el-button v-if="p.transData==='nothing'" type="success" plain @click="handlePlugins(p)">{{p.title}}</el-button>
+          <el-button v-if="p.transData === 'nothing'" type="success" plain @click="handlePlugins(p)">{{ p.title
+          }}</el-button>
           <el-dropdown v-else>
-            <el-button type="success" plain>{{p.title}}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
+            <el-button type="success" plain>{{ p.title }}<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(p, 'all')" :disabled="totalByAll==0">按全部({{totalByAll}})</el-button>
+                <el-button type="text" @click="handlePlugins(p, 'all')" :disabled="totalByAll == 0">按全部({{ totalByAll
+                }})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(p, 'filter')" :disabled="totalByFilter==0">按筛选({{totalByFilter}})</el-button>
+                <el-button type="text" @click="handlePlugins(p, 'filter')" :disabled="totalByFilter == 0">按筛选({{
+                  totalByFilter }})</el-button>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button type="text" @click="handlePlugins(p, 'checked')" :disabled="totalByChecked==0">按选中({{totalByChecked}})</el-button>
+                <el-button type="text" @click="handlePlugins(p, 'checked')" :disabled="totalByChecked == 0">按选中({{
+                  totalByChecked }})</el-button>
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -178,7 +200,7 @@
 
 <script>
 import Vue from 'vue'
-import store from '../../ue_mongo/src/store'
+import store from '../../ue_mongo/src/store.js'
 import { Frame, Flex } from 'tms-vue-ui'
 import {
   Table,
@@ -197,15 +219,15 @@ import {
   Badge
 } from 'element-ui'
 
-import DocEditor from './DocEditor.vue'
-import SelectCondition from './SelectCondition.vue'
-import ColumnValueEditor from '../../ue_mongo/src/components/ColumnValueEditor.vue'
-import { createAndMount as createAndMountSelectColl } from './widgets/DialogSelectCollection.vue'
-import createDbApi from '../../ue_mongo/src/apis/database'
-import createClApi from '../../ue_mongo/src/apis/collection'
-import createDocApi from '../../ue_mongo/src/apis/document'
-import createSchemaApi from '../../ue_mongo/src/apis/schema'
-import createPluginApi from '../../ue_mongo/src/apis/plugin'
+import DocEditor from './DocEditor.vue.js'
+import SelectCondition from './SelectCondition.vue.js'
+import ColumnValueEditor from '../../ue_mongo/src/components/ColumnValueEditor.vue.js'
+import { createAndMount as createAndMountSelectColl } from './widgets/DialogSelectCollection.vue.js'
+import createDbApi from '../../ue_mongo/src/apis/database.js'
+import createClApi from '../../ue_mongo/src/apis/collection.js'
+import createDocApi from '../../ue_mongo/src/apis/document.js'
+import createSchemaApi from '../../ue_mongo/src/apis/schema.js'
+import createPluginApi from '../../ue_mongo/src/apis/plugin.js'
 
 const {
   VUE_APP_SCHEMA_TAGS,
@@ -431,13 +453,13 @@ const componentOptions = {
             const attrs = document.querySelectorAll('#table thead img')[index]
             if (ele === columnName) {
               if (isClear) {
-                attrs.src = require('../assets/icon_filter.png')
+                attrs.src = require('../assets/icon_filter.png.js')
               } else if (isCheckBtn) {
-                attrs.src = require('../assets/icon_' +
+                attrs.src = require('../assets/icon_.js' +
                   condition.rule.orderBy[columnName] +
                   '_active.png')
               } else {
-                attrs.src = require('../assets/icon_filter_active.png')
+                attrs.src = require('../assets/icon_filter_active.png.js')
               }
             } else if (isCheckBtn) {
               // 如果选择升降序规则，则需重置其他图标
@@ -449,13 +471,13 @@ const componentOptions = {
                     conEle.rule.filter[ele] &&
                     conEle.rule.filter[ele].keyword
                   ) {
-                    attrs.src = require('../assets/icon_filter_active.png')
+                    attrs.src = require('../assets/icon_filter_active.png.js')
                   } else if (conEle.isCheckBtn.includes(false)) {
-                    attrs.src = require('../assets/icon_' +
+                    attrs.src = require('../assets/icon_.js' +
                       conEle.rule.orderBy[ele] +
                       '_active.png')
                   } else {
-                    attrs.src = require('../assets/icon_filter.png')
+                    attrs.src = require('../assets/icon_filter.png.js')
                   }
                 }
               })
@@ -516,7 +538,7 @@ const componentOptions = {
               this.fnHandleResResult({ n: 1 }, false)
             })
         })
-        .catch(() => {})
+        .catch(() => { })
     },
     fnSetReqParam(command) {
       let param = {}
@@ -620,10 +642,10 @@ const componentOptions = {
               this.fnHandleResResult(result, true)
             })
         })
-        .catch(() => {})
+        .catch(() => { })
     },
     copyManyDocument(command) {
-      import('./widgets/DialogSelectCollection.vue').then(Module => {
+      import('./widgets/DialogSelectCollection.vue.js').then(Module => {
         let { bucketName, tmsAxiosName } = this
         let propsData = {
           bucketName,
@@ -718,7 +740,7 @@ const componentOptions = {
       new Promise(resolve => {
         let { beforeWidget } = plugin
         if (beforeWidget && beforeWidget.name === 'DialogSelectDocument') {
-          import('./widgets/DialogSelectDocument.vue').then(Module => {
+          import('./widgets/DialogSelectDocument.vue.js').then(Module => {
             let { bucketName, dbName, clName, tmsAxiosName } = this
             new Promise(resolve => {
               if (beforeWidget.remoteWidgetOptions === true)
@@ -759,7 +781,7 @@ const componentOptions = {
             })
           })
         } else if (beforeWidget && beforeWidget.name === 'DialogSchemaForm') {
-          import('./widgets/DialogSchemaForm.vue').then(Module => {
+          import('./widgets/DialogSchemaForm.vue.js').then(Module => {
             let { bucketName, dbName, clName, tmsAxiosName } = this
             new Promise(resolve => {
               if (beforeWidget.remoteWidgetOptions === true)
@@ -1011,7 +1033,7 @@ const componentOptions = {
       } else if (
         properties &&
         Object.prototype.toString.call(properties).toLowerCase() ==
-          '[object object]'
+        '[object object]'
       ) {
         Object.assign(temp, collection.schema.body.properties)
       }
@@ -1083,21 +1105,24 @@ export function createAndMount(Vue, propsData, id) {
 <style lang="less" scoped>
 .tmw-document {
   position: relative;
+
   .icon-style {
     margin-left: 10px;
     cursor: pointer;
   }
+
   .icon-heightlight {
     color: #409eff;
   }
+
   .icon_filter {
     width: 15px;
     height: 15px;
     vertical-align: middle;
     cursor: pointer;
   }
-  .el-button + .el-button {
+
+  .el-button+.el-button {
     margin-left: 2px;
   }
-}
-</style>
+}</style>

@@ -3,7 +3,7 @@
     <template v-slot:header>
       <el-breadcrumb separator-class="el-icon-arrow-right">
         <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item>{{dbName}}</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ dbName }}</el-breadcrumb-item>
       </el-breadcrumb>
     </template>
     <template v-slot:center>
@@ -30,7 +30,7 @@ import Vue from 'vue'
 import { mapState, mapMutations, mapActions } from 'vuex'
 import { Frame, Flex } from 'tms-vue-ui'
 Vue.use(Frame).use(Flex)
-import CollectionEditor from '../components/CollectionEditor.vue'
+import CollectionEditor from '../components/CollectionEditor.vue.js'
 
 export default {
   name: 'Database',

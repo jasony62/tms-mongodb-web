@@ -1,13 +1,13 @@
 {
-  "esModuleInterop": true,
   "compilerOptions": {
     "target": "esnext",
-    "module": "commonjs",
+    "module": "ESNext",
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "noImplicitAny": false,
     "removeComments": true,
     "preserveConstEnums": true,
-    "outDir": "./dist/cjs",
+    "outDir": "./dist",
     "rootDir": "./src",
     "declaration": true,
     "sourceMap": true

@@ -1,12 +1,13 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <tms-el-json-doc :is-submit="isSubmit" :schema="schema" :doc="formData" :on-axios="onAxios" :on-file-download="onFileDownload" :on-file-submit="handleFileSubmit" @submit="onJsonDocSubmit"></tms-el-json-doc>
+    <tms-el-json-doc :is-submit="isSubmit" :schema="schema" :doc="formData" :on-axios="onAxios"
+      :on-file-download="onFileDownload" :on-file-submit="handleFileSubmit" @submit="onJsonDocSubmit"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
 import { Dialog, Button } from 'element-ui'
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
-import utils from '../../../ue_mongo/src/tms/utils'
+import utils from '../../../ue_mongo/src/tms/utils.js'
 
 // 创建api调用对象方法
 let fnCreateDocApi
@@ -140,14 +141,15 @@ export function createAndMount(Vue, propsData, apiCreators) {
   /deep/ .el-dialog {
     width: 60%;
   }
+
   /deep/ .el-dialog__body {
     height: 60vh;
     padding-bottom: 0;
+
     .el-select {
       .el-input {
         width: 100%;
       }
     }
   }
-}
-</style>
+}</style>

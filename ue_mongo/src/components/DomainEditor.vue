@@ -1,6 +1,6 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <div slot="title">{{title}}</div>
+    <div slot="title">{{ title }}</div>
     <el-form ref="form" :model="form" label-position="top">
       <el-form-item label="选择数据库">
         <el-select v-model="form.dbName" placeholder="请选择" @change="changeDdName" clearable filterable>
@@ -29,8 +29,8 @@ Vue.use(Dialog)
   .use(Option)
   .use(Button)
 
-import createDbApi from '../apis/database'
-import createCollectionApi from '../apis/collection'
+import createDbApi from '../apis/database.js'
+import createCollectionApi from '../apis/collection.js'
 
 export default {
   name: 'DomainEditor',

@@ -1,18 +1,21 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import Base from 'tmw-kit/dist/ctrl/base'
-import { createDocWebhook } from 'tmw-kit/dist/webhook/document'
-import DocumentHelper from './documentHelper'
-import unrepeat from './unrepeat'
+import { Base } from 'tmw-kit/dist/ctrl'
+import { createDocWebhook } from 'tmw-kit/dist/webhook/document.js'
+import DocumentHelper from './documentHelper.js'
+import unrepeat from './unrepeat.js'
 import { ModelDoc, ModelCl, ModelSchema, makeTagsFilter } from 'tmw-kit'
-import * as _ from 'lodash'
-import * as mongodb from 'mongodb'
+import _ from 'lodash'
+import mongodb from 'mongodb'
 
 const ObjectId = mongodb.ObjectId
 
 /**文档对象控制器基类 */
 class DocBase extends Base {
-  constructor(...args) {
-    super(...args)
+  docHelper
+  docWebhook
+  modelDoc
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
     this.docHelper = new DocumentHelper(this)
     this.docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK)
     this.modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
@@ -663,7 +666,7 @@ class DocBase extends Base {
       const { ExcelCtrl } = require('tms-koa/dist/controller/fs')
       rst = ExcelCtrl.export(columns, data, existCl.name + '.xlsx')
     } else if (exportType === 'json') {
-      const { ZipCtrl } = await import('./zipArchiver')
+      const { ZipCtrl } = await import('./zipArchiver.js')
       //@ts-ignore
       rst = ZipCtrl.export(data, existCl.name + '.zip', { dir: existCl.name })
     }

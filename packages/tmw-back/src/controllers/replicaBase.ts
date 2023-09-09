@@ -2,8 +2,8 @@ import * as log4js from 'log4js'
 const logger = log4js.getLogger('tms-mongodb-web')
 
 import { ResultData, ResultFault } from 'tms-koa'
-import Base from 'tmw-kit/dist/ctrl/base'
-import ReplicaHelper from './replicaHelper'
+import Base from 'tmw-kit/dist/ctrl/base.js'
+import ReplicaHelper from './replicaHelper.js'
 
 import { ModelReplicaMap } from 'tmw-kit'
 
@@ -12,8 +12,8 @@ import { ModelReplicaMap } from 'tmw-kit'
  * @extends Base 控制器基类
  */
 class ReplicaBase extends Base {
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
     this['replicaHelper'] = new ReplicaHelper(this)
     this['modelReplicaMap'] = new ModelReplicaMap(this['mongoClient'])
   }

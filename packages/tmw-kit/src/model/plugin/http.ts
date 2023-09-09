@@ -1,11 +1,11 @@
-const log4js = require('@log4js-node/log4js-api')
+import log4js from '@log4js-node/log4js-api'
+import axios from 'axios'
+
+import { PluginBase } from './base.js'
+
+import ModelCol from '../collection.js'
+
 const logger = log4js.getLogger('tms-mongodb-web')
-const axios = require('axios')
-
-import { PluginBase } from './base'
-
-import ModelCol from '../collection'
-
 /**
  * 发送数据插件
  * @extends PluginBase

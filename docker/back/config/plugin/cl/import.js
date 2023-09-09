@@ -16,7 +16,7 @@ const widgetUrl = TMW_PLUGIN_DOC_IMPORT_COLLECTION_WIDGET_URL
   ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/cl-import'
   : '/plugin/cl-import'
 
-module.exports = {
+export default {
   disabled: /true|yes/i.test(Disabled),
   dbBlacklist: DbBlacklist,
   widgetUrl,

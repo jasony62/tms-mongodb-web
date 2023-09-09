@@ -1,6 +1,6 @@
-import * as mongodb from 'mongodb'
+import mongodb from 'mongodb'
 import { nanoid } from 'nanoid'
-import Base from './base'
+import Base from './base.js'
 import unescape from 'mongo-escape'
 
 const ObjectId = mongodb.ObjectId

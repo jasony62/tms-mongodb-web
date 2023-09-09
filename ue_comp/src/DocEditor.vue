@@ -1,6 +1,7 @@
 <template>
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
-    <tms-el-json-doc :is-submit="isSubmit" :schema="body" :doc="document" v-on:submit="onJsonDocSubmit" :on-file-submit="handleFileSubmit" :on-axios="handleAxios" :on-file-download="handleDownload"></tms-el-json-doc>
+    <tms-el-json-doc :is-submit="isSubmit" :schema="body" :doc="document" v-on:submit="onJsonDocSubmit"
+      :on-file-submit="handleFileSubmit" :on-axios="handleAxios" :on-file-download="handleDownload"></tms-el-json-doc>
   </el-dialog>
 </template>
 <script>
@@ -9,9 +10,9 @@ import { Dialog } from 'element-ui'
 Vue.use(Dialog)
 
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
-import utils from '../../ue_mongo/src/tms/utils'
-import createDocApi from '../../ue_mongo/src/apis/document'
-import createSchemaApi from '../../ue_mongo/src/apis/schema'
+import utils from '../../ue_mongo/src/tms/utils.js'
+import createDocApi from '../../ue_mongo/src/apis/document.js'
+import createSchemaApi from '../../ue_mongo/src/apis/schema.js'
 
 const {
   VUE_APP_SCHEMA_TAGS,

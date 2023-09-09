@@ -1,4 +1,4 @@
-import Helper from 'tmw-kit/dist/ctrl/helper'
+import { Helper } from 'tmw-kit/dist/ctrl'
 
 /**
  * 标签控制器辅助类
@@ -11,8 +11,8 @@ class TagHelper extends Helper {
    */
   async tagByName(name) {
     const query: any = { name }
-    if (this.ctrl.bucket && typeof this.ctrl.bucket === 'object')
-      query.bucket = this.ctrl.bucket.name
+    if (this.ctrl.bucketObj && typeof this.ctrl.bucketObj === 'object')
+      query.bucket = this.ctrl.bucketObj.name
 
     const tag = await this.clTagObj.findOne(query)
 

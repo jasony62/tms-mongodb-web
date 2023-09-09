@@ -3,7 +3,7 @@ import Vuex from 'vuex'
 
 Vue.use(Vuex)
 
-import apis from '../apis'
+import apis from '../apis.js'
 
 export default new Vuex.Store({
   state: {
@@ -12,7 +12,7 @@ export default new Vuex.Store({
     dbSchemas: [],
     collectionSchemas: [],
     collections: [],
-    conditions: []
+    conditions: [],
   },
   mutations: {
     buckets(state, payload) {
@@ -74,7 +74,7 @@ export default new Vuex.Store({
     conditionAddColumn(state, payload) {
       const { condition } = payload
       const index = state.conditions.findIndex(
-        ele => ele.columnName === condition.columnName
+        (ele) => ele.columnName === condition.columnName
       )
       if (index !== -1) {
         state.conditions.splice(index, 1)
@@ -83,7 +83,7 @@ export default new Vuex.Store({
     },
     conditionDelBtn(state, payload) {
       const { columnName } = payload
-      state.conditions.forEach(ele => {
+      state.conditions.forEach((ele) => {
         if (ele.columnName !== columnName) {
           ele.rule.orderBy = {}
           ele.isCheckBtn = [true, true]
@@ -93,7 +93,7 @@ export default new Vuex.Store({
     conditionDelColumn(state, payload) {
       const { condition } = payload
       const index = state.conditions.findIndex(
-        ele => ele.columnName === condition.columnName
+        (ele) => ele.columnName === condition.columnName
       )
       if (index !== -1) {
         state.conditions.splice(index, 1)
@@ -101,32 +101,32 @@ export default new Vuex.Store({
     },
     conditionReset(state) {
       state.conditions = []
-    }
+    },
   },
   actions: {
     listBucket({ commit }) {
-      return apis.bucket.list().then(buckets => {
+      return apis.bucket.list().then((buckets) => {
         commit({ type: 'buckets', buckets })
         return { buckets }
       })
     },
     listDatabase({ commit }, payload) {
       const { bucket } = payload
-      return apis.db.list(bucket).then(dbs => {
+      return apis.db.list(bucket).then((dbs) => {
         commit({ type: 'dbs', dbs })
         return { dbs }
       })
     },
     listSchema({ commit }, payload) {
       const { bucket, scope } = payload
-      return apis.schema.list(bucket, scope).then(schemas => {
+      return apis.schema.list(bucket, scope).then((schemas) => {
         commit({ type: 'schemas', schemas, scope })
         return { schemas }
       })
     },
     listCollection({ commit }, payload) {
       const { bucket, db } = payload
-      return apis.collection.list(bucket, db).then(collections => {
+      return apis.collection.list(bucket, db).then((collections) => {
         commit({ type: 'collections', collections })
         return { collections }
       })
@@ -157,7 +157,7 @@ export default new Vuex.Store({
         commit({ type: 'removeCollection', collection })
         return { collection }
       })
-    }
+    },
   },
-  modules: {}
+  modules: {},
 })

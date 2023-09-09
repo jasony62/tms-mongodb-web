@@ -1,10 +1,10 @@
-import ModelBkt from './bucket'
-import ModelDb from './db'
-import ModelCl from './collection'
-import ModelDoc from './document'
-import ModelTag from './tag'
-import ModelReplicaMap from './replicaMap'
-import ModelSchema from './schema'
+import ModelBkt from './bucket.js'
+import ModelDb from './db.js'
+import ModelCl from './collection.js'
+import ModelDoc from './document.js'
+import ModelTag from './tag.js'
+import ModelReplicaMap from './replicaMap.js'
+import ModelSchema from './schema.js'
 
 export {
   ModelBkt,
@@ -16,6 +16,6 @@ export {
   ModelSchema,
 }
 
-export * from './plugin'
+export * from './plugin/index.js'
 
-export * from './zipArchive'
+export * from './zipArchive.js'

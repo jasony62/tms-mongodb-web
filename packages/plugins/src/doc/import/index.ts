@@ -1,10 +1,10 @@
-import { PluginBase } from 'tmw-kit/dist/model'
+import { PluginBase } from 'tmw-kit/dist/model/index.js'
 import { loadConfig, ModelSchema, ModelDoc, SchemaIter } from 'tmw-kit'
-import { createDocWebhook } from 'tmw-kit/dist/webhook/document'
-import * as path from 'path'
+import { createDocWebhook } from 'tmw-kit/dist/webhook/document.js'
+import path from 'path'
 import { pinyin } from 'pinyin-pro'
-import * as _ from 'lodash'
-import * as fs from 'fs'
+import _ from 'lodash'
+import fs from 'fs'
 import Debug from 'debug'
 
 const debug = Debug('tmw:plugins:doc-import')
@@ -16,8 +16,7 @@ const ConfigDir = path.resolve(
 
 // 插件配置文件地址
 const ConfigFile =
-  process.env.TMW_PLUGIN_DOC_IMPORT_CONFIG_NAME ||
-  './plugin/doc/import'
+  process.env.TMW_PLUGIN_DOC_IMPORT_CONFIG_NAME || './plugin/doc/import'
 
 /**
  * 导入数据到集合中
@@ -54,10 +53,16 @@ class ImportPlugin extends PluginBase {
       columns = await modelSchema.bySchemaId(schema_id)
 
     if (widget.action === 'download') {
-      if (!this.DownloadHost) return { code: 10001, msg: '未配置文件下载服务地址' }
+      if (!this.DownloadHost)
+        return { code: 10001, msg: '未配置文件下载服务地址' }
 
       const schemaIter = new SchemaIter({ type: 'object', properties: columns })
-      const processRst = this.processExcelTemplate(ctrl, clName, schemaIter, widget.leafLevel)
+      const processRst = this.processExcelTemplate(
+        ctrl,
+        clName,
+        schemaIter,
+        widget.leafLevel
+      )
       const publicpath = this.publicPath(ctrl, processRst)
       return { code: 0, msg: { filePath: this.DownloadHost + publicpath } }
     }
@@ -140,8 +145,7 @@ class ImportPlugin extends PluginBase {
       for (let k in row) {
         let oneRow = _.get(row, k)
 
-        if (typeof oneRow === 'number')
-          oneRow = String(oneRow)
+        if (typeof oneRow === 'number') oneRow = String(oneRow)
 
         if (schemaStr.indexOf(k) > -1) {
           if (newRow[k] === null) _.set(newRow, k, oneRow)
@@ -196,7 +200,6 @@ class ImportPlugin extends PluginBase {
         }
 
       return { code: 0, msg: '导入成功' }
-
     } catch (error) {
       debug(`数据存储错误: ${error.message}`)
       return { code: 10001, msg: error.message }
@@ -214,20 +217,23 @@ class ImportPlugin extends PluginBase {
    */
   private processExcelTemplate(ctrl, clName, schemaIter, leafLevel) {
     const XLSX = require('xlsx')
-    
+
     let fieldAry = []
     leafLevel = leafLevel ? leafLevel : 0
     for (let schemaProp of schemaIter) {
       let { fullname, _path, _name } = schemaProp
-      if (!_name 
-        || fullname.replace(/\^\\/, '').indexOf('w+$') > -1
-        || (leafLevel > 0 && fullname.split(/\./g).length-1 >= leafLevel)
-      ) continue
-      
+      if (
+        !_name ||
+        fullname.replace(/\^\\/, '').indexOf('w+$') > -1 ||
+        (leafLevel > 0 && fullname.split(/\./g).length - 1 >= leafLevel)
+      )
+        continue
+
       fieldAry.push(fullname)
-      if (_path && fieldAry.indexOf(_path) > -1) fieldAry.splice(fieldAry.indexOf(_path), 1)
+      if (_path && fieldAry.indexOf(_path) > -1)
+        fieldAry.splice(fieldAry.indexOf(_path), 1)
     }
-    
+
     const filePath = path.join(this.createDir(ctrl), `${clName}.xlsx`)
     const ws = XLSX.utils.aoa_to_sheet([fieldAry])
     const wb = XLSX.utils.book_new()
@@ -254,7 +260,10 @@ class ImportPlugin extends PluginBase {
    * 用于公开访问的文件路径
    */
   private publicPath(ctrl, fullpath) {
-    let publicPath = fullpath.replace(path.normalize(ctrl.fsContext.rootDir), '')
+    let publicPath = fullpath.replace(
+      path.normalize(ctrl.fsContext.rootDir),
+      ''
+    )
 
     /* 如果开放了文件下载服务添加前缀 */
     const { AppContext } = ctrl.tmsContext
@@ -265,12 +274,23 @@ class ImportPlugin extends PluginBase {
   }
 }
 
-export function createPlugin(file: string) {
+export async function createPlugin(file: string) {
   let config
-  if (ConfigFile) config = loadConfig(ConfigDir, ConfigFile)
+  if (ConfigFile) config = await loadConfig(ConfigDir, ConfigFile)
   if (config && typeof config === 'object') {
-    let { widgetUrl, bucket, db, cl, schema, title, downloadHost,
-      disabled, dbBlacklist, clBlacklist, schemaBlacklist } = config
+    let {
+      widgetUrl,
+      bucket,
+      db,
+      cl,
+      schema,
+      title,
+      downloadHost,
+      disabled,
+      dbBlacklist,
+      clBlacklist,
+      schemaBlacklist,
+    } = config
     const newPlugin = new ImportPlugin(file)
     newPlugin.beforeWidget.url = widgetUrl
 

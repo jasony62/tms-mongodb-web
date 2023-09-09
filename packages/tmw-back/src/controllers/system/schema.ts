@@ -1,6 +1,6 @@
 import * as _ from 'lodash'
 import { ResultData, ResultFault } from 'tms-koa'
-import Base from 'tmw-kit/dist/ctrl/base'
+import Base from 'tmw-kit/dist/ctrl/base.js'
 import * as mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 

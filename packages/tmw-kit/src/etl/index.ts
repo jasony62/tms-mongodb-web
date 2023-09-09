@@ -1,7 +1,7 @@
 import { JSONPath } from 'jsonpath-plus'
-import * as _ from 'lodash'
-import Base from '../model/base'
-import { ModelCl, ModelDoc } from '../model'
+import _ from 'lodash'
+import Base from '../model/base.js'
+import { ModelCl, ModelDoc } from '../model/index.js'
 /**
  * 数据库
  */

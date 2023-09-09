@@ -63,8 +63,8 @@ import { mapState, mapMutations, mapActions } from 'vuex'
 import { Frame, Flex } from 'tms-vue-ui'
 Vue.use(Frame).use(Flex)
 
-import DbEditor from '../components/DbEditor.vue'
-import SchemaEditor from '../components/SchemaEditor.vue'
+import DbEditor from '../components/DbEditor.vue.js'
+import SchemaEditor from '../components/SchemaEditor.vue.js'
 
 export default {
   name: 'Home',

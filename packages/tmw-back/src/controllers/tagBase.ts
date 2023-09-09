@@ -1,15 +1,22 @@
 import { ResultData } from 'tms-koa'
-import Base from 'tmw-kit/dist/ctrl/base'
-import TagHelper from './tagHelper'
+import { Base } from 'tmw-kit/dist/ctrl'
+import TagHelper from './tagHelper.js'
 
 /**
  * 标签控制器基类
  */
 class TagBase extends Base {
-  constructor(...args) {
-    super(...args)
+  tagHelper
+
+  clMongoObj
+
+  clTagObj
+
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
     this.tagHelper = new TagHelper(this)
   }
+
   async tmsBeforeEach() {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
@@ -24,8 +31,8 @@ class TagBase extends Base {
    */
   async list() {
     const query: any = {}
-    if (this.bucket && typeof this.bucket === 'object')
-      query.bucket = this.bucket.name
+    if (this.bucketObj && typeof this.bucketObj === 'object')
+      query.bucket = this.bucketObj.name
 
     const tmsTags = await this.clTagObj.find(query).toArray()
 

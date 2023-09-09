@@ -1,7 +1,8 @@
-import * as mongodb from 'mongodb'
-import Base from './base'
-import ModelColl from './collection'
-import * as dayjs from 'dayjs'
+import mongodb from 'mongodb'
+import Base from './base.js'
+import ModelColl from './collection.js'
+import dayjs from 'dayjs'
+
 const ObjectId = mongodb.ObjectId
 
 /**文档模型类基类 */

@@ -1,7 +1,7 @@
 import { Ctrl, ResultFault, ResultObjectNotFound } from 'tms-koa'
-import { loadTmwConfig } from '../util'
+import { loadTmwConfig } from '../util/index.js'
 
-const TMW_CONFIG = loadTmwConfig()
+const TMW_CONFIG = await loadTmwConfig()
 
 function allowAccessBucket(bucket, clientId) {
   if (bucket.creator === clientId) return true
@@ -16,8 +16,9 @@ function allowAccessBucket(bucket, clientId) {
 const isRequireBucket = /yes|true/i.test(process.env.TMW_REQUIRE_BUCKET)
 
 class Base extends Ctrl {
-  constructor(...args) {
-    super(...args)
+  bucketObj
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
   get tmwConfig() {
     return TMW_CONFIG
@@ -37,18 +38,18 @@ class Base extends Ctrl {
       // 检查bucket是否存在
       const client = this.mongoClient
       const clBucket = client.db('tms_admin').collection('bucket')
-      const bucket = await clBucket.findOne({
+      const bucketObj = await clBucket.findOne({
         name: bucketName,
       })
-      if (!bucket) {
+      if (!bucketObj) {
         return new ResultObjectNotFound(`指定的[bucket=${bucketName}]不存在`)
       }
       // 检查当前用户是否对bucket有权限
-      if (!allowAccessBucket(bucket, this['client'].id)) {
+      if (!allowAccessBucket(bucketObj, this.client.id)) {
         // 检查是否做过授权
         return new ResultObjectNotFound(`没有访问[bucket=${bucketName}]的权限`)
       }
-      this['bucket'] = bucket
+      this.bucketObj = bucketObj
     }
 
     return true

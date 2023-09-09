@@ -1,9 +1,9 @@
-import TagBase from "../tagBase"
+import TagBase from '../tagBase.js'
 
 class Tag extends TagBase {
-	constructor(...args) {
-		super(...args)
-	}
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
+  }
 }
 
 export default Tag

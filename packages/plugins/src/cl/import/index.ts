@@ -1,9 +1,9 @@
-import { PluginBase } from 'tmw-kit/dist/model'
+import { PluginBase } from 'tmw-kit/dist/model/index.js'
 import { loadConfig, ModelDb, ModelCl, ModelDoc } from 'tmw-kit'
-import { createDocWebhook } from 'tmw-kit/dist/webhook/document'
-import * as path from 'path'
-import * as _ from 'lodash'
-import * as dayjs from 'dayjs'
+import { createDocWebhook } from 'tmw-kit/dist/webhook/document.js'
+import path from 'path'
+import _ from 'lodash'
+import dayjs from 'dayjs'
 import Debug from 'debug'
 
 const debug = Debug('tmw:plugins:doc-import-collection')
@@ -35,7 +35,13 @@ class ImportPlugin extends PluginBase {
   }
 
   async execute(ctrl: any) {
-    let { file, fileName, clName, headers: headersName, headersTitle } = ctrl.request.body.widget
+    let {
+      file,
+      fileName,
+      clName,
+      headers: headersName,
+      headersTitle,
+    } = ctrl.request.body.widget
     const dbName = ctrl.request.query.db
 
     if (!file) return { code: 10001, msg: '文件上传失败' }
@@ -45,9 +51,12 @@ class ImportPlugin extends PluginBase {
     debug(`默认以文件名【${fileName}】做为文档列定义和集合的标题`)
 
     if (new RegExp('^[a-zA-Z]+[0-9a-zA-Z_]{0,63}$').test(clName) !== true)
-      return { code: 10001, msg: '集合名必须以英文字母开头，仅限英文字母或_或数字组合，且最长64位' }
+      return {
+        code: 10001,
+        msg: '集合名必须以英文字母开头，仅限英文字母或_或数字组合，且最长64位',
+      }
 
-    for(const name of headersName) {
+    for (const name of headersName) {
       if (new RegExp('[\u4E00-\u9FA5]+').test(name) == true)
         return { code: 10001, msg: '指定的列定义名称不能包含中文' }
     }
@@ -68,33 +77,25 @@ class ImportPlugin extends PluginBase {
     let rowsJson = JSON.parse(file)
     if (!Array.isArray(rowsJson) || rowsJson.length === 0)
       return { code: 10001, msg: '上传的文件数据为空或格式错误' }
-    
+
     // if (headersTitle) delete rowsJson[0]
 
     // 创建文档列定义
-    const [schemaFlag, schemaRst] = await this.createDocSchema(
-      ctrl,
-      existDb,
-      {
-        clName,
-        "clTitle": fileName,
-        headersName,
-        headersTitle
-      }
-    )
+    const [schemaFlag, schemaRst] = await this.createDocSchema(ctrl, existDb, {
+      clName,
+      clTitle: fileName,
+      headersName,
+      headersTitle,
+    })
     if (!schemaFlag) return { code: 10001, msg: schemaRst }
     debug(`创建了文档列定义[id=${schemaRst}]`)
 
     // 创建集合
-    const [clFlag, clRst] = await this.createCl(
-      ctrl,
-      existDb,
-      {
-        clName,
-        title: fileName,
-        schema_id: schemaRst
-      }
-    )
+    const [clFlag, clRst] = await this.createCl(ctrl, existDb, {
+      clName,
+      title: fileName,
+      schema_id: schemaRst,
+    })
     if (!clFlag) return { code: 10001, msg: clRst }
     debug(
       `创建集合对象[db.name=${existDb.name}][db.sysname=${existDb.sysname}][name=${clName}][sysname=${clName}]`
@@ -207,19 +208,20 @@ class ImportPlugin extends PluginBase {
         properties: {},
       },
       type: 'schema',
-      order: 99999
+      order: 99999,
     }
 
     const {
       clName: schemaName,
       clTitle: schemaTitle,
       headersName,
-      headersTitle
+      headersTitle,
     } = info
 
     let mergeObj = {}
     headersName.map((v, i) => {
-      mergeObj[headersName[i]] = headersTitle && headersTitle[i] ? headersTitle[i] : headersName[i]
+      mergeObj[headersName[i]] =
+        headersTitle && headersTitle[i] ? headersTitle[i] : headersName[i]
     })
 
     let properties = {}
@@ -309,9 +311,9 @@ class ImportPlugin extends PluginBase {
   }
 }
 
-export function createPlugin(file: string) {
+export async function createPlugin(file: string) {
   let config
-  if (ConfigFile) config = loadConfig(ConfigDir, ConfigFile)
+  if (ConfigFile) config = await loadConfig(ConfigDir, ConfigFile)
   if (config && typeof config === 'object') {
     let { widgetUrl, bucket, db, title, disabled, dbBlacklist } = config
     const newPlugin = new ImportPlugin(file)

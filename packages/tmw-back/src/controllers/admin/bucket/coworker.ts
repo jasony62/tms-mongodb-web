@@ -1,8 +1,9 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import Base from 'tmw-kit/dist/ctrl/base'
+import { Base } from 'tmw-kit/dist/ctrl'
 import { nanoid } from 'nanoid'
-import * as dayjs from 'dayjs'
-import * as mongodb from 'mongodb'
+import dayjs from 'dayjs'
+import mongodb from 'mongodb'
+
 const ObjectId = mongodb.ObjectId
 
 /** 空间用户管理控制器 */
@@ -11,8 +12,8 @@ class Coworker extends Base {
    * 执行方法调用前检查
    */
   async tmsBeforeEach() {
-    const { url } = this['request']
-    if (!this['client'])
+    const { url } = this.request
+    if (!this.client)
       return new ResultFault('只有通过认证的用户才可以执行该操作')
     if (url.split('?')[0].split('/').pop() === 'accept') return true
     let result = await super.tmsBeforeEach()
@@ -56,11 +57,11 @@ class Coworker extends Base {
     /*检查nickname*/
     const clBkt = this['mongoClient'].db('tms_admin').collection('bucket')
     const coworkerBucket = await clBkt.findOne({
-      name: this['bucket'].name,
+      name: this.bucketObj.name,
       'coworkers.nickname': nickname,
     })
     const coworkerInfo = await clBkt.findOne({
-      name: this['bucket'].name,
+      name: this.bucketObj.name,
     })
     if (this['client'].id !== coworkerInfo.creator)
       return new ResultFault(`没有权限`)
@@ -71,7 +72,7 @@ class Coworker extends Base {
       .collection('bucket_invite_log')
 
     const inviteLog = await clLog.findOne({
-      bucket: this['bucket'].name,
+      bucket: this.bucketObj.name,
       nickname,
       acceptAt: { $exists: false },
     })
@@ -89,7 +90,7 @@ class Coworker extends Base {
       existInvite
     let code = nanoid(4)
     while (tries <= 2) {
-      existInvite = await clLog.findOne({ bucket: this['bucket'].name, code })
+      existInvite = await clLog.findOne({ bucket: this.bucketObj.name, code })
       if (!existInvite) break
       code = nanoid(4)
       tries++
@@ -102,7 +103,7 @@ class Coworker extends Base {
 
     const invite = {
       inviter: this['client'].id,
-      bucket: this['bucket'].name,
+      bucket: this.bucketObj.name,
       code,
       createAt,
       expireAt,
@@ -242,7 +243,7 @@ class Coworker extends Base {
 
     const clBkt = this['mongoClient'].db('tms_admin').collection('bucket')
     const coworkerBucket = await clBkt.findOne({
-      name: this['bucket'].name,
+      name: this.bucketObj.name,
       'coworkers.id': { $in: [coworker, parseInt(coworker)] },
     })
 
@@ -261,4 +262,4 @@ class Coworker extends Base {
   }
 }
 
-export = Coworker
+export default Coworker

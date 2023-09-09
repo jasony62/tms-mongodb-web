@@ -1,6 +1,5 @@
-import Helper from 'tmw-kit/dist/ctrl/helper'
+import { Helper } from 'tmw-kit/dist/ctrl'
 import { ModelDb } from 'tmw-kit'
-import { nanoid } from 'nanoid'
 
 /**
  * 数据库控制器辅助类

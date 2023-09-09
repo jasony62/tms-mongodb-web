@@ -1,8 +1,8 @@
-import * as _ from 'lodash'
-import * as fs from 'fs'
-import * as PATH from 'path'
-import { LocalFS } from 'tms-koa/dist/model/fs/local'
-import { Upload } from 'tms-koa/dist/model/fs/upload'
+import _ from 'lodash'
+import fs from 'fs'
+import PATH from 'path'
+import { LocalFS } from 'tms-koa/dist/model/fs/local.js'
+import { Upload } from 'tms-koa/dist/model/fs/upload.js'
 import { Context } from 'tms-koa'
 import * as archiver from 'archiver'
 

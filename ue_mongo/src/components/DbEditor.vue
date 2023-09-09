@@ -2,18 +2,20 @@
   <el-dialog :visible.sync="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal">
     <el-form ref="form" :model="database" label-position="top">
       <el-form-item label="数据库名称（英文）">
-        <el-input v-model="database.name" :disabled="mode==='update'"></el-input>
+        <el-input v-model="database.name" :disabled="mode === 'update'"></el-input>
       </el-form-item>
       <el-form-item label="数据库显示名（中文）">
         <el-input v-model="database.title"></el-input>
       </el-form-item>
       <el-form-item label="扩展属性（选填）">
-        <el-select placeholder="请选择" v-model="database.extensionInfo.schemaId" clearable filterable @change="handleExtendId(database.extensionInfo.schemaId, false)">
+        <el-select placeholder="请选择" v-model="database.extensionInfo.schemaId" clearable filterable
+          @change="handleExtendId(database.extensionInfo.schemaId, false)">
           <el-option v-for="item in extensions" :key="item._id" :label="item.title" :value="item._id"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="扩展属性详情（选填）" v-if="JSON.stringify(extendSchema)!=='{}'">
-        <tms-el-json-doc class="tmw-attr-form" ref="attrForm" :schema="extendSchema" :doc="database.extensionInfo.info"></tms-el-json-doc>
+      <el-form-item label="扩展属性详情（选填）" v-if="JSON.stringify(extendSchema) !== '{}'">
+        <tms-el-json-doc class="tmw-attr-form" ref="attrForm" :schema="extendSchema"
+          :doc="database.extensionInfo.info"></tms-el-json-doc>
       </el-form-item>
       <el-form-item label="说明">
         <el-input type="textarea" v-model="database.description"></el-input>
@@ -46,8 +48,8 @@ Vue.use(Dialog)
   .use(Button)
 
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
-import createDbApi from '../apis/database'
-import createSchemaApi from '../apis/schema'
+import createDbApi from '../apis/database.js'
+import createSchemaApi from '../apis/schema.js'
 
 export default {
   name: 'DbEditor',
@@ -57,7 +59,7 @@ export default {
     bucketName: { type: String },
     database: {
       type: Object,
-      default: function() {
+      default: function () {
         return {
           name: '',
           title: '',

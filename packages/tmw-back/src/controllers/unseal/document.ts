@@ -1,6 +1,6 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import Base from 'tmw-kit/dist/ctrl/base'
-import DocumentHelper from '../documentHelper'
+import { Base } from 'tmw-kit/dist/ctrl'
+import DocumentHelper from '../documentHelper.js'
 import { ModelDoc, ModelSchema, SchemaIter, AES } from 'tmw-kit'
 import * as _ from 'lodash'
 
@@ -26,8 +26,8 @@ class Document extends Base {
   docHelper: DocumentHelper
   modelDoc: ModelDoc
 
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
     this.docHelper = new DocumentHelper(this)
     this.modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
   }

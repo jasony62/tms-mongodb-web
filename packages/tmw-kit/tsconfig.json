@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
+    "target": "ES2020",
+    "module": "NodeNext",
     "noImplicitAny": false,
     "removeComments": true,
     "preserveConstEnums": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./",
     "declaration": true,
     "sourceMap": false,
     "types": ["node", "jest"]

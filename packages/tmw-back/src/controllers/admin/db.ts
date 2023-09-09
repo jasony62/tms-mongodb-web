@@ -1,11 +1,11 @@
-import DbBase from '../dbBase'
+import DbBase from '../dbBase.js'
 import { ResultData, ResultFault } from 'tms-koa'
 import { ModelDb } from 'tmw-kit'
 import { Double } from 'mongodb'
 
 class Db extends DbBase {
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
   /**
    * @swagger
@@ -160,12 +160,12 @@ class Db extends DbBase {
     let info = this['request'].body
     info.type = 'database'
     info.sysname = sysname
-    if (this['bucket']) info.bucket = this['bucket'].name
+    if (this['bucket']) info.bucket = this.bucketObj.name
 
     // 检查数据库名
     let modelDb = new ModelDb(
       this['mongoClient'],
-      this['bucket'],
+      this.bucketObj,
       this['client']
     )
     let newName = modelDb.checkDbName(info.name)
@@ -245,7 +245,7 @@ class Db extends DbBase {
 
     const cl = this['clMongoObj']
     const query = { database: existDb.name, type: 'collection' }
-    if (this['bucket']) query['bucket'] = this['bucket'].name
+    if (this['bucket']) query['bucket'] = this.bucketObj.name
     // 查找数据库下是否有集合，如果有则不能删除
     let colls = await cl.find(query).toArray()
     if (colls.length > 0)
@@ -283,7 +283,7 @@ class Db extends DbBase {
 
     const cl = this['clMongoObj']
     const query = { database: existDb.name, type: 'collection' }
-    if (this['bucket']) query['bucket'] = this['bucket'].name
+    if (this['bucket']) query['bucket'] = this.bucketObj.name
     // 查找数据库下是否有集合，如果有则不能删除
     let colls = await cl.find(query).toArray()
     if (colls.length > 0)
@@ -369,4 +369,4 @@ class Db extends DbBase {
   }
 }
 
-export = Db
+export default Db

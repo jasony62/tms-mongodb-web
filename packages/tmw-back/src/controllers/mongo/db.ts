@@ -1,8 +1,8 @@
-import DbBase from "../dbBase"
+import DbBase from '../dbBase.js'
 
 class Db extends DbBase {
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
 }
 

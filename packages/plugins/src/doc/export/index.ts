@@ -1,9 +1,9 @@
-import { PluginBase, exportJSON } from 'tmw-kit/dist/model'
+import { PluginBase, exportJSON } from 'tmw-kit/dist/model/index.js'
 import { loadConfig, ModelSchema, SchemaIter } from 'tmw-kit'
-import { LocalFS } from 'tms-koa/dist/model/fs/local'
-import * as path from 'path'
-import * as _ from 'lodash'
-import * as fs from 'fs'
+import { LocalFS } from 'tms-koa/dist/model/fs/local.js'
+import path from 'path'
+import _ from 'lodash'
+import fs from 'fs'
 
 /**配置文件存放位置*/
 const ConfigDir = path.resolve(
@@ -110,9 +110,9 @@ class ExportPlugin extends PluginBase {
   }
 }
 
-export function createPlugin(file: string) {
+export async function createPlugin(file: string) {
   let config
-  if (ConfigFile) config = loadConfig(ConfigDir, ConfigFile)
+  if (ConfigFile) config = await loadConfig(ConfigDir, ConfigFile)
   if (config && typeof config === 'object') {
     let {
       widgetUrl,

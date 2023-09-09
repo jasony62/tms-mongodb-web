@@ -1,14 +1,14 @@
-import unrepeat from './unrepeat'
-import * as _ from 'lodash'
-import * as fs from 'fs'
-import * as mongodb from 'mongodb'
+import unrepeat from './unrepeat.js'
+import _ from 'lodash'
+import fs from 'fs'
+import mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
-import * as log4js from 'log4js'
+import log4js from 'log4js'
 const logger = log4js.getLogger('tms-mongodb-web')
 
 import { ModelDoc, ModelCl, ModelSchema } from 'tmw-kit'
-import Helper from 'tmw-kit/dist/ctrl/helper'
-import { TMW_CONFIG } from '../global'
+import { Helper } from 'tmw-kit/dist/ctrl'
+import { TMW_CONFIG } from '../global.js'
 /**
  * 数据库控制器辅助类
  */

@@ -1,5 +1,5 @@
-import { EtlRunner } from '../../src/etl'
-import * as RandExp from 'randexp'
+import { EtlRunner } from '../../src/etl/index.js'
+import RandExp from 'randexp'
 
 describe('集合建ETL', () => {
   it('单属性映射——字符串到字符串', async () => {

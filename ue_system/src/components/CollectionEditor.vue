@@ -24,8 +24,8 @@
   </el-dialog>
 </template>
 <script>
-import apiCollection from '../apis/collection'
-import apiSchema from '../apis/schema'
+import apiCollection from '../apis/collection.js'
+import apiSchema from '../apis/schema.js'
 
 export default {
   name: 'CollectionEditor',
@@ -35,7 +35,7 @@ export default {
     dbName: { type: String },
     collection: {
       type: Object,
-      default: function() {
+      default: function () {
         return { name: '', title: '', description: '', schema_id: '' }
       }
     }

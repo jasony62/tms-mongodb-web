@@ -1,10 +1,10 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import CollectionHelper from './collectionHelper'
-import ReplicaHelper from './replicaHelper'
-import SchemaHelper from './schemaHelper'
+import CollectionHelper from './collectionHelper.js'
+import ReplicaHelper from './replicaHelper.js'
+import SchemaHelper from './schemaHelper.js'
 import { ModelCl } from 'tmw-kit'
-import Base from 'tmw-kit/dist/ctrl/base'
-import * as mongodb from 'mongodb'
+import { Base } from 'tmw-kit/dist/ctrl'
+import mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
 /**
@@ -16,8 +16,9 @@ class CollectionBase extends Base {
   rpHelper
   reqDb
   clMongoObj
-  constructor(...args) {
-    super(...args)
+  schemaHelper
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
     this.clHelper = new CollectionHelper(this)
     this.rpHelper = new ReplicaHelper(this)
     this.schemaHelper = new SchemaHelper(this)
@@ -61,7 +62,7 @@ class CollectionBase extends Base {
       type: 'collection',
       'db.sysname': this.reqDb.sysname,
     }
-    if (this.bucket) query.bucket = this.bucket.name
+    if (this.bucketObj) query.bucket = this.bucketObj.name
     const { keyword } = this.request.query
     if (keyword) {
       let re = new RegExp(keyword)
@@ -107,7 +108,7 @@ class CollectionBase extends Base {
    */
   async create() {
     const info = this.request.body
-    if (this.bucket) info.bucket = this.bucket.name
+    if (this.bucketObj) info.bucket = this.bucketObj.name
     if (!info.name) return new ResultFault('集合名称不允许为空')
 
     const existDb = this.reqDb

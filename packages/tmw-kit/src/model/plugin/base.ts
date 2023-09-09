@@ -1,5 +1,5 @@
 import { PluginProfile } from 'tmw-data'
-import { ModelDoc } from '..'
+import ModelDoc from '../document.js'
 
 // 必须提供的属性
 const RequiredProps = ['name', 'scope', 'title', 'description']
@@ -133,7 +133,7 @@ export abstract class PluginBase implements PluginProfile {
       visible,
       dbBlacklist,
       clBlacklist,
-      schemaBlacklist
+      schemaBlacklist,
     } = this
 
     return {
@@ -155,7 +155,7 @@ export abstract class PluginBase implements PluginProfile {
       visible,
       dbBlacklist,
       clBlacklist,
-      schemaBlacklist
+      schemaBlacklist,
     }
   }
 }

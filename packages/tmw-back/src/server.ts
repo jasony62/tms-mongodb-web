@@ -1,11 +1,12 @@
-import * as log4js from 'log4js'
-import * as path from 'path'
-import * as fs from 'fs'
+import log4js from 'log4js'
+import path from 'path'
+import fs from 'fs'
 import { nanoid } from 'nanoid'
 
-let cnfpath = path.resolve(process.cwd() + '/config/log4js.js')
+let cnfpath = path.resolve(process.cwd() + '/config/log.js')
 if (fs.existsSync(cnfpath)) {
-  const log4jsConfig = require(process.cwd() + '/config/log4js')
+  const log4jsConfig = (await import(process.cwd() + '/config/log4js.js'))
+    .default
   log4js.configure(log4jsConfig)
 } else {
   log4js.configure({
@@ -28,22 +29,22 @@ import { PluginContext } from 'tmw-kit'
 const tmsKoa = new TmsKoa()
 
 /**初始化配置上下文对象*/
-function loadPlugins() {
-  let config = loadConfig('plugin')
+async function loadPlugins() {
+  let config = await loadConfig('plugin')
   PluginContext.init(config)
 }
 /**
  * 数据初始化
  */
 async function dbInit(MongoContext) {
-  let config = loadConfig('dbinit')
+  let config = await loadConfig('dbinit')
   if (!config) return
   if (!Array.isArray(config.rules) || config.rules.length === 0) return
 
   const client = await MongoContext.mongoClient()
 
   logger.info('执行数据初始化', config)
-  const { loadDataFrom } = await import('tmw-kit/dist/util/database')
+  const { loadDataFrom } = await import('tmw-kit/dist/util/database.js')
   for (let rule of config.rules) {
     let { file, replaceExistingSchema, allowReuseSchema, docCreateMode } = rule
 

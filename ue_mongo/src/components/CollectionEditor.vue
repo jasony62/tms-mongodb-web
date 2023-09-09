@@ -34,12 +34,14 @@
         </el-select>
       </el-form-item>
       <el-form-item label="集合公共属性定义">
-        <el-select placeholder="请选择定义名称" v-model="collection.extensionInfo.schemaId" clearable filterable @change="handleExtendId(collection.extensionInfo.schemaId, false)">
+        <el-select placeholder="请选择定义名称" v-model="collection.extensionInfo.schemaId" clearable filterable
+          @change="handleExtendId(collection.extensionInfo.schemaId, false)">
           <el-option v-for="item in extensions" :key="item._id" :label="item.title" :value="item._id"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="集合公共属性详情" v-if="JSON.stringify(extendSchema)!=='{}'">
-        <tms-el-json-doc class="tmw-attr-form" ref="attrForm" :schema="extendSchema" :doc="collection.extensionInfo.info"></tms-el-json-doc>
+      <el-form-item label="集合公共属性详情" v-if="JSON.stringify(extendSchema) !== '{}'">
+        <tms-el-json-doc class="tmw-attr-form" ref="attrForm" :schema="extendSchema"
+          :doc="collection.extensionInfo.info"></tms-el-json-doc>
       </el-form-item>
       <el-form-item label="说明">
         <el-input type="textarea" v-model="collection.description"></el-input>
@@ -74,10 +76,10 @@ Vue.use(Dialog)
   .use(Button)
 
 import { ElJsonDoc as TmsElJsonDoc } from 'tms-vue-ui'
-import createCollectionApi from '../apis/collection'
-import createSchemaApi from '../apis/schema'
-import createTagApi from '../apis/tag'
-import createDbApi from '../apis/database'
+import createCollectionApi from '../apis/collection.js'
+import createSchemaApi from '../apis/schema.js'
+import createTagApi from '../apis/tag.js'
+import createDbApi from '../apis/database.js'
 
 let oldClName = ''
 
@@ -90,7 +92,7 @@ export default {
     dbName: { type: String },
     collection: {
       type: Object,
-      default: function() {
+      default: function () {
         return {
           name: '',
           title: '',

@@ -1,6 +1,6 @@
 const { env } = process
 
-module.exports = {
+export default {
   disabled: /true|yes/i.test(env.TMW_APP_AUTH_CAPTCHA_DISABLED), // boolean 是否启用验证码
   storageType: env.TMW_APP_AUTH_CAPTCHA_STORAGE || 'lowdb', // 验证码存储方式  lowdb | redis
   redisName: env.TMW_APP_AUTH_CAPTCHA_REDIS_NAME || 'master', // 如果使用redis存储验证码，使用redis连接名称

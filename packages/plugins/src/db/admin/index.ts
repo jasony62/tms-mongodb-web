@@ -1,6 +1,6 @@
 import { loadConfig, ModelDb } from 'tmw-kit'
-import { PluginBase } from 'tmw-kit/dist/model'
-import * as path from 'path'
+import { PluginBase } from 'tmw-kit/dist/model/index.js'
+import path from 'path'
 
 /**配置文件存放位置*/
 const ConfigDir = path.resolve(
@@ -50,9 +50,9 @@ class DbAdminPlugin extends PluginBase {
   }
 }
 
-export function createPlugin(file: string) {
+export async function createPlugin(file: string) {
   let config
-  if (ConfigFile) config = loadConfig(ConfigDir, ConfigFile)
+  if (ConfigFile) config = await loadConfig(ConfigDir, ConfigFile)
   if (config && typeof config === 'object') {
     let { widgetUrl, bucket, db, cl, title } = config
     const newPlugin = new DbAdminPlugin(file)

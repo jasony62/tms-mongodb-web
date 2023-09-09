@@ -1,18 +1,19 @@
-import * as fs from 'fs'
-import * as path from 'path'
-import * as _ from 'lodash'
+import fs from 'fs'
+import path from 'path'
+import _ from 'lodash'
 
 let TMW_CONFIG
 /**
  * 加载TMW扩展配置
  * @returns
  */
-export function loadTmwConfig() {
+export async function loadTmwConfig() {
   if (TMW_CONFIG) return TMW_CONFIG
 
   let cnfpath = path.resolve(process.cwd() + '/config/app.js')
   if (fs.existsSync(cnfpath)) {
-    TMW_CONFIG = require(process.cwd() + '/config/app').tmwConfig
+    TMW_CONFIG = (await import(process.cwd() + '/config/app.js')).default
+      .tmwConfig
   } else {
     TMW_CONFIG = {
       TMW_APP_CREATETIME: 'TMW_CREATE_TIME',
@@ -35,12 +36,12 @@ export function makeProjection(fields: any, fixed = { _id: 0 }) {
 /**
  * 按标签过滤条件
  */
-export function makeTagsFilter(tags: string | string[], filter?) {
+export async function makeTagsFilter(tags: string | string[], filter?) {
   /* 包含全部标签 */
   if (tags && typeof tags === 'string') tags = tags.split(',')
   if (!Array.isArray(tags) || tags.length === 0) return null
 
-  let tmwConfig = loadTmwConfig()
+  let tmwConfig = await loadTmwConfig()
 
   filter ??= {}
   if (!filter[tmwConfig.TMW_APP_TAGS])
@@ -59,17 +60,17 @@ export function makeTagsFilter(tags: string | string[], filter?) {
  *
  * @return {object} 配置数据对象
  */
-export function loadConfig(configDir, name, defaultConfig?) {
+export async function loadConfig(configDir, name, defaultConfig?) {
   let basepath = path.resolve(configDir, `${name}.js`)
   let baseConfig
   if (fs.existsSync(basepath)) {
-    baseConfig = require(basepath)
+    baseConfig = (await import(basepath)).default
   } else {
   }
   let localpath = path.resolve(configDir, `${name}.local.js`)
   let localConfig
   if (fs.existsSync(localpath)) {
-    localConfig = require(localpath)
+    localConfig = (await import(localpath)).default
   }
   if (defaultConfig || baseConfig || localConfig) {
     return _.merge({}, defaultConfig, baseConfig, localConfig)

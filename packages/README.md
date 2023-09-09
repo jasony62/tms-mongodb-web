@@ -9,7 +9,7 @@
 封装`tms-mongodb-web`的通用操作，为开发插件提供支持。作为独立的包`tmw-kit`发布。
 
 ```bash
-npm run build
+pnpm build
 ```
 
 # tmw-back
@@ -24,7 +24,11 @@ TMW_APP_PORT=3030 TMW_APP_AUTH_CAPTCHA_DISABLED=yes TMS_KOA_SKIP_TRUSTED_HOST=ye
 
 新增插件时，需要在 tmw-back/src 下新建 plugins 文件夹
 
-每次更改后，需要重新执行`npm run build`
+每次更改后，需要重新执行`pnpm build`
+
+```shell
+ curl -X POST -H "Content-Type: application/json" "http://localhost:6030/auth/authenticate" -d '{"username":"admin","password":"admin"}'
+```
 
 # ue_admin
 

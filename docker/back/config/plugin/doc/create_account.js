@@ -21,7 +21,7 @@ const widgetUrl = TMW_PLUGIN_DOC_CREATE_ACCOUNT_WIDGET_URL
   ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-create-account'
   : '/plugin/doc-create-account'
 
-module.exports = {
+export default {
   disabled: /true|yes/i.test(Disabled),
   dbBlacklist: DbBlacklist,
   clBlacklist: ClBlacklist,

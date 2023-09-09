@@ -2,24 +2,14 @@
   "name": "tmw-data",
   "version": "0.0.17",
   "description": "TMW数据结构",
-  "main": "./dist/esm/index.js",
-  "exports": {
-    ".": {
-      "node": {
-        "default": "./dist/cjs/index.js"
-      },
-      "default": {
-        "default": "./dist/esm/index.js"
-      }
-    }
-  },
+  "type": "module",
+  "main": "./dist/index.js",
   "files": [
     "dist/",
     "docs/"
   ],
   "scripts": {
-    "build": "rimraf ./dist && tsc && tsc -p tsconfig.esm.json",
-    "test": "jest"
+    "build": "rimraf ./dist && tsc"
   },
   "keywords": [
     "RCS",
@@ -29,7 +19,6 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "20.5.9",
-    "jest": "^27.5.0",
     "rimraf": "^5.0.1"
   }
 }

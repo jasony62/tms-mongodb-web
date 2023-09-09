@@ -1,4 +1,4 @@
-import Base from './base'
-import Helper from './helper'
+import Base from './base.js'
+import Helper from './helper.js'
 
 export { Base, Helper }

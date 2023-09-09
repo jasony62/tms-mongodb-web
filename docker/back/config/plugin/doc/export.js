@@ -20,7 +20,7 @@ const widgetUrl = TMW_PLUGIN_DOC_EXPORT_WIDGET_URL
   ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-export'
   : '/plugin/doc-export'
 
-module.exports = {
+export default {
   disabled: /true|yes/i.test(Disabled),
   dbBlacklist: DbBlacklist,
   clBlacklist: ClBlacklist,

@@ -26,7 +26,7 @@ const widgetUrl = TMW_PLUGIN_DOC_AGENDA_WIDGET_URL
   ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-agenda'
   : '/plugin/doc-agenda'
 
-module.exports = {
+export default {
   disabled: /true|yes/i.test(Disabled),
   dbBlacklist: DbBlacklist,
   clBlacklist: ClBlacklist,

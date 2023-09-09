@@ -1,9 +1,9 @@
 import { ObjectId } from 'mongodb'
-import * as dayjs from 'dayjs'
+import dayjs from 'dayjs'
 import { nanoid } from 'nanoid'
-import * as fs from 'fs'
-import * as glob from 'glob'
-import * as path from 'path'
+import fs from 'fs'
+import { glob } from 'glob'
+import path from 'path'
 
 const debug = require('debug')('tmw:db_init')
 const trace = require('debug')('trace:tmw:db_init')
@@ -252,7 +252,8 @@ class Handler {
     if (info.title) tpl.title = info.title
     if (info.description) tpl.description = info.description
     if (info.bucket) tpl.bucket = info.bucket
-    if (info.docFieldConvertRules) tpl.docFieldConvertRules = info.docFieldConvertRules
+    if (info.docFieldConvertRules)
+      tpl.docFieldConvertRules = info.docFieldConvertRules
     if (info.custom) tpl.custom = info.custom
 
     // 查询是否存在同名集合
@@ -278,7 +279,8 @@ class Handler {
       debug(
         `数据库[name=${newDb.name}]中，已存在同名集合[name=${tpl.name}]，不用新建，只更新集合属性`
       )
-      const { name, sysname, database, db, schema_id, bucket, ...updatedInfo } = tpl
+      const { name, sysname, database, db, schema_id, bucket, ...updatedInfo } =
+        tpl
       await this.cl.updateOne({ _id: existCl._id }, { $set: updatedInfo })
 
       return existCl
@@ -458,7 +460,7 @@ export async function loadDataFrom(
   if (fs.existsSync(filePath)) {
     if (fs.statSync(filePath).isDirectory()) {
       let absDir = path.resolve(process.cwd(), filePath)
-      const files = glob.sync(`${absDir}/**/*.@(js|json)`)
+      const files = glob.sync(`${absDir}/**/*.@.json)`)
       for (let file of files) {
         debug(`指定初始化数据文件：${file}`)
         await execute(file, mongoClient, options)

@@ -1,5 +1,5 @@
 import { ModelCl } from 'tmw-kit'
-import Helper from 'tmw-kit/dist/ctrl/helper'
+import { Helper } from 'tmw-kit/dist/ctrl'
 
 /** 数据库控制器辅助类 */
 class CollectionHelper extends Helper {
@@ -20,7 +20,7 @@ class CollectionHelper extends Helper {
 
     // 修改集合名
     const query: any = { name: clName, database: dbName, type: 'collection' }
-    if (this.bucket) query.bucket = this.bucket.name
+    if (this.ctrl.bucketObj) query.bucket = this.ctrl.bucketObj.name
     let clDb = client.db(sysname).collection(clName)
     return clDb
       .rename(newName)

@@ -1,8 +1,8 @@
 import { loadConfig } from 'tmw-kit'
-import { PluginBase } from 'tmw-kit/dist/model'
-import * as path from 'path'
-import { createDocWebhook } from 'tmw-kit/dist/webhook/document'
-import * as fs from 'fs'
+import { PluginBase } from 'tmw-kit/dist/model/index.js'
+import path from 'path'
+import { createDocWebhook } from 'tmw-kit/dist/webhook/document.js'
+import fs from 'fs'
 
 /**配置文件存放位置*/
 const ConfigDir = path.resolve(
@@ -71,20 +71,30 @@ class CreateAccountPlugin extends PluginBase {
   }
 }
 
-export function createPlugin(file: string) {
+export async function createPlugin(file: string) {
   let config
-  if (ConfigFile) config = loadConfig(ConfigDir, ConfigFile)
+  if (ConfigFile) config = await loadConfig(ConfigDir, ConfigFile)
   if (config && typeof config === 'object') {
-    let { widgetUrl, bucket, db, cl, schema, title, schemaFile,
-      disabled, dbBlacklist, clBlacklist, schemaBlacklist } = config
+    let {
+      widgetUrl,
+      bucket,
+      db,
+      cl,
+      schema,
+      title,
+      schemaFile,
+      disabled,
+      dbBlacklist,
+      clBlacklist,
+      schemaBlacklist,
+    } = config
     const newPlugin = new CreateAccountPlugin(file)
 
     let schemaJson
     const fp = path.resolve(ConfigDir, schemaFile)
     if (fs.statSync(fp).isFile())
       schemaJson = JSON.parse(fs.readFileSync(fp, 'utf-8'))
-    if (!schemaJson)
-      return false
+    if (!schemaJson) return false
     newPlugin.schemaJson = schemaJson
 
     newPlugin.beforeWidget.url = widgetUrl

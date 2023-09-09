@@ -1,8 +1,8 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import Base from 'tmw-kit/dist/ctrl/base'
-import DbHelper from './dbHelper'
+import { Base } from 'tmw-kit/dist/ctrl'
+import DbHelper from './dbHelper.js'
 import { ModelDb } from 'tmw-kit'
-import * as mongodb from 'mongodb'
+import mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
 /**
@@ -10,8 +10,10 @@ const ObjectId = mongodb.ObjectId
  * @extends Base
  */
 class DbBase extends Base {
-  constructor(...args) {
-    super(...args)
+  dbHelper
+  clMongoObj
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
     this.dbHelper = new DbHelper(this)
   }
   async tmsBeforeEach() {
@@ -27,7 +29,7 @@ class DbBase extends Base {
    */
   async list() {
     const query: any = { type: 'database' }
-    if (this.bucket) query.bucket = this.bucket.name
+    if (this.bucketObj) query.bucket = this.bucketObj.name
     let { keyword } = this.request.query
     if (keyword) {
       if (/\(/.test(keyword)) {
@@ -71,7 +73,7 @@ class DbBase extends Base {
    */
   async create() {
     let info = this['request'].body
-    if (this['bucket']) info.bucket = this['bucket'].name
+    if (this['bucket']) info.bucket = this.bucketObj.name
 
     let [flag, result] = await this['dbHelper'].dbCreate(info)
 
@@ -90,7 +92,7 @@ class DbBase extends Base {
     // 检查数据库名
     let modelDb = new ModelDb(
       this['mongoClient'],
-      this['bucket'],
+      this.bucketObj,
       this['client']
     )
 
@@ -128,7 +130,7 @@ class DbBase extends Base {
 
     let top = type === 'up' ? '10000' : null
     const query: any = { _id: new ObjectId(id) }
-    if (this['bucket']) query.bucket = this['bucket'].name
+    if (this['bucket']) query.bucket = this.bucketObj.name
 
     return this['clMongoObj']
       .updateOne(query, { $set: { top } })

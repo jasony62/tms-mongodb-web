@@ -1,13 +1,13 @@
-import * as _ from 'lodash'
+import _ from 'lodash'
 import { ResultData, ResultFault } from 'tms-koa'
-import TagBase from '../tagBase'
-import * as mongodb from 'mongodb'
+import TagBase from '../tagBase.js'
+import mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
 /** 标签 */
 class Tag extends TagBase {
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
   /**
    * @swagger
@@ -47,7 +47,7 @@ class Tag extends TagBase {
     info.name = info.name.replace(/(^\s*)|(\s*$)/g, '')
 
     if (this.bucket && typeof this.bucket === 'object')
-      info.bucket = this.bucket.name
+      info.bucket = this.bucketObj.name
 
     // 查询是否存在同名标签
     let existTag = await this.tagHelper.tagByName(info.name)
@@ -106,7 +106,7 @@ class Tag extends TagBase {
     if (existTag) return new ResultFault('已存在同名标签')
 
     let query: any = { _id: new ObjectId(id), type: 'tag' }
-    if (this.bucket) query.bucket = this.bucket.name
+    if (this.bucketObj) query.bucket = this.bucketObj.name
 
     info = _.omit(info, ['_id', 'type', 'bucket'])
 
@@ -152,10 +152,10 @@ class Tag extends TagBase {
     }
 
     const query: any = { name: name }
-    if (this.bucket) query.bucket = this.bucket.name
+    if (this.bucketObj) query.bucket = this.bucketObj.name
 
     return this.clTagObj.deleteOne(query).then(() => new ResultData('ok'))
   }
 }
 
-export = Tag
+export default Tag

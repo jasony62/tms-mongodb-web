@@ -1,8 +1,8 @@
-import { LocalFS } from 'tms-koa/dist/model/fs/local'
-import { Upload } from 'tms-koa/dist/model/fs/upload'
-import * as PATH from 'path'
-import * as fs from 'fs'
-import * as archiver from 'archiver'
+import { LocalFS } from 'tms-koa/dist/model/fs/local.js'
+import { Upload } from 'tms-koa/dist/model/fs/upload.js'
+import PATH from 'path'
+import fs from 'fs'
+import archiver from 'archiver'
 
 function zipByArchive(space) {
   const archive = archiver.create('zip', { zlib: { level: 9 } })

@@ -1,9 +1,9 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Login from '../views/Login.vue'
-import Home from '../views/Home.vue'
-import Bucket from '../views/Bucket.vue'
-import Database from '../views/Database.vue'
+import Login from '../views/Login.vue.js'
+import Home from '../views/Home.vue.js'
+import Bucket from '../views/Bucket.vue.js'
+import Database from '../views/Database.vue.js'
 import { TmsRouterHistoryPlugin } from 'tms-vue'
 
 const routes = [

@@ -1,18 +1,18 @@
 import { ResultData, ResultFault, Context } from 'tms-koa'
 const { FsContext } = Context
-import { UploadPlain } from 'tms-koa/dist/model/fs/upload'
-import { LocalFS } from 'tms-koa/dist/model/fs/local'
-import DocBase from '../documentBase'
-import * as _ from 'lodash'
+import { UploadPlain } from 'tms-koa/dist/model/fs/upload.js'
+import { LocalFS } from 'tms-koa/dist/model/fs/local.js'
+import DocBase from '../documentBase.js'
+import _ from 'lodash'
 import { ModelCl, ModelDoc } from 'tmw-kit'
-import * as mongodb from 'mongodb'
+import mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
-import DbHelper from '../dbHelper'
-import CollectionHelper from '../collectionHelper'
+import DbHelper from '../dbHelper.js'
+import CollectionHelper from '../collectionHelper.js'
 
 class Document extends DocBase {
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
   /**
    * 上传并导入单个文件
@@ -23,8 +23,7 @@ class Document extends DocBase {
     }
 
     let { reqMode, docCreateMode } = this.request.query
-    if (reqMode === 'api')
-      await this.beforeImport()
+    if (reqMode === 'api') await this.beforeImport()
 
     const existCl = await this.docHelper.findRequestCl()
     if (reqMode === 'api') {
@@ -36,7 +35,7 @@ class Document extends DocBase {
           case 'stop':
             console.log(`停止新建文档`)
             const docInfo: any = {}
-            if (this.bucket) docInfo.bucket = this.bucket.name
+            if (this.bucketObj) docInfo.bucket = this.bucketObj.name
             const docs = await docCl.find(docInfo).toArray()
             return new ResultData(docs)
           case 'override':
@@ -114,7 +113,7 @@ class Document extends DocBase {
 
     let modelDoc = new ModelDoc(
       this['mongoClient'],
-      this['bucket'],
+      this.bucketObj,
       this['client']
     )
 
@@ -137,7 +136,7 @@ class Document extends DocBase {
     // 集合列
     let modelCl = new ModelCl(
       this['mongoClient'],
-      this['bucket'],
+      this.bucketObj,
       this['client']
     )
     columns = columns ? columns : await modelCl.getSchemaByCollection(existCl)
@@ -260,7 +259,7 @@ class Document extends DocBase {
    */
   async beforeImport() {
     let { originalFilename: fileName } = this.request.files.file
-    fileName = fileName.substring(0, fileName.indexOf("."))
+    fileName = fileName.substring(0, fileName.indexOf('.'))
     if (new RegExp('^[a-zA-Z]+[0-9a-zA-Z_]{0,63}$').test(fileName) !== true) {
       fileName = 'excel'
     }
@@ -277,13 +276,13 @@ class Document extends DocBase {
     }
 
     const dbInfo: any = { name: db }
-    if (this.bucket) dbInfo.bucket = this.bucket.name
+    if (this.bucketObj) dbInfo.bucket = this.bucketObj.name
     const dbHelper = new DbHelper(this)
     let [dbFlag, dbRst] = await dbHelper.dbCreate(dbInfo)
     console.log('db flag -- ', dbFlag, dbRst)
 
     const clInfo: any = { name: cl }
-    if (this.bucket) clInfo.bucket = this.bucket.name
+    if (this.bucketObj) clInfo.bucket = this.bucketObj.name
     const clHelper = new CollectionHelper(this)
     const reqDb = await clHelper.findRequestDb()
     let [clFlag, clRst] = await clHelper.createCl(reqDb, clInfo)

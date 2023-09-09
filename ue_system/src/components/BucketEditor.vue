@@ -18,7 +18,7 @@
   </el-dialog>
 </template>
 <script>
-import apiDkt from '../apis/bucket'
+import apiDkt from '../apis/bucket.js'
 
 export default {
   name: 'DucketEditor',

@@ -1,13 +1,16 @@
 import { Ctrl } from 'tms-koa'
-import Helper from 'tmw-kit/dist/ctrl/helper'
+import { Helper } from 'tmw-kit/dist/ctrl'
 
 class Base extends Ctrl {
-  constructor(...args) {
-    super(...args)
-    this['helper'] = new Helper(this)
+  helper
+
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
+    this.helper = new Helper(this)
   }
-  async tmsBeforeEach() {
-    this['clPreset'] = this['helper'].clPreset
+
+  get clPerset() {
+    return this.helper.clPerset
   }
 }
 

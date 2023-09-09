@@ -11,8 +11,8 @@ class Etl extends Base {
   modelEtl
   etlHelper
 
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
     this.modelEtl = new EtlModel(this.mongoClient, this.bucket, this.client)
     this.etlHelper = new EtlHelper(this)
   }

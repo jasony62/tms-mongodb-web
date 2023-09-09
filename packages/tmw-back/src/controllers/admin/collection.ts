@@ -1,11 +1,10 @@
-import CollectionBase from '../collectionBase'
+import CollectionBase from '../collectionBase.js'
 import { ResultData, ResultFault } from 'tms-koa'
 import { ModelCl } from 'tmw-kit'
-import DocumentHelper from '../documentHelper'
 
 class Collection extends CollectionBase {
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
   /**
    * @swagger
@@ -177,7 +176,7 @@ class Collection extends CollectionBase {
   async add() {
     const modelCl = new ModelCl(
       this['mongoClient'],
-      this['bucket'],
+      this.bucketObj,
       this['client']
     )
 
@@ -203,7 +202,7 @@ class Collection extends CollectionBase {
     info.sysname = sysname
     info.database = this['reqDb'].name
     info.db = { sysname: this['reqDb'].sysname, name: this['reqDb'].name }
-    if (this['bucket']) info.bucket = this['bucket'].name
+    if (this['bucket']) info.bucket = this.bucketObj.name
 
     // 检查是否指定了用途
     let { usage } = info
@@ -327,4 +326,4 @@ class Collection extends CollectionBase {
   }
 }
 
-export = Collection
+export default Collection

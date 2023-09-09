@@ -1,8 +1,8 @@
-import BucketBase from "../bucketBase"
+import BucketBase from '../bucketBase.js'
 
 class Bucket extends BucketBase {
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
 }
 

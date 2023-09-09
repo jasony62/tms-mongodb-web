@@ -18,7 +18,7 @@
   </el-dialog>
 </template>
 <script>
-import apiDb from '../apis/database'
+import apiDb from '../apis/database.js'
 
 export default {
   name: 'DbEditor',
@@ -27,7 +27,7 @@ export default {
     bucketName: { type: String },
     database: {
       type: Object,
-      default: function() {
+      default: function () {
         return { name: '', title: '', description: '' }
       }
     }

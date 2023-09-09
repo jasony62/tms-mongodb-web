@@ -1,10 +1,10 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import BucketBase from '@/controllers/bucketBase'
+import BucketBase from '@/controllers/bucketBase.js'
 
 /** 用于给用户分配存储空间 */
 class Bucket extends BucketBase {
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
   /** 执行方法调用前检查 */
   async tmsBeforeEach() {
@@ -184,4 +184,4 @@ class Bucket extends BucketBase {
   }
 }
 
-export = Bucket
+export default Bucket

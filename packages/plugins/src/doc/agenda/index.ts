@@ -1,6 +1,6 @@
 import { loadConfig } from 'tmw-kit'
-import { PluginBase } from 'tmw-kit/dist/model'
-import * as path from 'path'
+import { PluginBase } from 'tmw-kit/dist/model/index.js'
+import path from 'path'
 import axios from 'axios'
 import { ModelDoc } from 'tmw-kit'
 import Debug from 'debug'
@@ -31,7 +31,7 @@ class AgendaDocPlugin extends PluginBase {
     this.scope = 'document'
     this.amount = 'many'
     this.beforeWidget = { name: 'external', url: '', size: '40%' }
-    this.axiosInstance = axios.create()
+    this.axiosInstance = axios
     this.jobFields = {}
   }
 
@@ -164,9 +164,9 @@ class AgendaDocPlugin extends PluginBase {
   }
 }
 
-export function createPlugin(file: string) {
+export async function createPlugin(file: string) {
   let config
-  if (ConfigFile) config = loadConfig(ConfigDir, ConfigFile)
+  if (ConfigFile) config = await loadConfig(ConfigDir, ConfigFile)
   if (config && typeof config === 'object') {
     let {
       widgetUrl,

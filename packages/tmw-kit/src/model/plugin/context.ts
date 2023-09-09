@@ -1,10 +1,11 @@
-const log4js = require('@log4js-node/log4js-api')
-const logger = log4js.getLogger('tms-mongodb-web')
-const path = require('path')
-const glob = require('glob')
+import log4js from '@log4js-node/log4js-api'
+import path from 'path'
+import { glob } from 'glob'
 
-import { PluginBase } from './base'
+import { PluginBase } from './base.js'
 import { PluginProfile } from 'tmw-data'
+
+const logger = log4js.getLogger('tms-mongodb-web')
 
 let _pluginsByName = new Map<string, PluginBase>() // 插件名称到插件示例
 
@@ -68,7 +69,7 @@ export class Context {
         for (let file of files) {
           if (file.indexOf('node_modules') !== -1) continue
           try {
-            let { createPlugin } = require(file)
+            let { createPlugin } = await import(file)
             if (typeof createPlugin !== 'function') {
               logger.warn(
                 `插件文件[${path.basename(
@@ -79,7 +80,7 @@ export class Context {
             }
 
             // 支持用1个插件文件创建多个插件实例
-            let plugin: PluginProfile | boolean = createPlugin(file)
+            let plugin: PluginProfile | boolean = await createPlugin(file)
             if (false === plugin) {
               logger.warn(`插件文件[${file}]创建插件失败`)
               continue

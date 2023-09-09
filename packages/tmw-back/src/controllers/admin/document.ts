@@ -1,9 +1,9 @@
-import DocBase from '../documentBase'
+import DocBase from '../documentBase.js'
 
 /** 管理段文档对象控制器 */
 class Document extends DocBase {
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
   /**
    * @swagger
@@ -368,4 +368,4 @@ class Document extends DocBase {
   }
 }
 
-export = Document
+export default Document

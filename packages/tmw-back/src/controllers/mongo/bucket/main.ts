@@ -1,17 +1,20 @@
 import { ResultData } from 'tms-koa'
-import BucketBase from '@/controllers/bucketBase'
+import BucketBase from '@/controllers/bucketBase.js'
 
 class Bucket extends BucketBase {
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
   /**
    * 返回当前用户的bucket列表
    */
   async list() {
-    const tmsBuckets = await this["clBucket"]
+    const tmsBuckets = await this['clBucket']
       .find({
-        $or: [{ creator: this["client"].id }, { 'coworkers.id': this["client"].id }],
+        $or: [
+          { creator: this['client'].id },
+          { 'coworkers.id': this['client'].id },
+        ],
       })
       .toArray()
 

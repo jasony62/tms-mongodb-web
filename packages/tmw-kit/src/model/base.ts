@@ -1,8 +1,8 @@
-import * as dayjs from 'dayjs'
-import * as _ from 'lodash'
-import { SchemaIter } from '../schema'
-import { AES } from '../crypto'
-import { loadTmwConfig } from '../util'
+import dayjs from 'dayjs'
+import _ from 'lodash'
+import { SchemaIter } from '../schema.js'
+import { AES } from '../crypto.js'
+import { loadTmwConfig } from '../util/index.js'
 /**
  * 定义过滤条件
  */
@@ -19,7 +19,7 @@ type FilterSimple = {
   [column: string]: any
 }
 
-const TMW_CONFIG = loadTmwConfig()
+const TMW_CONFIG = await loadTmwConfig()
 
 class Base {
   mongoClient // mongodb连接客户端

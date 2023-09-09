@@ -1,5 +1,5 @@
-import * as mongodb from 'mongodb'
-import Base from './base'
+import mongodb from 'mongodb'
+import Base from './base.js'
 const ObjectId = mongodb.ObjectId
 
 class Schema extends Base {

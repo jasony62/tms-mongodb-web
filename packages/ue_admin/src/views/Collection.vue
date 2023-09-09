@@ -40,9 +40,8 @@
               <span v-if="s.type === 'boolean'">{{
                 scope.row[k] ? '是' : '否'
               }}</span>
-              <span v-else-if="
-                s.type === 'array' && s.items && s.items.format === 'file'
-              ">
+              <span v-else-if="s.type === 'array' && s.items && s.items.format === 'file'
+                ">
                 <span v-for="(i, v) in scope.row[k]" :key="v">
                   <el-link type="primary" @click="downLoadFile(i)">{{
                     i.name
@@ -53,16 +52,14 @@
               <span v-else-if="s.type === 'array' && s.enum && s.enum.length">
                 <span v-if="s.enumGroups && s.enumGroups.length">
                   <span v-for="(g, i) in s.enumGroups" :key="i">
-                    <span v-if="
-                      scope.row[g.assocEnum.property] === g.assocEnum.value
-                    ">
+                    <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value
+                      ">
                       <span v-for="(e, v) in s.enum" :key="v">
-                        <span v-if="
-                          e.group === g.id &&
+                        <span v-if="e.group === g.id &&
                           scope.row[k] &&
                           scope.row[k].length &&
                           scope.row[k].includes(e.value)
-                        ">{{ e.label }}&nbsp;</span>
+                          ">{{ e.label }}&nbsp;</span>
                       </span>
                     </span>
                   </span>
@@ -76,9 +73,8 @@
               <span v-else-if="s.type === 'string' && s.enum && s.enum.length">
                 <span v-if="s.enumGroups && s.enumGroups.length">
                   <span v-for="(g, i) in s.enumGroups" :key="i">
-                    <span v-if="
-                      scope.row[g.assocEnum.property] === g.assocEnum.value
-                    ">
+                    <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value
+                      ">
                       <span v-for="(e, v) in s.enum" :key="v">
                         <span v-if="e.group === g.id && scope.row[k] === e.value">{{ e.label }}</span>
                       </span>
@@ -94,9 +90,8 @@
               <span v-else-if="s.type === 'string' && s.oneOf && s.oneOf.length">
                 <span v-if="s.enumGroups && s.enumGroups.length">
                   <span v-for="(g, i) in s.enumGroups" :key="i">
-                    <span v-if="
-                      scope.row[g.assocEnum.property] === g.assocEnum.value
-                    ">
+                    <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value
+                      ">
                       <span v-for="(e, v) in s.oneOf" :key="v">
                         <span v-if="e.group === g.id && scope.row[k] === e.value">{{ e.label }}</span>
                       </span>

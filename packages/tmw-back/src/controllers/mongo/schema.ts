@@ -1,8 +1,8 @@
-import SchemaBase from "../schemaBase"
+import SchemaBase from '../schemaBase.js'
 
 class Schema extends SchemaBase {
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
 }
 

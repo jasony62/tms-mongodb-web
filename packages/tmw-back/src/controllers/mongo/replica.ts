@@ -1,11 +1,11 @@
-import ReplicaBase from "../replicaBase"
+import ReplicaBase from '../replicaBase.js'
 /**
  * 集合复制控制器
  * @extends ReplicaBase
  */
 class Replica extends ReplicaBase {
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
   /**
    * @swagger

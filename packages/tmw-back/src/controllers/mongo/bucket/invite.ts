@@ -1,23 +1,23 @@
 import { Ctrl, ResultData, ResultFault } from 'tms-koa'
-import * as mongodb from 'mongodb'
+import mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
 class Invite extends Ctrl {
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
   /**
    * 接受邀请
    */
   async accept() {
-    const { bucket } = this["request"].query
+    const { bucket } = this['request'].query
     if (!bucket) return new ResultFault('没有指定邀请的空间')
 
-    const clLog = this["mongoClient"]
+    const clLog = this['mongoClient']
       .db('tms_admin')
       .collection('bucket_invite_log')
 
-    const { code, nickname } = this["request"].body
+    const { code, nickname } = this['request'].body
     if (!code || !nickname) return new ResultFault('没有提供又有效参数')
 
     const invite = await clLog.findOne({
@@ -35,10 +35,10 @@ class Invite extends Ctrl {
     if (invite.acceptAt)
       return new ResultFault('邀请码已经使用，不允许重复使用')
 
-    const invitee = this["client"].id // 被邀请人
+    const invitee = this['client'].id // 被邀请人
 
     /*加入bucket授权列表*/
-    const clBucket = this["mongoClient"].db('tms_admin').collection('bucket')
+    const clBucket = this['mongoClient'].db('tms_admin').collection('bucket')
     const coworkerQuery = {
       name: bucket,
       'coworkers.id': invitee,

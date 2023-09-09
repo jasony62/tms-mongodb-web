@@ -1,10 +1,10 @@
-import { PluginBase } from 'tmw-kit/dist/model'
+import { PluginBase } from 'tmw-kit/dist/model/index.js'
 import { loadConfig } from 'tmw-kit'
-import { LocalFS } from 'tms-koa/dist/model/fs/local'
-import * as path from 'path'
-import * as _ from 'lodash'
-import * as fs from 'fs'
-import * as glob from 'glob'
+import { LocalFS } from 'tms-koa/dist/model/fs/local.js'
+import path from 'path'
+import _ from 'lodash'
+import fs from 'fs'
+import { glob } from 'glob'
 
 /**配置文件存放位置*/
 const ConfigDir = path.resolve(
@@ -15,7 +15,6 @@ const ConfigDir = path.resolve(
 const ConfigFile =
   process.env.TMW_PLUGIN_DOC_VERSION_REPOS_CONFIG_NAME ||
   './plugin/doc/version-repos'
-
 /**
  * 用户配置信息
  */
@@ -227,9 +226,9 @@ class VersionReposPlugin extends PluginBase {
   }
 }
 
-export function createPlugin(file: string) {
+export async function createPlugin(file: string) {
   let config
-  if (ConfigFile) config = loadConfig(ConfigDir, ConfigFile)
+  if (ConfigFile) config = await loadConfig(ConfigDir, ConfigFile)
   if (config && typeof config === 'object') {
     let {
       widgetUrl,

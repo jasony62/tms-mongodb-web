@@ -1,13 +1,13 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
-import Login from '../components/Login.vue'
-import Bucket from '../views/Bucket.vue'
-import Database from '../views/Database.vue'
-import Collection from '../views/Collection.vue'
+import Home from '../views/Home.vue.js'
+import Login from '../components/Login.vue.js'
+import Bucket from '../views/Bucket.vue.js'
+import Database from '../views/Database.vue.js'
+import Collection from '../views/Collection.vue.js'
 import { TmsRouterHistoryPlugin } from 'tms-vue'
-import store from '../store'
-import { getToken } from '../global'
+import store from '../store.js'
+import { getToken } from '../global.js'
 
 const BucketPart = /yes|true/i.test(process.env.VUE_APP_TMW_REQUIRE_BUCKET)
   ? '/b/:bucketName'
@@ -17,35 +17,35 @@ const routes = [
   {
     path: '/login',
     name: 'login',
-    component: Login
+    component: Login,
   },
   {
     path: '/bucket',
     name: 'bucket',
-    component: Bucket
+    component: Bucket,
   },
   {
     path: `${BucketPart}/home`,
     name: 'home',
     component: Home,
-    props: true
+    props: true,
   },
   {
     path: `${BucketPart}/database/:dbName`,
     name: 'database',
     component: Database,
-    props: true
+    props: true,
   },
   {
     path: `${BucketPart}/collection/:dbName/:clName`,
     name: 'collection',
     component: Collection,
-    props: true
+    props: true,
   },
   {
     path: '*',
-    redirect: { name: 'home' }
-  }
+    redirect: { name: 'home' },
+  },
 ]
 
 Vue.use(VueRouter).use(TmsRouterHistoryPlugin)
@@ -53,7 +53,7 @@ Vue.use(VueRouter).use(TmsRouterHistoryPlugin)
 let router = new VueRouter({
   mode: 'history',
   base: process.env.VUE_APP_BASE_URL,
-  routes
+  routes,
 })
 
 router.beforeEach((to, from, next) => {

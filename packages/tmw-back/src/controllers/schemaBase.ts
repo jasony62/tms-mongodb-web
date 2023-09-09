@@ -1,8 +1,8 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import Base from 'tmw-kit/dist/ctrl/base'
-import SchemaHelper from './schemaHelper'
-import * as _ from 'lodash'
-import * as mongodb from 'mongodb'
+import { Base } from 'tmw-kit/dist/ctrl'
+import SchemaHelper from './schemaHelper.js'
+import _ from 'lodash'
+import mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
 /**
@@ -14,8 +14,8 @@ class SchemaBase extends Base {
   reqDb
   clMongoObj
 
-  constructor(...args) {
-    super(...args)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
     this.schemaHelper = new SchemaHelper(this)
   }
   async tmsBeforeEach() {
@@ -42,7 +42,7 @@ class SchemaBase extends Base {
 
     if (!dbName && scope === 'document') find.db = null
 
-    if (this.bucket) find.bucket = this.bucket.name
+    if (this.bucketObj) find.bucket = this.bucketObj.name
 
     return this.clMongoObj
       .find(find)
@@ -68,13 +68,13 @@ class SchemaBase extends Base {
           },
         ],
       }
-      if (this.bucket) query['$and'].push({ bucket: this.bucket.name })
+      if (this.bucketObj) query['$and'].push({ bucket: this.bucketObj.name })
     } else {
       query = {
         type: 'schema',
         scope: scope,
       }
-      if (this.bucket) query.bucket = this.bucket.name
+      if (this.bucketObj) query.bucket = this.bucketObj.name
     }
 
     return this.clMongoObj
@@ -92,7 +92,7 @@ class SchemaBase extends Base {
     let { tag } = this.request.query
 
     let find: any = { type: 'schema', tags: { $elemMatch: { $eq: tag } } }
-    if (this.bucket) find.bucket = this.bucket.name
+    if (this.bucketObj) find.bucket = this.bucketObj.name
 
     return this.clMongoObj
       .find(find)
@@ -108,7 +108,7 @@ class SchemaBase extends Base {
     if (!id) return new ResultFault('参数不完整')
 
     const query: any = { _id: new ObjectId(id), type: 'schema' }
-    if (this.bucket) query.bucket = this.bucket.name
+    if (this.bucketObj) query.bucket = this.bucketObj.name
 
     return this.clMongoObj
       .findOne(query)
@@ -119,7 +119,7 @@ class SchemaBase extends Base {
    */
   async create() {
     const info = this.request.body
-    if (this.bucket) info.bucket = this.bucket.name
+    if (this.bucketObj) info.bucket = this.bucketObj.name
     if (!info.name) return new ResultFault('文档列定义名称不允许为空')
 
     if (!info.scope) info.scope = 'document'
@@ -156,7 +156,7 @@ class SchemaBase extends Base {
     if (!flag) return new ResultFault(result)
 
     const query: any = { _id: new ObjectId(id), type: 'schema' }
-    if (this.bucket) query.bucket = this.bucket.name
+    if (this.bucketObj) query.bucket = this.bucketObj.name
 
     return this.clMongoObj
       .updateOne(query, { $set: info }, { upsert: true })

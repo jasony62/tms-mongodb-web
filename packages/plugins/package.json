@@ -1,5 +1,6 @@
 {
   "name": "plugins",
+  "type": "module",
   "version": "0.0.1",
   "private": true,
   "description": "",
@@ -11,11 +12,11 @@
   "author": "jasony62",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.27.2",
+    "axios": "^1.5.0",
     "dayjs": "^1.11.3",
     "debug": "^4.3.4",
-    "glob": "7.1.6",
-    "pinyin-pro": "^3.13.0",
+    "glob": "10.3.4",
+    "pinyin-pro": "^3.16.4",
     "tmw-kit": "workspace:*",
     "xlsx": "^0.18.5"
   },
@@ -23,7 +24,7 @@
     "@types/node": "^20.5.9",
     "lodash": "^4.17.21",
     "rimraf": "^5.0.1",
-    "tms-koa": "^0.1.7",
-    "tms-koa-account": "^0.1.7"
+    "tms-koa": "^0.2.0",
+    "tms-koa-account": "^0.2.0"
   }
 }

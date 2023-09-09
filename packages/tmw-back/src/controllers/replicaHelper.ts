@@ -1,4 +1,4 @@
-import Helper from 'tmw-kit/dist/ctrl/helper'
+import Helper from 'tmw-kit/dist/ctrl/helper.js'
 import { ModelDb, ModelCl, ModelReplicaMap } from 'tmw-kit'
 
 /**

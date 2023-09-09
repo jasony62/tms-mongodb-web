@@ -1,4 +1,4 @@
-import { ModelCl } from '../model'
+import { ModelCl } from '../model/index.js'
 
 /**
  * 控制器辅助类
@@ -9,6 +9,9 @@ class Helper {
 
   constructor(ctrl) {
     this.ctrl = ctrl
+  }
+  get bucketObj() {
+    return this.ctrl.bucketObj
   }
   /**
    * 存储管理对象的集合

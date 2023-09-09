@@ -1,6 +1,6 @@
 import { Double } from 'mongodb'
 import { nanoid } from 'nanoid'
-import Base from './base'
+import Base from './base.js'
 
 // 数据库名正则表达式
 const DB_NAME_RE = '^[a-zA-Z]+[0-9a-zA-Z_-]{0,63}$'
