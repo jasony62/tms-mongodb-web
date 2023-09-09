@@ -220,32 +220,32 @@ module.exports = {
 
 本插件实现通过管理员身份创建用户账号。
 
-| 属性             | 用途                                           | 类型   | 默认值                                  | 必填 |
-| ---------------- | ---------------------------------------------- | ------ | --------------------------------------- | ---- |
-| **基本信息**     |                                                |        |                                         |      |
-| name             | 插件名称。需要有唯一性，同名插件只会加载一次。 | string | doc-create-account | 是   |
-| scope            | 插件适用的数据对象类型。只用于文档类型。       | string | document           | 是   |
-| title            | 插件在页面上的显示内容。                       | string | 发送数据           | 是   |
-| amount           | 操作的数据量。                                 | string | many               | 是   |
-| bucketName       | 匹配的存储空间名称。                           | RegExp | 无                 | 否   |
-| dbName           | 匹配的数据库名称。                             | RegExp | 无                 | 否   |
-| clName           | 匹配的集合名称。                               | RegExp | 无                 | 否   |
-| schemaName       | 匹配的文档列定义名称。                         | RegExp | 无                 | 否   |
-| schemaFile | 指定schema，前端根据schema自动生成表单。 | json | ./plugin/doc/create_account/schema.json | 否 |
-| disabled | 是否禁用插件 | boolean | false | 否 |
-| dbBlacklist | 根据数据库名称匹配的黑名单。 | RegExp | 无 | 否 |
-| clBlacklist | 根据集合名称匹配的黑名单。 | RegExp | 无 | 否 |
-| schemaBlacklist | 根据文档列定义名称匹配的黑名单。 | RegExp | 无 | 否 |
-| **部件基本信息** |                                                |        |                    |      |
-| beforeWidget     |                                                |        |                    |      |
-| --name           | 部件名称。指明是自定义外部部件。               | string | external           | 是   |
-| --url            | 部件获取地址。通过配置文件指定。               | string | 无                 | 是   |
-| --size           | 部件在页面上的宽度。                           | string | 40%                | 是   |
-| **部件用户输入** |                                                |        |                    |      |
-| beforeWidget.ui  |                                                |        |                    |      |
-| --username       | 登录账号。                           | string | 无                 | 否   |
-| --password       | 账号密码。                                       | string | 无                 | 否   |
-| --nickname | 用户昵称。 | string | 无 | 否 |
+| 属性             | 用途                                           | 类型    | 默认值                                  | 必填 |
+| ---------------- | ---------------------------------------------- | ------- | --------------------------------------- | ---- |
+| **基本信息**     |                                                |         |                                         |      |
+| name             | 插件名称。需要有唯一性，同名插件只会加载一次。 | string  | doc-create-account                      | 是   |
+| scope            | 插件适用的数据对象类型。只用于文档类型。       | string  | document                                | 是   |
+| title            | 插件在页面上的显示内容。                       | string  | 发送数据                                | 是   |
+| amount           | 操作的数据量。                                 | string  | many                                    | 是   |
+| bucketName       | 匹配的存储空间名称。                           | RegExp  | 无                                      | 否   |
+| dbName           | 匹配的数据库名称。                             | RegExp  | 无                                      | 否   |
+| clName           | 匹配的集合名称。                               | RegExp  | 无                                      | 否   |
+| schemaName       | 匹配的文档列定义名称。                         | RegExp  | 无                                      | 否   |
+| schemaFile       | 指定 schema，前端根据 schema 自动生成表单。    | json    | ./plugin/doc/create_account/schema.json | 否   |
+| disabled         | 是否禁用插件                                   | boolean | false                                   | 否   |
+| dbBlacklist      | 根据数据库名称匹配的黑名单。                   | RegExp  | 无                                      | 否   |
+| clBlacklist      | 根据集合名称匹配的黑名单。                     | RegExp  | 无                                      | 否   |
+| schemaBlacklist  | 根据文档列定义名称匹配的黑名单。               | RegExp  | 无                                      | 否   |
+| **部件基本信息** |                                                |         |                                         |      |
+| beforeWidget     |                                                |         |                                         |      |
+| --name           | 部件名称。指明是自定义外部部件。               | string  | external                                | 是   |
+| --url            | 部件获取地址。通过配置文件指定。               | string  | 无                                      | 是   |
+| --size           | 部件在页面上的宽度。                           | string  | 40%                                     | 是   |
+| **部件用户输入** |                                                |         |                                         |      |
+| beforeWidget.ui  |                                                |         |                                         |      |
+| --username       | 登录账号。                                     | string  | 无                                      | 否   |
+| --password       | 账号密码。                                     | string  | 无                                      | 否   |
+| --nickname       | 用户昵称。                                     | string  | 无                                      | 否   |
 
 ```js
 const {
@@ -261,7 +261,7 @@ const {
   TMW_PLUGIN_DOC_CREATE_ACCOUNT_SCHEMA: Schema,
   TMW_PLUGIN_DOC_CREATE_ACCOUNT_TITLE: Title,
   TMW_PLUGIN_DOC_CREATE_ACCOUNT_WIDGET_URL,
-  TMW_PLUGIN_DOC_CREATE_ACCOUNT_SCHEMA_FILE: SchemaFile
+  TMW_PLUGIN_DOC_CREATE_ACCOUNT_SCHEMA_FILE: SchemaFile,
 } = process.env
 
 // 插件前端页面地址
@@ -293,9 +293,9 @@ module.exports = {
 
 本插件实现账号管理功能，支持重置密码、禁（启）用账号操作。
 
-| 属性             | 用途                                           | 类型    | 默认值                                  | 必填 |
-| ---------------- | ---------------------------------------------- | ------- | --------------------------------------- | ---- |
-| **基本信息**     |                                                |         |                                         |      |
+| 属性             | 用途                                           | 类型    | 默认值             | 必填 |
+| ---------------- | ---------------------------------------------- | ------- | ------------------ | ---- |
+| **基本信息**     |                                                |         |                    |      |
 | name             | 插件名称。需要有唯一性，同名插件只会加载一次。 | string  | doc-manage-account | 是   |
 | scope            | 插件适用的数据对象类型。只用于文档类型。       | string  | document           | 是   |
 | title            | 插件在页面上的显示内容。                       | string  | 发送数据           | 是   |
@@ -304,10 +304,10 @@ module.exports = {
 | dbName           | 匹配的数据库名称。                             | RegExp  | 无                 | 否   |
 | clName           | 匹配的集合名称。                               | RegExp  | 无                 | 否   |
 | schemaName       | 匹配的文档列定义名称。                         | RegExp  | 无                 | 否   |
-| disabled | 是否禁用插件 | boolean | false | 否 |
-| dbBlacklist | 根据数据库名称匹配的黑名单。 | RegExp | 无 | 否 |
-| clBlacklist | 根据集合名称匹配的黑名单。 | RegExp | 无 | 否 |
-| schemaBlacklist | 根据文档列定义名称匹配的黑名单。 | RegExp | 无 | 否 |
+| disabled         | 是否禁用插件                                   | boolean | false              | 否   |
+| dbBlacklist      | 根据数据库名称匹配的黑名单。                   | RegExp  | 无                 | 否   |
+| clBlacklist      | 根据集合名称匹配的黑名单。                     | RegExp  | 无                 | 否   |
+| schemaBlacklist  | 根据文档列定义名称匹配的黑名单。               | RegExp  | 无                 | 否   |
 | **部件基本信息** |                                                |         |                    |      |
 | beforeWidget     |                                                |         |                    |      |
 | --name           | 部件名称。指明是自定义外部部件。               | string  | external           | 是   |
@@ -317,7 +317,7 @@ module.exports = {
 | beforeWidget.ui  |                                                |         |                    |      |
 | --username       | 用户名。                                       | string  | 无                 | 否   |
 | --password       | 密码。                                         | string  | 无                 | 否   |
-| --nickname | 用户昵称。 | string | 无 | 否 |
+| --nickname       | 用户昵称。                                     | string  | 无                 | 否   |
 | --forbidden      | 是否禁止登录                                   | boolean | 无                 | 否   |
 
 ```js
@@ -334,7 +334,7 @@ const {
   TMW_PLUGIN_DOC_MANAGE_ACCOUNT_SCHEMA: Schema,
   TMW_PLUGIN_DOC_MANAGE_ACCOUNT_TITLE: Title,
   TMW_PLUGIN_DOC_MANAGE_ACCOUNT_WIDGET_URL,
-  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_SCHEMA_FILE: SchemaFile
+  TMW_PLUGIN_DOC_MANAGE_ACCOUNT_SCHEMA_FILE: SchemaFile,
 } = process.env
 
 // 插件前端页面地址
@@ -364,7 +364,7 @@ module.exports = {
 
 # doc-import
 
-本插件实现从文件导入数据功能，支持excel和json格式文件。
+本插件实现从文件导入数据功能，支持 excel 和 json 格式文件。
 
 | 属性             | 用途                                           | 类型    | 默认值         | 必填 |
 | ---------------- | ---------------------------------------------- | ------- | -------------- | ---- |
@@ -427,7 +427,7 @@ module.exports = {
 
 # doc-export
 
-本插件实现文档导出功能，支持导出excel和json格式文件。
+本插件实现文档导出功能，支持导出 excel 和 json 格式文件。
 
 | 属性             | 用途                                           | 类型    | 默认值     | 必填 |
 | ---------------- | ---------------------------------------------- | ------- | ---------- | ---- |
@@ -491,12 +491,11 @@ module.exports = {
   cl: Cl,
   schema: Schema,
 }
-
 ```
 
-# doc-import-collection
+# cl-import
 
-本插件实现在指定数据库下通过导入excel，新建schema，collection和文档。
+本插件实现在指定数据库下通过导入 excel，新建 schema，collection 和文档。
 
 | 属性             | 用途                                           | 类型    | 默认值                | 必填 |
 | ---------------- | ---------------------------------------------- | ------- | --------------------- | ---- |
@@ -517,19 +516,19 @@ module.exports = {
 
 ```js
 const {
-  TMW_PLUGIN_DOC_IMPORT_COLLECTION_DISABLED: Disabled,
-  TMW_PLUGIN_DOC_IMPORT_COLLECTION_DB_BLACK_LIST: DbBlacklist,
+  TMW_PLUGIN_CL_IMPORT_DISABLED: Disabled,
+  TMW_PLUGIN_CL_IMPORT_DB_BLACK_LIST: DbBlacklist,
   TMW_PLUGIN_WIDGET_URL_HOST,
-  TMW_PLUGIN_DOC_IMPORT_COLLECTION_NAME: Name,
-  TMW_PLUGIN_DOC_IMPORT_COLLECTION_BUCKET: Bucket,
-  TMW_PLUGIN_DOC_IMPORT_COLLECTION_DB: Db,
-  TMW_PLUGIN_DOC_IMPORT_COLLECTION_TITLE: Title,
-  TMW_PLUGIN_DOC_IMPORT_COLLECTION_WIDGET_URL
+  TMW_PLUGIN_CL_IMPORT_NAME: Name,
+  TMW_PLUGIN_CL_IMPORT_BUCKET: Bucket,
+  TMW_PLUGIN_CL_IMPORT_DB: Db,
+  TMW_PLUGIN_CL_IMPORT_TITLE: Title,
+  TMW_PLUGIN_CL_IMPORT_WIDGET_URL,
 } = process.env
 
 // 插件前端页面地址
-const widgetUrl = TMW_PLUGIN_DOC_IMPORT_COLLECTION_WIDGET_URL
-  ? TMW_PLUGIN_DOC_IMPORT_COLLECTION_WIDGET_URL
+const widgetUrl = TMW_PLUGIN_CL_IMPORT_WIDGET_URL
+  ? TMW_PLUGIN_CL_IMPORT_WIDGET_URL
   : TMW_PLUGIN_WIDGET_URL_HOST
   ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-import-collection'
   : '/plugin/doc-import-collection'
@@ -541,7 +540,12 @@ module.exports = {
   name: Name ? Name : 'doc-import-collection',
   title: Title ? Title : '导入集合',
   bucket: Bucket,
-  db: Db
+  db: Db,
 }
 ```
 
+# cl-vecdb
+
+参考文档：[集合对接向量数据库支持语义搜索](../../docs/集合对接向量数据库支持语义搜索.md)
+
+# db-admin

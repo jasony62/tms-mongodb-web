@@ -1,5 +1,5 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import { Base } from 'tmw-kit/dist/ctrl'
+import { Base } from 'tmw-kit/dist/ctrl/index.js'
 import DocumentHelper from '../documentHelper.js'
 import { ModelDoc, ModelSchema, SchemaIter, AES } from 'tmw-kit'
 import * as _ from 'lodash'

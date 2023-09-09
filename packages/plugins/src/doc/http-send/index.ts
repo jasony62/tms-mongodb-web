@@ -1,5 +1,6 @@
+import { PluginProfileScope, PluginProfileAmount } from 'tmw-data'
 import { loadConfig } from 'tmw-kit'
-import { PluginHttpSendDocs } from 'tmw-kit/dist/model/plugin/index.js'
+import { PluginHttpSendDocs } from 'tmw-kit/dist/plugin/index.js'
 import path from 'path'
 
 /**配置文件存放位置*/
@@ -18,8 +19,8 @@ class HttpSendDocPlugin extends PluginHttpSendDocs {
   constructor(file) {
     super(file)
     this.name = 'doc-http-send'
-    this.scope = 'document'
-    this.amount = 'many'
+    this.scope = PluginProfileScope.document
+    this.amount = PluginProfileAmount.many
     this.title = '发送数据'
     this.description = '通过http将集合中的文档数据发送指定地址。'
     this.beforeWidget = { name: 'external', url: '', size: '40%' }

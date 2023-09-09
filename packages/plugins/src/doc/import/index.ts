@@ -1,10 +1,16 @@
-import { PluginBase } from 'tmw-kit/dist/model/index.js'
-import { loadConfig, ModelSchema, ModelDoc, SchemaIter } from 'tmw-kit'
-import { createDocWebhook } from 'tmw-kit/dist/webhook/document.js'
+import { PluginProfileScope, PluginProfileAmount } from 'tmw-data'
+import {
+  loadConfig,
+  ModelSchema,
+  ModelDoc,
+  SchemaIter,
+  createDocWebhook,
+} from 'tmw-kit'
+import { PluginBase } from 'tmw-kit/dist/plugin/index.js'
 import path from 'path'
-import { pinyin } from 'pinyin-pro'
-import _ from 'lodash'
 import fs from 'fs'
+import _ from 'lodash'
+import { pinyin } from 'pinyin-pro'
 import Debug from 'debug'
 
 const debug = Debug('tmw:plugins:doc-import')
@@ -29,8 +35,8 @@ class ImportPlugin extends PluginBase {
     this.name = 'doc-import'
     this.title = '从文件导入数据'
     this.description = '导入excel、json文件格式的数据，并导入集合中。'
-    this.scope = 'document'
-    this.amount = 'zero'
+    this.scope = PluginProfileScope.document
+    this.amount = PluginProfileAmount.zero
     this.beforeWidget = { name: 'external', url: '', size: '60%' }
   }
 

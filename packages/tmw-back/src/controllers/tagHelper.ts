@@ -1,4 +1,4 @@
-import { Helper } from 'tmw-kit/dist/ctrl'
+import { Helper } from 'tmw-kit/dist/ctrl/index.js'
 
 /**
  * 标签控制器辅助类

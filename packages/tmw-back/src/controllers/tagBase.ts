@@ -1,5 +1,5 @@
 import { ResultData } from 'tms-koa'
-import { Base } from 'tmw-kit/dist/ctrl'
+import { Base } from 'tmw-kit/dist/ctrl/index.js'
 import TagHelper from './tagHelper.js'
 
 /**

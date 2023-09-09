@@ -1,6 +1,12 @@
-import { PluginBase } from 'tmw-kit/dist/model/index.js'
-import { loadConfig, ModelDb, ModelCl, ModelDoc } from 'tmw-kit'
-import { createDocWebhook } from 'tmw-kit/dist/webhook/document.js'
+import { PluginProfileScope, PluginProfileAmount } from 'tmw-data'
+import {
+  loadConfig,
+  ModelDb,
+  ModelCl,
+  ModelDoc,
+  createDocWebhook,
+} from 'tmw-kit'
+import { PluginBase } from 'tmw-kit/dist/plugin/index.js'
 import path from 'path'
 import _ from 'lodash'
 import dayjs from 'dayjs'
@@ -13,10 +19,9 @@ const ConfigDir = path.resolve(
   process.env.TMS_KOA_CONFIG_DIR || process.cwd() + '/config'
 )
 
-// 插件配置文件地址
+// 插件配置文件地址（不含扩展名）
 const ConfigFile =
-  process.env.TMW_PLUGIN_DOC_IMPORT_COLLECTION_CONFIG_NAME ||
-  './plugin/cl/import'
+  process.env.TMW_PLUGIN_CL_IMPORT_CONFIG_NAME || './plugin/cl/import'
 
 /**
  * 导入集合
@@ -29,8 +34,8 @@ class ImportPlugin extends PluginBase {
     this.name = 'cl-import'
     this.title = '导入集合'
     this.description = '在数据库下通过导入excel，新建schema，collection和文档。'
-    this.scope = 'collection'
-    this.amount = 'zero'
+    this.scope = PluginProfileScope.collection
+    this.amount = PluginProfileAmount.zero
     this.beforeWidget = { name: 'external', url: '', size: '60%' }
   }
 

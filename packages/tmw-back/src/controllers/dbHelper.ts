@@ -1,4 +1,4 @@
-import { Helper } from 'tmw-kit/dist/ctrl'
+import { Helper } from 'tmw-kit/dist/ctrl/index.js'
 import { ModelDb } from 'tmw-kit'
 
 /**

@@ -1,9 +1,10 @@
-import { loadConfig } from 'tmw-kit'
-import { PluginBase } from 'tmw-kit/dist/model/index.js'
+import { PluginProfileScope, PluginProfileAmount } from 'tmw-data'
+import { loadConfig, createDocWebhook } from 'tmw-kit'
+import { PluginBase } from 'tmw-kit/dist/plugin/index.js'
+
 import path from 'path'
-import _ from 'lodash'
-import { createDocWebhook } from 'tmw-kit/dist/webhook/document.js'
 import fs from 'fs'
+import _ from 'lodash'
 
 /**配置文件存放位置*/
 const ConfigDir = path.resolve(
@@ -26,8 +27,8 @@ class ManageAccountPlugin extends PluginBase {
     this.name = 'doc-manage-account'
     this.title = '账号管理'
     this.description = '账号管理，支持重置密码、禁用账号操作'
-    this.scope = 'document'
-    this.amount = 'one'
+    this.scope = PluginProfileScope.document
+    this.amount = PluginProfileAmount.one
     this.beforeWidget = { name: 'external', url: '', size: '40%' }
     this.docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK_ACCOUNT)
   }

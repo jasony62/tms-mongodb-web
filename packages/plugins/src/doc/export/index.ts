@@ -1,5 +1,6 @@
-import { PluginBase, exportJSON } from 'tmw-kit/dist/model/index.js'
-import { loadConfig, ModelSchema, SchemaIter } from 'tmw-kit'
+import { PluginProfileScope, PluginProfileAmount } from 'tmw-data'
+import { loadConfig, ModelSchema, SchemaIter, exportJSON } from 'tmw-kit'
+import { PluginBase } from 'tmw-kit/dist/plugin/index.js'
 import { LocalFS } from 'tms-koa/dist/model/fs/local.js'
 import path from 'path'
 import _ from 'lodash'
@@ -23,8 +24,8 @@ class ExportPlugin extends PluginBase {
     this.name = 'doc-export'
     this.title = '导出文档'
     this.description = '在集合中，将文档按JSON或者EXCEL格式导出。'
-    this.scope = 'document'
-    this.amount = 'many'
+    this.scope = PluginProfileScope.document
+    this.amount = PluginProfileAmount.many
     this.beforeWidget = { name: 'external', url: '', size: '60%' }
   }
 

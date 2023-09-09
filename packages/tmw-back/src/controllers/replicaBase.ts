@@ -163,12 +163,12 @@ class ReplicaBase extends Base {
       return new ResultFault('没有配置集合间复制关系，未执行集合同步操作')
 
     // 后台执行
-    setTimeout(() => {
+    setTimeout(async () => {
       logger.info(`启动后台执行集合复制关系同步count=${count}]`)
-      const cp = require('child_process')
+      const cp = await import('child_process')
       const child = cp.fork('../replica/synchronize.js')
       child.on('message', (msg) => {
-        logger.info(`结束后台执行集合复制关系同步[syncCount=${msg.syncCount}]`)
+        logger.info(`结束后台执行集合复制关系同步[${msg.toString}]`)
       })
     })
 

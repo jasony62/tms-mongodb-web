@@ -2,7 +2,9 @@ import { MongoClient, MongoError } from 'mongodb'
 import * as path from 'path'
 import { program } from 'commander'
 import { loadDataFrom } from 'tmw-kit/dist/util/database.js'
-const debug = require('debug')('tmw:db_init')
+import Debug from 'debug'
+
+const debug = Debug('tmw:db_init')
 
 class Mongo {
   host

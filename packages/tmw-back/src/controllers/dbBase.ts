@@ -1,5 +1,5 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import { Base } from 'tmw-kit/dist/ctrl'
+import { Base } from 'tmw-kit/dist/ctrl/index.js'
 import DbHelper from './dbHelper.js'
 import { ModelDb } from 'tmw-kit'
 import mongodb from 'mongodb'

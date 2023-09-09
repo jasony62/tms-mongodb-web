@@ -1,5 +1,5 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import { Base } from 'tmw-kit/dist/ctrl'
+import { Base } from 'tmw-kit/dist/ctrl/index.js'
 import { createDocWebhook } from 'tmw-kit/dist/webhook/document.js'
 import DocumentHelper from './documentHelper.js'
 import unrepeat from './unrepeat.js'
@@ -663,7 +663,7 @@ class DocBase extends Base {
       // 数据处理-针对单选多选转化
       this.docHelper.transformsCol('toLabel', data, columns)
 
-      const { ExcelCtrl } = require('tms-koa/dist/controller/fs')
+      const { ExcelCtrl } = await import('tms-koa/dist/controller/fs')
       rst = ExcelCtrl.export(columns, data, existCl.name + '.xlsx')
     } else if (exportType === 'json') {
       const { ZipCtrl } = await import('./zipArchiver.js')

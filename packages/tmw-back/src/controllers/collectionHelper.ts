@@ -1,5 +1,5 @@
 import { ModelCl } from 'tmw-kit'
-import { Helper } from 'tmw-kit/dist/ctrl'
+import { Helper } from 'tmw-kit/dist/ctrl/index.js'
 
 /** 数据库控制器辅助类 */
 class CollectionHelper extends Helper {

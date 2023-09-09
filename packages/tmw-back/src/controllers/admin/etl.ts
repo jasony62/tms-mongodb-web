@@ -1,5 +1,5 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import { Base, Helper } from 'tmw-kit/dist/ctrl'
+import { Base, Helper } from 'tmw-kit/dist/ctrl/index.js'
 import { EtlModel, EtlRunner } from 'tmw-kit'
 import * as mongodb from 'mongodb'
 

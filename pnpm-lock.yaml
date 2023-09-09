@@ -23,6 +23,9 @@ importers:
       pinyin-pro:
         specifier: ^3.16.4
         version: 3.16.4
+      tmw-data:
+        specifier: workspace:*
+        version: link:../tmw-data
       tmw-kit:
         specifier: workspace:*
         version: link:../tmw-kit

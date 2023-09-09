@@ -17,6 +17,7 @@
     "debug": "^4.3.4",
     "glob": "10.3.4",
     "pinyin-pro": "^3.16.4",
+    "tmw-data": "workspace:*",
     "tmw-kit": "workspace:*",
     "xlsx": "^0.18.5"
   },

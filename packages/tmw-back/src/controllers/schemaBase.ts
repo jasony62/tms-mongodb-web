@@ -1,5 +1,5 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import { Base } from 'tmw-kit/dist/ctrl'
+import { Base } from 'tmw-kit/dist/ctrl/index.js'
 import SchemaHelper from './schemaHelper.js'
 import _ from 'lodash'
 import mongodb from 'mongodb'

@@ -7,7 +7,7 @@ import log4js from 'log4js'
 const logger = log4js.getLogger('tms-mongodb-web')
 
 import { ModelDoc, ModelCl, ModelSchema } from 'tmw-kit'
-import { Helper } from 'tmw-kit/dist/ctrl'
+import { Helper } from 'tmw-kit/dist/ctrl/index.js'
 import { TMW_CONFIG } from '../global.js'
 /**
  * 数据库控制器辅助类
@@ -67,8 +67,7 @@ class DocumentHelper extends Helper {
     )
     if (!rowsJson.length) {
       if (!fs.existsSync(filename)) return [false, '指定的文件不存在']
-      // const xlsx = require('tms-koa/node_modules/xlsx')
-      const xlsx = require('xlsx')
+      const xlsx = await import('xlsx')
       const wb = xlsx.readFile(filename)
       const firstSheetName = wb.SheetNames[0]
       const sh = wb.Sheets[firstSheetName]

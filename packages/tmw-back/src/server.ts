@@ -93,7 +93,7 @@ async function afterInit({ MongoContext }) {
    */
   if (/yes|true/i.test(process.env.TMW_REALTIME_REPLICA)) {
     logger.info('启动集合实时复制线程')
-    const cp = require('child_process')
+    const cp = await import('child_process')
     Replica_Child_Process = cp.spawn('node', ['./replica/watch.js'], {
       detached: true,
       stdio: 'ignore',

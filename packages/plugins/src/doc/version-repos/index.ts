@@ -1,9 +1,11 @@
-import { PluginBase } from 'tmw-kit/dist/model/index.js'
+import { PluginProfileScope, PluginProfileAmount } from 'tmw-data'
 import { loadConfig } from 'tmw-kit'
+import { PluginBase } from 'tmw-kit/dist/plugin/index.js'
+
 import { LocalFS } from 'tms-koa/dist/model/fs/local.js'
 import path from 'path'
-import _ from 'lodash'
 import fs from 'fs'
+import _ from 'lodash'
 import { glob } from 'glob'
 
 /**配置文件存放位置*/
@@ -185,8 +187,8 @@ class VersionReposPlugin extends PluginBase {
     this.name = 'doc-version-repos'
     this.title = '版本管理'
     this.description = '管理文档的版本。'
-    this.scope = 'document'
-    this.amount = 'one'
+    this.scope = PluginProfileScope.document
+    this.amount = PluginProfileAmount.one
     this.beforeWidget = { name: 'external', url: '', size: '60%' }
     this.repos = new LocalFsRepos(this)
   }

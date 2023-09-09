@@ -1,8 +1,8 @@
-import { loadConfig } from 'tmw-kit'
-import { PluginBase } from 'tmw-kit/dist/model/index.js'
+import { PluginProfileScope, PluginProfileAmount } from 'tmw-data'
+import { loadConfig, ModelDoc } from 'tmw-kit'
+import { PluginBase } from 'tmw-kit/dist/plugin/index.js'
 import path from 'path'
 import axios from 'axios'
-import { ModelDoc } from 'tmw-kit'
 import Debug from 'debug'
 
 const debug = Debug('tmw:plugins:agenda')
@@ -28,8 +28,8 @@ class AgendaDocPlugin extends PluginBase {
     this.name = 'doc-agenda'
     this.title = '调度任务'
     this.description = '根据文档数据执行调度任务'
-    this.scope = 'document'
-    this.amount = 'many'
+    this.scope = PluginProfileScope.document
+    this.amount = PluginProfileAmount.many
     this.beforeWidget = { name: 'external', url: '', size: '40%' }
     this.axiosInstance = axios
     this.jobFields = {}

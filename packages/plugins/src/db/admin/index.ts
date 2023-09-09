@@ -1,5 +1,7 @@
+import { PluginProfileScope, PluginProfileAmount } from 'tmw-data'
 import { loadConfig, ModelDb } from 'tmw-kit'
-import { PluginBase } from 'tmw-kit/dist/model/index.js'
+import { PluginBase } from 'tmw-kit/dist/plugin/index.js'
+
 import path from 'path'
 
 /**配置文件存放位置*/
@@ -20,8 +22,8 @@ class DbAdminPlugin extends PluginBase {
     this.name = 'db-admin'
     this.title = '管理数据库'
     this.description = '执行数据库管理命令'
-    this.scope = 'database'
-    this.amount = 'one'
+    this.scope = PluginProfileScope.database
+    this.amount = PluginProfileAmount.one
     this.beforeWidget = { name: 'external', url: '', size: '40%' }
   }
 

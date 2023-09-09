@@ -1,5 +1,10 @@
-import { PluginProfile } from 'tmw-data'
-import ModelDoc from '../document.js'
+import ModelDoc from '../model/document.js'
+import {
+  PluginProfile,
+  PluginProfileScope,
+  PluginProfileAmount,
+  PluginProfileBeforeWidget,
+} from 'tmw-data'
 
 // 必须提供的属性
 const RequiredProps = ['name', 'scope', 'title', 'description']
@@ -7,10 +12,10 @@ const RequiredProps = ['name', 'scope', 'title', 'description']
 /**
  * 插件基类
  */
-export abstract class PluginBase implements PluginProfile {
-  file: string
+export class PluginBase {
+  file: string // 插件配置文件名称
   name: string // 插件名
-  scope: string // 适用管理对象，支持：database，collection，document
+  scope: PluginProfileScope // 适用管理对象，支持：database，collection，document
   title: string // 插件按钮名称
   description: string // 插件描述信息
   bucketName?: RegExp // 和存储空间名称匹配的正则表达式
@@ -21,10 +26,10 @@ export abstract class PluginBase implements PluginProfile {
   excludeTags?: string[]
   everyTags?: string[]
   someTags?: string[]
-  amount?: string // 处理的数据量，zero,single,many
+  amount?: PluginProfileAmount // 处理的数据量，zero,single,many
   visible? // 控制适用的文档条件，当文档的key的值和指定值一致时显示
   disabled?: boolean
-  beforeWidget?: any
+  beforeWidget?: PluginProfileBeforeWidget
   remoteWidgetOptions?: Function
   dbBlacklist?: RegExp // 黑名单，和数据库名称匹配的正则表达式
   clBlacklist?: RegExp // 黑名单，和集合名称匹配的正则表达式
@@ -52,12 +57,12 @@ export abstract class PluginBase implements PluginProfile {
       })
     })
     return Promise.all(pRequiredProps).then(() => {
-      let { file, scope, execute } = this
-      if (!['database', 'collection', 'document'].includes(scope))
-        throw `插件文件[${file}]不可用，插件属性[scope=${scope}]无效`
+      // let { file, scope, execute } = this
+      // if (!['database', 'collection', 'document'].includes(scope))
+      //   throw `插件文件[${file}]不可用，插件属性[scope=${scope}]无效`
 
-      if (!execute || typeof execute !== 'function')
-        throw `插件文件[${file}]不可用，创建的插件未包含[execute]方法`
+      // if (!execute || typeof execute !== 'function')
+      //   throw `插件文件[${file}]不可用，创建的插件未包含[execute]方法`
 
       return true
     })
@@ -107,7 +112,7 @@ export abstract class PluginBase implements PluginProfile {
    * @param ctrl
    * @param tmwCl
    */
-  abstract execute(ctrl: any, tmwCl: any)
+  // abstract execute(ctrl: any, tmwCl: any)
   /**
    * 返回参见描述信息
    *

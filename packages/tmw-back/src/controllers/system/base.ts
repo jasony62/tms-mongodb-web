@@ -1,5 +1,5 @@
 import { Ctrl } from 'tms-koa'
-import { Helper } from 'tmw-kit/dist/ctrl'
+import { Helper } from 'tmw-kit/dist/ctrl/index.js'
 
 class Base extends Ctrl {
   helper

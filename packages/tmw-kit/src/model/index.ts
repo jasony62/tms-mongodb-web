@@ -16,6 +16,6 @@ export {
   ModelSchema,
 }
 
-export * from './plugin/index.js'
+export * from '../plugin/index.js'
 
 export * from './zipArchive.js'

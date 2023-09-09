@@ -3,7 +3,7 @@ import CollectionHelper from './collectionHelper.js'
 import ReplicaHelper from './replicaHelper.js'
 import SchemaHelper from './schemaHelper.js'
 import { ModelCl } from 'tmw-kit'
-import { Base } from 'tmw-kit/dist/ctrl'
+import { Base } from 'tmw-kit/dist/ctrl/index.js'
 import mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 

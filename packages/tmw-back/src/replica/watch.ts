@@ -3,7 +3,9 @@ import * as path from 'path'
 import * as fs from 'fs'
 let cnfpath = path.resolve(process.cwd() + '/config/log.js')
 if (fs.existsSync(cnfpath)) {
-  const log4jsConfig = require(process.cwd() + '/config/log4js')
+  const { default: log4jsConfig } = await import(
+    process.cwd() + '/config/log4js'
+  )
   log4js.configure(log4jsConfig)
 } else {
   log4js.configure({

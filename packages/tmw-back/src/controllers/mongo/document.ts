@@ -153,14 +153,13 @@ class Document extends DocBase {
     // 数据处理-针对单选多选转化
     this['docHelper'].transformsCol('toLabel', data, columns)
 
-    const { ExcelCtrl } = require('tms-koa/dist/controller/fs')
+    const { ExcelCtrl } = await import('tms-koa/dist/controller/fs')
     let rst = ExcelCtrl.export(columns, data, existCl.name + '.xlsx')
 
-    if (rst[0] === false) return new ResultFault(rst[1])
+    if (rst[0] === false && typeof rst[1] === 'string')
+      return new ResultFault(rst[1])
 
-    rst = rst[1]
-
-    return new ResultData(rst)
+    return new ResultData(rst[1])
   }
   /**
    * 剪切文档到指定集合
@@ -270,7 +269,7 @@ class Document extends DocBase {
       this.request.query.db = db
     }
     if (!cl) {
-      const dayjs = require('dayjs')
+      const dayjs = (await import('dayjs')).default
       cl = fileName + dayjs().format('YYYYMMDDHHmmss')
       this.request.query.cl = cl
     }

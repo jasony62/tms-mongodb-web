@@ -3,7 +3,7 @@ import axios from 'axios'
 
 import { PluginBase } from './base.js'
 
-import ModelCol from '../collection.js'
+import ModelCol from '../model/collection.js'
 
 const logger = log4js.getLogger('tms-mongodb-web')
 /**

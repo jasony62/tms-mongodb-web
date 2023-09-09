@@ -1,7 +1,7 @@
-import { loadConfig } from 'tmw-kit'
-import { PluginBase } from 'tmw-kit/dist/model/index.js'
+import { PluginProfileScope, PluginProfileAmount } from 'tmw-data'
+import { loadConfig, createDocWebhook } from 'tmw-kit'
+import { PluginBase } from 'tmw-kit/dist/plugin/index.js'
 import path from 'path'
-import { createDocWebhook } from 'tmw-kit/dist/webhook/document.js'
 import fs from 'fs'
 
 /**配置文件存放位置*/
@@ -25,15 +25,15 @@ class CreateAccountPlugin extends PluginBase {
     this.name = 'doc-create-account'
     this.title = '创建账号'
     this.description = '通过管理员身份创建用户的账号'
-    this.scope = 'document'
-    this.amount = 'zero'
+    this.scope = PluginProfileScope.document
+    this.amount = PluginProfileAmount.zero
     this.beforeWidget = { name: 'external', url: '', size: '40%' }
     this.docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK_ACCOUNT)
   }
 
   async execute(ctrl: any, tmwCl: any) {
-    const { MongodbModel } =
-      await require('tms-koa-account/dist/models/store/mongodb')
+    const modelName = 'tms-koa-account/dist/models/store/mongodb'
+    const { MongodbModel } = await import(modelName)
     const Model = new MongodbModel(
       ctrl.mongoClient,
       tmwCl.db.sysname,
