@@ -4,6 +4,7 @@ import {
   PluginProfileScope,
   PluginProfileAmount,
   PluginProfileBeforeWidget,
+  PluginExecuteResult,
 } from 'tmw-data'
 
 // 必须提供的属性
@@ -12,7 +13,7 @@ const RequiredProps = ['name', 'scope', 'title', 'description']
 /**
  * 插件基类
  */
-export class PluginBase {
+export abstract class PluginBase {
   file: string // 插件配置文件名称
   name: string // 插件名
   scope: PluginProfileScope // 适用管理对象，支持：database，collection，document
@@ -57,12 +58,12 @@ export class PluginBase {
       })
     })
     return Promise.all(pRequiredProps).then(() => {
-      // let { file, scope, execute } = this
-      // if (!['database', 'collection', 'document'].includes(scope))
-      //   throw `插件文件[${file}]不可用，插件属性[scope=${scope}]无效`
+      let { file, scope, execute } = this
+      if (!['database', 'collection', 'document'].includes(scope))
+        throw `插件文件[${file}]不可用，插件属性[scope=${scope}]无效`
 
-      // if (!execute || typeof execute !== 'function')
-      //   throw `插件文件[${file}]不可用，创建的插件未包含[execute]方法`
+      if (!execute || typeof execute !== 'function')
+        throw `插件文件[${file}]不可用，创建的插件未包含[execute]方法`
 
       return true
     })
@@ -112,7 +113,7 @@ export class PluginBase {
    * @param ctrl
    * @param tmwCl
    */
-  // abstract execute(ctrl: any, tmwCl: any)
+  abstract execute(ctrl: any, tmwCl: any): Promise<PluginExecuteResult>
   /**
    * 返回参见描述信息
    *

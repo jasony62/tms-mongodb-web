@@ -27,7 +27,7 @@ TMW_APP_PORT=3030 TMW_APP_AUTH_CAPTCHA_DISABLED=yes TMS_KOA_SKIP_TRUSTED_HOST=ye
 每次更改后，需要重新执行`pnpm build`
 
 ```shell
- curl -X POST -H "Content-Type: application/json" "http://localhost:6030/auth/authenticate" -d '{"username":"admin","password":"admin"}'
+curl -X POST -H "Content-Type: application/json" "http://localhost:6030/auth/authenticate" -d '{"username":"admin","password":"admin"}'
 ```
 
 # ue_admin

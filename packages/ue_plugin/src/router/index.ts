@@ -9,12 +9,28 @@ import DbAdmin from '@/views/DbAdmin.vue'
 import DocExport from '@/views/DocExport.vue'
 import DocVersionRepos from '@/views/DocVersionRepos.vue'
 import ClImport from '@/views/ClImport.vue'
+import ClVecdb from '@/views/ClVecdb.vue'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
   ? import.meta.env.VITE_BASE_URL
   : '/plugin'
 
 const routes: RouteRecordRaw[] = [
+  {
+    path: '/db-admin',
+    name: 'dbAdmin',
+    component: DbAdmin,
+  },
+  {
+    path: '/cl-import',
+    name: 'clImport',
+    component: ClImport,
+  },
+  {
+    path: '/cl-vecdb',
+    name: 'clVecdb',
+    component: ClVecdb,
+  },
   {
     path: '/doc-import',
     name: 'docImport',
@@ -40,20 +56,11 @@ const routes: RouteRecordRaw[] = [
     name: 'docManageAccount',
     component: DocManageAccount,
   },
-  {
-    path: '/db-admin',
-    name: 'dbAdmin',
-    component: DbAdmin,
-  },
+
   {
     path: '/doc-export',
     name: 'docExport',
     component: DocExport,
-  },
-  {
-    path: '/cl-import',
-    name: 'clImport',
-    component: ClImport,
   },
   {
     path: '/doc-version-repos',

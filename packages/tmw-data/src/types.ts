@@ -130,3 +130,10 @@ export interface PluginProfile {
    */
   schemaBlacklist?: RegExp
 }
+/**
+ * 插件执行结果
+ */
+export interface PluginExecuteResult {
+  code: number
+  msg: any
+}

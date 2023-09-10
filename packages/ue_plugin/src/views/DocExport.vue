@@ -31,57 +31,57 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { ElMessage } from 'element-plus';
+import { ref } from 'vue'
+import { ElMessage } from 'element-plus'
 
-const executed = ref(false);
-const responseContent = ref<string>("");
-const outType = ref<string>("json");
-const outAmount = ref<string>("more");
-const leafLevel = ref<number>(0);
+const executed = ref(false)
+const responseContent = ref<string>('')
+const outType = ref<string>('json')
+const outAmount = ref<string>('more')
+const leafLevel = ref<number>(0)
 
 enum PluginWidgetAction {
-  Created = "Created",
-  Cancel = "Cancel",
-  Execute = "Execute",
-  Close = "Close",
+  Created = 'Created',
+  Cancel = 'Cancel',
+  Execute = 'Execute',
+  Close = 'Close',
 }
 
 interface PluginWidgetResult {
   action: PluginWidgetAction
-  result?: any;
-  handleResponse?: boolean;
-  applyAccessTokenField?: string; // 定用户输入中申请添加access_token的字段
-  reloadOnClose?: boolean; // 关闭部件后是否要刷新数据
+  result?: any
+  handleResponse?: boolean
+  applyAccessTokenField?: string // 定用户输入中申请添加access_token的字段
+  reloadOnClose?: boolean // 关闭部件后是否要刷新数据
 }
 
 interface Result {
-  outType: string;
+  outType: string
   outAmount?: string
   leafLevel?: number
 }
 
 // 调用插件的页面
-const Caller = window.parent;
-const message: PluginWidgetResult = { action: PluginWidgetAction.Created };
-Caller.postMessage(message, "*");
+const Caller = window.parent
+const message: PluginWidgetResult = { action: PluginWidgetAction.Created }
+Caller.postMessage(message, '*')
 
 /**接收结果*/
-window.addEventListener("message", (event) => {
-  const { data } = event;
-  const { response } = data;
+window.addEventListener('message', (event) => {
+  const { data } = event
+  const { response } = data
   if (response) {
-    if (typeof response === "string") {
-      responseContent.value = response;
-    } else if (typeof response === "object") {
+    if (typeof response === 'string') {
+      responseContent.value = response
+    } else if (typeof response === 'object') {
       if (response.filePath) {
         window.open(response.filePath)
       } else {
-        responseContent.value = JSON.stringify(response, null, 2);
+        responseContent.value = JSON.stringify(response, null, 2)
       }
     }
   }
-});
+})
 
 function handleChange(value: number) {
   if (Number.isNaN(value)) ElMessage.error('不支持的数据格式')
@@ -89,7 +89,7 @@ function handleChange(value: number) {
 
 function onExecute() {
   let result: Result = {
-    outType: outType.value
+    outType: outType.value,
   }
   if (outType.value === 'json') {
     result.outAmount = outAmount.value
@@ -97,7 +97,10 @@ function onExecute() {
     result.leafLevel = leafLevel.value
   }
   if (Caller && outType.value) {
-    const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: result }
+    const message: PluginWidgetResult = {
+      action: PluginWidgetAction.Execute,
+      result: result,
+    }
     try {
       // 给调用方发送数据
       Caller.postMessage(message, '*')
@@ -110,8 +113,8 @@ function onExecute() {
 
 function onCancel() {
   if (Caller) {
-    const message: PluginWidgetResult = { action: PluginWidgetAction.Cancel };
-    Caller.postMessage(message, "*");
+    const message: PluginWidgetResult = { action: PluginWidgetAction.Cancel }
+    Caller.postMessage(message, '*')
   }
 }
 
@@ -120,8 +123,8 @@ function onClose() {
     const message: PluginWidgetResult = {
       action: PluginWidgetAction.Close,
       reloadOnClose: true,
-    };
-    Caller.postMessage(message, "*");
+    }
+    Caller.postMessage(message, '*')
   }
 }
 </script>

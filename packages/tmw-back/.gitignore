@@ -5,3 +5,4 @@ _lowdb.json
 .pnpm-debug.log
 .env*
 auth_client_account
+access_token.json

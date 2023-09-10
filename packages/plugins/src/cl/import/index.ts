@@ -12,7 +12,7 @@ import _ from 'lodash'
 import dayjs from 'dayjs'
 import Debug from 'debug'
 
-const debug = Debug('tmw:plugins:doc-import-collection')
+const debug = Debug('tmw:plugins:cl-import')
 
 /**配置文件存放位置*/
 const ConfigDir = path.resolve(

@@ -73,6 +73,7 @@ import { openCollectionEditor, } from '@/components/editor'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { COMPACT_MODE, LABEL, BACK_API_URL, FS_BASE_URL, getLocalToken, PAGINATION_COL_SIZE } from '@/global'
 import apiPlugin from '@/apis/plugin'
+import apiSchema from '@/apis/schema'
 import TmwPlugins from '@/components/PluginList.vue'
 import TmwPluginWidget from '@/components/PluginWidget.vue'
 import { useTmwPlugins } from '@/composables/plugins'
@@ -223,27 +224,31 @@ const onExecute = (plugin: any,
   }
 
   // 携带插件部件的数据
-  if (widgetResult) {
+  if (widgetResult && typeof widgetResult === 'object') {
     if (applyAccessTokenField && typeof applyAccessTokenField === 'string') {
       let field: string = _.get(widgetResult, applyAccessTokenField)
-      if (field && typeof field === 'string') {
+      if (typeof field === 'string') {
+        let accessToken = getLocalToken() ?? ''
         /**只有访问自己的后端服务时才添加*/
         if (field.indexOf(BACK_API_URL()) === 0) {
           field += field.indexOf('?') > 0 ? '&' : '?'
-          let accessToken = getLocalToken() ?? ''
           field += `access_token=${accessToken}`
           _.set(widgetResult, applyAccessTokenField, field)
+        } else {
+          _.set(widgetResult, applyAccessTokenField, accessToken)
         }
       }
     }
     postBody.widget = widgetResult
   }
   // 插件执行的基础参数
-  let queryParams = {
+  let queryParams: any = {
     bucket: props.bucketName ?? '',
     plugin: plugin.name,
     db: props.dbName
   }
+  if (plugin.amount === 'one')
+    queryParams.cl = postBody.name
 
   // 执行插件方法
   return apiPlugin.execute(queryParams, postBody).then((result: any) => {
@@ -321,25 +326,6 @@ const onExecute = (plugin: any,
     return 'ok'
   })
 }
-/**
- * 插件
- */
-const { handlePlugin } = useTmwPlugins({
-  bucketName: props.bucketName,
-  onExecute,
-  onCreate: (plugin: any, msg: any) => {
-    if (
-      plugin.amount === 'one' &&
-      data.multipleCl.length === 1
-    ) {
-      // 处理单个文档时，将文档数据
-      msg.database = toRaw(data.multipleCl[0])
-    }
-  },
-  onClose: () => {
-    listClByKw()
-  }
-})
 const listClByKw = ((keyword?: string) => {
   data.clBatch = store.listCollection({
     bucket: props.bucketName,
@@ -347,5 +333,26 @@ const listClByKw = ((keyword?: string) => {
     keyword: keyword,
     size: PAGINATION_COL_SIZE()
   })
+})
+/**
+ * 插件
+ */
+const { handlePlugin } = useTmwPlugins({
+  bucketName: props.bucketName,
+  onExecute,
+  onCreate: async (plugin: any, msg: any) => {
+    if (
+      plugin.amount === 'one' &&
+      data.multipleCl.length === 1
+    ) {
+      // 处理单个集合时，将集合对象传递给插件
+      const cl = toRaw(data.multipleCl[0])
+      cl.schema = await apiSchema.get(props.bucketName, cl.schema_id)
+      msg.collection = cl
+    }
+  },
+  onClose: () => {
+    listClByKw()
+  }
 })
 </script>

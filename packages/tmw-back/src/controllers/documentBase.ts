@@ -332,6 +332,35 @@ class DocBase extends Base {
     return new ResultData(result)
   }
   /**
+   * 在集合的向量数据库中执行意义搜索
+   * 必须和插件cl-vecdb配合使用
+   */
+  async search() {
+    const existCl = await this.docHelper.findRequestCl()
+    const { model, text, size } = this.request.query
+
+    const {
+      TMW_PLUGIN_CL_VECDB_STORE_ROOT: storeRoot,
+      TMW_PLUGIN_CL_VECDB_VECDBKIT_NPM_SPECIFIER: vecdbkitNpmSpeifier,
+    } = process.env
+
+    const store = `${storeRoot}/${existCl.db.name}/${existCl.name}`
+    const fs = await import('fs')
+    if (!fs.existsSync(store))
+      return new ResultFault('集合没有向量数据库，无法执行语义搜索')
+
+    const { runPerset } = await import(vecdbkitNpmSpeifier)
+    const vecDocs = await runPerset('vector-doc', { store }, text, model)
+    const tmwDocs = []
+    for (let vDoc of vecDocs) {
+      let { _id } = vDoc.metadata
+      let doc = await this.modelDoc.byId(existCl, _id)
+      tmwDocs.push(doc)
+    }
+
+    return new ResultData({ vecDocs, tmwDocs })
+  }
+  /**
    * 按指定的列进行分组，并显示每个分组的记录数
    */
   async group() {

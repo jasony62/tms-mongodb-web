@@ -15,6 +15,7 @@ dist
 /tests/
 /patch/
 /volumes/
+/temp/
 
 pnpm-lock.yaml
 .pnpm-debug.log

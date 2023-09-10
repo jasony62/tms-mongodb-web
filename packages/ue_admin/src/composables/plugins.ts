@@ -60,7 +60,7 @@ export const useTmwPlugins = (options?: UseTmwPluginsOptions) => {
           fullurl + `bucket=${bucketName ?? ''}&db=${dbName}&cl=${clName}`
         pluginWidgetSize.value = size ?? '50%'
         // 收集页面数据
-        const widgetResultListener = (event: MessageEvent) => {
+        const widgetResultListener = async (event: MessageEvent) => {
           const { data, origin } = event
           if (data) {
             const {
@@ -85,7 +85,8 @@ export const useTmwPlugins = (options?: UseTmwPluginsOptions) => {
                     // 处理没有文档时，将后端指定的schema传递给插件
                     msg.schema = toRaw(schemaJson)
                   }
-                  if (typeof onCreate === 'function') onCreate(plugin, msg)
+                  if (typeof onCreate === 'function')
+                    await onCreate(plugin, msg)
                   elPluginWidget.value.contentWindow?.postMessage(msg, '*')
                 }
                 break
