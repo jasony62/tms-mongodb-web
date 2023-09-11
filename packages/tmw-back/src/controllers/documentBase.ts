@@ -341,7 +341,7 @@ class DocBase extends Base {
 
     const {
       TMW_PLUGIN_CL_VECDB_STORE_ROOT: storeRoot,
-      TMW_PLUGIN_CL_VECDB_VECDBKIT_NPM_SPECIFIER: vecdbkitNpmSpeifier,
+      TMW_PLUGIN_CL_VECDB_LLMKIT_NPM_SPECIFIER: llmkitNpmSpeifier,
     } = process.env
 
     const store = `${storeRoot}/${existCl.db.name}/${existCl.name}`
@@ -349,7 +349,7 @@ class DocBase extends Base {
     if (!fs.existsSync(store))
       return new ResultFault('集合没有向量数据库，无法执行语义搜索')
 
-    const { runPerset } = await import(vecdbkitNpmSpeifier)
+    const { runPerset } = await import(llmkitNpmSpeifier)
     const vecDocs = await runPerset('vector-doc', { store }, text, model)
     const tmwDocs = []
     for (let vDoc of vecDocs) {

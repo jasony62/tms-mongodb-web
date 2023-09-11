@@ -3,7 +3,7 @@ import {
   PluginProfileAmount,
   PluginExecuteResult,
 } from 'tmw-data'
-import { loadConfig, ModelDoc } from 'tmw-kit'
+import { loadConfig } from 'tmw-kit'
 import { PluginBase } from 'tmw-kit/dist/plugin/index.js'
 import path from 'path'
 import fs from 'fs'
@@ -25,10 +25,10 @@ const ConfigFile =
  * 集合向量数据库
  */
 class VecdbPlugin extends PluginBase {
-  clDocListUrl: string
+  mongoConnUrl: string
   llmModelName: string
   storeRoot: string
-  vecdbkitNpmSpeifier: string
+  llmkitNpmSpeifier: string
 
   constructor(file: string) {
     super(file)
@@ -50,9 +50,8 @@ class VecdbPlugin extends PluginBase {
     switch (action) {
       case 'build': {
         debug(`准备新建向量数据库`)
-        const { accessToken, build } = ctrl.request.body.widget
+        const { build } = ctrl.request.body.widget
         // 获得集合下文档的api地址
-        let tmwUrl = `${this.clDocListUrl}?db=${dbName}&cl=${clName}`
         let { modelName, vecField, metaField } = build
         // 默认使用的语言大模型
         modelName ??= this.llmModelName
@@ -61,10 +60,11 @@ class VecdbPlugin extends PluginBase {
         else if (metaField.indexOf('_id') == -1) metaField = '_id,' + metaField
         // 使用数据库名称和集合名称组成向量数据库名称
         const storePath = `${this.storeRoot}/${dbName}/${clName}`
-        const { buildFromTmw } = await import(this.vecdbkitNpmSpeifier)
-        const vecDocs = await buildFromTmw(
-          tmwUrl,
-          accessToken,
+        const { buildFromMongo } = await import(this.llmkitNpmSpeifier)
+        const vecDocs = await buildFromMongo(
+          this.mongoConnUrl,
+          dbName,
+          clName,
           vecField,
           metaField,
           storePath,
@@ -79,41 +79,27 @@ class VecdbPlugin extends PluginBase {
         const { retrieve } = ctrl.request.body.widget
         if (!retrieve || typeof retrieve !== 'object')
           return { code: 0, msg: `没有提供检索条件` }
-        const { text } = retrieve
+        const { text, numNeighbors, docField, metaField } = retrieve
         if (!text || typeof text !== 'string')
           return { code: 0, msg: `没有提供检索内容` }
         const modelName = this.llmModelName
         const store = `${this.storeRoot}/${dbName}/${clName}`
-        const { runPerset } = await import(this.vecdbkitNpmSpeifier)
+        const { runPerset } = await import(this.llmkitNpmSpeifier)
         const vecDocs = await runPerset(
-          'vector-doc',
-          { store },
+          'nonvec-doc',
+          {
+            store,
+            nonvecMatch: ['_id'],
+            asDoc: docField?.split(','),
+            asMeta: metaField?.split(','),
+            k: numNeighbors ?? 1,
+          },
           text,
           modelName
         )
-        /**
-         * 查找原始文当
-         */
-        const modelDoc = new ModelDoc(
-          ctrl.mongoClient,
-          ctrl.bucket,
-          ctrl.client
-        )
-        //@TODO 这是个临时解决放哪应该由框架解决
-        const tmwCl = {
-          ...ctrl.request.body,
-          db: tmwDb,
-        }
-        delete tmwCl.widget
-        const tmwDocs = []
-        for (let vDoc of vecDocs) {
-          let { _id } = vDoc.metadata
-          let doc = await modelDoc.byId(tmwCl, _id)
-          tmwDocs.push(doc)
-        }
 
-        debug(`完成检索向量数据库，返回${tmwDocs.length}个文档`)
-        return { code: 0, msg: { vecDocs, tmwDocs } }
+        debug(`完成检索向量数据库，返回${vecDocs.length}个文档`)
+        return { code: 0, msg: { vecDocs } }
       }
     }
 
@@ -134,8 +120,8 @@ export async function createPlugin(file: string) {
       dbBlacklist,
       llmModelName,
       storeRoot,
-      vecdbkitNpmSpeifier,
-      clDocListUrl,
+      llmkitNpmSpeifier,
+      mongoConnUrl,
     } = config
 
     if (storeRoot && !fs.existsSync(storeRoot)) {
@@ -154,13 +140,13 @@ export async function createPlugin(file: string) {
     if (disabled) newPlugin.disabled = disabled
     if (dbBlacklist) newPlugin.dbBlacklist = new RegExp(dbBlacklist)
 
-    newPlugin.clDocListUrl = clDocListUrl
+    newPlugin.mongoConnUrl = mongoConnUrl
 
     newPlugin.llmModelName = llmModelName
 
     newPlugin.storeRoot = storeRoot
 
-    newPlugin.vecdbkitNpmSpeifier = vecdbkitNpmSpeifier
+    newPlugin.llmkitNpmSpeifier = llmkitNpmSpeifier
 
     return newPlugin
   }

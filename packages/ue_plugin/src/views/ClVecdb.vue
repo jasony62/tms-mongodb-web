@@ -38,6 +38,18 @@
           <el-form-item label="匹配结果数">
             <el-input type="number" v-model="retrieveAction.numNeighbors" placeholder="匹配结果数" size="large" />
           </el-form-item>
+          <el-form-item label="语义检索字段（至少选1项）">
+            <el-checkbox-group v-model="retrieveAction.docField">
+              <el-checkbox v-for="p in docFieldOptions" name="doc-field" :label="p.name" size="large">{{ p.title
+              }}</el-checkbox>
+            </el-checkbox-group>
+          </el-form-item>
+          <el-form-item label="元数据字段（可选）">
+            <el-checkbox-group v-model="retrieveAction.metaField">
+              <el-checkbox v-for="p in metaFieldOptions" name="meta-field" :label="p.name" size="large">{{ p.title
+              }}</el-checkbox>
+            </el-checkbox-group>
+          </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="onExecute('retrieve')">检索向量数据库</el-button>
           </el-form-item>
@@ -63,6 +75,14 @@ const vecFieldOptions = computed(() => {
     return props
   }, [] as any[])
 })
+// 只有字符串字段才作为文档
+const docFieldOptions = computed(() => {
+  return Object.keys(schemaProps.value).reduce((props, k) => {
+    let p = schemaProps.value[k]
+    if (p.type === 'string') props.push({ name: k, title: p.title })
+    return props
+  }, [] as any[])
+})
 const metaFieldOptions = computed(() => {
   return Object.keys(schemaProps.value).reduce((props, k) => {
     let p = schemaProps.value[k]
@@ -80,6 +100,7 @@ const buildAction = reactive({ modelName: '', vecField: [], metaField: [] })
 const retrieveAction = reactive({
   text: '',
   numNeighbors: 1,
+  docField: [], metaField: []
 })
 
 enum PluginWidgetAction {
@@ -110,8 +131,8 @@ window.addEventListener('message', (event) => {
     const { schema } = collection
     schemaProps.value = schema.body.properties
   } else if (response) {
-    const { vecDocs, tmwDocs } = response
-    if (Array.isArray(vecDocs) && Array.isArray(tmwDocs)) {
+    const { vecDocs } = response
+    if (Array.isArray(vecDocs)) {
       responseContent.value = JSON.stringify(response, null, 2)
     } else if (typeof response === 'string') {
       responseContent.value = response
@@ -125,8 +146,7 @@ function onExecute(action: string) {
    */
   const message: PluginWidgetResult = {
     action: PluginWidgetAction.Execute,
-    result: { action, accessToken: '' },
-    applyAccessTokenField: 'accessToken',
+    result: { action },
     handleResponse: true,
   }
   switch (action) {
@@ -153,8 +173,18 @@ function onExecute(action: string) {
         ElMessage.error('没有输入要检索的内容')
         return
       }
+      const docField = toRaw(retrieveAction.docField)
+      if (docField.length === 0) {
+        ElMessage.error('没有指定要作为文档的字段')
+        return
+      }
       const numNeighbors = toRaw(retrieveAction.numNeighbors)
-      message.result.retrieve = { text, numNeighbors }
+      const retrieve: any = { text, numNeighbors, docField: docField.join(',') }
+      const metaField = toRaw(retrieveAction.metaField)
+      if (metaField.length) {
+        retrieve.metaField = metaField.join(',')
+      }
+      message.result.retrieve = retrieve
     }
       break
   }

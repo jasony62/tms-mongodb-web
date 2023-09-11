@@ -9,8 +9,8 @@ const {
   TMW_PLUGIN_CL_VECDB_WIDGET_URL,
   TMW_PLUGIN_CL_VECDB_LLM_MODEL_NAME: LlmModelName,
   TMW_PLUGIN_CL_VECDB_STORE_ROOT: StoreRoot,
-  TMW_PLUGIN_CL_VECDB_VECDBKIT_NPM_SPECIFIER: vecdbkitNpmSpeifier,
-  TMW_PLUGIN_CL_VECDB_CL_DOC_LIST_URL: clDocListUrl,
+  TMW_PLUGIN_CL_VECDB_LLMKIT_NPM_SPECIFIER: llmkitNpmSpeifier,
+  TMW_PLUGIN_CL_VECDB_MONGO_CONN_URL: mongoConnUrl,
 } = process.env
 
 // 插件前端页面地址
@@ -30,6 +30,6 @@ export default {
   db: Db,
   llmModelName: LlmModelName,
   storeRoot: StoreRoot ?? './vecdb',
-  vecdbkitNpmSpeifier,
-  clDocListUrl,
+  llmkitNpmSpeifier,
+  mongoConnUrl,
 }

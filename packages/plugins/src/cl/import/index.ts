@@ -36,7 +36,7 @@ class ImportPlugin extends PluginBase {
     this.description = '在数据库下通过导入excel，新建schema，collection和文档。'
     this.scope = PluginProfileScope.collection
     this.amount = PluginProfileAmount.zero
-    this.beforeWidget = { name: 'external', url: '', size: '60%' }
+    this.beforeWidget = { name: 'external', url: '', size: '40%' }
   }
 
   async execute(ctrl: any) {
