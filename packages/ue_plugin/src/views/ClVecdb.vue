@@ -8,21 +8,19 @@
       <el-tab-pane label="生成向量数据库">
         <el-form label-position="top">
           <el-form-item label="语言大模型">
-            <el-select v-model="buildAction.modelName" placeholder="选择语言大模型" size="large">
+            <el-select v-model="buildAction.modelName" placeholder="选择语言大模型">
               <el-option key="0" label="百度文心" value="baiduwenxin" />
               <el-option key="1" label="讯飞星火" value="xunfeispark" />
             </el-select>
           </el-form-item>
           <el-form-item label="语义检索字段（至少选1项）">
             <el-checkbox-group v-model="buildAction.vecField">
-              <el-checkbox v-for="p in vecFieldOptions" name="vec-field" :label="p.name" size="large">{{ p.title
-              }}</el-checkbox>
+              <el-checkbox v-for="p in vecFieldOptions" name="vec-field" :label="p.name">{{ p.title }}</el-checkbox>
             </el-checkbox-group>
           </el-form-item>
           <el-form-item label="元数据字段（可选）">
             <el-checkbox-group v-model="buildAction.metaField">
-              <el-checkbox v-for="p in metaFieldOptions" name="meta-field" :label="p.name" size="large">{{ p.title
-              }}</el-checkbox>
+              <el-checkbox v-for="p in metaFieldOptions" name="meta-field" :label="p.name">{{ p.title }}</el-checkbox>
             </el-checkbox-group>
           </el-form-item>
           <el-form-item>
@@ -32,32 +30,38 @@
       </el-tab-pane>
       <el-tab-pane label="检索向量数据库">
         <el-form label-position="top">
+          <el-form-item label="检索模式">
+            <el-select v-model="retrieveAction.perset" placeholder="检索模式">
+              <el-option key="0" label="向量化内容" value="vector-doc" />
+              <el-option key="1" label="关联文档内容" value="assoc-doc" />
+              <el-option key="2" label="大模型生成内容" value="feed-llm" />
+            </el-select>
+          </el-form-item>
           <el-form-item label="检索内容">
-            <el-input type="text" v-model="retrieveAction.text" placeholder="检索内容" size="large" />
+            <el-input type="text" v-model="retrieveAction.text" placeholder="检索内容" />
           </el-form-item>
-          <el-form-item label="匹配结果数">
-            <el-input type="number" v-model="retrieveAction.numNeighbors" placeholder="匹配结果数" size="large" />
+          <el-form-item label="最多匹配结果数">
+            <el-input type="number" v-model="retrieveAction.numRetrieve" placeholder="匹配结果数" />
           </el-form-item>
-          <el-form-item label="语义检索字段（至少选1项）">
+          <el-form-item :label="docFieldLabel + '（至少选1项）'" v-if="retrieveAction.perset === 'assoc-doc'">
             <el-checkbox-group v-model="retrieveAction.docField">
-              <el-checkbox v-for="p in docFieldOptions" name="doc-field" :label="p.name" size="large">{{ p.title
-              }}</el-checkbox>
+              <el-checkbox v-for="p in docFieldOptions" name="doc-field" :label="p.name">{{ p.title }}</el-checkbox>
             </el-checkbox-group>
           </el-form-item>
-          <el-form-item label="元数据字段（可选）">
+          <!-- <el-form-item label="元数据字段（可选）" v-if="retrieveAction.perset !== 'vector-doc'">
             <el-checkbox-group v-model="retrieveAction.metaField">
-              <el-checkbox v-for="p in metaFieldOptions" name="meta-field" :label="p.name" size="large">{{ p.title
+              <el-checkbox v-for="p in metaFieldOptions" name="meta-field" :label="p.name">{{ p.title
               }}</el-checkbox>
             </el-checkbox-group>
-          </el-form-item>
+          </el-form-item> -->
           <el-form-item>
             <el-button type="primary" @click="onExecute('retrieve')">检索向量数据库</el-button>
           </el-form-item>
         </el-form>
       </el-tab-pane>
     </el-tabs>
-    <div class="response-content flex-grow border border-gray-200 rounded-md overflow-auto" v-if="responseContent">
-      <pre>{{ responseContent }}</pre>
+    <div class="response-content flex-grow border border-gray-200 rounded-md overflow-auto p-2" v-if="responseContent">
+      <div>{{ responseContent }}</div>
     </div>
   </div>
 </template>
@@ -91,16 +95,25 @@ const metaFieldOptions = computed(() => {
   }, [] as any[])
 })
 
-
 const executed = ref(false)
 const responseContent = ref<string>('')
 
 const buildAction = reactive({ modelName: '', vecField: [], metaField: [] })
 
+const docFieldLabel = computed(() => {
+  return retrieveAction.perset === 'assoc-doc'
+    ? '返回内容字段'
+    : retrieveAction.perset === 'feed-llm'
+      ? '背景资料字段'
+      : ''
+})
+
 const retrieveAction = reactive({
+  perset: 'vector-doc',
   text: '',
-  numNeighbors: 1,
-  docField: [], metaField: []
+  numRetrieve: 1,
+  docField: [],
+  metaField: [],
 })
 
 enum PluginWidgetAction {
@@ -133,7 +146,8 @@ window.addEventListener('message', (event) => {
   } else if (response) {
     const { vecDocs } = response
     if (Array.isArray(vecDocs)) {
-      responseContent.value = JSON.stringify(response, null, 2)
+      const content = vecDocs.map((d) => d.pageContent)
+      responseContent.value = JSON.stringify(content, null, 2)
     } else if (typeof response === 'string') {
       responseContent.value = response
     }
@@ -150,42 +164,54 @@ function onExecute(action: string) {
     handleResponse: true,
   }
   switch (action) {
-    case 'build': {
-      const vecField = toRaw(buildAction.vecField)
-      if (vecField.length === 0) {
-        ElMessage.error('没有指定要进行语义搜索的字段')
-        return
+    case 'build':
+      {
+        const vecField = toRaw(buildAction.vecField)
+        if (vecField.length === 0) {
+          ElMessage.error('没有指定要进行语义搜索的字段')
+          return
+        }
+        const build: any = {
+          modelName: toRaw(buildAction.modelName),
+          vecField: vecField.join(','),
+        }
+        const metaField = toRaw(buildAction.metaField)
+        if (metaField.length) {
+          build.metaField = metaField.join(',')
+        }
+        message.result.build = build
       }
-      const build: any = {
-        modelName: toRaw(buildAction.modelName),
-        vecField: vecField.join(',')
-      }
-      const metaField = toRaw(buildAction.metaField)
-      if (metaField.length) {
-        build.metaField = metaField.join(',')
-      }
-      message.result.build = build
-    }
       break
-    case 'retrieve': {
-      const text = toRaw(retrieveAction.text)
-      if (!text) {
-        ElMessage.error('没有输入要检索的内容')
-        return
+    case 'retrieve':
+      {
+        const perset = toRaw(retrieveAction.perset)
+        const text = toRaw(retrieveAction.text)
+        if (!text) {
+          ElMessage.error('没有输入要检索的内容')
+          return
+        }
+        let docField
+        if (perset === 'assoc-doc') {
+          docField = toRaw(retrieveAction.docField)
+          if (docField.length === 0) {
+            ElMessage.error('没有指定要作为文档的字段')
+            return
+          }
+        }
+        const numRetrieve = toRaw(retrieveAction.numRetrieve)
+        const retrieve: any = {
+          perset: toRaw(retrieveAction.perset),
+          text,
+          numRetrieve:
+            typeof numRetrieve === 'string' ? parseInt(numRetrieve) : numRetrieve,
+          docField: docField?.join(','),
+        }
+        const metaField = toRaw(retrieveAction.metaField)
+        if (metaField.length) {
+          retrieve.metaField = metaField.join(',')
+        }
+        message.result.retrieve = retrieve
       }
-      const docField = toRaw(retrieveAction.docField)
-      if (docField.length === 0) {
-        ElMessage.error('没有指定要作为文档的字段')
-        return
-      }
-      const numNeighbors = toRaw(retrieveAction.numNeighbors)
-      const retrieve: any = { text, numNeighbors, docField: docField.join(',') }
-      const metaField = toRaw(retrieveAction.metaField)
-      if (metaField.length) {
-        retrieve.metaField = metaField.join(',')
-      }
-      message.result.retrieve = retrieve
-    }
       break
   }
   try {

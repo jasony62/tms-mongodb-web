@@ -79,20 +79,20 @@ class VecdbPlugin extends PluginBase {
         const { retrieve } = ctrl.request.body.widget
         if (!retrieve || typeof retrieve !== 'object')
           return { code: 0, msg: `没有提供检索条件` }
-        const { text, numNeighbors, docField, metaField } = retrieve
+        const { perset, text, numRetrieve, docField, metaField } = retrieve
         if (!text || typeof text !== 'string')
           return { code: 0, msg: `没有提供检索内容` }
         const modelName = this.llmModelName
         const store = `${this.storeRoot}/${dbName}/${clName}`
         const { runPerset } = await import(this.llmkitNpmSpeifier)
         const vecDocs = await runPerset(
-          'nonvec-doc',
+          perset,
           {
             store,
-            nonvecMatch: ['_id'],
+            assocMatch: ['_id'],
             asDoc: docField?.split(','),
-            asMeta: metaField?.split(','),
-            k: numNeighbors ?? 1,
+            asMeta: metaField ? metaField.split(',') : ['_id'],
+            numRetrieve: numRetrieve ? numRetrieve : 1,
           },
           text,
           modelName

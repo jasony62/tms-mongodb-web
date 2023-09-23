@@ -3,7 +3,7 @@
     <el-form label-position="top">
       <el-form-item label="列名称（英文）行号">
         <div>
-          <el-input-number v-model="nameRow" :step="1" :min="1" disabled step-strictly />
+          <el-input-number v-model="nameRow" :step="1" :min="1" step-strictly />
           <div class="el-upload__tip">* 默认按顺序以英文字母作为列名称</div>
         </div>
       </el-form-item>
@@ -54,7 +54,7 @@ const upload = ref<any>(null)
 const noUpload = ref(true)
 
 const nameRow = ref(1)
-const titleRow = ref()
+const titleRow = ref(2)
 const clName = ref('')
 
 enum PluginWidgetAction {

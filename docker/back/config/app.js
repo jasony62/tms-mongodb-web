@@ -49,7 +49,7 @@ let appConfig = {
       npm: {
         disabled: /true|yes/i.test(env.TMW_APP_AUTH_CAPTCHA_DISABLED),
         id: 'tms-koa-captcha',
-        module: 'dist',
+        module: 'dist/index.js',
         checker: 'checkCaptcha',
         generator: 'createCaptcha',
       },
