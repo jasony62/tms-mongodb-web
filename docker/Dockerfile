@@ -37,6 +37,7 @@ RUN cd /usr/src/tmw/kit && pnpm add better-sqlite3 && pnpm i --strict-peer-depen
 
 ## plugin
 COPY ./packages/plugins /usr/src/tmw/plugins
+RUN sed -i 's/"tmw-data": "workspace:\*"/"tmw-data": "file:\.\.\/data"/g' /usr/src/tmw/plugins/package.json
 RUN sed -i 's/"tmw-kit": "workspace:\*"/"tmw-kit": "file:\.\.\/kit"/g' /usr/src/tmw/plugins/package.json
 ### 不单独安装better-sqlite3会失败
 RUN cd /usr/src/tmw/plugins && pnpm add better-sqlite3 && pnpm i --strict-peer-dependencies=false && pnpm build 
