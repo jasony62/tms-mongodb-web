@@ -56,7 +56,7 @@ class AgendaDocPlugin extends PluginBase {
     if (!AgendaContext) return { code: -1, msg: '没有可用的调度服务' }
 
     const { agenda } = await AgendaContext.ins()
-    if (!AgendaContext) return { code: -1, msg: '没有可用的调度服务实例' }
+    if (!agenda) return { code: -1, msg: '没有可用的调度服务实例' }
 
     const modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
 
@@ -121,11 +121,12 @@ class AgendaDocPlugin extends PluginBase {
           let httpParams: any = getHttpParams(doc, fail)
           if (!httpParams) continue
 
-          // 定制任务
+          // 定义任务
           agenda.define(name, async (job) => {
             let { method, url, body } = httpParams
             await this.sendHttp(method, url, body)
           })
+          // 指定任务的执行计划
           await agenda.every(interval, name)
 
           // 更新任务状态

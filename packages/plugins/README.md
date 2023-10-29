@@ -93,7 +93,7 @@ const widgetUrl = TMW_PLUGIN_DOC_HTTP_SEND_WIDGET_URL
   ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-http-send'
   : '/plugin/doc-http-send'
 
-module.exports = {
+export default {
   disabled: Disabled ? Disabled.split(',') : [],
   dbBlacklist: DbBlacklist ? DbBlacklist.split(',') : [],
   clBlacklist: ClBlacklist ? ClBlacklist.split(',') : [],
@@ -193,7 +193,7 @@ const widgetUrl = TMW_PLUGIN_DOC_AGENDA_WIDGET_URL
   ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-agenda'
   : '/plugin/doc-agenda'
 
-module.exports = {
+export default {
   disabled: /true|yes/i.test(Disabled),
   dbBlacklist: DbBlacklist,
   clBlacklist: ClBlacklist,
@@ -271,7 +271,7 @@ const widgetUrl = TMW_PLUGIN_DOC_CREATE_ACCOUNT_WIDGET_URL
   ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-create-account'
   : '/plugin/doc-create-account'
 
-module.exports = {
+export default {
   disabled: /true|yes/i.test(Disabled),
   dbBlacklist: DbBlacklist,
   clBlacklist: ClBlacklist,
@@ -344,7 +344,7 @@ const widgetUrl = TMW_PLUGIN_DOC_MANAGE_ACCOUNT_WIDGET_URL
   ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-manage-account'
   : '/plugin/doc-manage-account'
 
-module.exports = {
+export default {
   disabled: /true|yes/i.test(Disabled),
   dbBlacklist: DbBlacklist,
   clBlacklist: ClBlacklist,
@@ -410,7 +410,7 @@ const widgetUrl = TMW_PLUGIN_DOC_IMPORT_WIDGET_URL
   ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-import'
   : '/plugin/doc-import'
 
-module.exports = {
+export default {
   disabled: /true|yes/i.test(Disabled),
   dbBlacklist: DbBlacklist,
   clBlacklist: ClBlacklist,
@@ -478,7 +478,7 @@ const widgetUrl = TMW_PLUGIN_DOC_EXPORT_WIDGET_URL
   ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-export'
   : '/plugin/doc-export'
 
-module.exports = {
+export default {
   disabled: /true|yes/i.test(Disabled),
   dbBlacklist: DbBlacklist,
   clBlacklist: ClBlacklist,
@@ -533,7 +533,7 @@ const widgetUrl = TMW_PLUGIN_CL_IMPORT_WIDGET_URL
   ? TMW_PLUGIN_WIDGET_URL_HOST + '/plugin/doc-import-collection'
   : '/plugin/doc-import-collection'
 
-module.exports = {
+export default {
   disabled: /true|yes/i.test(Disabled),
   dbBlacklist: DbBlacklist,
   widgetUrl,
