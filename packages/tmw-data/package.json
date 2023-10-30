@@ -1,6 +1,6 @@
 {
   "name": "tmw-data",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "TMW数据结构",
   "type": "module",
   "main": "./dist/index.js",
