@@ -10,7 +10,8 @@ const ConfigDir = path.resolve(
 
 // 插件配置文件地址
 const ConfigFile =
-  process.env.TMW_PLUGIN_DOC_HTTP_SEND_CONFIG_NAME || './plugin/doc/http-send'
+  process.env.TMW_PLUGIN_DOC_HTTP_SEND_CONFIG_NAME ||
+  './plugin/doc/http-send.js'
 
 /**
  * 通过http发送集合中的文档数据到指定地址

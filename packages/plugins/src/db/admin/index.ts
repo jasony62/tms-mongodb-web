@@ -11,7 +11,7 @@ const ConfigDir = path.resolve(
 
 // 插件配置文件地址
 const ConfigFile =
-  process.env.TMW_PLUGIN_DB_ADMIN_CONFIG_NAME || './plugin/db/admin'
+  process.env.TMW_PLUGIN_DB_ADMIN_CONFIG_NAME || './plugin/db/admin.js'
 
 /**
  * 账号管理

@@ -21,7 +21,7 @@ const ConfigDir = path.resolve(
 
 // 插件配置文件地址（不含扩展名）
 const ConfigFile =
-  process.env.TMW_PLUGIN_CL_IMPORT_CONFIG_NAME || './plugin/cl/import'
+  process.env.TMW_PLUGIN_CL_IMPORT_CONFIG_NAME || './plugin/cl/import.js'
 
 /**
  * 导入集合

@@ -22,7 +22,7 @@ const ConfigDir = path.resolve(
 
 // 插件配置文件地址
 const ConfigFile =
-  process.env.TMW_PLUGIN_DOC_IMPORT_CONFIG_NAME || './plugin/doc/import'
+  process.env.TMW_PLUGIN_DOC_IMPORT_CONFIG_NAME || './plugin/doc/import.js'
 
 /**
  * 导入数据到集合中

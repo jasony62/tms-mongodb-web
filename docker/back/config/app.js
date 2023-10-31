@@ -34,7 +34,7 @@ let appConfig = {
         disabled: /true|yes/i.test(env.TMW_APP_AUTH_CLIENT_DISABLED),
         id: 'tms-koa-account/dist/models',
         authentication: 'authenticate.js',
-        register: 'register',
+        register: 'register.js',
       },
     },
     // 保存鉴权信息

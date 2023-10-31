@@ -4,9 +4,10 @@ import { nanoid } from 'nanoid'
 import fs from 'fs'
 import { glob } from 'glob'
 import path from 'path'
+import Debug from 'debug'
 
-const debug = require('debug')('tmw:db_init')
-const trace = require('debug')('trace:tmw:db_init')
+const debug = Debug('tmw:db_init')
+const trace = Debug('trace:tmw:db_init')
 
 const TMW_CREATE_TIME = dayjs().format('YYYY-MM-DD HH:mm:ss')
 

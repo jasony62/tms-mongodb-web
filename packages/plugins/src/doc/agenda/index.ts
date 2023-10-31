@@ -14,7 +14,7 @@ const ConfigDir = path.resolve(
 
 // 插件配置文件地址
 const ConfigFile =
-  process.env.TMW_PLUGIN_DOC_AGENDA_CONFIG_NAME || './plugin/doc/agenda'
+  process.env.TMW_PLUGIN_DOC_AGENDA_CONFIG_NAME || './plugin/doc/agenda.js'
 
 /**
  * 根据指定的文档生成调度任务
