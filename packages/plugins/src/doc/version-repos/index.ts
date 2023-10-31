@@ -16,7 +16,7 @@ const ConfigDir = path.resolve(
 // 插件配置文件地址
 const ConfigFile =
   process.env.TMW_PLUGIN_DOC_VERSION_REPOS_CONFIG_NAME ||
-  './plugin/doc/version-repos.js'
+  './plugin/doc/version-repos'
 /**
  * 用户配置信息
  */

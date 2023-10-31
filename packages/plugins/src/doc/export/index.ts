@@ -13,7 +13,7 @@ const ConfigDir = path.resolve(
 
 // 插件配置文件地址
 const ConfigFile =
-  process.env.TMW_PLUGIN_DOC_EXPORT_CONFIG_NAME || './plugin/doc/export.js'
+  process.env.TMW_PLUGIN_DOC_EXPORT_CONFIG_NAME || './plugin/doc/export'
 
 /**
  * 将集合中的文档数据导出为json或者excel文件

@@ -8,4 +8,4 @@ RUN npm config set registry https://registry.npmmirror.com
 ## 基础工具
 RUN npm install --location=global pnpm typescript
 ## 安装sharp包需要的工具
-RUN apk add python3 make
+RUN apk add python3 make g++

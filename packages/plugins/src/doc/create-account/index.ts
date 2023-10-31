@@ -12,7 +12,7 @@ const ConfigDir = path.resolve(
 // 插件配置文件地址
 const ConfigFile =
   process.env.TMW_PLUGIN_DOC_CREATE_ACCOUNT_CONFIG_NAME ||
-  './plugin/doc/create_account.js'
+  './plugin/doc/create_account'
 
 /**
  * 账号管理

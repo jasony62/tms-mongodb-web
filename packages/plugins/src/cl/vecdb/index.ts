@@ -19,7 +19,7 @@ const ConfigDir = path.resolve(
 
 // 插件配置文件名（不含扩展名）
 const ConfigFile =
-  process.env.TMW_PLUGIN_CL_VECDB_CONFIG_NAME || './plugin/cl/vecdb.js'
+  process.env.TMW_PLUGIN_CL_VECDB_CONFIG_NAME || './plugin/cl/vecdb'
 
 /**
  * 集合向量数据库
