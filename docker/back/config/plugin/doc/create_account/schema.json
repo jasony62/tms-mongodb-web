@@ -18,6 +18,11 @@
     "nickname": {
       "type": "string",
       "title": "用户昵称"
+    },
+    "expiresIn": {
+      "type": "number",
+      "title": "认证有效期",
+      "description": "身份认证通过后，生成的凭证的有效时间，单位秒。"
     }
   }
 }
