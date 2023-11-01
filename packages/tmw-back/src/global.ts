@@ -4,7 +4,7 @@ import * as fs from 'fs'
 let TMW_CONFIG
 let cnfpath = path.resolve(process.cwd() + '/config/app.js')
 if (fs.existsSync(cnfpath)) {
-  TMW_CONFIG = (await import(process.cwd() + '/config/app')).default.tmwConfig
+  TMW_CONFIG = (await import(cnfpath)).default.tmwConfig
 } else {
   TMW_CONFIG = {
     TMW_APP_CREATETIME: 'TMW_CREATE_TIME',
