@@ -461,7 +461,8 @@ export async function loadDataFrom(
   if (fs.existsSync(filePath)) {
     if (fs.statSync(filePath).isDirectory()) {
       let absDir = path.resolve(process.cwd(), filePath)
-      const files = glob.sync(`${absDir}/**/*.@.json)`)
+      const files = glob.sync(`${absDir}/**/*.js)`)
+      if (files.length === 0) debug(`目录【${absDir}】中没有‘.js’结尾的文件`)
       for (let file of files) {
         debug(`指定初始化数据文件：${file}`)
         await execute(file, mongoClient, options)
@@ -470,6 +471,8 @@ export async function loadDataFrom(
       debug(`指定初始化数据文件：${filePath}`)
       await execute(filePath, mongoClient, options)
     }
-    debug('完成初始化操作')
+    debug(`完成目录【${filePath}】中数据文件初始化操作`)
+  } else {
+    debug(`指定的位置【${filePath}】不存在`)
   }
 }
