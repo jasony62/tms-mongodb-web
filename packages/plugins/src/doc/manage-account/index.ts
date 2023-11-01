@@ -34,8 +34,9 @@ class ManageAccountPlugin extends PluginBase {
   }
 
   async execute(ctrl: any, tmwCl: any) {
-    const { MongodbModel } =
-      await require('tms-koa-account/dist/models/store/mongodb')
+    const { MongodbModel } = await import(
+      'tms-koa-account/dist/models/store/mongodb.js'
+    )
     const Model = new MongodbModel(
       ctrl.mongoClient,
       tmwCl.db.sysname,
@@ -63,9 +64,9 @@ class ManageAccountPlugin extends PluginBase {
         )
       } else if (password && !forbidden) {
         // 修改密码
-        const {
-          PasswordProcess: ProcessPwd,
-        } = require('tms-koa-account/dist/models/processpwd')
+        const { PasswordProcess: ProcessPwd } = await import(
+          'tms-koa-account/dist/models/processpwd.js'
+        )
 
         // 检查密码格式
         const pwdProcess = new ProcessPwd(password, actRst.salt)

@@ -52,7 +52,7 @@ class ExportPlugin extends PluginBase {
     let { outType, outAmount, leafLevel } = ctrl.request.body.widget
     let url
     if (outType === 'excel') {
-      const XLSX = require('xlsx')
+      const XLSX = await import('xlsx')
 
       leafLevel = leafLevel ? leafLevel : 0
       filePath = path.join(filePath, `${fileName}.xlsx`)

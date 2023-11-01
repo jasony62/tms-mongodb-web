@@ -426,7 +426,7 @@ class Handler {
 }
 
 async function execute(filePath: string, mongoClient, options: any) {
-  const initData = require(filePath)
+  const { default: initData } = await import(filePath)
   if (!Array.isArray(initData) || initData.length === 0) {
     debug(`文件【${filePath}】的内容不是数组，跳过`)
     return

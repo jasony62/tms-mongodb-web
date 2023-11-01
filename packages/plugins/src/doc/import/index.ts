@@ -63,7 +63,7 @@ class ImportPlugin extends PluginBase {
         return { code: 10001, msg: '未配置文件下载服务地址' }
 
       const schemaIter = new SchemaIter({ type: 'object', properties: columns })
-      const processRst = this.processExcelTemplate(
+      const processRst = await this.processExcelTemplate(
         ctrl,
         clName,
         schemaIter,
@@ -221,8 +221,8 @@ class ImportPlugin extends PluginBase {
   /**
    * 生成excel模板
    */
-  private processExcelTemplate(ctrl, clName, schemaIter, leafLevel) {
-    const XLSX = require('xlsx')
+  private async processExcelTemplate(ctrl, clName, schemaIter, leafLevel) {
+    const XLSX = await import('xlsx')
 
     let fieldAry = []
     leafLevel = leafLevel ? leafLevel : 0
