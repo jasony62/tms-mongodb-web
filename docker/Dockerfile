@@ -30,7 +30,7 @@ RUN cd /usr/src/tmw/data && pnpm i --strict-peer-dependencies=false && pnpm buil
 COPY ./packages/tmw-kit /usr/src/tmw/kit
 RUN sed -i 's/"tmw-data": "workspace:\*"/"tmw-data": "file:\.\.\/data"/g' /usr/src/tmw/kit/package.json
 ### 不单独安装better-sqlite3会失败
-RUN cd /usr/src/tmw/kit && pnpm add better-sqlite3 && pnpm i --strict-peer-dependencies=false && pnpm build 
+RUN cd /usr/src/tmw/kit && pnpm i --strict-peer-dependencies=false && pnpm build 
 # ### 去掉不必要的依赖包
 # RUN rm -rf /usr/src/tmw/kit/node_modules
 # RUN cd /usr/src/tmw/kit && pnpm i --production --strict-peer-dependencies=false
@@ -40,7 +40,7 @@ COPY ./packages/plugins /usr/src/tmw/plugins
 RUN sed -i 's/"tmw-data": "workspace:\*"/"tmw-data": "file:\.\.\/data"/g' /usr/src/tmw/plugins/package.json
 RUN sed -i 's/"tmw-kit": "workspace:\*"/"tmw-kit": "file:\.\.\/kit"/g' /usr/src/tmw/plugins/package.json
 ### 不单独安装better-sqlite3会失败
-RUN cd /usr/src/tmw/plugins && pnpm add better-sqlite3 && pnpm i --strict-peer-dependencies=false && pnpm build 
+RUN cd /usr/src/tmw/plugins && pnpm i --strict-peer-dependencies=false && pnpm build 
 ### 去掉不必要的依赖包
 # RUN rm -rf /usr/src/tmw/plugins/node_modules
 # RUN cd /usr/src/tmw/plugins && pnpm i --production --strict-peer-dependencies=false
@@ -50,7 +50,7 @@ COPY ./packages/tmw-back/package.json /usr/src/tmw/back/package.json
 RUN sed -i 's/"tmw-data": "workspace:\*"/"tmw-data": "file:\.\.\/data"/g' /usr/src/tmw/back/package.json
 RUN sed -i 's/"tmw-kit": "workspace:\*"/"tmw-kit": "file:\.\.\/kit"/g' /usr/src/tmw/back/package.json
 ### 不单独安装better-sqlite3会失败
-RUN cd /usr/src/tmw/back && pnpm add better-sqlite3 && pnpm i --strict-peer-dependencies=false
+RUN cd /usr/src/tmw/back && pnpm i --strict-peer-dependencies=false
 
 ## ue_admin安装依赖包
 COPY ./packages/ue_admin/package.json /usr/src/tmw/ue_admin/package.json
@@ -69,7 +69,7 @@ RUN cd /usr/src/tmw/back && pnpm build
 
 ### 去掉不必要的包，重新安装生产版本的包
 # RUN rm -rf /usr/src/tmw/back/node_modules
-RUN cd /usr/src/tmw/back && pnpm add better-sqlite3 && pnpm i --production --strict-peer-dependencies=false
+RUN cd /usr/src/tmw/back && pnpm i --production --strict-peer-dependencies=false
 # RUN cd /usr/src/tmw/back/node_modules/tmw-data && pnpm i --production --strict-peer-dependencies=false
 # RUN cd /usr/src/tmw/back/node_modules/tmw-kit && pnpm i --production --strict-peer-dependencies=false
 
