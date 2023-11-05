@@ -1,6 +1,6 @@
 {
   "name": "tmw-kit",
-  "version": "0.0.32",
+  "version": "0.0.33",
   "description": "tms-monogodb-web开发工具包",
   "type": "module",
   "main": "./dist/index.js",
@@ -34,7 +34,7 @@
     "jest": "^29.3.1",
     "randexp": "^0.5.3",
     "rimraf": "^5.0.1",
-    "tms-koa": "^0.2.2",
+    "tms-koa": "^0.2.4",
     "ts-jest": "^29.0.3"
   }
 }

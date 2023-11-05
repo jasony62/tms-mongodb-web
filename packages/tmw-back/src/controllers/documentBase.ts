@@ -653,7 +653,13 @@ class DocBase extends Base {
    * 导出数据
    */
   async export() {
-    let { filter, docIds, columns, exportType } = this.request.body
+    let {
+      filter = 'ALL',
+      docIds,
+      columns,
+      exportType = 'xlsx',
+    } = this.request.body ?? {}
+
     if (!exportType) return new ResultFault('缺少导出的文件类型参数')
 
     let modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
@@ -692,8 +698,7 @@ class DocBase extends Base {
       // 数据处理-针对单选多选转化
       this.docHelper.transformsCol('toLabel', data, columns)
 
-      const { ExcelCtrl } = await import('tms-koa/dist/controller/fs')
-      rst = ExcelCtrl.export(columns, data, existCl.name + '.xlsx')
+      rst = await this.docHelper.export(columns, data, existCl.name + '.xlsx')
     } else if (exportType === 'json') {
       const { ZipCtrl } = await import('./zipArchiver.js')
       //@ts-ignore

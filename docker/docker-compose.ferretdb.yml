@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=ferretdb
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    networks:
+      - tms-mongodb
+
+  mongodb:
+    image: ghcr.io/ferretdb/ferretdb
+    restart: on-failure
+    ports:
+      - 37017:27017
+    environment:
+      - FERRETDB_POSTGRESQL_URL=postgres://postgres:5432/ferretdb
+    networks:
+      - tms-mongodb
+
+networks:
+  tms-mongodb:

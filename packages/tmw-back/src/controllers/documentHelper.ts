@@ -1,14 +1,19 @@
 import unrepeat from './unrepeat.js'
 import _ from 'lodash'
 import fs from 'fs'
+import PATH from 'path'
 import mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 import log4js from 'log4js'
 const logger = log4js.getLogger('tms-mongodb-web')
+import xlsx from 'xlsx'
 
 import { ModelDoc, ModelCl, ModelSchema } from 'tmw-kit'
 import { Helper } from 'tmw-kit/dist/ctrl/index.js'
 import { TMW_CONFIG } from '../global.js'
+import { LocalFS } from 'tms-koa/dist/model/fs/local.js'
+import { Upload } from 'tms-koa/dist/model/fs/upload.js'
+import { MinioFS } from 'tms-koa/dist/model/fs/minio.js'
 /**
  * 数据库控制器辅助类
  */
@@ -462,6 +467,74 @@ class DocumentHelper extends Helper {
     }
 
     return [true, returnData]
+  }
+  /**
+   * 导出文件为xlsx
+   * @param {*} columns
+   * @param {*} datas
+   * @param {*} fileName
+   * @param {*} options={} sheetName = sheet页名, forceReplace=重复文件是否覆盖 ‘N’, dir= 自定义存储路径
+   */
+  async export(columns, datas, fileName, options) {
+    if (!columns || !datas) return [false, '参数错误']
+
+    if (!this.ctrl.fsContext) return [false, '文件服务不可用']
+
+    /**
+     * 构造文件服务
+     */
+    const tmsFs = (() => {
+      const { tmsContext, fsContext, bucket } = this.ctrl
+      const domain = fsContext.getDomain(fsContext.defaultDomain)
+      if (fsContext.minioClient) return new MinioFS(tmsContext, domain, bucket)
+      else return new LocalFS(tmsContext, domain, bucket)
+    })()
+    const uploadObj = new Upload(tmsFs)
+
+    let { sheetName = '', forceReplace = 'Y', dir = '' } = options ?? {}
+
+    let jsonWorkSheet = xlsx.utils.json_to_sheet(
+      datas.map((data) => {
+        let row = {}
+        for (const k in columns) {
+          let column = columns[k]
+          row[column.title] = data[k]
+        }
+        return row
+      })
+    )
+    // 构造workBook
+    let workBook: any = {}
+    if (!sheetName) sheetName = 'Sheet1'
+    workBook.SheetNames = [sheetName]
+    workBook.Sheets = {}
+    workBook.Sheets[sheetName] = jsonWorkSheet
+
+    // 导出目录
+    fileName = fileName ? fileName : uploadObj.autoname() + '.xlsx'
+    let filePath =
+      dir && this.ctrl.domain.customName === true
+        ? PATH.join(dir, fileName)
+        : PATH.join(uploadObj.autodir(), fileName)
+    if (forceReplace === 'N') {
+      // 如果文件已经存在
+      if (fs.existsSync(filePath)) return [false, `文件【${filePath}】已经存在`]
+    }
+
+    if (!fs.existsSync(PATH.dirname(filePath)))
+      fs.mkdirSync(PATH.dirname(filePath), { recursive: true })
+
+    xlsx.writeFileAsync(
+      filePath,
+      workBook,
+      {
+        compression: true,
+        bookType: 'xlsx',
+      },
+      () => {}
+    )
+
+    return [true, filePath]
   }
 }
 

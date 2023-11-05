@@ -106,62 +106,6 @@ class Document extends DocBase {
     return new ResultData(result)
   }
   /**
-   * 导出数据
-   */
-  async export() {
-    let { filter, docIds, columns } = this['request'].body
-
-    let modelDoc = new ModelDoc(
-      this['mongoClient'],
-      this.bucketObj,
-      this['client']
-    )
-
-    let query
-    if (docIds && docIds.length > 0) {
-      // 按选中修改
-      let docIds2 = docIds.map((id) => new ObjectId(id))
-      query = { _id: { $in: docIds2 } }
-    } else if (filter && typeof filter === 'object') {
-      // 按条件修改
-      query = modelDoc.assembleQuery(filter)
-    } else if (typeof filter === 'string' && filter === 'ALL') {
-      //修改全部
-      query = {}
-    } else {
-      return new ResultFault('没有要导出的数据')
-    }
-
-    const existCl = await this['docHelper'].findRequestCl()
-    // 集合列
-    let modelCl = new ModelCl(
-      this['mongoClient'],
-      this.bucketObj,
-      this['client']
-    )
-    columns = columns ? columns : await modelCl.getSchemaByCollection(existCl)
-    if (!columns) return new ResultFault('指定的集合没有指定集合列')
-
-    const client = this['mongoClient']
-    // 集合数据
-    let data = await client
-      .db(existCl.db.sysname)
-      .collection(existCl.sysname)
-      .find(query)
-      .toArray()
-
-    // 数据处理-针对单选多选转化
-    this['docHelper'].transformsCol('toLabel', data, columns)
-
-    const { ExcelCtrl } = await import('tms-koa/dist/controller/fs')
-    let rst = ExcelCtrl.export(columns, data, existCl.name + '.xlsx')
-
-    if (rst[0] === false && typeof rst[1] === 'string')
-      return new ResultFault(rst[1])
-
-    return new ResultData(rst[1])
-  }
-  /**
    * 剪切文档到指定集合
    *
    * @execNum 本次最大迁移数
