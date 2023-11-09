@@ -32,7 +32,7 @@ class CreateAccountPlugin extends PluginBase {
   }
 
   async execute(ctrl: any, tmwCl: any) {
-    const modelName = 'tms-koa-account/dist/models/store/mongodb'
+    const modelName = 'tms-koa-account/dist/models/store/mongodb.js'
     const { MongodbModel } = await import(modelName)
     const Model = new MongodbModel(
       ctrl.mongoClient,
