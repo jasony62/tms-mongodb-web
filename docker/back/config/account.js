@@ -2,7 +2,10 @@ const { env } = process
 
 export default {
   disabled: /true|yes/i.test(env.TMW_APP_AUTH_CLIENT_DISABLED),
-  admin: { username: 'admin', password: 'admin' },
+  admin: {
+    username: env.TMW_APP_AUTH_CLIENT_ADMIN_USERNAME || 'admin',
+    password: env.TMW_APP_AUTH_CLIENT_ADMIN_PASSWORD || 'admin',
+  },
   mongodb: {
     disabled: false,
     name: env.TMW_APP_AUTH_CLIENT_MONGODB_NAME || 'master',
