@@ -308,7 +308,7 @@ class DocBase extends Base {
     return new ResultData(result)
   }
   /**
-   * 在集合的向量数据库中执行意义搜索
+   * 在集合的向量数据库中执行语义搜索
    * 必须和插件cl-vecdb配合使用
    */
   async search() {
@@ -460,21 +460,20 @@ class DocBase extends Base {
    * 批量修改数据
    */
   async updateMany() {
-    const existCl = await this['docHelper'].findRequestCl()
+    const existCl = await this.docHelper.findRequestCl()
 
-    let { columns } = this['request'].body
+    let { columns } = this.request.body
     if (!columns || Object.keys(columns).length === 0)
       return new ResultFault('没有指定要修改的列，未执行更新操作')
 
-    const { query, operation, errCause } =
-      this['docHelper'].getRequestBatchQuery()
+    const { query, operation, errCause } = this.docHelper.getRequestBatchQuery()
     if (errCause) return new ResultFault(errCause)
 
-    let total = await this['modelDoc'].count(existCl, query)
+    let total = await this.modelDoc.count(existCl, query)
     if (total === 0)
       return new ResultFault('没有符合条件的数据，未执行更新操作')
     //更新前的数据记录
-    let sysCl = this['docHelper'].findSysColl(existCl)
+    let sysCl = this.docHelper.findSysColl(existCl)
     let updateBeforeDocs = await sysCl.find(query).toArray()
 
     let updated = {}
@@ -493,7 +492,7 @@ class DocBase extends Base {
             let afterDoc = Object.assign({}, doc, updated)
             let beforeDoc = {}
             beforeDoc[doc._id] = doc
-            await this['modelDoc'].dataActionLog(
+            await this.modelDoc.dataActionLog(
               afterDoc,
               `${operation}修改`,
               existCl.db.name,
@@ -513,7 +512,7 @@ class DocBase extends Base {
   async copyMany() {
     const existCl = await this.docHelper.findRequestCl()
 
-    const { toDb, toCl } = this['request'].query
+    const { toDb, toCl } = this.request.query
     const modelCl = new ModelCl(this.mongoClient, this.bucket, this.client)
     const targetCl = await modelCl.byName(toDb, toCl)
     if (!targetCl)

@@ -25,3 +25,5 @@ if (attrs.type === 'string' && attrs.fulltextSearch === true) {
   })
 }
 ```
+
+批量导入

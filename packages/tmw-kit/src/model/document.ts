@@ -4,6 +4,9 @@ import ModelColl from './collection.js'
 import ModelSchema from './schema.js'
 import dayjs from 'dayjs'
 import { ElasticSearchIndex } from '../elasticsearch/index.js'
+import Debug from 'debug'
+
+const debug = Debug('tmw-kit:model:document')
 
 const ObjectId = mongodb.ObjectId
 
@@ -119,17 +122,15 @@ class Document extends Base {
       targetSysCl.deleteMany(targetQuery)
     }
 
-    return removeSysCl
-      .deleteOne(removeQuery)
-      .then(async ({ acknowledged, deletedCount }) => {
-        // 操作日志？
-        // T提交到es
-        if (ElasticSearchIndex.available()) {
-          const esIndex = newEsIndex(existCl)
-          await esIndex.removeDocument(id)
-        }
-        return deletedCount === 1
-      })
+    return removeSysCl.deleteOne(removeQuery).then(async ({ deletedCount }) => {
+      // 操作日志？
+      // 从es中删除文档
+      if (ElasticSearchIndex.available()) {
+        const esIndex = newEsIndex(existCl)
+        await esIndex.removeDocument(id)
+      }
+      return deletedCount === 1
+    })
   }
   /**
    * 按条件批量删除文档
@@ -144,8 +145,13 @@ class Document extends Base {
    * @returns {number} 删除的文档数量
    */
   async removeMany(existCl, query) {
-    let mongoClient = this.mongoClient
-    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+    const mongoClient = this.mongoClient
+    const sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+    const removedDocs = await sysCl
+      .find(query, { projection: { _id: 1 } })
+      .toArray()
+    if (removedDocs.length === 0) return 0
+
     const modelCl = new ModelColl(this.mongoClient, this.bucket, this.client)
 
     if (existCl.usage !== 1) {
@@ -164,7 +170,16 @@ class Document extends Base {
         targetSysCl.deleteMany(targetQuery)
       }
       await modelCl.checkRemoveConstraint(existCl, query, sysCl)
-      return sysCl.deleteMany(query).then(({ deletedCount }) => deletedCount)
+      const { deletedCount } = await sysCl.deleteMany(query)
+      // 从es中删除文档
+      if (ElasticSearchIndex.available()) {
+        const esIndex = newEsIndex(existCl)
+        const promises = removedDocs.map(({ _id }) => {
+          return esIndex.removeDocument(_id.toString())
+        })
+        await Promise.all(promises)
+      }
+      return deletedCount
     } else {
       let removedDocs = await sysCl
         .find(query, { projection: { __pri: 1 } })
@@ -291,6 +306,32 @@ class Document extends Base {
     }
 
     return newDoc
+  }
+  /**
+   * 批量添加文档
+   * @param tmwCl
+   * @param rows
+   * @returns
+   */
+  async createMany(tmwCl, rows: any[]) {
+    const dbName = tmwCl.db.sysname
+    const clName = tmwCl.sysname
+    const sysCl = this.mongoClient.db(dbName).collection(clName)
+
+    const rst = await sysCl.insertMany(rows).then(async ({ insertedIds }) => {
+      // await this.dataActionLog(r.ops, '创建', dbName, clName)
+      rows.forEach(async (row, index) => {
+        row._id = insertedIds[`${index}`]
+        // 提交到es
+        if (ElasticSearchIndex.available()) {
+          const esIndex = newEsIndex(tmwCl)
+          await esIndex.createDocument(row._id.toString(), row)
+        }
+      })
+      return rows
+    })
+
+    return rst
   }
   /**
    * 更新指定id的文档

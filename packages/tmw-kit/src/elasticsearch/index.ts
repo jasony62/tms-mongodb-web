@@ -96,6 +96,8 @@ export class ElasticSearchIndex {
       debug(`${msg}，\nURL：%s\n提交数据：%O`, url.toString(), doc)
       logger.error(`${msg}，原因：${rsp.statusText}`)
       return false
+    } else {
+      debug(`新建文档【${this.name}/${id}】`)
     }
     return true
   }
@@ -118,6 +120,8 @@ export class ElasticSearchIndex {
       debug(`${msg}，\nURL：%s\n提交数据：%O`, url.toString(), doc)
       logger.error(`${msg}，原因：${rsp.statusText}`)
       return false
+    } else {
+      debug(`更新文档【${this.name}/${id}】`)
     }
     return true
   }
@@ -136,6 +140,8 @@ export class ElasticSearchIndex {
         `删除文档【${this.name}/${id}】失败，原因：${rsp.statusText}`
       )
       return false
+    } else {
+      debug(`删除文档【${this.name}/${id}】`)
     }
     return true
   }

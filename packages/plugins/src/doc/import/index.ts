@@ -189,13 +189,8 @@ class ImportPlugin extends PluginBase {
         finishRows = beforeRst.rewrited
 
       // 数据存储到集合中
-      const rst = await this.findSysColl(ctrl, tmwCl)
-        .insertMany(finishRows)
-        .then(async (r) => {
-          debug(`导入的数据已存储到[db=${tmwCl.db.name}][cl=${clName}]`)
-          await modelDoc.dataActionLog(r.ops, '创建', tmwCl.db.name, clName)
-          return finishRows
-        })
+      const rst = await modelDoc.createMany(tmwCl, finishRows)
+      debug(`导入的数据已存储到[db=${tmwCl.db.sysname}][cl=${clName}]`)
 
       // 通过webhook处理数据
       let afterRst: any = await docWebhook.afterCreate(rst, tmwCl)
@@ -212,12 +207,6 @@ class ImportPlugin extends PluginBase {
     }
   }
 
-  private findSysColl(ctrl, tmwCl) {
-    let { mongoClient } = ctrl
-    let sysCl = mongoClient.db(tmwCl.db.sysname).collection(tmwCl.sysname)
-
-    return sysCl
-  }
   /**
    * 生成excel模板
    */
