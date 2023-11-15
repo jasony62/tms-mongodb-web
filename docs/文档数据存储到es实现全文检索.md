@@ -27,3 +27,7 @@ if (attrs.type === 'string' && attrs.fulltextSearch === true) {
 ```
 
 批量导入
+
+```
+curl -X POST -H "Content-Type: application/json" "http://localhost:6030/api/admin/document/fulltextSearch?db=llmqadb&cl=llmqa&access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwiZGF0YSI6eyJ1c2VybmFtZSI6ImFkbWluIn0sImlzQWRtaW4iOnRydWUsImFsbG93TXVsdGlMb2dpbiI6ZmFsc2UsImV4cGlyZXNJbiI6MCwiaWF0IjoxNzAwMDI3MTA3LCJleHAiOjE3MDAxMTM1MDd9.RxE7SEwJiBYum7tTUFOHvohbStZVjknn1l_uNsfiZvQ" -d '{"question":"风向"}'
+```

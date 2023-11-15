@@ -4,6 +4,7 @@ import { createDocWebhook } from 'tmw-kit/dist/webhook/document.js'
 import DocumentHelper from './documentHelper.js'
 import unrepeat from './unrepeat.js'
 import { ModelDoc, ModelCl, makeTagsFilter } from 'tmw-kit'
+import { ElasticSearchIndex } from 'tmw-kit/dist/elasticsearch/index.js'
 import _ from 'lodash'
 import mongodb from 'mongodb'
 
@@ -311,7 +312,7 @@ class DocBase extends Base {
    * 在集合的向量数据库中执行语义搜索
    * 必须和插件cl-vecdb配合使用
    */
-  async search() {
+  async vectorSearch() {
     const existCl = await this.docHelper.findRequestCl()
     const { model, text, size } = this.request.query
 
@@ -335,6 +336,24 @@ class DocBase extends Base {
     }
 
     return new ResultData({ vecDocs, tmwDocs })
+  }
+  /**
+   * 在指定的集合中进行全文检索，返回匹配的文档
+   */
+  async fulltextSearch() {
+    if (ElasticSearchIndex.available() !== true)
+      return new ResultFault('未开通全文检索服务')
+
+    const tmwCl = await this.docHelper.findRequestCl()
+    if (tmwCl.custom?.elasticsearch?.enabled !== true)
+      return new ResultFault('集合为设置全文检索功能')
+    let { match } = this.request.body
+
+    const indexName = `${tmwCl.db.sysname}+${tmwCl.sysname}`
+    const esIndex = new ElasticSearchIndex(indexName)
+    const docs = await esIndex.search(match)
+
+    return new ResultData({ docs })
   }
   /**
    * 按指定的列进行分组，并显示每个分组的记录数

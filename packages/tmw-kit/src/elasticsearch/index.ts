@@ -85,7 +85,9 @@ export class ElasticSearchIndex {
   async createDocument(id: string, doc: any) {
     const url = new URL(this.indexUri.toString() + `/_doc/${id}`)
     const esDoc = { ...doc }
+    // es不允许字段以下划线开头
     delete esDoc._id
+
     const rsp = await fetch(url, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -93,7 +95,7 @@ export class ElasticSearchIndex {
     })
     if (!rsp.ok) {
       const msg = `新建文档【${this.name}/${id}】失败`
-      debug(`${msg}，\nURL：%s\n提交数据：%O`, url.toString(), doc)
+      debug(`${msg}，\nURL：%s\n提交数据：%O`, url.toString(), esDoc)
       logger.error(`${msg}，原因：${rsp.statusText}`)
       return false
     } else {
@@ -144,6 +146,33 @@ export class ElasticSearchIndex {
       debug(`删除文档【${this.name}/${id}】`)
     }
     return true
+  }
+  /**
+   * 执行搜索
+   * @param match
+   */
+  async search(match: Record<string, string>) {
+    const url = new URL(this.indexUri.toString() + `/_search`)
+    const rsp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: { match } }),
+    })
+    if (!rsp.ok) {
+      const msg = `全文检索【${this.name}】失败，原因：${rsp.statusText}`
+      debug(`${msg}\n参数：\n` + JSON.stringify(match))
+      logger.error(msg)
+      return false
+    }
+    const rst = await rsp.json()
+    const { hits } = rst
+
+    const docs = hits?.hits.map((hit) => {
+      const { _id, _source } = hit
+      return { _id, ..._source }
+    })
+
+    return docs
   }
   /**
    * 是否配置了es服务
