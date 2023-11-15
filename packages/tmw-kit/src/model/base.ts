@@ -239,7 +239,6 @@ class Base {
 
     return data
   }
-
   /**
    * 存储管理对象的集合
    */

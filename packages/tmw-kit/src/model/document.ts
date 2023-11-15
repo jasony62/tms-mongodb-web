@@ -1,6 +1,7 @@
 import mongodb from 'mongodb'
 import Base from './base.js'
 import ModelColl from './collection.js'
+import ModelSchema from './schema.js'
 import dayjs from 'dayjs'
 import { ElasticSearchIndex } from '../elasticsearch/index.js'
 
@@ -730,6 +731,24 @@ class Document extends Base {
       targetQuery[key] = { $in: result }
     })
     return { targetSysCl, targetQuery }
+  }
+  /**
+   * 获得文档列定义
+   * @param schemaId
+   */
+  async getDocSchema(schemaId: string) {
+    const modelSchema = new ModelSchema(
+      this.mongoClient,
+      this.bucket,
+      this.client
+    )
+
+    // 集合的schema定义
+    let schema
+    if (schemaId && typeof schemaId === 'string')
+      schema = await modelSchema.bySchemaId(schemaId)
+
+    return schema
   }
 }
 

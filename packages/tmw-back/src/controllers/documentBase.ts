@@ -3,7 +3,7 @@ import { Base } from 'tmw-kit/dist/ctrl/index.js'
 import { createDocWebhook } from 'tmw-kit/dist/webhook/document.js'
 import DocumentHelper from './documentHelper.js'
 import unrepeat from './unrepeat.js'
-import { ModelDoc, ModelCl, ModelSchema, makeTagsFilter } from 'tmw-kit'
+import { ModelDoc, ModelCl, makeTagsFilter } from 'tmw-kit'
 import _ from 'lodash'
 import mongodb from 'mongodb'
 
@@ -19,24 +19,6 @@ class DocBase extends Base {
     this.docHelper = new DocumentHelper(this)
     this.docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK)
     this.modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
-  }
-  /**
-   *
-   * @param schema_id
-   */
-  private async getDocSchema(schema_id) {
-    const modelSchema = new ModelSchema(
-      this.mongoClient,
-      this.bucket,
-      this.client
-    )
-
-    // 集合的schema定义
-    let docSchema
-    if (schema_id && typeof schema_id === 'string')
-      docSchema = await modelSchema.bySchemaId(schema_id)
-
-    return docSchema
   }
   /**
    * 根据ID返回单个文档的数据
@@ -59,18 +41,10 @@ class DocBase extends Base {
   async create() {
     const existCl = await this.docHelper.findRequestCl()
 
-    // const modelSchema = new ModelSchema(
-    //   this.mongoClient,
-    //   this.bucket,
-    //   this.client
-    // )
     const { schema_id, extensionInfo } = existCl
 
-    // let docSchema // 集合的文档字段定义
-    // if (schema_id && typeof schema_id === 'string')
-    //   docSchema = await modelSchema.bySchemaId(schema_id)
     // 集合的文档字段定义
-    let docSchema = await this.getDocSchema(schema_id)
+    let docSchema = await this.modelDoc.getDocSchema(schema_id)
     if (!docSchema)
       return new ResultFault(
         `在集合${existCl.name}/${existCl.sysname}创建文档时，没有提供schema`
@@ -104,7 +78,7 @@ class DocBase extends Base {
       const { info, schemaId } = extensionInfo
       if (schemaId) {
         // const publicSchema = await modelSchema.bySchemaId(schemaId)
-        const publicSchema = await this.getDocSchema(schemaId)
+        const publicSchema = await this.modelDoc.getDocSchema(schemaId)
         Object.keys(publicSchema).forEach((schema) => {
           docData[schema] = info[schema] ? info[schema] : ''
         })
@@ -191,7 +165,7 @@ class DocBase extends Base {
     if (!existDoc) return new ResultFault('要更新的文档不存在')
 
     let newDoc = this.request.body
-    const docSchema = await this.getDocSchema(schema_id)
+    const docSchema = await this.modelDoc.getDocSchema(schema_id)
     if (!docSchema || typeof docSchema !== 'object')
       throw Error(
         `在集合${existCl.name}/${existCl.sysname}更新文档时，没有提供schema`
@@ -258,7 +232,7 @@ class DocBase extends Base {
     if (!existDoc) return new ResultFault('要更新的文档不存在')
 
     let newDoc = this.request.body
-    const docSchema = await this.getDocSchema(schema_id)
+    const docSchema = await this.modelDoc.getDocSchema(schema_id)
     if (!docSchema || typeof docSchema !== 'object')
       throw Error(
         `在集合${existCl.name}/${existCl.sysname}更新文档时，没有提供schema`

@@ -19,7 +19,7 @@ index 的命令规则：`${dbName}+${clName}`
 `tmw-kit/src/model/collection.ts`
 
 ```ts
-if (attrs.format === 'longtext') {
+if (attrs.type === 'string' && attrs.fulltextSearch === true) {
   Object.assign(properties, {
     [fullname]: { type: 'text', analyzer: 'ik_max_word' },
   })

@@ -126,24 +126,6 @@ class CollectionBase extends Base {
     return new ResultData(info)
   }
   /**
-   * TODO 临时方法，与document中的代码重复，应该重构
-   * @param schema_id
-   */
-  private async getDocSchema(schema_id) {
-    const modelSchema = new ModelSchema(
-      this.mongoClient,
-      this.bucket,
-      this.client
-    )
-
-    // 集合的schema定义
-    let docSchema
-    if (schema_id && typeof schema_id === 'string')
-      docSchema = await modelSchema.bySchemaId(schema_id)
-
-    return docSchema
-  }
-  /**
    * 更新集合对象信息
    * TODO 应该将数据库操作的逻辑挪到model中
    */
@@ -151,76 +133,11 @@ class CollectionBase extends Base {
     const existCl = await this.clHelper.findRequestCl()
 
     let info = this.request.body
-    let modelCl = new ModelCl(this['mongoClient'], this.bucket, this['client'])
+    let modelCl = new ModelCl(this.mongoClient, this.bucket, this.client)
 
-    // 格式化集合名
-    let newClName
-    if (info.name !== undefined && info.name !== existCl.name) {
-      newClName = modelCl.checkClName(info.name)
-      if (newClName[0] === false) return new ResultFault(newClName[1])
-      // 查询是否已存在同名集合
-      let existTmwCl = await modelCl.byName(this.reqDb, info.name)
-      if (existTmwCl)
-        return new ResultFault(
-          `数据库[name=${this.reqDb.name}]中，已存在同名集合[name=${info.name}]`
-        )
-    }
-
-    // 查询是否已存在同名集合
-    if (newClName) {
-      let otherCl = await modelCl.byName(this.reqDb, newClName)
-      if (otherCl)
-        return new ResultFault(
-          `数据库[name=${this.reqDb.name}]中，已存在同名集合[name=${newClName}]`
-        )
-    }
-
-    const { _id, sysname, database, db, type, bucket, usage, ...updatedInfo } =
-      info
-
-    // 需要清除的字段。应该考虑根据schema做清除。
-    const cleaned = { children: '' }
-
-    const rst = await this.clMongoObj
-      .updateOne({ _id: existCl._id }, { $set: updatedInfo, $unset: cleaned })
-      .then((rst) => [true, rst.result])
-      .catch((err) => [false, err.message])
-
-    if (rst[0] === false) return new ResultFault(rst[1])
-
-    // 更新es索引
-    const { schema_id } = existCl
-    if (schema_id && typeof schema_id === 'string') {
-      if (updatedInfo?.custom?.elasticsearch?.enabled === true) {
-        if (ElasticSearchIndex.available()) {
-          const indexName = `${existCl.db.sysname}+${existCl.sysname}`
-          const esIndex = new ElasticSearchIndex(indexName)
-
-          // 集合的文档字段定义
-          let docSchema = await this.getDocSchema(schema_id)
-          if (docSchema) {
-            /**所有密码格式的属性都需要加密存储*/
-            const schemaIter = new SchemaIter({
-              type: 'object',
-              properties: docSchema,
-            })
-            const analyzer = ElasticSearchIndex.analyzer()
-            const properties: any = {}
-            for (let schemaProp of schemaIter) {
-              let { fullname, attrs } = schemaProp
-              if (attrs.format === 'longtext') {
-                Object.assign(properties, {
-                  [fullname]: { type: 'text', analyzer },
-                })
-              }
-            }
-            if (Object.keys(properties).length) {
-              const config = { mappings: { properties } }
-              await esIndex.configure(config)
-            }
-          }
-        }
-      }
+    const result = await modelCl.update(this.reqDb, existCl, info)
+    if (result[0] !== true) {
+      return new ResultFault(result[1])
     }
 
     return new ResultData(info)

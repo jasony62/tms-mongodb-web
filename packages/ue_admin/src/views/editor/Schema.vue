@@ -45,6 +45,9 @@
               <el-form-item label="不可修改">
                 <el-switch v-model="attrs.readonly"></el-switch>
               </el-form-item>
+              <el-form-item label="可全文检索" v-if="attrs.type === 'string'">
+                <el-switch v-model="attrs.fulltextSearch"></el-switch>
+              </el-form-item>
             </template>
           </tms-json-schema>
           <div class="h-full w-1/2 flex flex-col gap-2 relative">

@@ -2,6 +2,12 @@ import mongodb from 'mongodb'
 import { nanoid } from 'nanoid'
 import Base from './base.js'
 import unescape from 'mongo-escape'
+import { ElasticSearchIndex } from '../elasticsearch/index.js'
+import { SchemaIter } from '../schema.js'
+import Document from './document.js'
+import Debug from 'debug'
+
+const debug = Debug('tmw-kit:model:collection')
 
 const ObjectId = mongodb.ObjectId
 
@@ -78,6 +84,100 @@ class Collection extends Base {
       .then(() => this.clMongoObj.insertOne(info))
       .then((result) => [true, result])
       .catch((err) => [false, err.message])
+  }
+  /**
+   * 更新指定数据库下的集合
+   *
+   * @param tmwDb
+   * @param existCl
+   * @param info
+   * @returns
+   */
+  async update(tmwDb, existCl, info) {
+    // 格式化集合名
+    let newClName
+    if (info.name !== undefined && info.name !== existCl.name) {
+      newClName = this.checkClName(info.name)
+      if (newClName[0] === false) return [false, newClName[1]]
+      // 查询是否已存在同名集合
+      let existTmwCl = await this.byName(tmwDb, info.name)
+      if (existTmwCl)
+        return [
+          false,
+          `数据库[name=${tmwDb.name}]中，已存在同名集合[name=${info.name}]`,
+        ]
+    }
+
+    // 查询是否已存在同名集合
+    if (newClName) {
+      let otherCl = await this.byName(tmwDb, newClName)
+      if (otherCl)
+        return [
+          false,
+          `数据库[name=${tmwDb.name}]中，已存在同名集合[name=${newClName}]`,
+        ]
+    }
+
+    const { _id, sysname, database, db, type, bucket, usage, ...updatedInfo } =
+      info
+
+    // 需要清除的字段。应该考虑根据schema做清除。
+    const cleaned = { children: '' }
+
+    const rst = await this.clMongoObj
+      .updateOne({ _id: existCl._id }, { $set: updatedInfo, $unset: cleaned })
+      .then((rst) => [true, rst.result])
+      .catch((err) => [false, err.message])
+
+    if (rst[0] === false) return [false, rst[1]]
+
+    // 更新es索引
+    const { schema_id } = existCl
+    if (
+      ElasticSearchIndex.available() &&
+      updatedInfo?.custom?.elasticsearch?.enabled === true
+    ) {
+      if (schema_id && typeof schema_id === 'string') {
+        const modelDoc = new Document(
+          this.mongoClient,
+          this.bucket,
+          this.client
+        )
+        // 集合的文档字段定义
+        let docSchema = await modelDoc.getDocSchema(schema_id)
+        if (docSchema) {
+          /**所有密码格式的属性都需要加密存储*/
+          const schemaIter = new SchemaIter({
+            type: 'object',
+            properties: docSchema,
+          })
+          const analyzer = ElasticSearchIndex.analyzer()
+          const properties: any = {}
+          for (let schemaProp of schemaIter) {
+            let { fullname, attrs } = schemaProp
+            if (attrs.type === 'string' && attrs.fulltextSearch === true) {
+              Object.assign(properties, {
+                [fullname]: { type: 'text', analyzer },
+              })
+            }
+          }
+          const esIndexName = `${existCl.db.sysname}+${existCl.sysname}`
+          if (Object.keys(properties).length) {
+            const config = { mappings: { properties } }
+            const esIndex = new ElasticSearchIndex(esIndexName)
+            await esIndex.configure(config)
+            debug(
+              `配置集合的es索引【${esIndexName}】，配置：\n%s`,
+              JSON.stringify(config)
+            )
+          } else {
+            debug(`配置集合的es索引【${esIndexName}】失败，配置内容为空。`)
+          }
+        }
+      }
+    }
+
+    return [true, info]
   }
   /**
    *

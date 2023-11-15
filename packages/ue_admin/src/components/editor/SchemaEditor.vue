@@ -24,8 +24,11 @@
           <tms-json-schema ref="$jse" :schema="schema.body" :root-name="'$'" :on-upload="onUploadFile"
             class="h-full overflow-auto">
             <template #extattrs="{ attrs }">
-              <el-form-item label="不可修改">
+              <el-form-item label="不可修改1">
                 <el-switch v-model="attrs.readonly"></el-switch>
+              </el-form-item>
+              <el-form-item label="可全文检索">
+                <el-switch v-model="attrs.fulltextSearch"></el-switch>
               </el-form-item>
             </template>
           </tms-json-schema>
