@@ -5,8 +5,10 @@ import unescape from 'mongo-escape'
 
 const ObjectId = mongodb.ObjectId
 
+const CL_NAME_RE = '^[a-zA-Z]+[0-9a-zA-Z_-]{0,63}$'
 class Collection extends Base {
   /**
+   * 新建集合
    *
    * @param existDb
    * @param info
@@ -140,7 +142,7 @@ class Collection extends Base {
    *  检查集合名
    */
   checkClName(clName) {
-    if (new RegExp('^[a-zA-Z]+[0-9a-zA-Z_-]{0,63}$').test(clName) !== true)
+    if (new RegExp(CL_NAME_RE).test(clName) !== true)
       return [
         false,
         '集合名必须以英文字母开头，仅限英文字母或_或-或数字组合，且最长64位',

@@ -79,8 +79,7 @@
           <el-select v-model="collection.operateRules.unrepeat.collection" value-key="sysname" @clear="listClByKw"
             @change="changeCl" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw"
             :loading="criteria.collectionLoading">
-            <el-option v-for="item in criteria.collections" :key="item._id" :label="item.label"
-              :value="item"></el-option>
+            <el-option v-for="item in criteria.collections" :key="item._id" :label="item.label" :value="item"></el-option>
             <el-option :disabled="true" value="" v-if="criteria.clBatch.pages > 1">
               <el-pagination :current-page="criteria.clBatch.page" :total="criteria.clBatch.total"
                 :page-size="criteria.clBatch.size" layout="prev, next" @current-change="changeClPage">
@@ -91,13 +90,15 @@
             <el-option v-for="item in criteria.properties" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
-          <el-select v-model="collection.operateRules.unrepeat.insert" placeholder="是否插入当前表" v-if="
-            collection.operateRules.unrepeat.collection.sysname !==
+          <el-select v-model="collection.operateRules.unrepeat.insert" placeholder="是否插入当前表" v-if="collection.operateRules.unrepeat.collection.sysname !==
             collection.sysname
-          ">
+            ">
             <el-option label="是" :value="true"></el-option>
             <el-option label="否" :value="false"></el-option>
           </el-select>
+        </el-form-item>
+        <el-form-item label="文档保存到Elasticsearch">
+          <el-checkbox v-model="collection.custom.elasticsearch.enabled">保存</el-checkbox>
         </el-form-item>
       </el-form>
       <div v-show="activeTab === 'convert'" class="h-96">
@@ -155,6 +156,9 @@ const props = defineProps({
             copyMany: true,
             copy: true
           },
+          elasticsearch: {
+            enabled: false
+          },
         },
         operateRules: {
           scope: {
@@ -175,7 +179,7 @@ const props = defineProps({
 })
 
 // 设置默认值
-props.collection.custom ??= { docOperations: {} }
+props.collection.custom ??= { docOperations: {}, elasticsearch: { enabled: false } }
 props.collection.operateRules ??= {
   scope: { unrepeat: false },
   unrepeat: {

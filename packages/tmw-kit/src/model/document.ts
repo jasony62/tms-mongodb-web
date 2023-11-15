@@ -2,8 +2,20 @@ import mongodb from 'mongodb'
 import Base from './base.js'
 import ModelColl from './collection.js'
 import dayjs from 'dayjs'
+import { ElasticSearchIndex } from '../elasticsearch/index.js'
 
 const ObjectId = mongodb.ObjectId
+
+/**
+ * 创建ES索引实例
+ *
+ * @param tmwCl
+ * @returns
+ */
+function newEsIndex(tmwCl) {
+  let indexName = `${tmwCl.db.sysname}+${tmwCl.sysname}`
+  return new ElasticSearchIndex(indexName)
+}
 
 /**文档模型类基类 */
 class Document extends Base {
@@ -108,7 +120,15 @@ class Document extends Base {
 
     return removeSysCl
       .deleteOne(removeQuery)
-      .then(({ acknowledged, deletedCount }) => deletedCount === 1)
+      .then(async ({ acknowledged, deletedCount }) => {
+        // 操作日志？
+        // T提交到es
+        if (ElasticSearchIndex.available()) {
+          const esIndex = newEsIndex(existCl)
+          await esIndex.removeDocument(id)
+        }
+        return deletedCount === 1
+      })
   }
   /**
    * 按条件批量删除文档
@@ -258,9 +278,16 @@ class Document extends Base {
     let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
 
     const newDoc = await sysCl.insertOne(data).then(async (r) => {
+      // 记录操作日志
       await this.dataActionLog(r.ops, '创建', existCl.db.name, existCl.name)
       return data
     })
+
+    // 提交到es
+    if (ElasticSearchIndex.available()) {
+      const esIndex = newEsIndex(existCl)
+      await esIndex.createDocument(newDoc._id.toString(), newDoc)
+    }
 
     return newDoc
   }
@@ -287,7 +314,14 @@ class Document extends Base {
         ops['$unset'] = removed
       return sysCl
         .updateOne({ _id: new ObjectId(id) }, ops)
-        .then(({ modifiedCount }) => modifiedCount === 1)
+        .then(async ({ modifiedCount }) => {
+          // 提交到es
+          if (ElasticSearchIndex.available()) {
+            const esIndex = newEsIndex(existCl)
+            await esIndex.updateDocument(id, updated)
+          }
+          return modifiedCount === 1
+        })
     } else {
       let __pri
       if (updated.__pri) {
@@ -300,7 +334,15 @@ class Document extends Base {
       let priCl = mongoClient.db(__pri.db).collection(__pri.cl)
       return priCl
         .updateOne({ _id: new ObjectId(__pri.id) }, { $set: updated })
-        .then(({ modifiedCount }) => modifiedCount === 1)
+        .then(async ({ modifiedCount }) => {
+          // 操作日志？
+          // 提交到es
+          if (ElasticSearchIndex.available()) {
+            const esIndex = newEsIndex(existCl)
+            await esIndex.updateDocument(id, updated)
+          }
+          return modifiedCount === 1
+        })
     }
   }
   /**
@@ -367,11 +409,21 @@ class Document extends Base {
    */
   async replace(existCl, id: string, newDoc: any) {
     let mongoClient = this.mongoClient
-    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
-    if (existCl.usage !== 1) {
+    const replaceOne = async (sysCl) => {
       return sysCl
         .replaceOne({ _id: new ObjectId(id) }, newDoc)
-        .then(({ modifiedCount }) => modifiedCount === 1)
+        .then(async ({ modifiedCount }) => {
+          // 提交到es
+          if (ElasticSearchIndex.available()) {
+            const esIndex = newEsIndex(existCl)
+            await esIndex.updateDocument(id, newDoc)
+          }
+          return modifiedCount === 1
+        })
+    }
+    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+    if (existCl.usage !== 1) {
+      return await replaceOne(sysCl)
     } else {
       let __pri
       if (newDoc.__pri) {
@@ -382,9 +434,7 @@ class Document extends Base {
         __pri = doc.__pri
       }
       let priCl = mongoClient.db(__pri.db).collection(__pri.cl)
-      return priCl
-        .replaceOne({ _id: new ObjectId(__pri.id) }, newDoc)
-        .then(({ modifiedCount }) => modifiedCount === 1)
+      return await replaceOne(priCl)
     }
   }
   /**
@@ -482,6 +532,16 @@ class Document extends Base {
   }
   /**
    * 记录数据操作日志
+   *
+   * @param oDatas
+   * @param operate_type
+   * @param dbname
+   * @param clname
+   * @param operate_after_dbname
+   * @param operate_after_clname
+   * @param operate_before_data
+   * @param client_info
+   * @returns
    */
   async dataActionLog(
     oDatas,

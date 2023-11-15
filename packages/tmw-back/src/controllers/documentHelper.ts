@@ -55,8 +55,14 @@ class DocumentHelper extends Helper {
     return { query, operation, errCause }
   }
   /**
-   *  提取excel数据到集合中
-   *  noRepeatconfig 数据去重配置
+   * 提取excel数据到集合中
+   *
+   * @param existCl
+   * @param filename
+   * @param noRepeatconfig 数据去重配置
+   * @param reqMode
+   * @param rowsJson
+   * @returns
    */
   async importToColl(
     existCl,

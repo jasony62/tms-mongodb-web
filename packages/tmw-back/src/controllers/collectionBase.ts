@@ -1,10 +1,13 @@
+import mongodb from 'mongodb'
 import { ResultData, ResultFault } from 'tms-koa'
 import CollectionHelper from './collectionHelper.js'
 import ReplicaHelper from './replicaHelper.js'
 import SchemaHelper from './schemaHelper.js'
-import { ModelCl } from 'tmw-kit'
+import { ModelCl, ModelSchema } from 'tmw-kit'
 import { Base } from 'tmw-kit/dist/ctrl/index.js'
-import mongodb from 'mongodb'
+import { ElasticSearchIndex } from 'tmw-kit/dist/elasticsearch/index.js'
+import { SchemaIter } from 'tmw-kit/dist/schema.js'
+
 const ObjectId = mongodb.ObjectId
 
 /**
@@ -123,7 +126,26 @@ class CollectionBase extends Base {
     return new ResultData(info)
   }
   /**
+   * TODO 临时方法，与document中的代码重复，应该重构
+   * @param schema_id
+   */
+  private async getDocSchema(schema_id) {
+    const modelSchema = new ModelSchema(
+      this.mongoClient,
+      this.bucket,
+      this.client
+    )
+
+    // 集合的schema定义
+    let docSchema
+    if (schema_id && typeof schema_id === 'string')
+      docSchema = await modelSchema.bySchemaId(schema_id)
+
+    return docSchema
+  }
+  /**
    * 更新集合对象信息
+   * TODO 应该将数据库操作的逻辑挪到model中
    */
   async update() {
     const existCl = await this.clHelper.findRequestCl()
@@ -165,6 +187,41 @@ class CollectionBase extends Base {
       .catch((err) => [false, err.message])
 
     if (rst[0] === false) return new ResultFault(rst[1])
+
+    // 更新es索引
+    const { schema_id } = existCl
+    if (schema_id && typeof schema_id === 'string') {
+      if (updatedInfo?.custom?.elasticsearch?.enabled === true) {
+        if (ElasticSearchIndex.available()) {
+          const indexName = `${existCl.db.sysname}+${existCl.sysname}`
+          const esIndex = new ElasticSearchIndex(indexName)
+
+          // 集合的文档字段定义
+          let docSchema = await this.getDocSchema(schema_id)
+          if (docSchema) {
+            /**所有密码格式的属性都需要加密存储*/
+            const schemaIter = new SchemaIter({
+              type: 'object',
+              properties: docSchema,
+            })
+            const analyzer = ElasticSearchIndex.analyzer()
+            const properties: any = {}
+            for (let schemaProp of schemaIter) {
+              let { fullname, attrs } = schemaProp
+              if (attrs.format === 'longtext') {
+                Object.assign(properties, {
+                  [fullname]: { type: 'text', analyzer },
+                })
+              }
+            }
+            if (Object.keys(properties).length) {
+              const config = { mappings: { properties } }
+              await esIndex.configure(config)
+            }
+          }
+        }
+      }
+    }
 
     return new ResultData(info)
   }

@@ -59,17 +59,18 @@ class DocBase extends Base {
   async create() {
     const existCl = await this.docHelper.findRequestCl()
 
-    const modelSchema = new ModelSchema(
-      this.mongoClient,
-      this.bucket,
-      this.client
-    )
+    // const modelSchema = new ModelSchema(
+    //   this.mongoClient,
+    //   this.bucket,
+    //   this.client
+    // )
     const { schema_id, extensionInfo } = existCl
 
-    let docSchema // 集合的文档字段定义
-    if (schema_id && typeof schema_id === 'string')
-      docSchema = await modelSchema.bySchemaId(schema_id)
-
+    // let docSchema // 集合的文档字段定义
+    // if (schema_id && typeof schema_id === 'string')
+    //   docSchema = await modelSchema.bySchemaId(schema_id)
+    // 集合的文档字段定义
+    let docSchema = await this.getDocSchema(schema_id)
     if (!docSchema)
       return new ResultFault(
         `在集合${existCl.name}/${existCl.sysname}创建文档时，没有提供schema`
@@ -102,7 +103,8 @@ class DocBase extends Base {
     if (extensionInfo) {
       const { info, schemaId } = extensionInfo
       if (schemaId) {
-        const publicSchema = await modelSchema.bySchemaId(schemaId)
+        // const publicSchema = await modelSchema.bySchemaId(schemaId)
+        const publicSchema = await this.getDocSchema(schemaId)
         Object.keys(publicSchema).forEach((schema) => {
           docData[schema] = info[schema] ? info[schema] : ''
         })
