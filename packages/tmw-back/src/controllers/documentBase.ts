@@ -347,11 +347,14 @@ class DocBase extends Base {
     const tmwCl = await this.docHelper.findRequestCl()
     if (tmwCl.custom?.elasticsearch?.enabled !== true)
       return new ResultFault('集合为设置全文检索功能')
+
     let { match } = this.request.body
+
+    const { size, from } = this.request.query
 
     const indexName = `${tmwCl.db.sysname}+${tmwCl.sysname}`
     const esIndex = new ElasticSearchIndex(indexName)
-    const docs = await esIndex.search(match)
+    const docs = await esIndex.search(match, { size, from })
 
     return new ResultData({ docs })
   }

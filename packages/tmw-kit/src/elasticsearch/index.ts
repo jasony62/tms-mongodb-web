@@ -9,6 +9,11 @@ const debug = Debug('tmw-kit:elasticsearch')
  */
 const ES_ANALYZER = process.env.TMW_ELASTICSEARCH_ANALYZER || 'ik_max_word'
 /**
+ * 搜索结果的最大数量
+ */
+const ES_SEARCH_RESULT_SIZE =
+  process.env.TMW_ELASTICSEARCH_SEARCH_RESULT_SIZE || 10
+/**
  * Elasticsearch的Index对象
  */
 export class ElasticSearchIndex {
@@ -151,8 +156,12 @@ export class ElasticSearchIndex {
    * 执行搜索
    * @param match
    */
-  async search(match: Record<string, string>) {
+  async search(match: Record<string, string>, options?: Record<string, any>) {
     const url = new URL(this.indexUri.toString() + `/_search`)
+    const { size, from } = options
+    if (size) url.searchParams.append('size', size || ES_SEARCH_RESULT_SIZE)
+    if (from) url.searchParams.append('from', from)
+
     const rsp = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
