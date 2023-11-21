@@ -3,10 +3,8 @@ import { ResultData, ResultFault } from 'tms-koa'
 import CollectionHelper from './collectionHelper.js'
 import ReplicaHelper from './replicaHelper.js'
 import SchemaHelper from './schemaHelper.js'
-import { ModelCl, ModelSchema } from 'tmw-kit'
+import { ModelCl } from 'tmw-kit'
 import { Base } from 'tmw-kit/dist/ctrl/index.js'
-import { ElasticSearchIndex } from 'tmw-kit/dist/elasticsearch/index.js'
-import { SchemaIter } from 'tmw-kit/dist/schema.js'
 
 const ObjectId = mongodb.ObjectId
 
@@ -64,6 +62,9 @@ class CollectionBase extends Base {
     const query: any = {
       type: 'collection',
       'db.sysname': this.reqDb.sysname,
+    }
+    if (this.client.isAdmin !== true) {
+      query.adminOnly = { $ne: true }
     }
     if (this.bucketObj) query.bucket = this.bucketObj.name
     const { keyword } = this.request.query

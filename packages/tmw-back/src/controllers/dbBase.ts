@@ -29,6 +29,9 @@ class DbBase extends Base {
    */
   async list() {
     const query: any = { type: 'database' }
+    if (this.client.isAdmin !== true) {
+      query.adminOnly = { $ne: true }
+    }
     if (this.bucketObj) query.bucket = this.bucketObj.name
     let { keyword } = this.request.query
     if (keyword) {

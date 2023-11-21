@@ -48,6 +48,9 @@
         <el-form-item label="说明">
           <el-input type="textarea" v-model="collection.description"></el-input>
         </el-form-item>
+        <el-form-item label="仅系统管理员可见">
+          <el-switch v-model="collection.adminOnly"></el-switch>
+        </el-form-item>
       </el-form>
       <el-form :model="collection.custom" label-position="top" v-show="activeTab === 'setting'">
         <el-form-item label="文档操作">
@@ -142,7 +145,8 @@ const props = defineProps({
         schema_tags: [],
         schema_default_tags: [],
         tags: [],
-        usage: '',
+        usage: 0,
+        adminOnly: false,
         custom: {
           docOperations: {
             create: true,
@@ -180,6 +184,7 @@ const props = defineProps({
 
 // 设置默认值
 props.collection.custom ??= { docOperations: {}, elasticsearch: { enabled: false } }
+props.collection.custom.elasticsearch ??= { enabled: false }
 props.collection.operateRules ??= {
   scope: { unrepeat: false },
   unrepeat: {

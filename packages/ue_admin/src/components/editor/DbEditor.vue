@@ -14,6 +14,9 @@
       <el-form-item label="说明">
         <el-input type="textarea" v-model="database.description"></el-input>
       </el-form-item>
+      <el-form-item label="仅系统管理员可见">
+        <el-switch v-model="database.adminOnly"></el-switch>
+      </el-form-item>
     </el-form>
     <template #footer>
       <el-button type="primary" @click="onSubmit">提交</el-button>
@@ -35,7 +38,7 @@ const props = defineProps({
   database: {
     type: Object,
     default: () => {
-      return { name: '', title: '', description: '' }
+      return { name: '', title: '', description: '', adminOnly: false }
     }
   },
   onClose: { type: Function, default: (newDb: any) => { } }
