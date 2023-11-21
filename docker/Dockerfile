@@ -124,4 +124,8 @@ RUN chmod +x /usr/local/bin/start_all.sh
 # 配置文件
 COPY ./docker/back/config /usr/app/tmw/config
 
+# 可以暴露的端口
+EXPOSE 80
+EXPOSE 3000
+
 ENTRYPOINT ["start_all.sh"]

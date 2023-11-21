@@ -14,12 +14,15 @@
             <el-radio label="more" size="large">作为独立文件保存为压缩文件</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="叶子节点数" v-if="outType === 'excel'">
+        <el-form-item label="叶子节点深度" v-if="outType === 'excel'">
           <div>
             <el-input-number v-model="leafLevel" :step="1" :min="0" step-strictly @change="handleChange" />
-            <div class="el-upload__tip">* 0代表导出所有节点</div>
+            <div class="el-upload__tip">* 0代表导出所有深度节点</div>
           </div>
         </el-form-item>
+        <div class="response-content flex-grow border border-gray-200 rounded-md overflow-auto" v-if="responseContent">
+          <pre>{{ responseContent }}</pre>
+        </div>
         <el-form-item>
           <el-button type="primary" @click="onExecute" :disabled="!outType">执行</el-button>
           <el-button @click="onCancel" v-if="!executed">取消</el-button>
@@ -74,8 +77,8 @@ window.addEventListener('message', (event) => {
     if (typeof response === 'string') {
       responseContent.value = response
     } else if (typeof response === 'object') {
-      if (response.filePath) {
-        window.open(response.filePath)
+      if (response.url) {
+        window.open(response.url)
       } else {
         responseContent.value = JSON.stringify(response, null, 2)
       }

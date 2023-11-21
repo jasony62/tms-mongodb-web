@@ -31,5 +31,5 @@ if (attrs.type === 'string' && attrs.fulltextSearch === true) {
 执行增、删、改、批量导入操作时，同步执行 es 操作。
 
 ```shell
-curl -X POST -H "Content-Type: application/json" "http://localhost:6030/api/admin/document/fulltextSearch?db=llmqadb&cl=llmqa&access_token=xxxx" -d '{"match":{"question":"风险"}}'
+curl -X POST -H "Content-Type: application/json" "http://localhost:6030/api/admin/document/fulltextSearch?access_token=xxxx&db=llmqadb&cl=llmqa&size=1&from=0" -d '{"match":{"question":"大模型"}}'
 ```

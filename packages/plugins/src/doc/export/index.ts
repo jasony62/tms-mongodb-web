@@ -50,7 +50,7 @@ class ExportPlugin extends PluginBase {
     fs.mkdirSync(filePath, { recursive: true })
 
     let { outType, outAmount, leafLevel } = ctrl.request.body.widget
-    let url
+    let relativeUrl, url
     if (outType === 'excel') {
       const XLSX = await import('xlsx')
 
@@ -92,19 +92,21 @@ class ExportPlugin extends PluginBase {
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws)
       XLSX.writeFile(wb, filePath)
-
-      url = tmsFs.pathWithPrefix(filePath)
-    } else if (outType === 'json') {
-      url = exportJSON(
-        ctrl.tmsContext,
-        domain.name,
-        docsOrCause,
-        `${fileName}.zip`,
-        {
-          dir: fileName,
-          outAmount,
-        }
+      // 文件地址
+      relativeUrl = tmsFs.pathWithPrefix(
+        path.join(fileName, `${fileName}.xlsx`)
       )
+    } else if (outType === 'json') {
+      exportJSON(ctrl.tmsContext, domain.name, docsOrCause, `${fileName}.zip`, {
+        dir: fileName,
+        outAmount,
+      })
+      // 文件地址
+      relativeUrl = tmsFs.pathWithPrefix(path.join(fileName, `${fileName}.zip`))
+    }
+    if (relativeUrl) {
+      let appContext = ctrl.tmsContext.AppContext.insSync()
+      url = `${appContext.router?.fsdomain?.prefix ?? ''}/${relativeUrl}`
     }
 
     return { code: 0, msg: { url } }
