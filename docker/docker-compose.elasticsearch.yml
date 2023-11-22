@@ -1,0 +1,23 @@
+services:
+  image: jasony62/elasticsearch:8.11.0
+  container_name: tmw-es01
+  environment:
+    # - node.name=es01
+    # - cluster.name=es-docker-cluster
+    # - discovery.seed_hosts=es02,es03
+    # - cluster.initial_master_nodes=es01,es02,es03
+    # override中必须要有这一行，否则无法启动
+    - discovery.type=single-node
+    - bootstrap.memory_lock=true
+    - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+  privileged: true
+  ulimits:
+    memlock:
+      soft: -1
+      hard: -1
+  volumes:
+    - ./data/elasticsearch/data01:/usr/share/elasticsearch/data
+  ports:
+    - 9200:9200
+  networks:
+    net:

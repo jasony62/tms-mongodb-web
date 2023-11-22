@@ -8,7 +8,7 @@ services:
     volumes:
       - ./data:/var/lib/postgresql/data
     networks:
-      - tms-mongodb
+      net:
 
   mongodb:
     image: ghcr.io/ferretdb/ferretdb
@@ -18,7 +18,7 @@ services:
     environment:
       - FERRETDB_POSTGRESQL_URL=postgres://postgres:5432/ferretdb
     networks:
-      - tms-mongodb
+      net:
 
 networks:
-  tms-mongodb:
+  net:

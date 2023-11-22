@@ -2,18 +2,18 @@ version: '3.7'
 services:
   mongodb:
     build: ../mongodb
-    image: tms-mongodb/mongo:latest
-    container_name: tms-mongodb-mongo
+    image: tmw/mongo:latest
+    container_name: tmw-mongo
     # environment:
     #   MONGO_INITDB_ROOT_USERNAME: root
     #   MONGO_INITDB_ROOT_PASSWORD: root
     networks:
-      - tms-mongodb
+      - net
 
   back:
     build: ./back
-    image: tms-mongodb/back:latest
-    container_name: tms-mongodb-back
+    image: tmw/back:latest
+    container_name: tmw-back
     # environment:
     #   默认
     #   - NODE_ENV=production
@@ -72,7 +72,7 @@ services:
     #    - TMW_PLUGIN_DOC_CREATE_ACCOUNT_DB=
     #    - TMW_PLUGIN_DOC_CREATE_ACCOUNT_CL=
     networks:
-      - tms-mongodb
+      - net
 
   ue_admin:
     build:
@@ -88,8 +88,8 @@ services:
         vue_app_front_doceditor_add: ''
         vue_app_front_doceditor_modify: ''
         vue_app_storetoken_way: session
-    image: tms-mongodb/ue-admin:latest
-    container_name: tms-mongodb-ue_admin
+    image: tmw/ue-admin:latest
+    container_name: tmw-ue_admin
     environment:
       # - NGINX_BACK_BASE_URL=http://back:3000
       - NGINX_WEB_BASE_URL=/admin
@@ -116,8 +116,8 @@ services:
       # # 隐藏版本号
       # - NGINX_SERVER_TOKENS=off
     networks:
-      - tms-mongodb
+      - net
 
 networks:
-  tms-mongodb:
+  net:
     driver: bridge

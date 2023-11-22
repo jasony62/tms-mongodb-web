@@ -100,8 +100,8 @@
             <el-option label="否" :value="false"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="文档保存到Elasticsearch">
-          <el-checkbox v-model="collection.custom.elasticsearch.enabled">保存</el-checkbox>
+        <el-form-item label="全文检索">
+          <el-checkbox v-model="collection.custom.elasticsearch.enabled">保存到Elasticsearch</el-checkbox>
         </el-form-item>
       </el-form>
       <div v-show="activeTab === 'convert'" class="h-96">
