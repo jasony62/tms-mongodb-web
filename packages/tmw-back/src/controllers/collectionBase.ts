@@ -6,6 +6,16 @@ import SchemaHelper from './schemaHelper.js'
 import { ModelCl } from 'tmw-kit'
 import { Base } from 'tmw-kit/dist/ctrl/index.js'
 
+/**
+ * 保存元数据的数据库
+ */
+const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
+/**
+ * 保存元数据的集合
+ */
+const META_ADMIN_CL = 'mongodb_object'
+const META_ADMIN_CL_BUCKET = 'bucket'
+
 const ObjectId = mongodb.ObjectId
 
 /**
@@ -156,12 +166,13 @@ class CollectionBase extends Base {
       (db.sysname === 'admin' && clName === 'system.version') ||
       (db.sysname === 'config' && clName === 'system.sessions') ||
       (db.sysname === 'local' && clName === 'startup_log') ||
-      (db.sysname === 'tms_admin' && clName === 'mongodb_object') ||
-      (db.sysname === 'tms_admin' && clName === 'bucket') ||
-      (db.sysname === 'tms_admin' && clName === 'bucket_invite_log') ||
-      (db.sysname === 'tms_admin' && clName === 'bucket_preset_object') ||
-      (db.sysname === 'tms_admin' && clName === 'tms_app_data_action_log') ||
-      (db.sysname === 'tms_admin' && clName === 'replica_map')
+      (db.sysname === META_ADMIN_DB && clName === META_ADMIN_CL) ||
+      (db.sysname === META_ADMIN_DB && clName === 'tag_object') ||
+      (db.sysname === META_ADMIN_DB && clName === META_ADMIN_CL_BUCKET) ||
+      (db.sysname === META_ADMIN_DB && clName === 'bucket_invite_log') ||
+      (db.sysname === META_ADMIN_DB && clName === 'bucket_preset_object') ||
+      (db.sysname === META_ADMIN_DB && clName === 'tms_app_data_action_log') ||
+      (db.sysname === META_ADMIN_DB && clName === 'replica_map')
     )
       return new ResultFault(`系统自带集合[${clName}]，不能删除`)
 

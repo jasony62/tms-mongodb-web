@@ -2,6 +2,10 @@ import Helper from 'tmw-kit/dist/ctrl/helper.js'
 import { ModelDb, ModelCl, ModelReplicaMap } from 'tmw-kit'
 
 /**
+ * 保存元数据的数据库
+ */
+const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
+/**
  * 集合复制控制器辅助类
  * @extends Helper
  */
@@ -9,7 +13,7 @@ class ReplicaHelper extends Helper {
   /**集合复制映射关系集合 */
   get clReplicaMap() {
     const client = this.ctrl.mongoClient
-    const cl = client.db('tms_admin').collection('replica_map')
+    const cl = client.db(META_ADMIN_DB).collection('replica_map')
 
     return cl
   }

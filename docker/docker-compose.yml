@@ -31,6 +31,8 @@ services:
     #   - TMS_APP_LOG4JS_LEVEL=debug
     #   默认鉴权方式
     #   - TMS_APP_AUTH_TYPE=jwt
+    #   保存元数据的数据库（可选）
+    #   - TMW_APP_META_ADMIN_DB=tms_admin
     #   mongodb 配置
     #   - TMS_MONGODB_HOST=mongodb
     #   - TMS_MONGODB_PORT=27017

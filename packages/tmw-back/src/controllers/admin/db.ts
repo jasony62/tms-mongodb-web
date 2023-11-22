@@ -3,6 +3,11 @@ import { ResultData, ResultFault } from 'tms-koa'
 import { ModelDb } from 'tmw-kit'
 import { Double } from 'mongodb'
 
+/**
+ * 保存元数据的数据库
+ */
+const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
+
 class Db extends DbBase {
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
@@ -61,7 +66,7 @@ class Db extends DbBase {
 
     let dbs = result.databases
     dbs = dbs.filter(
-      ({ name }) => !['admin', 'local', 'config', 'tms_admin'].includes(name)
+      ({ name }) => !['admin', 'local', 'config', META_ADMIN_DB].includes(name)
     )
 
     let uncontrolled = []
@@ -240,7 +245,7 @@ class Db extends DbBase {
   async remove() {
     const existDb = await this['dbHelper'].findRequestDb()
 
-    if (['admin', 'config', 'local', 'tms_admin'].includes(existDb.sysname))
+    if (['admin', 'config', 'local', META_ADMIN_DB].includes(existDb.sysname))
       return new ResultFault(`不能删除系统自带数据库[${existDb.sysname}]`)
 
     const cl = this['clMongoObj']
@@ -278,7 +283,7 @@ class Db extends DbBase {
   async discard() {
     const existDb = await this['dbHelper'].findRequestDb()
 
-    if (['admin', 'config', 'local', 'tms_admin'].includes(existDb.sysname))
+    if (['admin', 'config', 'local', META_ADMIN_DB].includes(existDb.sysname))
       return new ResultFault(`不能删除系统自带数据库[${existDb.sysname}]`)
 
     const cl = this['clMongoObj']

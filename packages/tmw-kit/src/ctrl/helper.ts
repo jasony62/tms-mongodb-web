@@ -1,5 +1,16 @@
 import { ModelCl } from '../model/index.js'
-
+/**
+ * 保存元数据的数据库
+ */
+const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
+/**
+ * 保存元数据的集合
+ */
+const META_ADMIN_CL = 'mongodb_object'
+/**
+ * 保存标签数据的集合
+ */
+const META_ADMIN_CL_TAG = 'tag_object'
 /**
  * 控制器辅助类
  */
@@ -18,7 +29,7 @@ class Helper {
    */
   get clMongoObj() {
     const client = this.ctrl.mongoClient
-    const cl = client.db('tms_admin').collection('mongodb_object')
+    const cl = client.db(META_ADMIN_DB).collection(META_ADMIN_CL)
 
     return cl
   }
@@ -27,7 +38,7 @@ class Helper {
    */
   get clTagObj() {
     const client = this.ctrl.mongoClient
-    const cl = client.db('tms_admin').collection('tag_object')
+    const cl = client.db(META_ADMIN_DB).collection(META_ADMIN_CL_TAG)
 
     return cl
   }
