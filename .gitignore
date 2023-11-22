@@ -20,3 +20,4 @@ dist
 pnpm-lock.yaml
 .pnpm-debug.log
 docker/standalone/back
+docker/data/
