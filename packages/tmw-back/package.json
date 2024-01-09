@@ -23,9 +23,9 @@
     "mongodb": "5.6.0",
     "nanoid": "^4.0.2",
     "redis": "^4.6.8",
-    "tms-koa": "^0.2.4",
-    "tms-koa-account": "^0.2.4",
-    "tms-koa-captcha": "^0.2.4",
+    "tms-koa": "^0.2.5",
+    "tms-koa-account": "^0.2.5",
+    "tms-koa-captcha": "^0.2.5",
     "tmw-data": "workspace:*",
     "tmw-kit": "workspace:*",
     "xlsx": "^0.18.5"

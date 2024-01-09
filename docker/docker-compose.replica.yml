@@ -2,7 +2,7 @@ version: '3.7'
 services:
   mongodb:
     build:
-      context: ./mongodb
+      context: ../mongodb
       dockerfile: Dockerfile-primary
     expose:
       - ${TMW_MONGODB_PORT:-37017}
@@ -26,7 +26,7 @@ services:
       ]
 
   mongodb-s:
-    build: ./mongodb
+    build: .,/mongodb
     image: tmw/mongo:latest
     container_name: tmw-mongo-s
     volumes:
@@ -48,7 +48,7 @@ services:
       ]
 
   mongodb-a:
-    build: ./mongodb
+    build: ../mongodb
     image: tmw/mongo:latest
     container_name: tmw-mongo-a
     volumes:

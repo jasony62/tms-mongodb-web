@@ -89,31 +89,31 @@ tms-mongo-web 是一个使用 JavaScript 搭建起来的轻量应用。
 | LICENSE                    | 许可文件                                                                                         |
 | README.md                  | 说明文档                                                                                         |
 
-_注：想用 docker 快速方便的启动应用，建议新建一个名为 docker-compose.mongoweb.yml 的配置文件，按照下述命令启动即可_
+_注：想用 docker 快速方便的启动应用，建议新建一个名为 docker-compose.override.yml 的配置文件，按照下述命令启动即可_
 
 ## 快速上手
 
-启动前，需要提前安装好 nodejs 环境、mongodb 服务，以及 cnpm 镜像客户端。
+启动前，需要提前安装好 nodejs 环境、mongodb 服务。
 
 目前应用支持两种启动方式，Docker 启动和本地启动。
 
 默认为 jwt 认证方式。
 
+在项目根目录下执行
+
 - Docker 启动
 
   1.  安装 docker、docker-compose
-  2.  新建 docker-compose.mongoweb.yml，内容参见此处[docker 自定义配置文件](./doc/docker自定义配置文件.md)。若仿照线上的登录方式，还需先本地启动 redis 服务，并在 docker-compose.mongoweb.yml 中配置对应的环境变量值再构建镜像。
-  3.  构建镜像，`docker-compose -f docker-compose.mongoweb.yml build`
-  4.  启动镜像，`docker-compose -f docker-compose.mongoweb.yml up`
-  5.  若需查看后端 API 文档，可用此命令启动。`docker-compose -f docker-compose.swagger.yml -f docker-compose.swagger.override.yml up swagger-ui swagger-editor`
+  2.  构建镜像，`docker-compose -f ./docker/docker-compose.yml build mongodb back ue_admin`
+  3.  新建 docker-compose.override.yml
+  4.  启动镜像，`docker compose -p tmw -f ./docker/docker-compose.yml -f ./docker/docker-compose.override.yml up -d mongodb back ue_admin`
 
 - 本地启动
   |模块 |配置 |启动命令 |
   |:---- |:-----|:----|
   |mongodb|启动 mongodb 服务 | |
   |back | 1、cnpm i，安装依赖包；2、添加.env 文件(禁止提交到 gitlab)，可根据本地服务的端口号覆盖应用中已设置的值来启动后端 |node server.js |
-  |ue_admin |1、cnpm i，安装依赖包；2、添加.env.development.local，可在本地自定义某些变量的值 |npm run serve| |
-  |ue_mongo |1、cnpm i，安装依赖包；2、添加.env.development.local，可在本地自定义某些变量的值 |npm run serve| |
+  |ue_admin |1、pnpm i，安装依赖包；2、添加.env.development.local，可在本地自定义某些变量的值 |npm run serve| |
 
 访问管理界面，默认用户名口令：root/root
 

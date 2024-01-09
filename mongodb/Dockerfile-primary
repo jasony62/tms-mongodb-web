@@ -1,12 +1,11 @@
-FROM mongo:latest
-
-RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+FROM mongodb/mongodb-community-server:7.0.4-ubuntu2204
 
 RUN apt-get update
 
 RUN apt-get -y install gettext-base
 
 # 复制集配置文件
+
 ADD ./init_replicate.js.template /home/init_replicate.js.template
 ADD ./init_replicate.sh /home/init_replicate.sh
 
