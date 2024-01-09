@@ -11,6 +11,10 @@ const debug = Debug('tmw-kit:model:document')
 const ObjectId = mongodb.ObjectId
 
 /**
+ * 保存元数据的数据库
+ */
+const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
+/**
  * 创建ES索引实例
  *
  * @param tmwCl
@@ -597,7 +601,7 @@ class Document extends Base {
   ) {
     if (!operate_type || !dbname || !clname) return false
     if (this.tmwConfig.TMW_APP_DATA_ACTION_LOG !== 'Y') return true
-    if (dbname === 'tms_admin' && clname === 'tms_app_data_action_log')
+    if (dbname === META_ADMIN_DB && clname === 'tms_app_data_action_log')
       return false
 
     // 避免改变原数据
@@ -610,7 +614,8 @@ class Document extends Base {
     }
 
     const client = this.mongoClient
-    const cl = client.db('tms_admin')
+    const cl = client.db(META_ADMIN_DB)
+
     // 插入日志表中
     let current = dayjs().format('YYYY-MM-DD HH:mm:ss')
     const cl2 = cl.collection('tms_app_data_action_log')

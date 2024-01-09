@@ -1,8 +1,8 @@
 version: '3.7'
 services:
   mongodb:
-    build: 
-      context: ./mongodb
+    build:
+      context: ../mongodb
       dockerfile: Dockerfile-primary
     expose:
       - ${TMW_MONGODB_PORT:-37017}
@@ -12,15 +12,23 @@ services:
       - TMW_REPLICA_SET_NAME=${TMW_REPLICA_SET_NAME:-tmw-rs}
       - TMW_MONGODB_PORT=${TMW_MONGODB_PORT:-37017}
       - TMW_MONGODB_S_PORT=${TMW_MONGODB_S_PORT:-37018}
-      - TMW_MONGODB_A_PORT=${TMW_MONGODB_A_PORT:-37019} 
+      - TMW_MONGODB_A_PORT=${TMW_MONGODB_A_PORT:-37019}
     logging:
       driver: 'none'
-    entrypoint: [ "mongod", "--bind_ip_all", "--port", "${TMW_MONGODB_PORT:-37017}", "--replSet", "${TMW_REPLICA_SET_NAME:-tmw-rs}" ]
+    entrypoint:
+      [
+        'mongod',
+        '--bind_ip_all',
+        '--port',
+        '${TMW_MONGODB_PORT:-37017}',
+        '--replSet',
+        '${TMW_REPLICA_SET_NAME:-tmw-rs}',
+      ]
 
   mongodb-s:
-    build: ./mongodb
-    image: tms-mongodb/mongo:latest
-    container_name: tms-mongodb-mongo-s
+    build: .,/mongodb
+    image: tmw/mongo:latest
+    container_name: tmw-mongo-s
     volumes:
       - ./mongodb-s/data:/data/db
     expose:
@@ -29,12 +37,20 @@ services:
       - ${TMW_MONGODB_S_PORT:-37018}:${TMW_MONGODB_S_PORT:-37018}
     logging:
       driver: 'none'
-    entrypoint: [ "mongod", "--bind_ip_all", "--port", "${TMW_MONGODB_S_PORT:-37018}", "--replSet", "${TMW_REPLICA_SET_NAME:-tmw-rs}" ]
+    entrypoint:
+      [
+        'mongod',
+        '--bind_ip_all',
+        '--port',
+        '${TMW_MONGODB_S_PORT:-37018}',
+        '--replSet',
+        '${TMW_REPLICA_SET_NAME:-tmw-rs}',
+      ]
 
   mongodb-a:
-    build: ./mongodb
-    image: tms-mongodb/mongo:latest
-    container_name: tms-mongodb-mongo-a
+    build: ../mongodb
+    image: tmw/mongo:latest
+    container_name: tmw-mongo-a
     volumes:
       - ./mongodb-a/data:/data/db
     expose:
@@ -43,4 +59,12 @@ services:
       - ${TMW_MONGODB_A_PORT:-37019}:${TMW_MONGODB_A_PORT:-37019}
     logging:
       driver: 'none'
-    entrypoint: [ "mongod", "--bind_ip_all", "--port", "${TMW_MONGODB_A_PORT:-37019}", "--replSet", "${TMW_REPLICA_SET_NAME:-tmw-rs}" ]
+    entrypoint:
+      [
+        'mongod',
+        '--bind_ip_all',
+        '--port',
+        '${TMW_MONGODB_A_PORT:-37019}',
+        '--replSet',
+        '${TMW_REPLICA_SET_NAME:-tmw-rs}',
+      ]

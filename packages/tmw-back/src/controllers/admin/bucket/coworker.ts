@@ -4,6 +4,11 @@ import { nanoid } from 'nanoid'
 import dayjs from 'dayjs'
 import mongodb from 'mongodb'
 
+/**
+ * 保存元数据的数据库
+ */
+const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
+
 const ObjectId = mongodb.ObjectId
 
 /** 空间用户管理控制器 */
@@ -55,7 +60,7 @@ class Coworker extends Base {
     if (!nickname) return new ResultFault('没有指定被邀请用户的昵称')
 
     /*检查nickname*/
-    const clBkt = this['mongoClient'].db('tms_admin').collection('bucket')
+    const clBkt = this['mongoClient'].db(META_ADMIN_DB).collection('bucket')
     const coworkerBucket = await clBkt.findOne({
       name: this.bucketObj.name,
       'coworkers.nickname': nickname,
@@ -68,7 +73,7 @@ class Coworker extends Base {
     if (coworkerBucket)
       return new ResultFault(`用户【${nickname}】已经是授权用户，不能重复邀请`)
     const clLog = this['mongoClient']
-      .db('tms_admin')
+      .db(META_ADMIN_DB)
       .collection('bucket_invite_log')
 
     const inviteLog = await clLog.findOne({
@@ -152,7 +157,7 @@ class Coworker extends Base {
     if (!bucket) return new ResultFault('没有指定邀请的空间')
 
     const clLog = this['mongoClient']
-      .db('tms_admin')
+      .db(META_ADMIN_DB)
       .collection('bucket_invite_log')
 
     const { code, nickname } = this['request'].body
@@ -179,7 +184,7 @@ class Coworker extends Base {
     let accept_time = current.format('YYYY-MM-DD HH:mm:ss')
     const invitee = this['client'].id // 被邀请人
     /*加入bucket授权列表*/
-    const clBucket = this['mongoClient'].db('tms_admin').collection('bucket')
+    const clBucket = this['mongoClient'].db(META_ADMIN_DB).collection('bucket')
     const coworkerQuery = {
       name: bucket,
       'coworkers.id': invitee,
@@ -241,7 +246,7 @@ class Coworker extends Base {
 
     const { coworker } = this['request'].query
 
-    const clBkt = this['mongoClient'].db('tms_admin').collection('bucket')
+    const clBkt = this['mongoClient'].db(META_ADMIN_DB).collection('bucket')
     const coworkerBucket = await clBkt.findOne({
       name: this.bucketObj.name,
       'coworkers.id': { $in: [coworker, parseInt(coworker)] },

@@ -2,6 +2,11 @@ import { Ctrl, ResultData, ResultFault } from 'tms-koa'
 import mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
+/**
+ * 保存元数据的数据库
+ */
+const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
+
 class Invite extends Ctrl {
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
@@ -14,7 +19,7 @@ class Invite extends Ctrl {
     if (!bucket) return new ResultFault('没有指定邀请的空间')
 
     const clLog = this['mongoClient']
-      .db('tms_admin')
+      .db(META_ADMIN_DB)
       .collection('bucket_invite_log')
 
     const { code, nickname } = this['request'].body
@@ -38,7 +43,7 @@ class Invite extends Ctrl {
     const invitee = this['client'].id // 被邀请人
 
     /*加入bucket授权列表*/
-    const clBucket = this['mongoClient'].db('tms_admin').collection('bucket')
+    const clBucket = this['mongoClient'].db(META_ADMIN_DB).collection('bucket')
     const coworkerQuery = {
       name: bucket,
       'coworkers.id': invitee,

@@ -86,29 +86,29 @@ docker build -f ./docker/Dockerfile.dev -t jasony62/tmw-aio_dev .
 # 运行镜像
 
 ```bash
-docker run -it --rm --name tmw-test -p 3070:3000 -p 7077:80 tms/tmw-aio
+docker run -it --rm --name tmw-test -p 3070:3000 -p 7077:80 jasony62/tmw-aio
 ```
 
 指定后端服务配置信息，前端 nginx 代理访问后端 API。
 
 ```shell
-docker run -it --rm --name tmw-test -p 7077:80 -v $PWD/docker/allinone/back/config:/usr/app/config tms/tmw-aio
+docker run -it --rm --name tmw-test -p 7077:80 -v $PWD/docker/back/config:/usr/app/config jasony62/tmw-aio
 ```
 
 指定后端服务配置信息，前端通过设置`settings.json`直接访问后端 API。
 
 ```shell
-docker run -it --rm --name tmw-test -p 3070:3000 -p 7077:80 -v $PWD/docker/allinone/back/config:/usr/app/config -v $PWD/docker/allinone/settings.sample.json:/usr/share/nginx/html/admin/settings.json tms/tmw-aio
+docker run -it --rm --name tmw-test -p 3070:3000 -p 7077:80 -v $PWD/docker/back/config:/usr/app/config -v $PWD/docker/ue_adming/settings.sample.json:/usr/share/nginx/html/admin/settings.json jasony62/tmw-aio
 ```
 
 通过指定环境变量文件，生成与特定环境匹配的镜像。
 
 ```shell
-docker run -it --rm --name tmw-test -p 3077:3000 -p 7077:80 -v $PWD/docker/allinone/back/config:/usr/app/config --env-file ./docker/allinone/sample.env tms/tmw-aio
+docker run -it --rm --name tmw-test -p 3077:3000 -p 7077:80 -v $PWD/docker/back/config:/usr/app/config --env-file ./docker/sample.env jasony62/tmw-aio
 ```
 
 通过指定环境变量的值，生成与特定环境匹配的镜像。
 
 ```shell
-docker run -it --rm --name tmw-test -p 3077:3000 -p 7077:80 -e NGINX_BACK_BASE_URL=http://localhost:3000 tms/tmw-aio
+docker run -it --rm --name tmw-test -p 3077:3000 -p 7077:80 -e NGINX_BACK_BASE_URL=http://localhost:3000 jasony62/tmw-aio
 ```

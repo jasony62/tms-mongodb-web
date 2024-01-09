@@ -1,5 +1,3 @@
-# 开箱即用的tms-mongodb-web镜像
-
 # 服务预编译
 FROM node:18-alpine AS builder
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
@@ -7,16 +5,8 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 # 修改npm源
 RUN npm config set registry https://registry.npmmirror.com
 
-# RUN npm config set sharp_binary_host https://npmmirror.com/mirrors/sharp
-# RUN npm config set sharp_libvips_binary_host https://npmmirror.com/mirrors/sharp-libvips
-
 # 安装基础包
-RUN npm install --location=global pnpm typescript better-sqlite3
-
-# 安装sharp包需要的工具
-RUN apk update && apk upgrade && apk add python3 make gcc g++
-# 解决sharp依赖的libvips包下载慢的问题
-COPY ./docker/back/npmlibs/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br /root/.npm/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br
+RUN npm install --location=global pnpm typescript
 
 # 复制源代码
 ## data
@@ -50,14 +40,6 @@ RUN sed -i 's/"tmw-kit": "workspace:\*"/"tmw-kit": "file:\.\.\/kit"/g' /usr/src/
 ### 不单独安装better-sqlite3会失败
 RUN cd /usr/src/tmw/back && pnpm i --strict-peer-dependencies=false
 
-## ue_admin安装依赖包
-COPY ./packages/ue_admin/package.json /usr/src/tmw/ue_admin/package.json
-RUN cd /usr/src/tmw/ue_admin && pnpm i --strict-peer-dependencies=false
-
-## ue_plugin安装依赖包
-COPY ./packages/ue_plugin/package.json /usr/src/tmw/ue_plugin/package.json
-RUN cd /usr/src/tmw/ue_plugin && pnpm i --strict-peer-dependencies=false
-
 # 编译源代码（先安装包再编译是为了提高效率）
 ## back
 COPY ./packages/tmw-back /usr/src/tmw/back
@@ -71,35 +53,12 @@ RUN cd /usr/src/tmw/back && pnpm i --production --strict-peer-dependencies=false
 # RUN cd /usr/src/tmw/back/node_modules/tmw-data && pnpm i --production --strict-peer-dependencies=false
 # RUN cd /usr/src/tmw/back/node_modules/tmw-kit && pnpm i --production --strict-peer-dependencies=false
 
-## ue_admin
-COPY ./packages/ue_admin /usr/src/tmw/ue_admin
-ARG vite_admin_base_url
-RUN echo VITE_BASE_URL=$vite_admin_base_url >> /usr/src/tmw/ue_admin/.env
-RUN cd /usr/src/tmw/ue_admin && pnpm build
-### 建立空的前端配置文件
-RUN mkdir -p /usr/src/tfd/ue/dist/${vite_base_url:-admin} && echo '{}' >> /usr/src/tfd/ue/dist/${vite_base_url:-admin}/settings.json
-
-## ue_plugin
-COPY ./packages/ue_plugin /usr/src/tmw/ue_plugin
-ARG vite_plugin_base_url
-RUN echo VITE_BASE_URL=$vite_plugin_base_url >> /usr/src/tmw/ue_plugin/.env
-RUN cd /usr/src/tmw/ue_plugin && pnpm build
-
 # 生成运行镜像
 FROM node:18-alpine
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
   && apk update && apk add bash tzdata \
   && cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 RUN apk add nginx gettext
-
-# ue_plugin
-COPY --from=builder /usr/src/tmw/ue_plugin/dist /usr/share/nginx/html
-
-# ue_admin
-COPY --from=builder /usr/src/tmw/ue_admin/dist /usr/share/nginx/html
-COPY ./docker/ue_admin/nginx.conf.template /etc/nginx/nginx.conf.template
-COPY ./docker/ue_admin/start_nginx.sh /usr/local/bin/start_nginx.sh
-RUN chmod +x /usr/local/bin/start_nginx.sh
 
 # back
 COPY --from=builder /usr/src/tmw/back/node_modules /usr/app/tmw/node_modules
@@ -109,21 +68,11 @@ RUN sed -i 's/"tmw-kit": "file:\.\.\/kit"/"tmw-kit": "\*"/g' /usr/app/tmw/packag
 COPY ./docker/back/start_back.sh /usr/app/tmw/start_back.sh
 RUN chmod +x /usr/app/tmw/start_back.sh
 
-# plugins
-COPY --from=builder /usr/src/tmw/plugins/dist /usr/app/tmw/plugins/dist
-COPY --from=builder /usr/src/tmw/plugins/node_modules /usr/app/tmw/plugins/node_modules
-
-WORKDIR /usr/app/tmw
-
-# 启动服务
-COPY ./docker/start_all.sh /usr/local/bin/start_all.sh 
-RUN chmod +x /usr/local/bin/start_all.sh 
-
 # 配置文件
 COPY ./docker/back/config /usr/app/tmw/config
 
-# 可以暴露的端口
-EXPOSE 80
+WORKDIR /usr/app/tmw
+
 EXPOSE 3000
 
-ENTRYPOINT ["start_all.sh"]
+ENTRYPOINT ["/usr/app/tmw/start_back.sh"]

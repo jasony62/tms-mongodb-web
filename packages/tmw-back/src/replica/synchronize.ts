@@ -4,6 +4,12 @@
 import * as log4js from 'log4js'
 import * as path from 'path'
 import * as fs from 'fs'
+
+/**
+ * 保存元数据的数据库
+ */
+const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
+
 let cnfpath = path.resolve(process.cwd() + '/config/log.js')
 if (fs.existsSync(cnfpath)) {
   const { default: log4jsConfig } = await import(
@@ -38,9 +44,11 @@ function getMongoClient() {
 /**同步所有数据 */
 async function syncAll() {
   const mongoClient = await getMongoClient()
-  const rmCl = mongoClient.db('tms_admin').collection('replica_map')
+  const rmCl = mongoClient.db(META_ADMIN_DB).collection('replica_map')
   const rms = await rmCl.find().toArray()
-  logger.info(`集合[tms_admin.replica_map]中包含[${rms.length}]条集合复制关系`)
+  logger.info(
+    `集合[${META_ADMIN_DB}.replica_map]中包含[${rms.length}]条集合复制关系`
+  )
   if (rms.length === 0) return
 
   const modelRM = new ModelReplicaMap(mongoClient)

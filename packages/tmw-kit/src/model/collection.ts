@@ -12,6 +12,12 @@ const debug = Debug('tmw-kit:model:collection')
 const ObjectId = mongodb.ObjectId
 
 const CL_NAME_RE = '^[a-zA-Z]+[0-9a-zA-Z_-]{0,63}$'
+
+/**
+ * 保存元数据的数据库
+ */
+const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
+
 class Collection extends Base {
   /**
    * 新建集合
@@ -185,7 +191,7 @@ class Collection extends Base {
    */
   async getSchemaByCollection(tmwCl) {
     const client = this.mongoClient
-    const cl = client.db('tms_admin').collection('mongodb_object')
+    const cl = client.db(META_ADMIN_DB).collection('mongodb_object')
     // 获取表列
     return cl
       .findOne({
@@ -215,7 +221,7 @@ class Collection extends Base {
   //
   static async getCollection(existDb, clName) {
     const client = await this['mongoClient']
-    const cl = client.db('tms_admin').collection('mongodb_object')
+    const cl = client.db(META_ADMIN_DB).collection('mongodb_object')
     //
     return cl
       .findOne({
@@ -272,7 +278,7 @@ class Collection extends Base {
     if (this.bucket) query.bucket = this.bucket.name
 
     const client = this.mongoClient
-    const clMongoObj = client.db('tms_admin').collection('mongodb_object')
+    const clMongoObj = client.db(META_ADMIN_DB).collection('mongodb_object')
 
     const cl = await clMongoObj.findOne(query)
 

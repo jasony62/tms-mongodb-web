@@ -1,6 +1,11 @@
 import { Ctrl, ResultFault, ResultObjectNotFound } from 'tms-koa'
 import { loadTmwConfig } from '../util/index.js'
 
+/**
+ * 保存元数据的数据库
+ */
+const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
+
 const TMW_CONFIG = await loadTmwConfig()
 
 function allowAccessBucket(bucket, clientId) {
@@ -37,7 +42,7 @@ class Base extends Ctrl {
       }
       // 检查bucket是否存在
       const client = this.mongoClient
-      const clBucket = client.db('tms_admin').collection('bucket')
+      const clBucket = client.db(META_ADMIN_DB).collection('bucket')
       const bucketObj = await clBucket.findOne({
         name: bucketName,
       })

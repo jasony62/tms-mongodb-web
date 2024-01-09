@@ -1,5 +1,3 @@
-FROM mongo:latest
+FROM mongodb/mongodb-community-server:7.0.4-ubuntu2204
 
-RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-
-CMD ["mongod" ,"--auth"]
+# CMD ["mongod" ,"--auth"]

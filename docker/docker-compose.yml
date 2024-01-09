@@ -2,18 +2,22 @@ version: '3.7'
 services:
   mongodb:
     build: ../mongodb
-    image: tms-mongodb/mongo:latest
-    container_name: tms-mongodb-mongo
+    image: tmw/mongo:7.0.4
+    container_name: tmw-mongo
     # environment:
-    #   MONGO_INITDB_ROOT_USERNAME: root
-    #   MONGO_INITDB_ROOT_PASSWORD: root
+    #   MONGODB_INITDB_ROOT_USERNAME: root
+    #   MONGODB_INITDB_ROOT_PASSWORD: root
     networks:
-      - tms-mongodb
-
+      - net
+  # 后端服务
   back:
-    build: ./back
-    image: tms-mongodb/back:latest
-    container_name: tms-mongodb-back
+    build:
+      context: ../
+      dockerfile: packages/tmw-back/Dockerfile
+    image: tmw/back:latest
+    container_name: tmw-back
+    # ports:
+    #   - '3030:3000'
     # environment:
     #   默认
     #   - NODE_ENV=production
@@ -31,11 +35,13 @@ services:
     #   - TMS_APP_LOG4JS_LEVEL=debug
     #   默认鉴权方式
     #   - TMS_APP_AUTH_TYPE=jwt
+    #   保存元数据的数据库（可选）
+    #   - TMW_APP_META_ADMIN_DB=tms_admin
     #   mongodb 配置
-    #   - TMS_MONGODB_HOST=mongodb
-    #   - TMS_MONGODB_PORT=27017
-    #   - TMS_MONGODB_USER=root
-    #   - TMS_MONGODB_PASSWORD=root
+    #   - TMW_MONGODB_HOST=mongodb
+    #   - TMW_MONGODB_PORT=27017
+    #   - TMW_MONGODB_USER=root
+    #   - TMW_MONGODB_PASSWORD=root
     #   redis 配置
     #   - TMS_REDIS_DISABLED=yes
     #   - TMS_REDIS_PREFIX=dev-op
@@ -72,11 +78,12 @@ services:
     #    - TMW_PLUGIN_DOC_CREATE_ACCOUNT_DB=
     #    - TMW_PLUGIN_DOC_CREATE_ACCOUNT_CL=
     networks:
-      - tms-mongodb
+      - net
 
   ue_admin:
     build:
-      context: ./ue_admin
+      context: ../
+      dockerfile: packages/ue_admin/Dockerfile
       args:
         vue_app_login_key_username: username
         vue_app_login_key_password: password
@@ -88,8 +95,10 @@ services:
         vue_app_front_doceditor_add: ''
         vue_app_front_doceditor_modify: ''
         vue_app_storetoken_way: session
-    image: tms-mongodb/ue-admin:latest
-    container_name: tms-mongodb-ue_admin
+    image: tmw/ue-admin:latest
+    container_name: tmw-ue_admin
+    # ports:
+    #   - '8080:80'
     environment:
       # - NGINX_BACK_BASE_URL=http://back:3000
       - NGINX_WEB_BASE_URL=/admin
@@ -116,8 +125,8 @@ services:
       # # 隐藏版本号
       # - NGINX_SERVER_TOKENS=off
     networks:
-      - tms-mongodb
+      - net
 
 networks:
-  tms-mongodb:
+  net:
     driver: bridge

@@ -12,6 +12,11 @@ const trace = Debug('trace:tmw:db_init')
 const TMW_CREATE_TIME = dayjs().format('YYYY-MM-DD HH:mm:ss')
 
 /**
+ * 保存元数据的数据库
+ */
+const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
+
+/**
  * 数据库对象模板
  */
 const DatabaseTemplate: any = {
@@ -432,8 +437,8 @@ async function execute(filePath: string, mongoClient, options: any) {
     return
   }
 
-  const cl = mongoClient.db('tms_admin').collection('mongodb_object')
-  const clTag = mongoClient.db('tms_admin').collection('tag_object')
+  const cl = mongoClient.db(META_ADMIN_DB).collection('mongodb_object')
+  const clTag = mongoClient.db(META_ADMIN_DB).collection('tag_object')
 
   const init = new Handler(mongoClient, cl, clTag, options)
   for (const data of initData) {

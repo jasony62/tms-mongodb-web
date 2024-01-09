@@ -24,6 +24,15 @@ const ConfigFile =
   process.env.TMW_PLUGIN_CL_IMPORT_CONFIG_NAME || './plugin/cl/import'
 
 /**
+ * 保存元数据的数据库
+ */
+const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
+/**
+ * 保存元数据的集合
+ */
+const META_ADMIN_CL = 'mongodb_object'
+
+/**
  * 导入集合
  */
 class ImportPlugin extends PluginBase {
@@ -163,7 +172,7 @@ class ImportPlugin extends PluginBase {
    */
   private clMongoObj(ctrl) {
     let { mongoClient } = ctrl
-    const cl = mongoClient.db('tms_admin').collection('mongodb_object')
+    const cl = mongoClient.db(META_ADMIN_DB).collection(META_ADMIN_CL)
 
     return cl
   }

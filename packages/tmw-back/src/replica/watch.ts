@@ -1,6 +1,12 @@
 import * as log4js from 'log4js'
 import * as path from 'path'
 import * as fs from 'fs'
+
+/**
+ * 保存元数据的数据库
+ */
+const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
+
 let cnfpath = path.resolve(process.cwd() + '/config/log.js')
 if (fs.existsSync(cnfpath)) {
   const { default: log4jsConfig } = await import(
@@ -79,7 +85,7 @@ let ReplicaMapWatcher // 复制关系表监听器
  */
 async function watchReplicaMap(mongoClient) {
   logger.info('开始监听[replica_map]')
-  const cl = mongoClient.db('tms_admin').collection('replica_map')
+  const cl = mongoClient.db(META_ADMIN_DB).collection('replica_map')
   ReplicaMapWatcher = cl.watch([], { fullDocument: 'updateLookup' })
   ReplicaMapWatcher.on('change', async (csEvent) => {
     const { operationType } = csEvent
@@ -112,7 +118,7 @@ async function watchReplicaMap(mongoClient) {
  * 启动replica_map集合中已有的复制监听器
  */
 async function startReplicaMap(mongoClient) {
-  const cl = mongoClient.db('tms_admin').collection('replica_map')
+  const cl = mongoClient.db(META_ADMIN_DB).collection('replica_map')
   const replicas = await cl.find().toArray()
   replicas.forEach((replica) => {
     let strId = replica._id.toHexString()

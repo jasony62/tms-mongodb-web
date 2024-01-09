@@ -1,6 +1,11 @@
 import { ModelCl } from 'tmw-kit'
 
 /**
+ * 保存元数据的数据库
+ */
+const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
+
+/**
  * 控制器辅助类
  */
 class Helper {
@@ -12,7 +17,7 @@ class Helper {
    */
   get clPreset() {
     const client = this['ctrl'].mongoClient
-    const cl = client.db('tms_admin').collection('bucket_preset_object')
+    const cl = client.db(META_ADMIN_DB).collection('bucket_preset_object')
 
     return cl
   }

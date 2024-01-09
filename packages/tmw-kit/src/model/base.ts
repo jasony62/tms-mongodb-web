@@ -18,6 +18,14 @@ type FilterLike = {
 type FilterSimple = {
   [column: string]: any
 }
+/**
+ * 保存元数据的数据库
+ */
+const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
+/**
+ * 保存元数据的集合
+ */
+const META_ADMIN_CL = 'mongodb_object'
 
 const TMW_CONFIG = await loadTmwConfig()
 
@@ -244,7 +252,7 @@ class Base {
    */
   get clMongoObj() {
     const client = this.mongoClient
-    const cl = client.db('tms_admin').collection('mongodb_object')
+    const cl = client.db(META_ADMIN_DB).collection(META_ADMIN_CL)
 
     return cl
   }
