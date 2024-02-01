@@ -1,4 +1,4 @@
-import mongodb from 'mongodb'
+import { ObjectId } from 'mongodb'
 import { ResultData, ResultFault } from 'tms-koa'
 import CollectionHelper from './collectionHelper.js'
 import ReplicaHelper from './replicaHelper.js'
@@ -15,8 +15,6 @@ const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
  */
 const META_ADMIN_CL = 'mongodb_object'
 const META_ADMIN_CL_BUCKET = 'bucket'
-
-const ObjectId = mongodb.ObjectId
 
 /**
  * 集合控制器基类
@@ -37,7 +35,7 @@ class CollectionBase extends Base {
   /**
    * 执行每个方法前执行
    */
-  async tmsBeforeEach() {
+  async tmsBeforeEach(): Promise<true | ResultFault> {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
 

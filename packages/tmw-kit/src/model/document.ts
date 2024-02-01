@@ -86,7 +86,7 @@ class Document extends Base {
    *
    * @returns {boolean} 是否更新成功
    */
-  async remove(existCl, id) {
+  async remove(existCl, id): Promise<boolean> {
     let mongoClient = this.mongoClient
     let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
     const modelCl = new ModelColl(this.mongoClient, this.bucket, this.client)

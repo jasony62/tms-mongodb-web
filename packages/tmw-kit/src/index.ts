@@ -7,9 +7,10 @@ export * from './plugin/index.js'
 
 export { createDocWebhook } from './webhook/document.js'
 
-import { Base, Helper } from './ctrl/index.js'
+import CtrlBase from './ctrl/base.js'
+import CtrlHelper from './ctrl/helper.js'
 
-export { Base as CtrlBase, Helper as CtrlHelper }
+export { CtrlBase, CtrlHelper }
 
 export * from './schema.js'
 export * from './crypto.js'

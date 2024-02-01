@@ -1,6 +1,6 @@
 <template>
-  <el-dialog ref="el" v-model="dialogVisible" :destroy-on-close="destroyOnClose"
-    :close-on-click-modal="closeOnClickModal" :before-close="onBeforeClose">
+  <el-dialog ref="el" v-model="dialogVisible" :destroy-on-close="destroyOnClose" :close-on-click-modal="closeOnClickModal"
+    :before-close="onBeforeClose">
     <el-form ref="form" :model="bucket" label-position="top">
       <el-form-item label="ID（英文字符）">
         <el-input v-model="bucket.name"></el-input>
@@ -19,7 +19,7 @@
   </el-dialog>
 </template>
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive } from 'vue'
 import apiBkt from '@/apis/bucket'
 import { ElMessage } from 'element-plus'
 

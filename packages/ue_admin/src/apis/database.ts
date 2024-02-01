@@ -1,9 +1,6 @@
 import { TmsAxios } from 'tms-vue3'
 import { BACK_API_URL } from '@/global'
-
-type ApiRst = {
-  data: { result: any }
-}
+import { ApiRst } from './types'
 
 type DbResult = {
   _id: string

@@ -16,7 +16,7 @@ class DbBase extends Base {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
     this.dbHelper = new DbHelper(this)
   }
-  async tmsBeforeEach() {
+  async tmsBeforeEach(): Promise<true | ResultFault> {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
 

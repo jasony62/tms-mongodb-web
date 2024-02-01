@@ -1,4 +1,4 @@
-import { ResultData } from 'tms-koa'
+import { ResultData, ResultFault } from 'tms-koa'
 import { Base } from 'tmw-kit/dist/ctrl/index.js'
 import TagHelper from './tagHelper.js'
 
@@ -17,7 +17,7 @@ class TagBase extends Base {
     this.tagHelper = new TagHelper(this)
   }
 
-  async tmsBeforeEach() {
+  async tmsBeforeEach(): Promise<true | ResultFault> {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
 

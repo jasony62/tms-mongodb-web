@@ -14,6 +14,7 @@ export default defineStore('mongodb', {
       documentSchemas: [] as any[],
       dbSchemas: [] as any[],
       collectionSchemas: [] as any[],
+      collectionDirs: [] as any[],
       collections: [] as any[],
       tags: [] as any[],
       documents: [] as any[],
@@ -124,6 +125,39 @@ export default defineStore('mongodb', {
           this.dbSchemas.splice(this.dbSchemas.indexOf(schema), 1)
         }
         return { schema }
+      })
+    },
+    listCollectionDir(payload: { bucket: string | undefined; db: string }) {
+      const { bucket, db } = payload
+      return apis.cldir.list(bucket, db).then((cldirs: unknown[]) => {
+        const topClDirs: any[] = []
+        const cache = new Map<string, any>()
+        cldirs.forEach((cldir: any) => {
+          if (cldir.name === cldir.full_name) {
+            topClDirs.push(cldir)
+          } else {
+            const pFullName = cldir.full_name.replace(`/${cldir.name}`, '')
+            const pClDir = cache.get(pFullName)
+            if (pClDir) {
+              pClDir.children ??= []
+              pClDir.children.push(cldir)
+            } else {
+              topClDirs.push(cldir)
+            }
+          }
+          cache.set(cldir.full_name, cldir)
+        })
+        return topClDirs
+      })
+    },
+    removeCollectionDir(payload: {
+      bucket: string | undefined
+      db: string
+      clDir: { _id: string }
+    }) {
+      const { bucket, db, clDir } = payload
+      return apis.cldir.remove(bucket, db, clDir._id).then(() => {
+        return { clDir }
       })
     },
     listCollection(payload: { bucket: any; db: any; size: any; keyword: any }) {

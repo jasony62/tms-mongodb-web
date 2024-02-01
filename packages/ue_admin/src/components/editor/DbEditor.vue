@@ -25,7 +25,7 @@
   </el-dialog>
 </template>
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { reactive, ref } from 'vue'
 import { ElMessageBox } from 'element-plus'
 import apiDb from '@/apis/database'
 

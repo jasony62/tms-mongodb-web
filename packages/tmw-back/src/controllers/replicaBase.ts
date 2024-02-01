@@ -18,7 +18,7 @@ class ReplicaBase extends Base {
     this['modelReplicaMap'] = new ModelReplicaMap(this['mongoClient'])
   }
   /**系统调用控制器方法前执行 */
-  async tmsBeforeEach() {
+  async tmsBeforeEach(): Promise<true | ResultFault> {
     // 检查是否开通了集合复制功能
     // 检查bucket
     let result = await super.tmsBeforeEach()
