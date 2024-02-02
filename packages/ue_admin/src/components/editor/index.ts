@@ -31,6 +31,7 @@ type CollectionEditorOptions = {
   mode: any
   bucketName?: any
   dbName: string
+  dirFullName?: String
   collection?: any
   onBeforeClose: Function
 }
@@ -128,11 +129,13 @@ export function openCollectionDirEditor(options: CollectionDirEditorOptions) {
 export function openCollectionEditor(options: CollectionEditorOptions) {
   const root = document.createElement('div')
   document.body.appendChild(root)
-  const { mode, bucketName, dbName, collection, onBeforeClose } = options
+  const { mode, bucketName, dbName, dirFullName, collection, onBeforeClose } =
+    options
   let app = createApp(CollectionEditor, {
     mode,
     bucketName,
     dbName,
+    dirFullName,
     collection,
     onClose: (newCl: any) => {
       if (newCl && onBeforeClose) onBeforeClose(newCl)

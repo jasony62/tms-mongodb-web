@@ -8,6 +8,9 @@
         <el-tab-pane label="文档编辑转换规则" name="convert"></el-tab-pane>
       </el-tabs>
       <el-form :model="collection" label-position="top" v-show="activeTab === 'info'" :rules="rules">
+        <el-form-item label="所属集合分类" prop="title" v-if="collection.dir_full_name">
+          <div>{{ collection.dir_full_name }}</div>
+        </el-form-item>
         <el-form-item label="集合名称（系统）" prop="sysname">
           <el-input v-model="collection.sysname" :disabled="mode === 'update'"></el-input>
         </el-form-item>
@@ -134,6 +137,7 @@ const props = defineProps({
   dialogVisible: { default: true },
   bucketName: { type: String, default: '' },
   dbName: { type: String, default: '' },
+  dirFullName: { type: String, default: '' },
   collection: {
     type: Object,
     default: () => {
@@ -145,6 +149,7 @@ const props = defineProps({
         schema_tags: [],
         schema_default_tags: [],
         tags: [],
+        dir_full_name: '',
         usage: 0,
         adminOnly: false,
         custom: {
@@ -195,6 +200,7 @@ props.collection.operateRules ??= {
   },
 }
 
+
 const dialogVisible = ref(props.dialogVisible)
 const activeTab = ref('info')
 const schemas = reactive([
@@ -219,9 +225,12 @@ const criteria = reactive({
 })
 
 const { mode, bucketName, dbName, onClose } = props
-
-// 编辑的集合对象
 const collection = reactive(props.collection)
+
+if (mode === 'create' && props.dirFullName) {
+  collection.dir_full_name = props.dirFullName
+}
+// 编辑的集合对象
 // 集合的原名称，用于更新操作
 const clBeforeName = props.collection.name
 // 文档字段映射规则
@@ -256,19 +265,14 @@ onMounted(() => {
   apiTag.list(props.bucketName).then((tags2: any[]) => {
     tags2.forEach((t) => tags.value.push(t))
   })
-
-  let unrepeat = props.collection?.operateRules?.unrepeat
-
+  // 去重规则
+  const unrepeat = props.collection?.operateRules?.unrepeat
   if (unrepeat) {
     const dbKey = unrepeat.database.name ? unrepeat.database.name : null
-
     listDbByKw(dbKey)
-
     if (dbKey) {
       const clKey = unrepeat.collection.name ? unrepeat.collection.name : null
-
       listClByKw(clKey)
-
       if (clKey) {
         listProperties()
       }

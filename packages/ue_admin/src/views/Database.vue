@@ -9,8 +9,21 @@
     </div>
     <!--content-->
     <div class="flex flex-row gap-2">
-      <!--left-->
-      <div class="flex flex-col gap-4" :class="COMPACT ? 'w-full' : 'w-4/5'">
+      <!--right-->
+      <div class="flex flex-col items-start space-y-3 w-1/6" v-if="!COMPACT && data.clDirs?.length">
+        <div v-if="currentClDir">
+          <el-button type="primary" @click="removeCurrentClDir">{{ currentClDir.full_name }}<el-icon
+              class="el-icon--right">
+              <Close />
+            </el-icon></el-button>
+        </div>
+        <div>
+          <el-tree ref="treeClDirsRef" :data="data.clDirs" node-key="_id" :props="ClDirTreeProps"
+            @current-change="handleClDirCurrentChange" />
+        </div>
+      </div>
+      <!--left or middle-->
+      <div class="flex flex-col gap-4" :class="MiddleWidthStyleClass">
         <el-table :data="store.collections" row-key="_id" stripe @selection-change="changeClSelect">
           <el-table-column type="selection" width="48"></el-table-column>
           <el-table-column label="集合名称">
@@ -70,7 +83,8 @@ import { Batch } from 'tms-vue3'
 
 import facStore from '@/store'
 import { openCollectionEditor, } from '@/components/editor'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElTree } from 'element-plus'
+import { Close } from '@element-plus/icons-vue'
 import { COMPACT_MODE, LABEL, BACK_API_URL, FS_BASE_URL, getLocalToken, PAGINATION_COL_SIZE } from '@/global'
 import apiPlugin from '@/apis/plugin'
 import apiSchema from '@/apis/schema'
@@ -91,14 +105,38 @@ const totalByAll = computed(() => data.clBatch.total)
 const totalByFilter = computed(() => 0)
 const totalByChecked = computed(() => data.multipleCl.length)
 
+const MiddleWidthStyleClass = computed(() => {
+  return COMPACT.value ? 'full' : data.clDirs?.length ? 'w-4/6' : 'w-4/5'
+})
+
 const plugins = ref([])
 
 const data = reactive({
   clBatch: new Batch(() => { }),
-  multipleCl: [] as any[]
+  multipleCl: [] as any[],
+  clDirs: [] as any[]
 })
+/**
+ * 集合分类树上选择节点
+ */
+const treeClDirsRef = ref<InstanceType<typeof ElTree>>()
+const ClDirTreeProps = {
+  children: 'children',
+  label: 'title',
+}
+const currentClDir = ref()
+const handleClDirCurrentChange = (data: any) => {
+  const clicked = toRaw(data)
+  currentClDir.value = currentClDir.value === clicked ? null : clicked
+  listClByKw()
+}
+const removeCurrentClDir = () => {
+  treeClDirsRef.value?.setCurrentKey(undefined)
+  currentClDir.value = null
+}
 
 onMounted(async () => {
+  listClDir()
   listClByKw()
   plugins.value = await apiPlugin.getCollectionPlugins(
     props.bucketName, props.dbName
@@ -116,10 +154,12 @@ const openCollection = (dbName: string, row: any) => {
   router.push({ name: 'collection', params: { dbName, clName: row.name } })
 }
 const createCollection = (() => {
+  const dirFullName = currentClDir.value ? currentClDir.value.full_name : ''
   openCollectionEditor({
     mode: 'create',
     bucketName: props.bucketName,
     dbName: props.dbName,
+    dirFullName,
     onBeforeClose: (newCollection?: any) => {
       if (newCollection) {
         store.appendCollection({ collection: newCollection })
@@ -330,8 +370,15 @@ const listClByKw = ((keyword?: string) => {
   data.clBatch = store.listCollection({
     bucket: props.bucketName,
     db: props.dbName,
-    keyword: keyword,
+    dirFullName: currentClDir.value?.full_name,
+    keyword,
     size: PAGINATION_COL_SIZE()
+  })
+})
+const listClDir = (async () => {
+  data.clDirs = await store.listCollectionDir({
+    bucket: props.bucketName,
+    db: props.dbName,
   })
 })
 /**

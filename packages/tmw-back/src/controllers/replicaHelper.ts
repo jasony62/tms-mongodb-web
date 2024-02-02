@@ -10,6 +10,9 @@ const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
  * @extends Helper
  */
 class ReplicaHelper extends Helper {
+  constructor(ctrl: any) {
+    super(ctrl)
+  }
   /**集合复制映射关系集合 */
   get clReplicaMap() {
     const client = this.ctrl.mongoClient

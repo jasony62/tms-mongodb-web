@@ -14,9 +14,13 @@ export default {
    *
    * @param {*} dbName
    */
-  list(bucket: string, dbName: string, { keyword, page, size }: any = {}) {
+  list(
+    bucket: string,
+    dbName: string,
+    { dirFullName, keyword, page, size }: any = {}
+  ) {
     const base = BACK_API_URL() + '/admin/collection'
-    const params = { bucket, db: dbName, keyword, page, size }
+    const params = { bucket, db: dbName, dirFullName, keyword, page, size }
     return TmsAxios.ins('mongodb-api')
       .get(`${base}/list`, { params })
       .then((rst: ApiRst) => rst.data.result)

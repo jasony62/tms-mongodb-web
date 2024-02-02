@@ -160,14 +160,22 @@ export default defineStore('mongodb', {
         return { clDir }
       })
     },
-    listCollection(payload: { bucket: any; db: any; size: any; keyword: any }) {
+    listCollection(payload: {
+      bucket: any
+      db: any
+      size: any
+      dirFullName?: string
+      keyword?: string
+    }) {
       const action = (
         keyword: any,
-        batchArg: { keyword: any; page: any; size: any } | undefined
+        batchArg:
+          | { dirFullName?: string; keyword?: string; page: any; size: any }
+          | undefined
       ) => {
         return apis.collection
-          .list(bucket, db, { keyword, ...batchArg })
-          .then((result: { collections: never[] }) => {
+          .list(bucket, db, { dirFullName, keyword, ...batchArg })
+          .then((result: { collections: unknown[] }) => {
             //this.collections = result.collections
             let collections: any[] = [],
               allChildren: any[] = [],
@@ -194,7 +202,7 @@ export default defineStore('mongodb', {
             return result
           })
       }
-      const { bucket, db, size, keyword } = payload
+      const { bucket, db, size, dirFullName, keyword } = payload
       return startBatch(action, [keyword], {
         size: size,
         wrap: reactive,

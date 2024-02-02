@@ -3,6 +3,9 @@ import { Helper } from 'tmw-kit/dist/ctrl/index.js'
 
 /** 数据库控制器辅助类 */
 class CollectionHelper extends Helper {
+  constructor(ctrl: any) {
+    super(ctrl)
+  }
   /**
    * 修改集合名称
    */

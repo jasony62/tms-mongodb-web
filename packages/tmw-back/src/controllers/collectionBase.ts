@@ -75,12 +75,16 @@ class CollectionBase extends Base {
       query.adminOnly = { $ne: true }
     }
     if (this.bucketObj) query.bucket = this.bucketObj.name
-    const { keyword } = this.request.query
+    const { dirFullName, keyword } = this.request.query
+    if (dirFullName) {
+      query.dir_full_name = { $regex: new RegExp('^' + dirFullName) }
+    }
     if (keyword) {
       let re = new RegExp(keyword)
       query['$or'] = [
         { name: { $regex: re, $options: 'i' } },
         { title: { $regex: re, $options: 'i' } },
+        { description: { $regex: re, $options: 'i' } },
       ]
     }
     const options: any = {
