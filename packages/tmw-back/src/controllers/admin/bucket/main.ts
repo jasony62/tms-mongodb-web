@@ -1,5 +1,5 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import BucketBase from '@/controllers/bucketBase.js'
+import BucketBase from '../../bucketBase.js'
 
 /** 用于给用户分配存储空间 */
 class Bucket extends BucketBase {

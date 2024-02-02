@@ -258,6 +258,9 @@ onMounted(() => {
   apiSchema
     .listSimple(bucketName, 'document', dbName)
     .then((schemas2: any[]) => {
+      /**
+       * 分别显示数据库或全局指定的文档列定义对象
+       */
       schemas2.forEach((s: any) => {
         s.db ? schemas[0].options.push(s) : schemas[1].options.push(s)
       })
