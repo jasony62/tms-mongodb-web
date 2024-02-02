@@ -4,6 +4,7 @@
     <div class="el-dialog-div">
       <el-tabs v-model="activeTab" type="card">
         <el-tab-pane label="基本信息" name="info"></el-tab-pane>
+        <el-tab-pane label="扩展信息" name="extra" v-if="clSchema._id"></el-tab-pane>
         <el-tab-pane label="设置" name="setting"></el-tab-pane>
         <el-tab-pane label="文档编辑转换规则" name="convert"></el-tab-pane>
       </el-tabs>
@@ -55,6 +56,10 @@
           <el-switch v-model="collection.adminOnly"></el-switch>
         </el-form-item>
       </el-form>
+      <div v-show="activeTab === 'extra'">
+        <tms-json-doc ref="elJdeDoc" :schema="clSchema.body" :value="collection" :hide-root-title="true"
+          :hide-root-description="true"></tms-json-doc>
+      </div>
       <el-form :model="collection.custom" label-position="top" v-show="activeTab === 'setting'">
         <el-form-item label="文档操作">
           <el-checkbox v-model="collection.custom.docOperations.create">添加数据</el-checkbox>
@@ -126,6 +131,8 @@ import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
 import { computed, onMounted, reactive, ref, toRaw } from 'vue'
 import { FormRules, ElMessage, ElMessageBox } from 'element-plus'
+import TmsJsonDoc, { DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
+import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 
 // 查找条件下拉框分页包含记录数
 const SELECT_PAGE_SIZE = 7
@@ -138,6 +145,7 @@ const props = defineProps({
   bucketName: { type: String, default: '' },
   dbName: { type: String, default: '' },
   dirFullName: { type: String, default: '' },
+  clSchema: { type: Object, default: {} },
   collection: {
     type: Object,
     default: () => {
@@ -224,9 +232,8 @@ const criteria = reactive({
   properties: {} as { [k: string]: any },
 })
 
-const { mode, bucketName, dbName, onClose } = props
+const { mode, bucketName, dbName, clSchema, onClose } = props
 const collection = reactive(props.collection)
-
 if (mode === 'create' && props.dirFullName) {
   collection.dir_full_name = props.dirFullName
 }
@@ -253,6 +260,9 @@ const docFieldConvertRules = computed({
     }
   },
 })
+
+// 文档编辑器
+const elJdeDoc = ref<{ editing: () => any; editDoc: DocAsArray } | null>(null)
 
 onMounted(() => {
   apiSchema
@@ -420,6 +430,17 @@ const onSubmit = () => {
     }
     unrepeat.database.label && delete unrepeat.database.label
     unrepeat.collection.label && delete unrepeat.collection.label
+  }
+  /**
+   * 指定了扩展属性
+   * 因为JsonDocEditor不会修改传入的数据，返回的是副本，所以需要进行赋值
+   */
+  if (props.clSchema._id) {
+    let extraInfo: any = elJdeDoc.value?.editing()
+    let extraInfo2 = (new DocAsArray(extraInfo)).build(props.clSchema.body)
+    if (extraInfo2) {
+      Object.assign(collection, extraInfo2)
+    }
   }
 
   if (mode === 'create')

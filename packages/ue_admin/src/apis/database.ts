@@ -2,13 +2,13 @@ import { TmsAxios } from 'tms-vue3'
 import { BACK_API_URL } from '@/global'
 import { ApiRst } from './types'
 
-type DbResult = {
-  _id: string
-  title: string
-  description: string
-}
-
 export default {
+  byName(bucket: any, name: string) {
+    const base = BACK_API_URL() + '/admin/db'
+    return TmsAxios.ins('mongodb-api')
+      .get(`${base}/byName`, { params: { bucket, name } })
+      .then((rst: ApiRst) => rst.data.result)
+  },
   list(bucket: any, keyword?: string, batchArg?: any) {
     const base = BACK_API_URL() + '/admin/db'
     return TmsAxios.ins('mongodb-api')

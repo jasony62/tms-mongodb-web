@@ -38,6 +38,11 @@
             </template>
           </el-table-column>
           <el-table-column prop="description" label="说明"></el-table-column>
+          <el-table-column v-for="(s, k, i) in database?.schema?.body.properties" :key="i" :prop="k">
+            <template #header>
+              <span>{{ s.title }}</span>
+            </template>
+          </el-table-column>
           <el-table-column label="操作" width="120">
             <template #default="scope">
               <el-button @click="editCollection(scope.row, scope.$index)" type="primary" link size="small">修改
@@ -87,6 +92,7 @@ import { ElMessage, ElMessageBox, ElTree } from 'element-plus'
 import { Close } from '@element-plus/icons-vue'
 import { COMPACT_MODE, LABEL, BACK_API_URL, FS_BASE_URL, getLocalToken, PAGINATION_COL_SIZE } from '@/global'
 import apiPlugin from '@/apis/plugin'
+import apiDb from '@/apis/database'
 import apiSchema from '@/apis/schema'
 import TmwPlugins from '@/components/PluginList.vue'
 import TmwPluginWidget from '@/components/PluginWidget.vue'
@@ -109,6 +115,7 @@ const MiddleWidthStyleClass = computed(() => {
   return COMPACT.value ? 'full' : data.clDirs?.length ? 'w-4/6' : 'w-4/5'
 })
 
+const database = ref()
 const plugins = ref([])
 
 const data = reactive({
@@ -135,13 +142,7 @@ const removeCurrentClDir = () => {
   currentClDir.value = null
 }
 
-onMounted(async () => {
-  listClDir()
-  listClByKw()
-  plugins.value = await apiPlugin.getCollectionPlugins(
-    props.bucketName, props.dbName
-  )
-})
+
 onBeforeRouteLeave((to, from) => {
   /**
    * 离开页面时，清空store中的集合列表数据
@@ -160,6 +161,7 @@ const createCollection = (() => {
     bucketName: props.bucketName,
     dbName: props.dbName,
     dirFullName,
+    clSchema: database.value?.schema,
     onBeforeClose: (newCollection?: any) => {
       if (newCollection) {
         store.appendCollection({ collection: newCollection })
@@ -173,6 +175,7 @@ const editCollection = ((collection: any, index: number) => {
     mode: 'update',
     bucketName: props.bucketName,
     dbName: props.dbName,
+    clSchema: database.value?.schema,
     collection,
     onBeforeClose: (newCollection?: any) => {
       if (newCollection) {
@@ -401,5 +404,14 @@ const { handlePlugin } = useTmwPlugins({
   onClose: () => {
     listClByKw()
   }
+})
+
+onMounted(async () => {
+  database.value = await apiDb.byName(props.bucketName, props.dbName)
+  listClDir()
+  listClByKw()
+  plugins.value = await apiPlugin.getCollectionPlugins(
+    props.bucketName, props.dbName
+  )
 })
 </script>

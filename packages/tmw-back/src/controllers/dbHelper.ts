@@ -5,6 +5,9 @@ import { ModelDb } from 'tmw-kit'
  * 数据库控制器辅助类
  */
 class DbHelper extends Helper {
+  constructor(ctrl) {
+    super(ctrl)
+  }
   /**
    * 在系统范围内按名称查找数据库
    *
