@@ -37,12 +37,12 @@
               <span>{{ "usage" in scope.row ? scope.row.usage == 1 ? "从集合" : "普通集合" : "" }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="description" label="说明"></el-table-column>
           <el-table-column v-for="(s, k, i) in database?.schema?.body.properties" :key="i" :prop="k">
             <template #header>
               <span>{{ s.title }}</span>
             </template>
           </el-table-column>
+          <el-table-column prop="description" label="说明"></el-table-column>
           <el-table-column label="操作" width="120">
             <template #default="scope">
               <el-button @click="editCollection(scope.row, scope.$index)" type="primary" link size="small">修改

@@ -2,11 +2,11 @@
   <el-dialog title="集合分类" v-model="dialogVisible" :destroy-on-close="true" :close-on-click-modal="false"
     :before-close="onBeforeClose">
     <el-form ref="form" :model="collectionDir" label-position="top">
+      <el-form-item label="系统名（英文）">
+        <el-input :disabled="mode === 'update'" v-model="collectionDir.name"></el-input>
+      </el-form-item>
       <el-form-item label="上级系统名" v-if="parentFullName">
         <div>{{ parentFullName }}</div>
-      </el-form-item>
-      <el-form-item label="系统名（英文）">
-        <el-input v-model="collectionDir.name"></el-input>
       </el-form-item>
       <el-form-item label="显示名（中文）">
         <el-input v-model="collectionDir.title"></el-input>

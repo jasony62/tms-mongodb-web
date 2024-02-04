@@ -77,7 +77,9 @@ class CollectionBase extends Base {
     if (this.bucketObj) query.bucket = this.bucketObj.name
     const { dirFullName, keyword } = this.request.query
     if (dirFullName) {
-      query.dir_full_name = { $regex: new RegExp('^' + dirFullName) }
+      query.dir_full_name = {
+        $regex: new RegExp('^' + dirFullName + '(?=/|$)'),
+      }
     }
     if (keyword) {
       let re = new RegExp(keyword)
