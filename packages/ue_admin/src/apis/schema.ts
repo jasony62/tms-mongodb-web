@@ -1,9 +1,7 @@
 import { TmsAxios } from 'tms-vue3'
 import { BACK_API_URL } from '@/global'
+import { ApiRst } from './types'
 
-type ApiRst = {
-  data: { result: any }
-}
 export default {
   list(bucket: any, db: any, scope: any) {
     const base = BACK_API_URL() + '/admin/schema'
@@ -13,7 +11,7 @@ export default {
       .get(`${base}/list`, { params })
       .then((rst: ApiRst) => rst.data.result)
   },
-  listSimple(bucket: any, scope: any, db: any) {
+  listSimple(bucket: any, scope: any, db?: any) {
     const base = BACK_API_URL() + '/admin/schema'
     const params = { bucket, scope, db }
     return TmsAxios.ins('mongodb-api')

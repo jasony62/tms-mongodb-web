@@ -18,7 +18,7 @@ class SchemaBase extends Base {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
     this.schemaHelper = new SchemaHelper(this)
   }
-  async tmsBeforeEach() {
+  async tmsBeforeEach(): Promise<true | ResultFault> {
     let result = await super.tmsBeforeEach()
     if (true !== result) return result
 

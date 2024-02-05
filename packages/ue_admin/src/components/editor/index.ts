@@ -1,4 +1,5 @@
 import DbEditor from './DbEditor.vue'
+import DirEditor from './DirEditor.vue'
 import CollectionEditor from './CollectionEditor.vue'
 import TagEditor from './TagEditor.vue'
 import ReplicaEditor from './ReplicaEditor.vue'
@@ -17,10 +18,21 @@ type DbEditorOptions = {
   onBeforeClose: Function
 }
 
+type DirEditorOptions = {
+  mode: any
+  bucketName?: any
+  dbName: string
+  parentDir: any
+  dir?: any
+  onBeforeClose: Function
+}
+
 type CollectionEditorOptions = {
   mode: any
   bucketName?: any
   dbName: string
+  clDir?: any
+  clSchema?: any
   collection?: any
   onBeforeClose: Function
 }
@@ -89,14 +101,43 @@ export function openDbEditor(options: DbEditorOptions) {
   app.use(ElementPlus).mount(root)
 }
 /***/
+export function openDirEditor(options: DirEditorOptions) {
+  const root = document.createElement('div')
+  document.body.appendChild(root)
+  const { mode, bucketName, dbName, parentDir, dir, onBeforeClose } = options
+  let app = createApp(DirEditor, {
+    mode,
+    bucketName,
+    dbName,
+    parentDir,
+    dir,
+    onClose: (newCl: any) => {
+      if (newCl && onBeforeClose) onBeforeClose(newCl)
+      app.unmount()
+      document.body.removeChild(root)
+    },
+  })
+  app.use(ElementPlus).mount(root)
+}
+/***/
 export function openCollectionEditor(options: CollectionEditorOptions) {
   const root = document.createElement('div')
   document.body.appendChild(root)
-  const { mode, bucketName, dbName, collection, onBeforeClose } = options
+  const {
+    mode,
+    bucketName,
+    dbName,
+    clDir,
+    clSchema,
+    collection,
+    onBeforeClose,
+  } = options
   let app = createApp(CollectionEditor, {
     mode,
     bucketName,
     dbName,
+    clDir,
+    clSchema,
     collection,
     onClose: (newCl: any) => {
       if (newCl && onBeforeClose) onBeforeClose(newCl)

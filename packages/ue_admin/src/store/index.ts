@@ -14,6 +14,7 @@ export default defineStore('mongodb', {
       documentSchemas: [] as any[],
       dbSchemas: [] as any[],
       collectionSchemas: [] as any[],
+      collectionDirs: [] as any[],
       collections: [] as any[],
       tags: [] as any[],
       documents: [] as any[],
@@ -126,14 +127,55 @@ export default defineStore('mongodb', {
         return { schema }
       })
     },
-    listCollection(payload: { bucket: any; db: any; size: any; keyword: any }) {
+    listCollectionDir(payload: { bucket: string | undefined; db: string }) {
+      const { bucket, db } = payload
+      return apis.cldir.list(bucket, db).then((cldirs: unknown[]) => {
+        const topClDirs: any[] = []
+        const cache = new Map<string, any>()
+        cldirs.forEach((cldir: any) => {
+          if (cldir.name === cldir.full_name) {
+            topClDirs.push(cldir)
+          } else {
+            const pFullName = cldir.full_name.replace(`/${cldir.name}`, '')
+            const pClDir = cache.get(pFullName)
+            if (pClDir) {
+              pClDir.children ??= []
+              pClDir.children.push(cldir)
+            } else {
+              topClDirs.push(cldir)
+            }
+          }
+          cache.set(cldir.full_name, cldir)
+        })
+        return topClDirs
+      })
+    },
+    removeCollectionDir(payload: {
+      bucket: string | undefined
+      db: string
+      clDir: { _id: string }
+    }) {
+      const { bucket, db, clDir } = payload
+      return apis.cldir.remove(bucket, db, clDir._id).then(() => {
+        return { clDir }
+      })
+    },
+    listCollection(payload: {
+      bucket: any
+      db: any
+      size: any
+      dirFullName?: string
+      keyword?: string
+    }) {
       const action = (
         keyword: any,
-        batchArg: { keyword: any; page: any; size: any } | undefined
+        batchArg:
+          | { dirFullName?: string; keyword?: string; page: any; size: any }
+          | undefined
       ) => {
         return apis.collection
-          .list(bucket, db, { keyword, ...batchArg })
-          .then((result: { collections: never[] }) => {
+          .list(bucket, db, { dirFullName, keyword, ...batchArg })
+          .then((result: { collections: unknown[] }) => {
             //this.collections = result.collections
             let collections: any[] = [],
               allChildren: any[] = [],
@@ -160,7 +202,7 @@ export default defineStore('mongodb', {
             return result
           })
       }
-      const { bucket, db, size, keyword } = payload
+      const { bucket, db, size, dirFullName, keyword } = payload
       return startBatch(action, [keyword], {
         size: size,
         wrap: reactive,

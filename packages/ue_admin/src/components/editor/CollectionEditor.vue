@@ -4,10 +4,14 @@
     <div class="el-dialog-div">
       <el-tabs v-model="activeTab" type="card">
         <el-tab-pane label="基本信息" name="info"></el-tab-pane>
+        <el-tab-pane label="扩展信息" name="extra" v-if="clSchema._id"></el-tab-pane>
         <el-tab-pane label="设置" name="setting"></el-tab-pane>
         <el-tab-pane label="文档编辑转换规则" name="convert"></el-tab-pane>
       </el-tabs>
       <el-form :model="collection" label-position="top" v-show="activeTab === 'info'" :rules="rules">
+        <el-form-item label="所属分类目录" prop="title" v-if="clDir?.full_title">
+          <div>{{ clDir.full_title }}</div>
+        </el-form-item>
         <el-form-item label="集合名称（系统）" prop="sysname">
           <el-input v-model="collection.sysname" :disabled="mode === 'update'"></el-input>
         </el-form-item>
@@ -52,6 +56,12 @@
           <el-switch v-model="collection.adminOnly"></el-switch>
         </el-form-item>
       </el-form>
+      <div v-show="activeTab === 'extra'">
+        <div v-if="clSchema.body">
+          <tms-json-doc ref="elJdeDoc" :schema="clSchema.body" :value="collection" :hide-root-title="true"
+            :hide-root-description="true"></tms-json-doc>
+        </div>
+      </div>
       <el-form :model="collection.custom" label-position="top" v-show="activeTab === 'setting'">
         <el-form-item label="文档操作">
           <el-checkbox v-model="collection.custom.docOperations.create">添加数据</el-checkbox>
@@ -123,6 +133,8 @@ import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
 import { computed, onMounted, reactive, ref, toRaw } from 'vue'
 import { FormRules, ElMessage, ElMessageBox } from 'element-plus'
+import TmsJsonDoc, { DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
+import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 
 // 查找条件下拉框分页包含记录数
 const SELECT_PAGE_SIZE = 7
@@ -134,6 +146,8 @@ const props = defineProps({
   dialogVisible: { default: true },
   bucketName: { type: String, default: '' },
   dbName: { type: String, default: '' },
+  clDir: { type: Object, default: { full_name: '', full_title: '' } },
+  clSchema: { type: Object, default: {} },
   collection: {
     type: Object,
     default: () => {
@@ -145,6 +159,7 @@ const props = defineProps({
         schema_tags: [],
         schema_default_tags: [],
         tags: [],
+        dir_full_name: '',
         usage: 0,
         adminOnly: false,
         custom: {
@@ -195,6 +210,7 @@ props.collection.operateRules ??= {
   },
 }
 
+
 const dialogVisible = ref(props.dialogVisible)
 const activeTab = ref('info')
 const schemas = reactive([
@@ -218,10 +234,12 @@ const criteria = reactive({
   properties: {} as { [k: string]: any },
 })
 
-const { mode, bucketName, dbName, onClose } = props
-
-// 编辑的集合对象
+const { mode, bucketName, dbName, clSchema, onClose } = props
 const collection = reactive(props.collection)
+if (mode === 'create' && props.clDir.full_name) {
+  collection.dir_full_name = props.clDir.full_name
+}
+// 编辑的集合对象
 // 集合的原名称，用于更新操作
 const clBeforeName = props.collection.name
 // 文档字段映射规则
@@ -245,10 +263,16 @@ const docFieldConvertRules = computed({
   },
 })
 
+// 文档编辑器
+const elJdeDoc = ref<{ editing: () => any; editDoc: DocAsArray } | null>(null)
+
 onMounted(() => {
   apiSchema
     .listSimple(bucketName, 'document', dbName)
     .then((schemas2: any[]) => {
+      /**
+       * 分别显示数据库或全局指定的文档列定义对象
+       */
       schemas2.forEach((s: any) => {
         s.db ? schemas[0].options.push(s) : schemas[1].options.push(s)
       })
@@ -256,19 +280,14 @@ onMounted(() => {
   apiTag.list(props.bucketName).then((tags2: any[]) => {
     tags2.forEach((t) => tags.value.push(t))
   })
-
-  let unrepeat = props.collection?.operateRules?.unrepeat
-
+  // 去重规则
+  const unrepeat = props.collection?.operateRules?.unrepeat
   if (unrepeat) {
     const dbKey = unrepeat.database.name ? unrepeat.database.name : null
-
     listDbByKw(dbKey)
-
     if (dbKey) {
       const clKey = unrepeat.collection.name ? unrepeat.collection.name : null
-
       listClByKw(clKey)
-
       if (clKey) {
         listProperties()
       }
@@ -413,6 +432,17 @@ const onSubmit = () => {
     }
     unrepeat.database.label && delete unrepeat.database.label
     unrepeat.collection.label && delete unrepeat.collection.label
+  }
+  /**
+   * 指定了扩展属性
+   * 因为JsonDocEditor不会修改传入的数据，返回的是副本，所以需要进行赋值
+   */
+  if (props.clSchema._id) {
+    let extraInfo: any = elJdeDoc.value?.editing()
+    let extraInfo2 = (new DocAsArray(extraInfo)).build(props.clSchema.body)
+    if (extraInfo2) {
+      Object.assign(collection, extraInfo2)
+    }
   }
 
   if (mode === 'create')

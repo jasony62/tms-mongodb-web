@@ -1,5 +1,5 @@
 import Base from './base.js'
 
-class Db extends Base {}
+class Bucket extends Base {}
 
-export default Db
+export default Bucket

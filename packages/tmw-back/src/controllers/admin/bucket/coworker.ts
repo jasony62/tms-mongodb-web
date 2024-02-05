@@ -16,7 +16,7 @@ class Coworker extends Base {
   /**
    * 执行方法调用前检查
    */
-  async tmsBeforeEach() {
+  async tmsBeforeEach(): Promise<true | ResultFault> {
     const { url } = this.request
     if (!this.client)
       return new ResultFault('只有通过认证的用户才可以执行该操作')

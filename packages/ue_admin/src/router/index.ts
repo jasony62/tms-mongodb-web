@@ -5,6 +5,7 @@ import Home from '../views/Home.vue'
 import Bucket from '../views/Bucket.vue'
 import Databases from '../views/Databases.vue'
 import DocSchemas from '../views/DocSchemas.vue'
+import Dir from '../views/Dir.vue'
 import DbSchemas from '../views/DbSchemas.vue'
 import ClSchemas from '../views/ClSchemas.vue'
 import Tag from '../views/Tag.vue'
@@ -80,6 +81,12 @@ const routes: RouteRecordRaw[] = [
         path: `${BucketPart}/database/:dbName/docSchemas`,
         name: 'databaseDocSchemas',
         component: DocSchemas,
+        props: true,
+      },
+      {
+        path: `${BucketPart}/database/:dbName/dir`,
+        name: 'databaseDir',
+        component: Dir,
         props: true,
       },
       {

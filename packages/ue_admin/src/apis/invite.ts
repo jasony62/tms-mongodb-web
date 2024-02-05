@@ -1,9 +1,7 @@
 import { TmsAxios } from 'tms-vue3'
 import { BACK_API_URL } from '@/global'
+import { ApiRst } from './types'
 
-type ApiRst = {
-  data: { result: any }
-}
 export default {
   accept(bucket: any, nickname: string, code: any) {
     const base = BACK_API_URL() + '/admin/bucket/coworker'

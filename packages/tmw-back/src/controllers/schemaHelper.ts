@@ -5,6 +5,9 @@ import { Helper } from 'tmw-kit/dist/ctrl/index.js'
  * @extends Helper
  */
 class SchemaHelper extends Helper {
+  constructor(ctrl: any) {
+    super(ctrl)
+  }
   /**
    * 新建文档列定义
    */

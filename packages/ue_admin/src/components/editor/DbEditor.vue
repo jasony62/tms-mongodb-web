@@ -14,6 +14,12 @@
       <el-form-item label="说明">
         <el-input type="textarea" v-model="database.description"></el-input>
       </el-form-item>
+      <el-form-item label="集合扩展属性定义" prop="cl_schema_id">
+        <el-select v-model="database.cl_schema_id" clearable placeholder="请选择定义名称">
+          <el-option v-for="schema in schemas" :key="schema._id" :label="schema.title" :value="schema._id" />
+        </el-select>
+        <el-alert title="通过指定【集合扩展属性定义】，给数据库下的集合添加属性字段，记录扩展业务信息。" type="info" :closable="false" />
+      </el-form-item>
       <el-form-item label="仅系统管理员可见">
         <el-switch v-model="database.adminOnly"></el-switch>
       </el-form-item>
@@ -25,9 +31,10 @@
   </el-dialog>
 </template>
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue'
 import { ElMessageBox } from 'element-plus'
 import apiDb from '@/apis/database'
+import apiSchema from '@/apis/schema'
 
 const emit = defineEmits(['submit'])
 
@@ -48,6 +55,8 @@ const { mode, bucketName, onClose } = props
 
 const dialogVisible = ref(props.dialogVisible)
 const database = reactive(props.database)
+
+const schemas = reactive([] as any[])
 
 // 关闭对话框时执行指定的回调方法
 const closeDialog = (newDb?: any) => {
@@ -80,4 +89,13 @@ const onSubmit = () => {
       })
   }
 }
+onMounted(() => {
+  apiSchema
+    .listSimple(bucketName, 'collection')
+    .then((schemas2: any[]) => {
+      schemas2.forEach((s: any) => {
+        schemas.push(s)
+      })
+    })
+})
 </script>

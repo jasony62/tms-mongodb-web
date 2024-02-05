@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "element-plus": "^2.2.8",
+    "element-plus": "2.5.0",
     "jsoneditor": "^9.9.0",
     "pinia": "2.1.6",
     "tms-vue3-ui": "^0.0.87",

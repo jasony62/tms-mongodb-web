@@ -26,6 +26,10 @@ const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
  * 保存元数据的集合
  */
 const META_ADMIN_CL = 'mongodb_object'
+/**
+ * 管理对象分类目录
+ */
+const DIR_CL = 'mongodb_object_dir'
 
 const TMW_CONFIG = await loadTmwConfig()
 
@@ -253,6 +257,15 @@ class Base {
   get clMongoObj() {
     const client = this.mongoClient
     const cl = client.db(META_ADMIN_DB).collection(META_ADMIN_CL)
+
+    return cl
+  }
+  /**
+   * 存储集合分类目录
+   */
+  get clDir() {
+    const client = this.mongoClient
+    const cl = client.db(META_ADMIN_DB).collection(DIR_CL)
 
     return cl
   }

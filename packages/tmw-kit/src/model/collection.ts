@@ -20,47 +20,87 @@ const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
 
 class Collection extends Base {
   /**
-   * 新建集合
+   * 从传入的数据生成安全的集合对象
    *
-   * @param existDb
    * @param info
    * @returns
    */
+  sanitize(info: any): any {
+    const {
+      name,
+      title,
+      description,
+      dir_full_name,
+      schema_id,
+      adminOnly,
+      tags,
+      schema_tags,
+      schema_default_tags,
+      operateRules,
+      docFieldConvertRules,
+      custom,
+    } = info
+    const newCl: any = {
+      name,
+      title,
+      description,
+      dir_full_name,
+      schema_id,
+      adminOnly,
+      tags,
+      schema_tags,
+      schema_default_tags,
+      operateRules,
+      docFieldConvertRules,
+      custom,
+    }
+    if (info.sysname) newCl.sysname = info.sysname
+    if (info.usage) newCl.usage = info.usage
+
+    return newCl
+  }
+  /**
+   * 新建集合
+   *
+   * @param existDb
+   * @param newCl
+   * @returns
+   */
   async create(existDb, info) {
+    const newCl: any = this.sanitize(info)
     // 加工数据
-    this.processBeforeStore(info, 'insert')
+    this.processBeforeStore(newCl, 'insert')
 
-    info.type = 'collection'
-    info.database = existDb.name
+    newCl.type = 'collection'
+    // newCl.database = existDb.name
 
-    info.db = { sysname: existDb.sysname, name: existDb.name }
-    if (this.bucket) info.bucket = this.bucket.name
+    newCl.db = { sysname: existDb.sysname, name: existDb.name }
+    if (this.bucket) newCl.bucket = this.bucket.name
 
     // 检查指定的集合名
-    let [passed, nameOrCause] = this.checkClName(info.name)
+    let [passed, nameOrCause] = this.checkClName(newCl.name)
     if (passed === false) return [false, nameOrCause]
-    info.name = nameOrCause
 
     // 查询是否已存在同名集合
-    let existTmwCl = await this.byName(existDb, info.name)
+    let existTmwCl = await this.byName(existDb, newCl.name)
     if (existTmwCl)
       return [
         false,
-        `数据库[name=${existDb.name}]中，已存在同名集合[name=${info.name}]`,
+        `数据库[name=${existDb.name}]中，已存在同名集合[name=${newCl.name}]`,
       ]
 
     // 检查是否指定了用途
-    let { usage } = info
+    let { usage } = newCl
     if (usage !== undefined) {
       if (![0, 1].includes(parseInt(usage)))
         return [false, `指定了不支持的集合用途值[usage=${usage}]`]
-      info.usage = parseInt(usage)
+      newCl.usage = parseInt(usage)
     }
 
     // 生成数据库系统名
     let existSysCl, sysname
-    if (info.sysname) {
-      sysname = info.sysname
+    if (newCl.sysname) {
+      sysname = newCl.sysname
       existSysCl = await this.bySysname(existDb, sysname)
     } else {
       for (let tries = 0; tries <= 2; tries++) {
@@ -71,23 +111,23 @@ class Collection extends Base {
     }
     if (existSysCl) return [false, '无法生成唯一的集合系统名称']
 
-    info.sysname = sysname
+    newCl.sysname = sysname
 
     /**在系统中创建集合后记录集合对象信息 */
     const mgdb = this.mongoClient.db(existDb.sysname)
 
     /**检查集合在数据库中是否已经存在*/
-    const sysCl = mgdb.collection(info.sysname)
+    const sysCl = mgdb.collection(newCl.sysname)
     if (sysCl) {
       return this.clMongoObj
-        .insertOne(info)
+        .insertOne(newCl)
         .then((result) => [true, result])
         .catch((err) => [false, err.message])
     }
 
     return mgdb
-      .createCollection(info.sysname)
-      .then(() => this.clMongoObj.insertOne(info))
+      .createCollection(newCl.sysname)
+      .then(() => this.clMongoObj.insertOne(newCl))
       .then((result) => [true, result])
       .catch((err) => [false, err.message])
   }
