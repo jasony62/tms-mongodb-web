@@ -12,7 +12,7 @@
       <!--right-->
       <div class="flex flex-col items-start space-y-3 w-1/6" v-if="!COMPACT && data.clDirs?.length">
         <div v-if="currentClDir">
-          <el-button type="primary" @click="removeCurrentClDir">{{ currentClDir.full_name }}<el-icon
+          <el-button type="primary" @click="removeCurrentClDir">{{ currentClDir.full_title }}<el-icon
               class="el-icon--right">
               <Close />
             </el-icon></el-button>
@@ -142,7 +142,6 @@ const removeCurrentClDir = () => {
   currentClDir.value = null
 }
 
-
 onBeforeRouteLeave((to, from) => {
   /**
    * 离开页面时，清空store中的集合列表数据
@@ -155,12 +154,12 @@ const openCollection = (dbName: string, row: any) => {
   router.push({ name: 'collection', params: { dbName, clName: row.name } })
 }
 const createCollection = (() => {
-  const dirFullName = currentClDir.value ? currentClDir.value.full_name : ''
+  const clDir = toRaw(currentClDir.value)
   openCollectionEditor({
     mode: 'create',
     bucketName: props.bucketName,
     dbName: props.dbName,
-    dirFullName,
+    clDir,
     clSchema: database.value?.schema,
     onBeforeClose: (newCollection?: any) => {
       if (newCollection) {

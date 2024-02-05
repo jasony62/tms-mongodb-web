@@ -1,5 +1,5 @@
 import DbEditor from './DbEditor.vue'
-import CollectionDirEditor from './CollectionDirEditor.vue'
+import DirEditor from './DirEditor.vue'
 import CollectionEditor from './CollectionEditor.vue'
 import TagEditor from './TagEditor.vue'
 import ReplicaEditor from './ReplicaEditor.vue'
@@ -18,12 +18,12 @@ type DbEditorOptions = {
   onBeforeClose: Function
 }
 
-type CollectionDirEditorOptions = {
+type DirEditorOptions = {
   mode: any
   bucketName?: any
   dbName: string
-  parentFullName: string
-  collectionDir?: any
+  parentDir: any
+  dir?: any
   onBeforeClose: Function
 }
 
@@ -31,7 +31,7 @@ type CollectionEditorOptions = {
   mode: any
   bucketName?: any
   dbName: string
-  dirFullName?: String
+  clDir?: any
   clSchema?: any
   collection?: any
   onBeforeClose: Function
@@ -101,23 +101,16 @@ export function openDbEditor(options: DbEditorOptions) {
   app.use(ElementPlus).mount(root)
 }
 /***/
-export function openCollectionDirEditor(options: CollectionDirEditorOptions) {
+export function openDirEditor(options: DirEditorOptions) {
   const root = document.createElement('div')
   document.body.appendChild(root)
-  const {
+  const { mode, bucketName, dbName, parentDir, dir, onBeforeClose } = options
+  let app = createApp(DirEditor, {
     mode,
     bucketName,
     dbName,
-    parentFullName,
-    collectionDir,
-    onBeforeClose,
-  } = options
-  let app = createApp(CollectionDirEditor, {
-    mode,
-    bucketName,
-    dbName,
-    parentFullName,
-    collectionDir,
+    parentDir,
+    dir,
     onClose: (newCl: any) => {
       if (newCl && onBeforeClose) onBeforeClose(newCl)
       app.unmount()
@@ -134,7 +127,7 @@ export function openCollectionEditor(options: CollectionEditorOptions) {
     mode,
     bucketName,
     dbName,
-    dirFullName,
+    clDir,
     clSchema,
     collection,
     onBeforeClose,
@@ -143,7 +136,7 @@ export function openCollectionEditor(options: CollectionEditorOptions) {
     mode,
     bucketName,
     dbName,
-    dirFullName,
+    clDir,
     clSchema,
     collection,
     onClose: (newCl: any) => {

@@ -25,7 +25,7 @@
                     <el-button type="primary" link size="small" @click="gotoDocSchemas(scope.row)">进入文档定义</el-button>
                   </el-dropdown-item>
                   <el-dropdown-item>
-                    <el-button type="primary" link size="small" @click="gotoCollectionDir(scope.row)">进入集合分类</el-button>
+                    <el-button type="primary" link size="small" @click="gotoDir(scope.row)">进入分类目录</el-button>
                   </el-dropdown-item>
                   <el-dropdown-item>
                     <el-button type="danger" link size="small" @click="removeDb(scope.row)">删除数据库</el-button>
@@ -288,8 +288,8 @@ const { handlePlugin } = useTmwPlugins({
 const gotoDocSchemas = (db: any) => {
   router.push({ name: 'databaseDocSchemas', params: { bucketName: props.bucketName, dbName: db.name } })
 }
-const gotoCollectionDir = (db: any) => {
-  router.push({ name: 'databaseCollectionDir', params: { bucketName: props.bucketName, dbName: db.name } })
+const gotoDir = (db: any) => {
+  router.push({ name: 'databaseDir', params: { bucketName: props.bucketName, dbName: db.name } })
 }
 const totalByAll = computed(() => criteria.dbBatch.total)
 const totalByFilter = computed(() => 0)

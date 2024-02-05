@@ -1,8 +1,8 @@
-import ClDirBase from '../cldirBase.js'
+import DirBase from '../dirBase.js'
 /**
  * 集合分类目录
  */
-class CollectionDir extends ClDirBase {
+class Dir extends DirBase {
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
@@ -29,4 +29,4 @@ class CollectionDir extends ClDirBase {
   }
 }
 
-export default CollectionDir
+export default Dir

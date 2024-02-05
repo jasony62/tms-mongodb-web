@@ -9,8 +9,8 @@
         <el-tab-pane label="文档编辑转换规则" name="convert"></el-tab-pane>
       </el-tabs>
       <el-form :model="collection" label-position="top" v-show="activeTab === 'info'" :rules="rules">
-        <el-form-item label="所属集合分类" prop="title" v-if="collection.dir_full_name">
-          <div>{{ collection.dir_full_name }}</div>
+        <el-form-item label="所属分类目录" prop="title" v-if="clDir?.full_title">
+          <div>{{ clDir.full_title }}</div>
         </el-form-item>
         <el-form-item label="集合名称（系统）" prop="sysname">
           <el-input v-model="collection.sysname" :disabled="mode === 'update'"></el-input>
@@ -57,8 +57,10 @@
         </el-form-item>
       </el-form>
       <div v-show="activeTab === 'extra'">
-        <tms-json-doc ref="elJdeDoc" :schema="clSchema.body" :value="collection" :hide-root-title="true"
-          :hide-root-description="true"></tms-json-doc>
+        <div v-if="clSchema.body">
+          <tms-json-doc ref="elJdeDoc" :schema="clSchema.body" :value="collection" :hide-root-title="true"
+            :hide-root-description="true"></tms-json-doc>
+        </div>
       </div>
       <el-form :model="collection.custom" label-position="top" v-show="activeTab === 'setting'">
         <el-form-item label="文档操作">
@@ -144,7 +146,7 @@ const props = defineProps({
   dialogVisible: { default: true },
   bucketName: { type: String, default: '' },
   dbName: { type: String, default: '' },
-  dirFullName: { type: String, default: '' },
+  clDir: { type: Object, default: { full_name: '', full_title: '' } },
   clSchema: { type: Object, default: {} },
   collection: {
     type: Object,
@@ -234,8 +236,8 @@ const criteria = reactive({
 
 const { mode, bucketName, dbName, clSchema, onClose } = props
 const collection = reactive(props.collection)
-if (mode === 'create' && props.dirFullName) {
-  collection.dir_full_name = props.dirFullName
+if (mode === 'create' && props.clDir.full_name) {
+  collection.dir_full_name = props.clDir.full_name
 }
 // 编辑的集合对象
 // 集合的原名称，用于更新操作

@@ -8,8 +8,8 @@
           <el-table-column prop="description" label="说明"></el-table-column>
           <el-table-column label="操作" width="180">
             <template #default="scope">
-              <el-button type="primary" link size="small" @click="editClDir(scope.row)">修改</el-button>
-              <el-button type="primary" link size="small" @click="removeClDir(scope.row)">删除</el-button>
+              <el-button type="primary" link size="small" @click="editDir(scope.row)">修改</el-button>
+              <el-button type="primary" link size="small" @click="removeDir(scope.row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -18,10 +18,10 @@
     <!--right-->
     <div class="flex flex-col items-start space-y-3" v-if="!COMPACT">
       <div>
-        <el-button @click="createClDir()">添加集合分类</el-button>
+        <el-button @click="createDir()">添加分类目录</el-button>
       </div>
       <div>
-        <el-button :disabled="!currentRow" @click="createClDir(true)">添加集合子分类</el-button>
+        <el-button :disabled="!currentRow" @click="createDir(true)">添加子分类目录</el-button>
       </div>
     </div>
   </div>
@@ -30,8 +30,8 @@
 import { computed, onMounted, reactive, ref, toRaw } from 'vue'
 import { COMPACT_MODE } from '@/global'
 import facStore from '@/store'
-import { openCollectionDirEditor } from '@/components/editor'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { openDirEditor } from '@/components/editor'
+import { ElMessage } from 'element-plus'
 
 const COMPACT = computed(() => COMPACT_MODE())
 const store = facStore()
@@ -45,62 +45,57 @@ const data = reactive({
   clDirs: [] as any[],
 })
 
+// 当前选中的行（分类目录）
 const currentRow = ref()
-
-const currentRowFullName = () => {
-  if (!currentRow.value) return ''
-  let { full_name } = currentRow.value
-  return full_name
-}
 
 const handleCurrentChange = (row: any) => {
   currentRow.value = row
 }
 
-const createClDir = (clDirChild = false) => {
-  openCollectionDirEditor({
+const createDir = (dirChild = false) => {
+  openDirEditor({
     mode: 'create',
     bucketName: props.bucketName,
     dbName: props.dbName,
-    parentFullName: clDirChild ? currentRowFullName() : '',
-    onBeforeClose: (newClDir: any) => {
-      listClDir()
+    parentDir: dirChild ? toRaw(currentRow.value) : null,
+    onBeforeClose: (newDir: any) => {
+      listDir()
     }
   })
 }
-const editClDir = (clDir: any) => {
-  const cloned = JSON.parse(JSON.stringify(toRaw(clDir)))
+const editDir = (dir: any) => {
+  const cloned = JSON.parse(JSON.stringify(toRaw(dir)))
   delete cloned.children
-  openCollectionDirEditor({
+  openDirEditor({
     mode: 'update',
     bucketName: props.bucketName,
     dbName: props.dbName,
-    parentFullName: '',
-    collectionDir: cloned,
-    onBeforeClose: (newClDir: any) => {
-      listClDir()
+    parentDir: null,
+    dir: cloned,
+    onBeforeClose: (newDir: any) => {
+      listDir()
     }
   })
 }
-const removeClDir = (clDir: any) => {
-  const cloned = JSON.parse(JSON.stringify(toRaw(clDir)))
+const removeDir = (dir: any) => {
+  const cloned = JSON.parse(JSON.stringify(toRaw(dir)))
   delete cloned.children
   store.removeCollectionDir({
     bucket: props.bucketName,
     db: props.dbName,
     clDir: cloned
   }).then(() => {
-    ElMessage({ message: '集合分类目录已删除', type: 'success' })
-    listClDir()
+    ElMessage({ message: '分类目录目录已删除', type: 'success' })
+    listDir()
   })
 }
-const listClDir = (async () => {
+const listDir = (async () => {
   data.clDirs = await store.listCollectionDir({
     bucket: props.bucketName,
     db: props.dbName,
   })
 })
 onMounted(async () => {
-  listClDir()
+  listDir()
 })
 </script>
