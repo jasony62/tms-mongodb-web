@@ -15,7 +15,7 @@ export default {
    * @param {*} dbName
    */
   list(
-    bucket: string,
+    bucket: string | undefined,
     dbName: string,
     { dirFullName, keyword, page, size }: any = {}
   ) {
