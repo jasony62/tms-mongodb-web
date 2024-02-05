@@ -112,7 +112,7 @@ _注：想用 docker 快速方便的启动应用，建议新建一个名为 dock
   |模块 |配置 |启动命令 |
   |:---- |:-----|:----|
   |mongodb|启动 mongodb 服务 | |
-  |back | 1、cnpm i，安装依赖包；2、添加.env 文件(禁止提交到 gitlab)，可根据本地服务的端口号覆盖应用中已设置的值来启动后端 |node server.js |
+  |back | 1、pnpm i，安装依赖包；2、添加.env 文件(禁止提交到 gitlab)，可根据本地服务的端口号覆盖应用中已设置的值来启动后端 |node server.js |
   |ue_admin |1、pnpm i，安装依赖包；2、添加.env.development.local，可在本地自定义某些变量的值 |npm run serve| |
 
 访问管理界面，默认用户名口令：root/root
