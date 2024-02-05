@@ -40,11 +40,11 @@ const router = useRouter()
 const props = defineProps({ bucketName: String })
 
 const createSchema = (scope: string) => {
-  router.push({ name: 'schemaEditor', params: { bucketName: props.bucketName, scope: scope } })
+  router.push({ name: 'schemaEditor', params: { bucketName: props.bucketName, scope } })
 }
 const editSchema = (schema: any, scope: string) => {
   store.documentSchemas = [schema]
-  router.push({ name: 'schemaEditor', params: { bucketName: props.bucketName, scope: scope, schemaId: schema._id } })
+  router.push({ name: 'schemaEditor', params: { bucketName: props.bucketName, scope, schemaId: schema._id } })
 }
 const copySchema = (schema: any, index: any, isCopy = false) => {
   let newObj = { ...schema }
