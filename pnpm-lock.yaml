@@ -312,6 +312,9 @@ importers:
       pinia:
         specifier: 2.1.6
         version: 2.1.6(typescript@5.2.2)(vue@3.3.4)
+      pinyin-pro:
+        specifier: ^3.16.4
+        version: 3.16.4
       tms-vue3-ui:
         specifier: ^0.0.87
         version: 0.0.87

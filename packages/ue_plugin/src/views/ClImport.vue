@@ -1,15 +1,20 @@
 <template>
   <div class="flex flex-col gap-4 h-full w-full">
     <el-form label-position="top">
+      <el-form-item label="">
+        <div>
+          <el-checkbox v-model="isOnlyChinese" @change="onChangCheckbox" label="只存在中文行" size="large" />
+        </div>
+      </el-form-item>
       <el-form-item label="列名称（英文）行号">
         <div>
-          <el-input-number v-model="nameRow" :step="1" :min="1" step-strictly />
+          <el-input-number :disabled="isOnlyChinese" v-model="nameRow" :step="1" :min="0" step-strictly />
           <div class="el-upload__tip">* 默认按顺序以英文字母作为列名称</div>
         </div>
       </el-form-item>
       <el-form-item label="列标题名称（中文）行号">
         <div>
-          <el-input-number v-model="titleRow" :step="1" step-strictly />
+          <el-input-number :disabled="isOnlyChinese" v-model="titleRow" :step="1" :min="0" step-strictly />
           <div class="el-upload__tip">* 默认与列名称一致</div>
         </div>
       </el-form-item>
@@ -46,12 +51,39 @@
 import { ref } from 'vue'
 import * as XLSX from 'xlsx'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { pinyin } from 'pinyin-pro'
+
+const pinYinHandler = (str: string) => {
+  let flag = 1;
+  let pinYinRes: any[] = [];
+  let pinYinArr = pinyin(str, { type: 'all', toneType: 'none', v: true });
+  pinYinArr.forEach((x, i) => {
+    if (x.isZh) {
+      i !== 0 && pinYinRes.push('_')
+      pinYinRes.push(x.pinyin)
+      i !== pinYinArr.length - 1 && pinYinRes.push('_')
+    } else {
+      if (/[a-zA-Z]/.test(x.origin)) {
+        pinYinRes.push(x.origin)
+      } else if (/[\d\s\W]/.test(x.origin)) {
+        pinYinRes.push('')
+      } else {
+        pinYinRes.push(`column_${flag}`)
+        flag++
+      }
+    }
+  })
+  let pinyinResStr = pinYinRes.join('').replace(/__+/g, '_');
+  return pinyinResStr.endsWith('_') ? pinyinResStr.slice(0, -1) : pinyinResStr;
+}
 
 const executed = ref(false)
 const responseContent = ref<string>('')
 const fileList = ref([])
 const upload = ref<any>(null)
 const noUpload = ref(true)
+
+const isOnlyChinese = ref(false)
 
 const nameRow = ref(1)
 const titleRow = ref(2)
@@ -70,6 +102,11 @@ interface PluginWidgetResult {
   handleResponse?: boolean
   applyAccessTokenField?: string // 定用户输入中申请添加access_token的字段
   reloadOnClose?: boolean // 关闭部件后是否要刷新数据
+}
+
+const onChangCheckbox = (val: boolean) => {
+  nameRow.value = val ? 0 : 1;
+  titleRow.value = val ? 1 : 2;
 }
 
 // 调用插件的页面
@@ -118,11 +155,28 @@ function handleUpload(req: any) {
     const sh = wb.Sheets[firstSheetName]
     let data = XLSX.utils.sheet_to_json(sh)
     const excelJson = XLSX.utils.sheet_to_json(sh, { header: 1 })
-    const headersName = nameRow.value
-      ? excelJson[nameRow.value - 1]
-      : excelJson[0]
-    const headersTitle = titleRow.value ? excelJson[titleRow.value - 1] : null
-    data = headersTitle ? data.slice(1) : data
+    let headersName: any;
+    const headersTitle: any = titleRow.value ? excelJson[titleRow.value - 1] : null;
+    if (isOnlyChinese.value) {
+      // 只上传中文行，自动添加拼音行
+      headersName = headersTitle.map((x: string) => pinYinHandler(x));
+
+      const newDataTitleMap: any = {};
+      headersTitle.forEach((x: string, i: number) => { newDataTitleMap[x] = headersName[i] });
+      data = data.map((x: any) => {
+        let newX: any = {};
+        for (let key in x) {
+          newX[newDataTitleMap[key]] = x[key]
+        }
+        return newX
+      });
+    } else {
+      headersName = nameRow.value
+        ? excelJson[nameRow.value - 1]
+        : excelJson[0]
+
+      data = headersTitle ? data.slice(1) : data
+    }
 
     if (Caller && typeof data === 'object') {
       const message: PluginWidgetResult = {
@@ -151,6 +205,9 @@ function onExecute() {
   const reg = /^[a-zA-z]/
   if (!reg.test(clName.value)) {
     return ElMessageBox.alert('请输入以英文字母开头的集合名称')
+  }
+  if (!nameRow.value && !titleRow.value) {
+    return ElMessageBox.alert('英文行和中文行必须最少存在一个')
   }
   if (!noUpload.value) upload.value?.submit()
 }
