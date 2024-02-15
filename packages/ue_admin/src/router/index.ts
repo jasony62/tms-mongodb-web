@@ -13,6 +13,7 @@ import Replica from '../views/Replica.vue'
 import Files from '../views/Files.vue'
 import Database from '../views/Database.vue'
 import Collection from '../views/Collection.vue'
+import Spreadsheet from '../views/Spreadsheet.vue'
 import Register from '../views/Register.vue'
 import Smscode from '../views/Smscode.vue'
 import Invite from '../views/Invite.vue'
@@ -93,6 +94,12 @@ const routes: RouteRecordRaw[] = [
         path: `${BucketPart}/collection/:dbName/:clName`,
         name: 'collection',
         component: Collection,
+        props: true,
+      },
+      {
+        path: `${BucketPart}/spreadsheet/:dbName`,
+        name: 'spreadsheet',
+        component: Spreadsheet,
         props: true,
       },
       {

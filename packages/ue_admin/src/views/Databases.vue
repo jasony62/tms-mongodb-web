@@ -6,8 +6,7 @@
         <el-table-column type="selection" width="40"></el-table-column>
         <el-table-column label="数据库" width="180">
           <template #default="scope">
-            <router-link :to="{ name: 'database', params: { dbName: scope.row.name } }">{{ scope.row.name }}
-            </router-link>
+            <el-button type="primary" link size="small" @click="gotoInside(scope.row)">{{ scope.row.name }}</el-button>
           </template>
         </el-table-column>
         <el-table-column prop="title" label="名称" width="180"></el-table-column>
@@ -284,7 +283,17 @@ const { handlePlugin } = useTmwPlugins({
     listDbByKw(null)
   }
 })
-
+/**
+ * 
+ * @param db 
+ */
+const gotoInside = (db: any) => {
+  if (db.spreadsheet === 'yes') {
+    router.push({ name: 'spreadsheet', params: { dbName: db.name } })
+  } else {
+    router.push({ name: 'database', params: { dbName: db.name } })
+  }
+}
 const gotoDocSchemas = (db: any) => {
   router.push({ name: 'databaseDocSchemas', params: { bucketName: props.bucketName, dbName: db.name } })
 }

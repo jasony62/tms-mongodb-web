@@ -21,6 +21,7 @@
     "dayjs": "^1.11.3",
     "debug": "^4.3.4",
     "glob": "10.3.4",
+    "jsondiffpatch": "^0.6.0",
     "jsonpath-plus": "^7.2.0",
     "lodash": "^4.17.21",
     "mongo-escape": "^2.0.6",

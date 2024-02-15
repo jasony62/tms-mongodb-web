@@ -6,6 +6,7 @@ import ModelDoc from './document.js'
 import ModelTag from './tag.js'
 import ModelReplicaMap from './replicaMap.js'
 import ModelSchema from './schema.js'
+import ModelSpreadsheet from './spreadsheet.js'
 
 export {
   ModelBkt,
@@ -16,6 +17,7 @@ export {
   ModelTag,
   ModelReplicaMap,
   ModelSchema,
+  ModelSpreadsheet,
 }
 
 export * from '../plugin/index.js'

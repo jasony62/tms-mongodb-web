@@ -23,6 +23,12 @@
       <el-form-item label="仅系统管理员可见">
         <el-switch v-model="database.adminOnly"></el-switch>
       </el-form-item>
+      <el-form-item label="自由表格">
+        <el-select v-model="database.spreadsheet" placeholder="请选择">
+          <el-option label="不支持" value="no"></el-option>
+          <el-option label="作为自由表格" value="yes"></el-option>
+        </el-select>
+      </el-form-item>
     </el-form>
     <template #footer>
       <el-button type="primary" @click="onSubmit">提交</el-button>
@@ -45,7 +51,7 @@ const props = defineProps({
   database: {
     type: Object,
     default: () => {
-      return { name: '', title: '', description: '', adminOnly: false }
+      return { name: '', title: '', description: '', adminOnly: false, spreadsheet: 'no' }
     }
   },
   onClose: { type: Function, default: (newDb: any) => { } }
