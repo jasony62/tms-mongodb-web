@@ -15,7 +15,7 @@ export enum PluginProfileAmount {
   many = 'many',
 }
 /**
- *
+ * 插件前端组件
  */
 export interface PluginProfileBeforeWidget {
   /**
@@ -53,6 +53,10 @@ export interface PluginProfile {
    * database/collection/document
    */
   scope: PluginProfileScope
+  /**
+   * 适用于自由表格
+   */
+  spreadsheet: boolean
   /**
    * 插件操作显示名称
    */

@@ -31,7 +31,7 @@ export function exportJSON(Context, domain, data, fileName, options) {
   const tmsFs = new LocalFS(Context, domain)
   const uploadObj = new Upload(tmsFs)
 
-  let { forceReplace = 'Y', dir = '', outAmount } = options
+  let { forceReplace = 'Y', dir = '', outAmount = 'one' } = options
   dir = dir ? tmsFs.pathWithRoot(dir) : ''
 
   // 导出目录

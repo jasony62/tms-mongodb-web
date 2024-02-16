@@ -63,7 +63,7 @@ class Plugin extends CtrlBase {
    *               "$ref": "#/components/schemas/ResponseDataArray"
    */
   async list() {
-    const { scope, db, cl } = this.request.query
+    const { scope, db, cl, spreadsheet: forSpreadsheet } = this.request.query
     if (!['document', 'collection', 'database'].includes(scope))
       return new ResultFault(`参数错误[scope=${scope}]`)
 
@@ -100,8 +100,11 @@ class Plugin extends CtrlBase {
         dbBlacklist,
         clBlacklist,
         schemaBlacklist,
+        spreadsheet,
       } = plugin
-
+      if (forSpreadsheet === 'true') {
+        if (spreadsheet !== true) return false
+      }
       // check black list
       if (dbBlacklist && dbBlacklist instanceof RegExp)
         if (dbBlacklist.test(db) === true) return false

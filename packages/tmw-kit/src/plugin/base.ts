@@ -30,6 +30,7 @@ export abstract class PluginBase {
   amount?: PluginProfileAmount // 处理的数据量，zero,single,many
   visible? // 控制适用的文档条件，当文档的key的值和指定值一致时显示
   disabled?: boolean
+  spreadsheet?: boolean // 适用于自由表格？
   beforeWidget?: PluginProfileBeforeWidget
   remoteWidgetOptions?: Function
   dbBlacklist?: RegExp // 黑名单，和数据库名称匹配的正则表达式
@@ -136,6 +137,7 @@ export abstract class PluginBase {
       beforeWidget,
       amount,
       disabled,
+      spreadsheet,
       visible,
       dbBlacklist,
       clBlacklist,
@@ -158,6 +160,7 @@ export abstract class PluginBase {
       beforeWidget,
       amount,
       disabled,
+      spreadsheet,
       visible,
       dbBlacklist,
       clBlacklist,

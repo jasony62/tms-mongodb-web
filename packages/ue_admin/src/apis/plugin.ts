@@ -3,16 +3,18 @@ import { BACK_API_URL } from '@/global'
 import { ApiRst } from './types'
 
 export default {
+  get _baseApi() {
+    return BACK_API_URL() + '/plugins'
+  },
   /**
    * 数据库插件
    * @param bucket 存储空间名称
    * @returns 可用插件列表
    */
   getDatabasePlugins(bucket: string | undefined) {
-    const base = BACK_API_URL() + '/plugins'
     const params = { bucket }
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/list?scope=database`, { params })
+      .get(`${this._baseApi}/list?scope=database`, { params })
       .then((rst: ApiRst) => rst.data.result)
   },
   /**
@@ -23,10 +25,9 @@ export default {
    * @returns 可用插件列表
    */
   getCollectionPlugins(bucket: string | undefined, db: string) {
-    const base = BACK_API_URL() + '/plugins'
     const params = { bucket, db }
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/list?scope=collection`, { params })
+      .get(`${this._baseApi}/list?scope=collection`, { params })
       .then((rst: ApiRst) => rst.data.result)
   },
   /**
@@ -36,11 +37,16 @@ export default {
    * @param cl 集合名称
    * @returns 可用插件列表
    */
-  getCollectionDocPlugins(bucket: string | undefined, db: string, cl: string) {
-    const base = BACK_API_URL() + '/plugins'
-    const params = { bucket, db, cl }
+  getCollectionDocPlugins(
+    bucket: string | undefined,
+    db: string,
+    cl: string,
+    spreadsheet = false
+  ) {
+    const params: any = { bucket, db, cl }
+    if (spreadsheet === true) params.spreadsheet = true
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/list?scope=document`, { params })
+      .get(`${this._baseApi}/list?scope=document`, { params })
       .then((rst: ApiRst) => rst.data.result)
   },
   /**
@@ -49,9 +55,8 @@ export default {
    * @param {object} body - http请求消息体
    */
   execute(params: any, body: any) {
-    const base = BACK_API_URL() + '/plugins'
     return TmsAxios.ins('mongodb-api')
-      .post(`${base}/execute`, body, { params })
+      .post(`${this._baseApi}/execute`, body, { params })
       .then((rst: ApiRst) => rst.data.result)
   },
   /**
@@ -69,10 +74,9 @@ export default {
     plugin: string,
     criteria = {}
   ) {
-    const base = BACK_API_URL() + '/plugins'
     return TmsAxios.ins('mongodb-api')
       .post(
-        `${base}/remoteWidgetOptions`,
+        `${this._baseApi}/remoteWidgetOptions`,
         { filter: criteria },
         {
           params: { bucket, db, cl, plugin },

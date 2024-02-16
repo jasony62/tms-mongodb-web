@@ -7,8 +7,10 @@ import DocCreateAccount from '@/views/DocCreateAccount.vue'
 import DocManageAccount from '@/views/DocManageAccount.vue'
 import DbAdmin from '@/views/DbAdmin.vue'
 import DocExport from '@/views/DocExport.vue'
+import DocSpreadsheetExport from '@/views/DocSpreadsheetExport.vue'
 import DocVersionRepos from '@/views/DocVersionRepos.vue'
 import ClImport from '@/views/ClImport.vue'
+import ClSpreadsheetExport from '@/views/ClSpreadsheetExport.vue'
 import ClVecdb from '@/views/ClVecdb.vue'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
@@ -25,6 +27,11 @@ const routes: RouteRecordRaw[] = [
     path: '/cl-import',
     name: 'clImport',
     component: ClImport,
+  },
+  {
+    path: '/cl-spreadsheet-export',
+    name: 'clSpreadsheetExport',
+    component: ClSpreadsheetExport,
   },
   {
     path: '/cl-vecdb',
@@ -56,11 +63,15 @@ const routes: RouteRecordRaw[] = [
     name: 'docManageAccount',
     component: DocManageAccount,
   },
-
   {
     path: '/doc-export',
     name: 'docExport',
     component: DocExport,
+  },
+  {
+    path: '/doc-spreadsheet-export',
+    name: 'docSpreadsheetExport',
+    component: DocSpreadsheetExport,
   },
   {
     path: '/doc-version-repos',

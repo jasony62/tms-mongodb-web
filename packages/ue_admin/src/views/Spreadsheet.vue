@@ -15,10 +15,16 @@
       </el-breadcrumb>
     </div>
     <!--content-->
-    <div class="flex flex-grow">
-      <div id="x-spreadsheet" class="h-full w-full"></div>
+    <div class="flex flex-grow gap-2">
+      <!--left-->
+      <div id="x-spreadsheet" class="h-full" :class="COMPACT ? 'w-full' : 'w-4/5'"></div>
+      <!--right-->
+      <div class="flex flex-col items-start space-y-3" v-if="!COMPACT">
+        <tmw-plugins :plugins="data.plugins" :handle-plugin="handlePlugin"></tmw-plugins>
+      </div>
     </div>
   </div>
+  <tmw-plugin-widget></tmw-plugin-widget>
 </template>
 <style>
 /* 解决toolbar的padding作为宽度的问题 */
@@ -27,20 +33,30 @@
 }
 </style>
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, reactive } from 'vue'
 import { ArrowRight } from '@element-plus/icons-vue'
 import Spreadsheet from "x-data-spreadsheet"
 //@ts-ignore
 import zhCN from 'x-data-spreadsheet/src/locale/zh-cn'
 import * as jsondiffpatch from 'jsondiffpatch'
 import apiSS from '@/apis/spreadsheet'
-import { EXTRACT_MODE, LABEL, PushSocket } from '@/global'
+import apiPlugin from '@/apis/plugin'
+import { COMPACT_MODE, EXTRACT_MODE, FS_BASE_URL, LABEL, PushSocket } from '@/global'
+import TmwPlugins from '@/components/PluginList.vue'
+import TmwPluginWidget from '@/components/PluginWidget.vue'
+import { useTmwPlugins } from '@/composables/plugins'
+import { ElMessage } from 'element-plus'
 
+const COMPACT = computed(() => COMPACT_MODE())
 const EXTRACT = computed(() => EXTRACT_MODE())
 const DbLabel = computed(() => LABEL('database', '数据库'))
 
 const props = defineProps(['bucketName', 'dbName', 'clName'])
 const { bucketName, dbName, clName } = props
+
+const data = reactive({
+  plugins: [] as any[],
+})
 
 Spreadsheet.locale('zh-cn', zhCN)
 
@@ -216,6 +232,63 @@ const save = async () => {
     latestSpreadsheet.data = JSON.parse(JSON.stringify(newSS.data))
   }
 }
+/**
+ * 
+ * @param plugin 
+ * @param docScope 
+ * @param widgetResult 
+ * @param widgetHandleResponse 
+ * @param widgetDefaultHandleResponseRequired 
+ * @param applyAccessTokenField 
+ */
+function onExecute(
+  plugin: any,
+  docScope = '',
+  widgetResult = undefined,
+  widgetHandleResponse = false,
+  widgetDefaultHandleResponseRequired = false,
+  applyAccessTokenField = ''
+) {
+  const postBody: any = {}
+  if (widgetResult) {
+    postBody.widget = widgetResult
+  }
+  // 插件执行的基础参数
+  let queryParams = {
+    bucket: bucketName ?? '',
+    db: dbName,
+    cl: clName,
+    plugin: plugin.name,
+  }
+  // 执行插件方法
+  return apiPlugin.execute(queryParams, postBody).then((result: any) => {
+    if (typeof result.url === 'string') {
+      /**下载文件*/
+      let url = FS_BASE_URL() + result.url
+      window.open(url)
+    }
+
+    ElMessage.success({
+      message: `插件[${plugin.title}]执行完毕。`,
+      showClose: true,
+    })
+
+    return 'ok'
+  })
+}
+/**
+ * 插件
+ */
+const { handlePlugin } = useTmwPlugins({
+  bucketName,
+  dbName,
+  clName,
+  onExecute,
+  onCreate: (plugin: any, msg: any) => {
+  },
+  onClose: () => {
+  },
+})
 
 onMounted(async () => {
   const existed = await apiSS.list(bucketName, dbName, clName)
@@ -233,6 +306,20 @@ onMounted(async () => {
       const { data } = latestSpreadsheet
       initSpreadsheet(data ? JSON.parse(JSON.stringify(data)) : [])
       subscribe(latestSpreadsheet._id)
+    }
+  }
+  if (dbName) {
+    if (clName) {
+      data.plugins = await apiPlugin.getCollectionDocPlugins(
+        bucketName,
+        dbName,
+        clName,
+        true
+      )
+    } else {
+      data.plugins = await apiPlugin.getCollectionPlugins(
+        bucketName, dbName
+      )
     }
   }
 })
