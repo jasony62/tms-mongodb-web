@@ -1,5 +1,24 @@
 <template>
-  <div id="x-spreadsheet" class="h-full w-full"></div>
+  <div class="flex flex-col gap-2 h-full">
+    <!--header-->
+    <div class="h-12 py-4 px-2">
+      <el-breadcrumb :separator-icon="ArrowRight" v-if="EXTRACT === true">
+        <el-breadcrumb-item>数据库</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ dbName }}</el-breadcrumb-item>
+        <el-breadcrumb-item v-if="clName">{{ clName }}</el-breadcrumb-item>
+      </el-breadcrumb>
+      <el-breadcrumb :separator-icon="ArrowRight" v-else>
+        <el-breadcrumb-item :to="{ name: 'databases' }">{{ DbLabel }}</el-breadcrumb-item>
+        <el-breadcrumb-item v-if="!clName">{{ dbName }}</el-breadcrumb-item>
+        <el-breadcrumb-item v-if="clName" :to="{ name: 'database', params: { dbName } }">{{ dbName }}</el-breadcrumb-item>
+        <el-breadcrumb-item v-if="clName">{{ clName }}</el-breadcrumb-item>
+      </el-breadcrumb>
+    </div>
+    <!--content-->
+    <div class="flex flex-grow">
+      <div id="x-spreadsheet" class="h-full w-full"></div>
+    </div>
+  </div>
 </template>
 <style>
 /* 解决toolbar的padding作为宽度的问题 */
@@ -8,13 +27,17 @@
 }
 </style>
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
+import { ArrowRight } from '@element-plus/icons-vue'
 import Spreadsheet from "x-data-spreadsheet"
 //@ts-ignore
 import zhCN from 'x-data-spreadsheet/src/locale/zh-cn'
 import * as jsondiffpatch from 'jsondiffpatch'
 import apiSS from '@/apis/spreadsheet'
-import { PushSocket } from '@/global'
+import { EXTRACT_MODE, LABEL, PushSocket } from '@/global'
+
+const EXTRACT = computed(() => EXTRACT_MODE())
+const DbLabel = computed(() => LABEL('database', '数据库'))
 
 const props = defineProps(['bucketName', 'dbName', 'clName'])
 const { bucketName, dbName, clName } = props

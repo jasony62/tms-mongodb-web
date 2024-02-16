@@ -94,6 +94,7 @@ class Spreadsheet extends Base {
         styles: [
           {
             bgcolor: '#e7e5e6',
+            align: 'center',
           },
         ],
       }
