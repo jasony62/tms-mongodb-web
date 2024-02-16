@@ -184,7 +184,7 @@ class Spreadsheet extends Base {
     ver: number,
     delta,
     client
-  ): Promise<[boolean, any]> {
+  ): Promise<[boolean, any, any?]> {
     const [isOk, oldSS] = await this.byId(dbSysname, id)
     if (!isOk) return [false, oldSS]
     if (!oldSS) return [false, '要更新的自由表格不存在']
@@ -224,7 +224,7 @@ class Spreadsheet extends Base {
           }
           await this.spreadsheetLogCl(dbSysname).insertOne(changelog)
 
-          return [isOk, ss]
+          return [isOk, ss, changelog]
         }
         return [false, `更新失败[modifiedCount=${modifiedCount}]`]
       })

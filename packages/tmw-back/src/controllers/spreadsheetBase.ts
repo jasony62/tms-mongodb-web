@@ -66,6 +66,30 @@ class SpreadsheetBase extends Base {
 
     return new ResultData(result)
   }
+
+  async subscribe() {
+    if (this.socket) {
+      const { spreadsheetId } = this.request.query
+      if (!spreadsheetId) return new ResultFault('没有指定要订阅表格Id')
+
+      await this.ssHelper.subscribe(spreadsheetId)
+      return new ResultData('ok')
+    }
+
+    return new ResultFault('未配置消息推送服务，不支持订阅')
+  }
+
+  async unsubscribe() {
+    if (this.socket) {
+      const { spreadsheetId } = this.request.query
+      if (!spreadsheetId) return new ResultFault('没有指定要取消订阅的表格Id')
+
+      await this.ssHelper.unsubscribe(spreadsheetId)
+      return new ResultData('ok')
+    }
+
+    return new ResultFault('未配置消息推送服务，不支持订阅')
+  }
 }
 
 export default SpreadsheetBase

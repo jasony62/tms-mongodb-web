@@ -8,21 +8,122 @@
 }
 </style>
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import Spreadsheet from "x-data-spreadsheet"
+//@ts-ignore
 import zhCN from 'x-data-spreadsheet/src/locale/zh-cn'
 import * as jsondiffpatch from 'jsondiffpatch'
 import apiSS from '@/apis/spreadsheet'
-1
+import { PushSocket } from '@/global'
+
 const props = defineProps(['bucketName', 'dbName'])
 const { bucketName, dbName } = props
 
 Spreadsheet.locale('zh-cn', zhCN)
 
 let xs: any = null
-let savedSpreadsheet: any = null
+let latestSpreadsheet: any = null
 const WaitSaveTime = 500 // 等待500毫秒未更新数据自动保存
 let saveTimer: any = null
+
+/**
+ * 合并行数据
+ * 
+ * @param cells 
+ * @param rIndex 
+ * @param sIndex 
+ */
+function mergeCells(cells: any, rIndex: string, sIndex: string) {
+  const cellIndexs = Object.keys(cells)
+  for (const cIndex of cellIndexs) {
+    let cellDelta = cells[cIndex]
+    /**
+     * cell有可能不存在
+     */
+    if (Array.isArray(cellDelta) && cellDelta.length === 1) {// 新增
+      xs.cellText(rIndex, cIndex, cellDelta[0].text, sIndex)
+    } else { // 修改
+      let cell = xs.cell(rIndex, cIndex, sIndex)
+      jsondiffpatch.patch(cell, cellDelta)
+    }
+  }
+}
+/**
+ * 合并行列数据
+ * 
+ * @param rows 
+ * @param sIndex 
+ */
+function mergeRows(rows: any, sIndex: string) {
+  const rowIndexs = Object.keys(rows)
+  for (const rIndex of rowIndexs) {
+    let { cells } = rows[rIndex]
+    if (typeof cells === 'object') {
+      mergeCells(cells, rIndex, sIndex)
+    }
+  }
+}
+/**
+ * 合并样式
+ * x-spreadsheet没有提供设置样式的方法，所以，直接修改数据
+ * @param styles 
+ * @param sIndex 
+ */
+function mergeStyles(styles: any, sIndex: string | number) {
+  if (typeof sIndex === 'string') sIndex = parseInt(sIndex)
+  if (sIndex >= 0 && sIndex < xs.datas.length) {
+    const sheetData = xs.datas[sIndex]
+    if (sheetData) {
+      jsondiffpatch.patch(sheetData.styles, styles)
+    }
+  }
+}
+/**
+ * 合并表格变化数据
+ * 
+ * @param delta 
+ */
+function merge(delta: any) {
+  const sheetIndexs = Object.keys(delta)
+  for (const sIndex of sheetIndexs) {
+    let sheet = delta[sIndex]
+    if (typeof sheet === 'object') {
+      let changed = false
+      let { styles, rows } = sheet
+      if (styles && typeof styles === 'object') {
+        mergeStyles(styles, sIndex)
+        changed = true
+      }
+      if (rows && typeof rows === 'object') {
+        mergeRows(rows, sIndex)
+        changed = true
+      }
+      if (changed) xs.reRender()
+    }
+  }
+}
+/**
+ * 订阅表格数据变化消息
+ * 
+ * @param spreadsheetId 
+ */
+const changelogListener = (data: any) => {
+  const { changelog } = data
+  if (changelog) {
+    const { delta } = changelog
+    if (delta) merge(delta)
+  }
+}
+async function subscribe(spreadsheetId: string) {
+  const socket = await PushSocket()
+  socket.on('tmw-spreadsheet-save', changelogListener)
+  await apiSS.subscribe(spreadsheetId, socket.id)
+}
+async function unsubscribe(spreadsheetId: string) {
+  const socket = await PushSocket()
+  socket.off('tmw-spreadsheet-save', changelogListener)
+  await apiSS.unsubscribe(spreadsheetId, socket.id)
+}
 
 async function initSpreadsheet(data = []) {
   const elWrap = document.querySelector('#x-spreadsheet')
@@ -81,13 +182,15 @@ const save = async () => {
   if (saveTimer) saveTimer = null
   // 获得修改的数据
   let editingData = xs.getData()
-  if (savedSpreadsheet && editingData) {
-    const { ver, data } = savedSpreadsheet
+  if (latestSpreadsheet && editingData) {
+    const { ver, data } = latestSpreadsheet
     const delta = jsondiffpatch.diff(data ?? [], editingData)
     if (!delta) return
-    const newSS = await apiSS.save(bucketName, dbName, savedSpreadsheet._id, ver, delta)
-    savedSpreadsheet.ver = newSS.ver
-    savedSpreadsheet.data = JSON.parse(JSON.stringify(newSS.data))
+    //@ts-ignore
+    delete delta._t
+    const newSS = await apiSS.save(bucketName, dbName, latestSpreadsheet._id, ver, delta)
+    latestSpreadsheet.ver = newSS.ver
+    latestSpreadsheet.data = JSON.parse(JSON.stringify(newSS.data))
   }
 }
 
@@ -96,15 +199,21 @@ onMounted(async () => {
   if (Array.isArray(existed)) {
     if (existed.length === 0) {
       const newSS = await apiSS.create(bucketName, dbName)
-      savedSpreadsheet = newSS
-      initSpreadsheet(JSON.parse(JSON.stringify(newSS.data)))
+      latestSpreadsheet = newSS
     } else if (existed.length === 1) {
       const ss = await apiSS.byId(bucketName, dbName, existed[0]._id)
       if (ss) {
-        savedSpreadsheet = ss
-        initSpreadsheet(ss.data ? JSON.parse(JSON.stringify(ss.data)) : [])
+        latestSpreadsheet = ss
       }
     }
+    if (latestSpreadsheet) {
+      const { data } = latestSpreadsheet
+      initSpreadsheet(data ? JSON.parse(JSON.stringify(data)) : [])
+      subscribe(latestSpreadsheet._id)
+    }
   }
+})
+onUnmounted(async () => {
+  unsubscribe(latestSpreadsheet._id)
 })
 </script>
