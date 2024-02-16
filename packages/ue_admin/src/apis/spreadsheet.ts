@@ -47,8 +47,8 @@ export default {
    *
    * @param {*} dbName
    */
-  list(bucket: string | undefined, dbName: string) {
-    const params = { bucket, db: dbName }
+  list(bucket: string | undefined, dbName: string, clName?: string) {
+    const params = { bucket, db: dbName, cl: clName }
     return TmsAxios.ins('mongodb-api')
       .get(`${this._baseApi}/list`, { params })
       .then((rst: ApiRst) => rst.data.result)
@@ -60,8 +60,8 @@ export default {
    * @param proto
    * @returns
    */
-  create(bucket: string, dbName: string, proto?: any) {
-    const params = { bucket, db: dbName }
+  create(bucket: string, dbName: string, clName?: string, proto?: any) {
+    const params = { bucket, db: dbName, cl: clName }
     return TmsAxios.ins('mongodb-api')
       .post(`${this._baseApi}/create`, proto, { params })
       .then((rst: ApiRst) => rst.data.result)

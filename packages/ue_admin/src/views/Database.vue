@@ -28,7 +28,8 @@
           <el-table-column type="selection" width="48"></el-table-column>
           <el-table-column label="集合名称">
             <template #default="scope">
-              <el-link :underline="false" @click="openCollection(dbName, scope.row)">{{ scope.row.name }}</el-link>
+              <el-button type="primary" link size="small" @click="openCollection(dbName, scope.row)">{{ scope.row.name
+              }}</el-button>
             </template>
           </el-table-column>
           <el-table-column prop="title" label="标题" width="180"></el-table-column>
@@ -149,9 +150,13 @@ onBeforeRouteLeave((to, from) => {
   store.collections.splice(0, store.collections.length)
 })
 
-const openCollection = (dbName: string, row: any) => {
-  if (!row.schema_id) return ElMessageBox.alert('需给集合补充文档内容定义的配置，方便管理文档')
-  router.push({ name: 'collection', params: { dbName, clName: row.name } })
+const openCollection = (dbName: string, collection: any) => {
+  if (!collection.schema_id) return ElMessageBox.alert('需给集合补充文档内容定义的配置，方便管理文档')
+  if (collection.spreadsheet === 'yes') {
+    router.push({ name: 'spreadsheet', params: { dbName, clName: collection.name } })
+  } else {
+    router.push({ name: 'collection', params: { dbName, clName: collection.name } })
+  }
 }
 const createCollection = (() => {
   const clDir = toRaw(currentClDir.value)

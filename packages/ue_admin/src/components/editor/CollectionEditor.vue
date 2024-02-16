@@ -52,6 +52,12 @@
         <el-form-item label="说明">
           <el-input type="textarea" v-model="collection.description"></el-input>
         </el-form-item>
+        <el-form-item label="自由表格">
+          <el-select v-model="collection.spreadsheet" placeholder="请选择">
+            <el-option label="不支持" value="no"></el-option>
+            <el-option label="作为自由表格" value="yes"></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="仅系统管理员可见">
           <el-switch v-model="collection.adminOnly"></el-switch>
         </el-form-item>
@@ -161,6 +167,7 @@ const props = defineProps({
         tags: [],
         dir_full_name: '',
         usage: 0,
+        spreadsheet: 'no',
         adminOnly: false,
         custom: {
           docOperations: {

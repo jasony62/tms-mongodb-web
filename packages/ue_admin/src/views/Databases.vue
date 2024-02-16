@@ -6,7 +6,7 @@
         <el-table-column type="selection" width="40"></el-table-column>
         <el-table-column label="数据库" width="180">
           <template #default="scope">
-            <el-button type="primary" link size="small" @click="gotoInside(scope.row)">{{ scope.row.name }}</el-button>
+            <el-button type="primary" link size="small" @click="openDatabase(scope.row)">{{ scope.row.name }}</el-button>
           </template>
         </el-table-column>
         <el-table-column prop="title" label="名称" width="180"></el-table-column>
@@ -287,7 +287,7 @@ const { handlePlugin } = useTmwPlugins({
  * 
  * @param db 
  */
-const gotoInside = (db: any) => {
+const openDatabase = (db: any) => {
   if (db.spreadsheet === 'yes') {
     router.push({ name: 'spreadsheet', params: { dbName: db.name } })
   } else {

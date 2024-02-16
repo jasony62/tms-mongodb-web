@@ -97,7 +97,7 @@ const routes: RouteRecordRaw[] = [
         props: true,
       },
       {
-        path: `${BucketPart}/spreadsheet/:dbName`,
+        path: `${BucketPart}/spreadsheet/:dbName/:clName?`,
         name: 'spreadsheet',
         component: Spreadsheet,
         props: true,

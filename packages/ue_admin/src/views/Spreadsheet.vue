@@ -16,8 +16,8 @@ import * as jsondiffpatch from 'jsondiffpatch'
 import apiSS from '@/apis/spreadsheet'
 import { PushSocket } from '@/global'
 
-const props = defineProps(['bucketName', 'dbName'])
-const { bucketName, dbName } = props
+const props = defineProps(['bucketName', 'dbName', 'clName'])
+const { bucketName, dbName, clName } = props
 
 Spreadsheet.locale('zh-cn', zhCN)
 
@@ -129,7 +129,7 @@ async function initSpreadsheet(data = []) {
   const elWrap = document.querySelector('#x-spreadsheet')
   if (!elWrap) return
   xs = new Spreadsheet('#x-spreadsheet', {
-    showToolbar: true, showGrid: true, view: {
+    showToolbar: true, showGrid: true, showBottomBar: !clName, view: {
       height: () => elWrap!.clientHeight - 40,
       width: () => elWrap!.clientWidth,
     }
@@ -195,10 +195,10 @@ const save = async () => {
 }
 
 onMounted(async () => {
-  const existed = await apiSS.list(bucketName, dbName)
+  const existed = await apiSS.list(bucketName, dbName, clName)
   if (Array.isArray(existed)) {
     if (existed.length === 0) {
-      const newSS = await apiSS.create(bucketName, dbName)
+      const newSS = await apiSS.create(bucketName, dbName, clName)
       latestSpreadsheet = newSS
     } else if (existed.length === 1) {
       const ss = await apiSS.byId(bucketName, dbName, existed[0]._id)

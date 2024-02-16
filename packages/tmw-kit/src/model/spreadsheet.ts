@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb'
 import Base from './base.js'
 import * as jsondiffpatch from 'jsondiffpatch'
+import ModelSchema from './schema.js'
 /**
  * 自由表格集合
  */
@@ -25,7 +26,6 @@ function testRowsConflict(rows, logRows) {
 
   return false
 }
-
 /**
  * 自由表格
  */
@@ -60,6 +60,46 @@ class Spreadsheet extends Base {
     }
 
     return false
+  }
+  /**
+   * 根据集合创建表格
+   *
+   * @param cl
+   * @returns
+   */
+  async _createClSpreadsheet(cl) {
+    if (!cl?.schema_id) return { name: cl.title, rows: {} }
+    const modelSc = new ModelSchema(this.mongoClient, this.bucket, this.client)
+    const properties = await modelSc.bySchemaId(cl.schema_id)
+    if (properties && typeof properties === 'object') {
+      const rows = Object.entries(properties).reduce(
+        (rows: any, [key, prop]: [string, any], index) => {
+          rows['0'].cells[index] = { text: key, editable: false, style: 0 }
+          rows['1'].cells[index] = {
+            text: prop.title,
+            editable: false,
+            style: 0,
+          }
+          return rows
+        },
+        { '0': { cells: {} }, '1': { cells: {} } }
+      )
+      return {
+        name: cl.title,
+        rows,
+        freeze: 'A3',
+        cols: {
+          len: Object.keys(rows['0'].cells).length,
+        },
+        styles: [
+          {
+            bgcolor: '#e7e5e6',
+          },
+        ],
+      }
+    }
+
+    return { name: cl.title, rows: {} }
   }
   /**
    * 清理数据
@@ -126,8 +166,9 @@ class Spreadsheet extends Base {
    *
    * @param dbSysname
    */
-  async list(dbSysname: string): Promise<[boolean, any]> {
+  async list(dbSysname: string, clSysname: string): Promise<[boolean, any]> {
     const query: any = {}
+    if (clSysname) query.cl = { sysname: clSysname }
     const projection: any = { _id: 1, ver: 1 }
     const cl = this.spreadsheetCl(dbSysname)
     const ss = await cl.find(query, { projection }).toArray()
@@ -140,10 +181,23 @@ class Spreadsheet extends Base {
    * @param dbSysname 所在的数据库名称
    * @returns 新建的自由表格文档对象或错误信息
    */
-  async create(dbSysname: string, client): Promise<[boolean, any]> {
-    const newSS: any = {
-      data: [{ name: '表格1', rows: [] }],
-      ver: 1,
+  async create(
+    client,
+    dbSysname: string,
+    cl?: any,
+    proto?: any
+  ): Promise<[boolean, any]> {
+    const newSS: any = { ver: 1 }
+    if (cl) {
+      newSS.cl = { sysname: cl.sysname }
+      let clProto = await this._createClSpreadsheet(cl)
+      newSS.data = [clProto]
+    } else {
+      newSS.data = [{ name: '表格1', rows: {} }]
+    }
+
+    if (proto && typeof proto === 'object') {
+      Object.assign(newSS.data[0], proto)
     }
 
     return this.spreadsheetCl(dbSysname)

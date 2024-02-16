@@ -88,6 +88,12 @@ class Helper {
       dbName = this.ctrl.request.query.db
       clName = this.ctrl.request.query.cl
     }
+    if (!dbName || !clName) {
+      if (bThrowNotFound)
+        throw Error(`没有获得有效的数据库和集合名称，无法执行查找操作`)
+
+      return null
+    }
     const modelCl = new ModelCl(
       this.ctrl.mongoClient,
       this.ctrl.bucket,

@@ -68,7 +68,8 @@ class SpreadsheetHelper extends Helper {
 
   async list() {
     const db = await this.findRequestDb()
-    return this.modelSS.list(db.sysname)
+    const cl = await this.findRequestCl(false)
+    return this.modelSS.list(db.sysname, cl?.sysname)
   }
 
   async byId(id: string) {
@@ -81,9 +82,10 @@ class SpreadsheetHelper extends Helper {
     return this.modelSS.changelog(db.sysname, id, skipVer)
   }
 
-  async create() {
+  async create(proto?: any) {
     const db = await this.findRequestDb()
-    return this.modelSS.create(db.sysname, this.ctrl.client)
+    const cl = await this.findRequestCl(false)
+    return this.modelSS.create(this.ctrl.client, db.sysname, cl, proto)
   }
 
   async save(id: string, ver: number, delta) {
