@@ -77,7 +77,8 @@ ARG vite_admin_base_url
 RUN echo VITE_BASE_URL=$vite_admin_base_url >> /usr/src/tmw/ue_admin/.env
 RUN cd /usr/src/tmw/ue_admin && pnpm build
 ### 建立空的前端配置文件
-RUN mkdir -p /usr/src/tfd/ue/dist/${vite_base_url:-admin} && echo '{}' >> /usr/src/tfd/ue/dist/${vite_base_url:-admin}/settings.json
+# RUN mkdir -p /usr/src/tmw/ue_admin/dist/${vite_base_url:-admin} && echo '{}' >> /usr/src/tmw/ue_admin/dist/${vite_base_url:-admin}/settings.json
+COPY ./docker/ue_admin/settings.json.template /usr/src/tmw/ue_admin/dist/${vite_base_url:-admin}/settings.json.template
 
 ## ue_plugin
 COPY ./packages/ue_plugin /usr/src/tmw/ue_plugin
@@ -97,7 +98,7 @@ COPY --from=builder /usr/src/tmw/ue_plugin/dist /usr/share/nginx/html
 
 # ue_admin
 COPY --from=builder /usr/src/tmw/ue_admin/dist /usr/share/nginx/html
-COPY ./docker/ue_admin/nginx.conf.template /etc/nginx/nginx.conf.template
+COPY ./docker/ue_admin/nginx.conf.template /nginx/nginx.conf.template
 COPY ./docker/ue_admin/start_nginx.sh /usr/local/bin/start_nginx.sh
 RUN chmod +x /usr/local/bin/start_nginx.sh
 
@@ -125,5 +126,6 @@ COPY ./docker/back/config /usr/app/tmw/config
 # 可以暴露的端口
 EXPOSE 80
 EXPOSE 3000
+EXPOSE 3001
 
 ENTRYPOINT ["start_all.sh"]

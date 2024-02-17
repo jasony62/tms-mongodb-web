@@ -6,7 +6,6 @@ type Globalsettings = {
   authApiPort: number
   backApiBase: string
   backApiPort: number
-  backPushBase: string
   backPushPort: number
   loginCaptchaDisabled: boolean
   externalFsUrl: string
@@ -26,10 +25,7 @@ let _globalsettings: Globalsettings = {
   authApiPort: parseInt(import.meta.env.VITE_AUTH_API_PORT ?? location.port),
   backApiBase: import.meta.env.VITE_BACK_API_BASE || 'api',
   backApiPort: parseInt(import.meta.env.VITE_BACK_API_PORT ?? location.port),
-  backPushBase: import.meta.env.VITE_BACK_PUHS_BASE || '',
-  backPushPort: parseInt(
-    import.meta.env.VITE_BACK_PUSH_PORT ?? location.port + 1
-  ),
+  backPushPort: parseInt(import.meta.env.VITE_BACK_PUSH_PORT ?? -1),
   loginCaptchaDisabled: /yes|true/i.test(
     import.meta.env.VITE_LOGIN_CAPTCHA_DISABLED
   ),
@@ -50,8 +46,6 @@ export function init(settings: Globalsettings) {
   if (settings.authApiPort) _globalsettings.authApiPort = settings.authApiPort
   if (settings.backApiBase) _globalsettings.backApiBase = settings.backApiBase
   if (settings.backApiPort) _globalsettings.backApiPort = settings.backApiPort
-  if (settings.backPushBase)
-    _globalsettings.backPushBase = settings.backPushBase
   if (settings.backPushPort)
     _globalsettings.backPushPort = settings.backPushPort
   if (settings.loginCaptchaDisabled)
@@ -132,20 +126,16 @@ let _BACK_PUSH_URL: string
 export const BACK_PUSH_URL = () => {
   if (_BACK_PUSH_URL) return _BACK_PUSH_URL
 
-  let base = _globalsettings.backPushBase
-  if (/^http/.test(base)) {
-    _BACK_PUSH_URL = base
-  } else {
+  if (_globalsettings.backPushPort > 0) {
     let url
     let { protocol, hostname } = location
     url = `${protocol}//${hostname}`
 
     let port = _globalsettings.backPushPort
     if (port && port !== 80 && port !== 443) url += `:${port}`
-
-    if (base) url += '/' + base.replace(/^\/*/, '')
-
     _BACK_PUSH_URL = url
+  } else {
+    _BACK_PUSH_URL = ''
   }
 
   return _BACK_PUSH_URL
@@ -156,13 +146,17 @@ export const BACK_PUSH_URL = () => {
 let _PushSocket: any
 export const PushSocket = async () => {
   if (_PushSocket) return _PushSocket
-  let socket = io(BACK_PUSH_URL())
-  return new Promise((resolve) => {
-    socket.on('tms-koa-push', async (data: any) => {
-      _PushSocket = socket
-      resolve(_PushSocket)
+  let url = BACK_PUSH_URL()
+  if (url) {
+    let socket = io(url)
+    return new Promise((resolve) => {
+      socket.on('tms-koa-push', async (data: any) => {
+        _PushSocket = socket
+        resolve(_PushSocket)
+      })
     })
-  })
+  }
+  return null
 }
 /**
  * 文件下载起始地址

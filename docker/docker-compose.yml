@@ -18,6 +18,7 @@ services:
     container_name: tmw-back
     # ports:
     #   - '3030:3000'
+    #   - '3031:3001'
     # environment:
     #   默认
     #   - NODE_ENV=production
@@ -84,17 +85,17 @@ services:
     build:
       context: ../
       dockerfile: packages/ue_admin/Dockerfile
-      args:
-        vue_app_login_key_username: username
-        vue_app_login_key_password: password
-        vue_app_login_key_pin: pin
-        vue_app_base_url: /admin
-        vue_app_back_auth_base: /auth
-        vue_app_back_api_base: /api
-        vue_app_back_api_fs: /fs
-        vue_app_front_doceditor_add: ''
-        vue_app_front_doceditor_modify: ''
-        vue_app_storetoken_way: session
+      # args:
+      #   vue_app_login_key_username: username
+      #   vue_app_login_key_password: password
+      #   vue_app_login_key_pin: pin
+      #   vue_app_base_url: /admin
+      #   vue_app_back_auth_base: /auth
+      #   vue_app_back_api_base: /api
+      #   vue_app_back_api_fs: /fs
+      #   vue_app_front_doceditor_add: ''
+      #   vue_app_front_doceditor_modify: ''
+      #   vue_app_storetoken_way: session
     image: tmw/ue-admin:latest
     container_name: tmw-ue_admin
     # ports:

@@ -69,7 +69,7 @@ http {
             index index.html;
             try_files $uri $uri/ $NGINX_UE_PLUGIN_BASE_URL/index.html;
         }
-        
+
         # 转发前端的API请求到本地服务
         location / {
             proxy_pass $NGINX_BACK_BASE_URL;

@@ -153,15 +153,21 @@ const changelogListener = (data: any) => {
     if (delta) merge(delta)
   }
 }
+
 async function subscribe(spreadsheetId: string) {
   const socket = await PushSocket()
-  socket.on('tmw-spreadsheet-save', changelogListener)
-  await apiSS.subscribe(spreadsheetId, socket.id)
+  if (socket) {
+    socket.on('tmw-spreadsheet-save', changelogListener)
+    await apiSS.subscribe(spreadsheetId, socket.id)
+  }
 }
+
 async function unsubscribe(spreadsheetId: string) {
   const socket = await PushSocket()
-  socket.off('tmw-spreadsheet-save', changelogListener)
-  await apiSS.unsubscribe(spreadsheetId, socket.id)
+  if (socket) {
+    socket.off('tmw-spreadsheet-save', changelogListener)
+    await apiSS.unsubscribe(spreadsheetId, socket.id)
+  }
 }
 
 async function initSpreadsheet(data = []) {
