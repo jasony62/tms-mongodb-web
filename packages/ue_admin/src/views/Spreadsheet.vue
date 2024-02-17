@@ -318,7 +318,7 @@ onMounted(async () => {
       )
     } else {
       data.plugins = await apiPlugin.getCollectionPlugins(
-        bucketName, dbName
+        bucketName, dbName, true
       )
     }
   }

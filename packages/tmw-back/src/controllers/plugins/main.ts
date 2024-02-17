@@ -102,8 +102,11 @@ class Plugin extends CtrlBase {
         schemaBlacklist,
         spreadsheet,
       } = plugin
+      // 自由表格适用的插件
       if (forSpreadsheet === 'true') {
         if (spreadsheet !== true) return false
+      } else {
+        if (spreadsheet === true) return false
       }
       // check black list
       if (dbBlacklist && dbBlacklist instanceof RegExp)

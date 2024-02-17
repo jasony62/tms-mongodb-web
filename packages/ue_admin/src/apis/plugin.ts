@@ -11,8 +11,9 @@ export default {
    * @param bucket 存储空间名称
    * @returns 可用插件列表
    */
-  getDatabasePlugins(bucket: string | undefined) {
-    const params = { bucket }
+  getDatabasePlugins(bucket: string | undefined, spreadsheet = false) {
+    const params: any = { bucket }
+    if (spreadsheet === true) params.spreadsheet = true
     return TmsAxios.ins('mongodb-api')
       .get(`${this._baseApi}/list?scope=database`, { params })
       .then((rst: ApiRst) => rst.data.result)
@@ -24,8 +25,13 @@ export default {
    * @param cl 集合名称
    * @returns 可用插件列表
    */
-  getCollectionPlugins(bucket: string | undefined, db: string) {
-    const params = { bucket, db }
+  getCollectionPlugins(
+    bucket: string | undefined,
+    db: string,
+    spreadsheet = false
+  ) {
+    const params: any = { bucket, db }
+    if (spreadsheet === true) params.spreadsheet = true
     return TmsAxios.ins('mongodb-api')
       .get(`${this._baseApi}/list?scope=collection`, { params })
       .then((rst: ApiRst) => rst.data.result)
