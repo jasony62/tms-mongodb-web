@@ -43,11 +43,11 @@ importers:
         specifier: ^5.0.1
         version: 5.0.1
       tms-koa:
-        specifier: ^0.2.5
-        version: 0.2.5(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.10)
+        specifier: ^0.2.7
+        version: 0.2.7(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.10)
       tms-koa-account:
         specifier: ^0.2.5
-        version: 0.2.5(neo4j-driver@4.4.10)(openapi-types@12.1.0)
+        version: 0.2.5(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.8)
 
   packages/tmw-back:
     dependencies:
@@ -85,8 +85,8 @@ importers:
         specifier: ^4.6.8
         version: 4.6.8
       tms-koa:
-        specifier: ^0.2.6
-        version: 0.2.6(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.8)
+        specifier: ^0.2.7
+        version: 0.2.7(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.8)
       tms-koa-account:
         specifier: ^0.2.5
         version: 0.2.5(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.8)
@@ -183,8 +183,8 @@ importers:
         specifier: ^5.0.1
         version: 5.0.1
       tms-koa:
-        specifier: ^0.2.4
-        version: 0.2.4(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.10)
+        specifier: ^0.2.7
+        version: 0.2.7(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.10)
       ts-jest:
         specifier: ^29.0.3
         version: 29.0.3(@babel/core@7.18.10)(jest@29.3.1)(typescript@5.2.2)
@@ -192,8 +192,8 @@ importers:
   packages/ue_admin:
     dependencies:
       '@antv/layout':
-        specifier: ^0.3.5
-        version: 0.3.5(dagre@0.8.5)
+        specifier: ^0.3.25
+        version: 0.3.25(dagre@0.8.5)
       '@antv/x6':
         specifier: 2.4.0
         version: 2.4.0
@@ -213,11 +213,11 @@ importers:
         specifier: ^2.5.0
         version: 2.5.0(vue@3.3.4)
       elkjs:
-        specifier: ^0.8.2
-        version: 0.8.2
+        specifier: ^0.9.1
+        version: 0.9.1
       gitart-vue-dialog:
-        specifier: ^2.4.0
-        version: 2.4.0(vue@3.3.4)
+        specifier: ^3.1.0
+        version: 3.1.0(vue@3.3.4)
       handlebars:
         specifier: ^4.7.7
         version: 4.7.7
@@ -225,11 +225,11 @@ importers:
         specifier: ^0.6.0
         version: 0.6.0
       jsoneditor:
-        specifier: ^9.9.0
-        version: 9.9.0
+        specifier: ^10.0.1
+        version: 10.0.1
       jsonpath-plus:
-        specifier: ^7.2.0
-        version: 7.2.0
+        specifier: ^8.0.0
+        version: 8.0.0
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -274,8 +274,8 @@ importers:
         specifier: ^4.1.7
         version: 4.1.7
       '@types/jsoneditor':
-        specifier: ^9.5.1
-        version: 9.5.1
+        specifier: ^9.9.5
+        version: 9.9.5
       '@types/lodash':
         specifier: ^4.14.182
         version: 4.14.182
@@ -371,8 +371,8 @@ importers:
   packages/webhook_demo:
     dependencies:
       tms-koa:
-        specifier: ^0.2.5
-        version: 0.2.5(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.10)
+        specifier: ^0.2.7
+        version: 0.2.7(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.10)
     devDependencies:
       rimraf:
         specifier: ^3.0.2
@@ -388,64 +388,58 @@ packages:
       '@jridgewell/trace-mapping': 0.3.15
     dev: true
 
-  /@antv/g-webgpu-core@0.5.6:
-    resolution: {integrity: sha512-DPiH3GkAUiT0Q+LAKeImpI+IOQ/gP2w6HstYKivpFIpBPIvZ/9equM3icVrn1iDfDkZANVXQ1PppcO3xBv1ZTw==}
+  /@antv/g-webgpu-core@0.7.2:
+    resolution: {integrity: sha512-xUMmop7f3Rs34zFYKXLqHhDR1CQTeDl/7vI7Sn3X/73BqJc3X3HIIRvm83Fg2CjVACaOzw4WeLRXNaOCp9fz9w==}
     dependencies:
       eventemitter3: 4.0.7
       gl-matrix: 3.4.3
-      inversify: 5.1.1
-      inversify-inject-decorators: 3.1.0
+      lodash: 4.17.21
       probe.gl: 3.5.2
-      reflect-metadata: 0.1.13
     dev: false
 
-  /@antv/g-webgpu-engine@0.5.6:
-    resolution: {integrity: sha512-D311qYUefdEFwLayutIHqucrAY3cAGH3BdnXS37nq+0nsglrHcNP0Ab1YTinn9RihLoY3yXFTLzrYkJHJbZXDg==}
+  /@antv/g-webgpu-engine@0.7.2:
+    resolution: {integrity: sha512-lx8Y93IW2cnJvdoDRKyMmTdYqSC1pOmF0nyG3PGGyA0NI9vBYVgO0KTF6hkyWjdTWVq7XDZyf/h8CJridLh3lg==}
     dependencies:
-      '@antv/g-webgpu-core': 0.5.6
-      '@webgpu/glslang': 0.0.15
-      '@webgpu/types': 0.0.31
+      '@antv/g-webgpu-core': 0.7.2
       gl-matrix: 3.4.3
-      hammerjs: 2.0.8
-      inversify: 5.1.1
-      inversify-inject-decorators: 3.1.0
-      probe.gl: 3.5.2
-      reflect-metadata: 0.1.13
+      lodash: 4.17.21
       regl: 1.7.0
     dev: false
 
-  /@antv/g-webgpu@0.5.5:
-    resolution: {integrity: sha512-TxtBniINFq1jFGEPo46xjJfrbJbUqkFd5wmsRs3tcg/7J7xoldOP1kEadpI3AJG9knMYdE92VpILw1VPd6DgzQ==}
+  /@antv/g-webgpu@0.7.2:
+    resolution: {integrity: sha512-kw+oYGsdvj5qeUfy5DPb/jztZBV+2fmqBd3Vv8NlKatfBmv8AirYX/CCW74AUSdWm99rEiLyxFB1VdRZ6b/wnQ==}
     dependencies:
-      '@antv/g-webgpu-core': 0.5.6
-      '@antv/g-webgpu-engine': 0.5.6
-      '@webgpu/types': 0.0.31
+      '@antv/g-webgpu-core': 0.7.2
+      '@antv/g-webgpu-engine': 0.7.2
       gl-matrix: 3.4.3
       gl-vec2: 1.3.0
-      hammerjs: 2.0.8
-      inversify: 5.1.1
-      inversify-inject-decorators: 3.1.0
-      polyline-miter-util: 1.0.1
-      polyline-normals: 2.0.2
-      probe.gl: 3.5.2
-      reflect-metadata: 0.1.13
+      lodash: 4.17.21
     dev: false
 
   /@antv/graphlib@1.2.0:
     resolution: {integrity: sha512-hhJOMThec51nU4Fe5p/viLlNIL71uDEgYFzKPajWjr2715SFG1HAgiP6AVylIeqBcAZ04u3Lw7usjl/TuI5RuQ==}
     dev: false
 
-  /@antv/layout@0.3.5(dagre@0.8.5):
-    resolution: {integrity: sha512-kbPwf9KXWr0/vFdfS6ZBMmzTpUyUs8KFE47Wdiwf9QY2FQJb/D5dy9pKzUDTMg2NALNMiqNe/5dgn0CqmO0xbA==}
+  /@antv/layout@0.3.25(dagre@0.8.5):
+    resolution: {integrity: sha512-d29Aw1PXoAavMRZy7iTB9L5rMBeChFEX0BJ9ELP4TI35ySdCu07YbmPo9ju9OH/6sG2/NB3o85Ayxrre3iwX/g==}
     dependencies:
-      '@antv/g-webgpu': 0.5.5
+      '@antv/g-webgpu': 0.7.2
       '@antv/graphlib': 1.2.0
+      '@antv/util': 3.3.6
       d3-force: 2.1.1
       d3-quadtree: 2.0.0
       dagre-compound: 0.0.11(dagre@0.8.5)
-      ml-matrix: 6.10.2
+      ml-matrix: 6.5.0
     transitivePeerDependencies:
       - dagre
+    dev: false
+
+  /@antv/util@3.3.6:
+    resolution: {integrity: sha512-Oj2uAwBWEpEKbYcYgSJ/B6zv7t515L+JZzSpnkZeez/qwvDbS6s80lQRuzWzVhWCTHKSPLkgImxhkV9nzLmv4Q==}
+    dependencies:
+      fast-deep-equal: 3.1.3
+      gl-matrix: 3.4.3
+      tslib: 2.6.2
     dev: false
 
   /@antv/x6-common@2.0.7:
@@ -1843,17 +1837,6 @@ packages:
     dependencies:
       vary: 1.1.2
 
-  /@koa/router@12.0.0:
-    resolution: {integrity: sha512-cnnxeKHXlt7XARJptflGURdJaO+ITpNkOHmQu7NHmCoRinPbyvFzce/EG/E8Zy81yQ1W9MoSdtklc3nyaDReUw==}
-    engines: {node: '>= 12'}
-    deprecated: '**IMPORTANT 10x+ PERFORMANCE UPGRADE**: Please upgrade to v12.0.1+ as we have fixed an issue with debuglog causing 10x slower router benchmark performance, see https://github.com/koajs/router/pull/173'
-    dependencies:
-      http-errors: 2.0.0
-      koa-compose: 4.1.0
-      methods: 1.1.2
-      path-to-regexp: 6.2.1
-    dev: true
-
   /@koa/router@12.0.1:
     resolution: {integrity: sha512-ribfPYfHb+Uw3b27Eiw6NPqjhIhTpVFzEWLwyc/1Xp+DCdwRRyIlAUODX+9bPARF6aQtUu1+/PHzdNvRzcs/+Q==}
     engines: {node: '>= 12'}
@@ -1939,7 +1922,6 @@ packages:
       '@redis/client': ^1.0.0
     dependencies:
       '@redis/client': 1.5.9
-    dev: false
 
   /@redis/client@1.5.11:
     resolution: {integrity: sha512-cV7yHcOAtNQ5x/yQl7Yw1xf53kO0FNDTdDU6bFIMbW6ljB7U7ns0YRM+QIkpoqTAt6zK5k9Fq0QWlUbLcq9AvA==}
@@ -1956,7 +1938,6 @@ packages:
       cluster-key-slot: 1.1.2
       generic-pool: 3.9.0
       yallist: 4.0.0
-    dev: false
 
   /@redis/graph@1.1.0(@redis/client@1.5.11):
     resolution: {integrity: sha512-16yZWngxyXPd+MJxeSr0dqh2AIOi8j9yXKcKCwVaKDbH3HTuETpDVPcLujhFYVPtYrngSco31BUcSa9TH31Gqg==}
@@ -1971,7 +1952,6 @@ packages:
       '@redis/client': ^1.0.0
     dependencies:
       '@redis/client': 1.5.9
-    dev: false
 
   /@redis/json@1.0.4(@redis/client@1.5.9):
     resolution: {integrity: sha512-LUZE2Gdrhg0Rx7AN+cZkb1e6HjoSKaeeW8rYnt89Tly13GBI5eP4CwDVr+MY8BAYfCg4/N15OUrtLoona9uSgw==}
@@ -1979,7 +1959,6 @@ packages:
       '@redis/client': ^1.0.0
     dependencies:
       '@redis/client': 1.5.9
-    dev: false
 
   /@redis/json@1.0.6(@redis/client@1.5.11):
     resolution: {integrity: sha512-rcZO3bfQbm2zPRpqo82XbW8zg4G/w4W3tI7X8Mqleq9goQjAGLL7q/1n1ZX4dXEAmORVZ4s1+uKLaUOg7LrUhw==}
@@ -1994,7 +1973,6 @@ packages:
       '@redis/client': ^1.0.0
     dependencies:
       '@redis/client': 1.5.9
-    dev: false
 
   /@redis/search@1.1.5(@redis/client@1.5.11):
     resolution: {integrity: sha512-hPP8w7GfGsbtYEJdn4n7nXa6xt6hVZnnDktKW4ArMaFQ/m/aR7eFvsLQmG/mn1Upq99btPJk+F27IQ2dYpCoUg==}
@@ -2016,7 +1994,6 @@ packages:
       '@redis/client': ^1.0.0
     dependencies:
       '@redis/client': 1.5.9
-    dev: false
 
   /@rollup/rollup-android-arm-eabi@4.9.6:
     resolution: {integrity: sha512-MVNXSSYN6QXOulbHpLMKYi60ppyO13W9my1qogeiAqtjb2yR4LSmfU2+POvDkLzhjYLXz9Rf9+9a3zFHW1Lecg==}
@@ -2685,6 +2662,13 @@ packages:
       ajv: 6.12.6
     dev: true
 
+  /@types/jsoneditor@9.9.5:
+    resolution: {integrity: sha512-+Wex7QCirPcG90WA8/CmvDO21KUjz63/G7Yk52Yx/NhWHw5DyeET/L+wjZHAeNeNCCnMOTEtVX5gc3F4UXwXMQ==}
+    dependencies:
+      '@types/ace': 0.0.48
+      ajv: 6.12.6
+    dev: true
+
   /@types/keygrip@1.0.2:
     resolution: {integrity: sha512-GJhpTepz2udxGexqos8wgaBx4I/zWIDPh/KOGEwAqtuGDkOUJu5eFvwmdBX4AmB8Odsr+9pHCQqiAqDL/yKMKw==}
 
@@ -2936,14 +2920,6 @@ packages:
       - vue
     dev: false
 
-  /@webgpu/glslang@0.0.15:
-    resolution: {integrity: sha512-niT+Prh3Aff8Uf1MVBVUsaNjFj9rJAKDXuoHIKiQbB+6IUP/3J3JIhBNyZ7lDhytvXxw6ppgnwKZdDJ08UMj4Q==}
-    dev: false
-
-  /@webgpu/types@0.0.31:
-    resolution: {integrity: sha512-cvvCMSZBT4VsRNtt0lI6XQqvOIIWw6+NRUtnPUMDVDgsI4pCZColz3qzF5QcP9wIYOHEc3jssIBse8UWONKhlQ==}
-    dev: false
-
   /@zxing/text-encoding@0.9.0:
     resolution: {integrity: sha512-U/4aVJ2mxI0aDNI8Uq0wEhMgY+u4CNtEb0om3+y3+niDAsoTCOB33UF0sxpzqzdqXLqmvc+vZyAt4O8pPdfkwA==}
     requiresBuild: true
@@ -2955,6 +2931,10 @@ packages:
     dependencies:
       mime-types: 2.1.35
       negotiator: 0.6.3
+
+  /ace-builds@1.32.6:
+    resolution: {integrity: sha512-dO5BnyDOhCnznhOpILzXq4jqkbhRXxNkf3BuVTmyxGyRLrhddfdyk6xXgy+7A8LENrcYoFi/sIxMuH3qjNUN4w==}
+    dev: false
 
   /ace-builds@1.7.1:
     resolution: {integrity: sha512-1mcbP5kXvr729sJ9dA/8tul0pjuvKbma0LF/ZMRwPEwjoNWNpe/x0OXpaPJo36aRpZCjRZMl5zsME3hAKTiaNw==}
@@ -3929,8 +3909,8 @@ packages:
       - '@vue/composition-api'
     dev: false
 
-  /elkjs@0.8.2:
-    resolution: {integrity: sha512-L6uRgvZTH+4OF5NE/MBbzQx/WYpru1xCBE9respNj6qznEewGUIfhzmm7horWWxbNO2M0WckQypGctR8lH79xQ==}
+  /elkjs@0.9.1:
+    resolution: {integrity: sha512-JWKDyqAdltuUcyxaECtYG6H4sqysXSLeoXuGUBfRNESMTkj+w+qdb0jya8Z/WI0jVd03WQtCGhS6FOFtlhD5FQ==}
     dev: false
 
   /emittery@0.13.1:
@@ -4316,8 +4296,8 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /gitart-vue-dialog@2.4.0(vue@3.3.4):
-    resolution: {integrity: sha512-ko7q7ftZ8gJ0gOsL6/9NYlSyc1DEI2Ez32kXmRfO64mreYMD6z2U4eporL/lz1kBP9XtgORVBJcvXDeJDL/94g==}
+  /gitart-vue-dialog@3.1.0(vue@3.3.4):
+    resolution: {integrity: sha512-GgBKIUsPunotMtPkgQU32H3M7g2+rFtDkHeQ1vCQaXPAZ6VDqsaTviZFmeZ+nLHFibT7Vw/p5PkZaJepAfaw0Q==}
     peerDependencies:
       vue: ^3.2.6
     dependencies:
@@ -4401,11 +4381,6 @@ packages:
     resolution: {integrity: sha512-jcLLfkpoVGmH7/InMC/1hIvOPSUh38oJtGhvrOFGzioE1DZ+0YW16RgmOJhHiuWTvGiJQ9Z1Ik43JvkRPRvE+A==}
     dependencies:
       lodash: 4.17.21
-    dev: false
-
-  /hammerjs@2.0.8:
-    resolution: {integrity: sha512-tSQXBXS/MWQOn/RKckawJ61vvsDpCom87JgxiYdGwHdOa0ht0vzUWDlfioofFCRU0L+6NGDt6XzbgoJvZkMeRQ==}
-    engines: {node: '>=0.8.0'}
     dev: false
 
   /handlebars@4.7.7:
@@ -4595,14 +4570,6 @@ packages:
       string-width: 2.1.1
       strip-ansi: 3.0.1
       through: 2.3.8
-    dev: false
-
-  /inversify-inject-decorators@3.1.0:
-    resolution: {integrity: sha512-/seBlVp5bXrLQS3DpKEmlgeZL6C7Tf/QITd+IMQrbBBGuCbxb7k3hRAWu9XSreNpFzLgSboz3sClLSEmGwHphw==}
-    dev: false
-
-  /inversify@5.1.1:
-    resolution: {integrity: sha512-j8grHGDzv1v+8T1sAQ+3boTCntFPfvxLCkNcxB1J8qA0lUN+fAlSyYd+RXKvaPRL4AGyPxViutBEJHNXOyUdFQ==}
     dev: false
 
   /ip@2.0.0:
@@ -5241,6 +5208,20 @@ packages:
       diff-match-patch: 1.0.5
     dev: false
 
+  /jsoneditor@10.0.1:
+    resolution: {integrity: sha512-a9eNs1XegXBrZSMakpDQTCx6z2GyjnbfxDJ9vd2Vn+lD2zORbQ7vyTqSZLI7Ihz8qel1C8KHFy7EFxtp3d++RA==}
+    dependencies:
+      ace-builds: 1.32.6
+      ajv: 6.12.6
+      javascript-natural-sort: 0.7.1
+      jmespath: 0.16.0
+      json-source-map: 0.6.1
+      jsonrepair: 3.6.0
+      mobius1-selectr: 2.4.13
+      picomodal: 3.0.0
+      vanilla-picker: 2.12.2
+    dev: false
+
   /jsoneditor@9.9.0:
     resolution: {integrity: sha512-NHJhyaqcc5U33ah6dEcd0S9b14Auocpe9nydvC9ui7Uq/vjEFnsd7ot6O9Jqwv53B7DmHFUWq5cT4qeWh4MEoA==}
     dependencies:
@@ -5267,8 +5248,18 @@ packages:
     engines: {node: '>=12.0.0'}
     dev: false
 
+  /jsonpath-plus@8.0.0:
+    resolution: {integrity: sha512-+AOBHcQvRr8DcWVIkfOCCCLSlYgQuNZ+gFNqwkBrNpdUfdfkcrbO4ml3F587fWUMFOmoy6D9c+5wrghgjN3mbg==}
+    engines: {node: '>=14.0.0'}
+    dev: false
+
   /jsonrepair@2.2.1:
     resolution: {integrity: sha512-o9Je8TceILo872uQC9fIBJm957j1Io7z8Ca1iWIqY6S5S65HGE9XN7XEEw7+tUviB9Vq4sygV89MVTxl+rhZyg==}
+    hasBin: true
+    dev: false
+
+  /jsonrepair@3.6.0:
+    resolution: {integrity: sha512-ZvOmoq35LhlDaf1W3uT7e17Bh2dYbln1+pdJ1KUIMkRAoUC4mvXX+dbr9Ih6dDmYvB0mdijAucyPk4xX1cEjww==}
     hasBin: true
     dev: false
 
@@ -5683,10 +5674,9 @@ packages:
       ml-array-min: 1.2.3
     dev: false
 
-  /ml-matrix@6.10.2:
-    resolution: {integrity: sha512-+yxwzMazC76DAsgEvDrdCfRMH7+lO7UdnuWllavnPeWkPD2oIBA6rLzvst7BFYUxzgRz/h6V6lLzYIYtTvINbw==}
+  /ml-matrix@6.5.0:
+    resolution: {integrity: sha512-sms732Dge+rs5dU4mnjE0oqLWm1WujvR2fr38LgUHRG2cjXjWlO3WJupLYaSz3++2iYr0UrGDK72OAivr3J8dg==}
     dependencies:
-      is-any-array: 2.0.0
       ml-array-rescale: 1.3.7
     dev: false
 
@@ -6090,18 +6080,6 @@ packages:
       find-up: 4.1.0
     dev: true
 
-  /polyline-miter-util@1.0.1:
-    resolution: {integrity: sha512-/3u91zz6mBerBZo6qnOJOTjv7EfPhKtsV028jMyj86YpzLRNmCCFfrX7IO9tCEQ2W4x45yc+vKOezjf7u2Nd6Q==}
-    dependencies:
-      gl-vec2: 1.3.0
-    dev: false
-
-  /polyline-normals@2.0.2:
-    resolution: {integrity: sha512-dpHrAi61ymhsB4N0XlNb3YpkKJeTFnXBXDWpeH8Ucstq0TUZrCN3YK4Jlgk8ofMWN25lhGC4wnxLMv+TUK8rig==}
-    dependencies:
-      polyline-miter-util: 1.0.1
-    dev: false
-
   /postcss-import@14.1.0(postcss@8.4.14):
     resolution: {integrity: sha512-flwI+Vgm4SElObFVPpTIT7SU7R3qk2L7PyduMcokiaVKuWv9d/U+Gm/QAd8NDLuykTWTkcrjOeD2Pp1rMeBTGw==}
     engines: {node: '>=10.0.0'}
@@ -6360,11 +6338,6 @@ packages:
       '@redis/json': 1.0.4(@redis/client@1.5.9)
       '@redis/search': 1.1.3(@redis/client@1.5.9)
       '@redis/time-series': 1.0.5(@redis/client@1.5.9)
-    dev: false
-
-  /reflect-metadata@0.1.13:
-    resolution: {integrity: sha512-Ts1Y/anZELhSsjMcU605fU9RE4Oi3p5ORujwbIKXfWa+0Zxs510Qrmrce5/Jowq3cHSZSJqBjypxmHarc+vEWg==}
-    dev: false
 
   /regenerator-runtime@0.10.5:
     resolution: {integrity: sha512-02YopEIhAgiBHWeoTiA8aitHDt8z6w+rQqNuIftlM+ZtvSl/brTouaU7DW6GO/cHtvxJvS4Hwv2ibKdxIRi24w==}
@@ -7002,33 +6975,6 @@ packages:
     resolution: {integrity: sha512-3f0uOEAQwIqGuWW2MVzYg8fV/QNnc/IpuJNG837rLuczAaLVHslWHZQj4IGiEl5Hs3kkbhwL9Ab7Hrsmuj+Smw==}
     dev: true
 
-  /tms-koa-account@0.2.5(neo4j-driver@4.4.10)(openapi-types@12.1.0):
-    resolution: {integrity: sha512-FbgniOSAY2bKwZZMQFti2UffGSu/sX0/ltgBZtioFF1bgP++pIOqh7UYtEVWsy8fj1vbo9fNdJAyZaKkwZ9Z2g==}
-    peerDependencies:
-      redis: 4.1.0
-    dependencies:
-      '@log4js-node/log4js-api': 1.0.2
-      debug: 4.3.4
-      dotenv-flow: 3.2.0
-      lodash: 4.17.21
-      mongodb: 5.6.0
-      nanoid: 5.0.1
-      password-validator: 5.3.0
-      svg-captcha: 1.4.0
-      tms-koa: 0.2.5(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.10)
-      tms-koa-crypto: 0.2.5
-    transitivePeerDependencies:
-      - '@aws-sdk/credential-providers'
-      - aws-crt
-      - bufferutil
-      - mongodb-client-encryption
-      - neo4j-driver
-      - openapi-types
-      - snappy
-      - supports-color
-      - utf-8-validate
-    dev: true
-
   /tms-koa-account@0.2.5(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.8):
     resolution: {integrity: sha512-FbgniOSAY2bKwZZMQFti2UffGSu/sX0/ltgBZtioFF1bgP++pIOqh7UYtEVWsy8fj1vbo9fNdJAyZaKkwZ9Z2g==}
     peerDependencies:
@@ -7055,7 +7001,6 @@ packages:
       - snappy
       - supports-color
       - utf-8-validate
-    dev: false
 
   /tms-koa-captcha@0.2.5(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.8):
     resolution: {integrity: sha512-8jYsLDXQrL+l0h24fBiXXxO5qU8/1ttNCKPAB+rVspHQj6nxbB61dpGSgGUFodCSGb7lcLvl9VdUBzwj7AZS4A==}
@@ -7083,85 +7028,6 @@ packages:
     resolution: {integrity: sha512-FjYgUdhu9z9Hi4XIatf0Hgq7txdBKlQZ7bILACxK43+Q5Cn1LSd9z4Vk7oQvfQtPrBSTxhrqaiT9ae5Pdjwc0Q==}
     dependencies:
       crypto-js: 4.1.1
-
-  /tms-koa@0.2.4(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.10):
-    resolution: {integrity: sha512-6+VhfRaHZDC/DuS6mKSnGnirdox/UcAK2PXCShHyu1RD9lJ4z6AUw2UkyBf0+h4Vzls8cQliXR8A2kDPAsfifw==}
-    peerDependencies:
-      neo4j-driver: ^4.4.2
-      redis: ^4.6.10
-    dependencies:
-      '@koa/cors': 4.0.0
-      '@koa/router': 12.0.0
-      '@log4js-node/log4js-api': 1.0.2
-      agenda: 5.0.0
-      dayjs: 1.11.7
-      debug: 4.3.4
-      dotenv-flow: 4.0.0
-      fs-extra: 11.1.1
-      glob: 10.3.4
-      jsonwebtoken: 9.0.2
-      koa: 2.14.2
-      koa-body: 6.0.1
-      koa-send: 5.0.1
-      koa-static: 5.0.0
-      lodash: 4.17.21
-      minio: 7.1.3
-      mongodb: 5.6.0
-      neo4j-driver: 4.4.10
-      prom-client: 15.0.0
-      redis: 4.6.10
-      socket.io: 4.7.2
-      swagger-jsdoc: 6.2.1(openapi-types@12.1.0)
-      uuid: 9.0.0
-    transitivePeerDependencies:
-      - '@aws-sdk/credential-providers'
-      - aws-crt
-      - bufferutil
-      - mongodb-client-encryption
-      - openapi-types
-      - snappy
-      - supports-color
-      - utf-8-validate
-    dev: true
-
-  /tms-koa@0.2.5(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.10):
-    resolution: {integrity: sha512-KMUnE6649cF04/98mtRXdCB9Inb+ulHwY//nLv6fEg5UnjCfiQu3atdzHzDzzFgDhYqGNjqnNGTmYeP+16mC2Q==}
-    peerDependencies:
-      neo4j-driver: ^4.4.2
-      redis: ^4.6.10
-    dependencies:
-      '@koa/cors': 4.0.0
-      '@koa/router': 12.0.1
-      '@log4js-node/log4js-api': 1.0.2
-      agenda: 5.0.0
-      dayjs: 1.11.7
-      debug: 4.3.4
-      dotenv-flow: 4.0.0
-      fs-extra: 11.1.1
-      glob: 10.3.4
-      jsonwebtoken: 9.0.2
-      koa: 2.14.2
-      koa-body: 6.0.1
-      koa-send: 5.0.1
-      koa-static: 5.0.0
-      lodash: 4.17.21
-      minio: 7.1.3
-      mongodb: 5.6.0
-      neo4j-driver: 4.4.10
-      prom-client: 15.0.0
-      redis: 4.6.10
-      socket.io: 4.7.2
-      swagger-jsdoc: 6.2.1(openapi-types@12.1.0)
-      uuid: 9.0.0
-    transitivePeerDependencies:
-      - '@aws-sdk/credential-providers'
-      - aws-crt
-      - bufferutil
-      - mongodb-client-encryption
-      - openapi-types
-      - snappy
-      - supports-color
-      - utf-8-validate
 
   /tms-koa@0.2.5(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.8):
     resolution: {integrity: sha512-KMUnE6649cF04/98mtRXdCB9Inb+ulHwY//nLv6fEg5UnjCfiQu3atdzHzDzzFgDhYqGNjqnNGTmYeP+16mC2Q==}
@@ -7201,10 +7067,48 @@ packages:
       - snappy
       - supports-color
       - utf-8-validate
-    dev: false
 
-  /tms-koa@0.2.6(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.8):
-    resolution: {integrity: sha512-RkR0DEDezt3hwEgGRB2TNuMCDIfc19GYa+18TDN7HgfbdHbDppeYcVOzJfJlfKZlHe1OsaawLiZAl+ncq003RA==}
+  /tms-koa@0.2.7(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.10):
+    resolution: {integrity: sha512-+CFzW7MmBjraZnKAhSi706E0AeXDDCJLpKpcP5yFjVM4stYXA2QWzj88rBZutdi9DTDQK7ydl6n0XavRs5ZBbA==}
+    peerDependencies:
+      neo4j-driver: ^4.4.2
+      redis: ^4.6.10
+    dependencies:
+      '@koa/cors': 4.0.0
+      '@koa/router': 12.0.1
+      '@log4js-node/log4js-api': 1.0.2
+      agenda: 5.0.0
+      dayjs: 1.11.7
+      debug: 4.3.4
+      dotenv-flow: 4.0.0
+      fs-extra: 11.1.1
+      glob: 10.3.4
+      jsonwebtoken: 9.0.2
+      koa: 2.14.2
+      koa-body: 6.0.1
+      koa-send: 5.0.1
+      koa-static: 5.0.0
+      lodash: 4.17.21
+      minio: 7.1.3
+      mongodb: 5.6.0
+      neo4j-driver: 4.4.10
+      prom-client: 15.0.0
+      redis: 4.6.10
+      socket.io: 4.7.2
+      swagger-jsdoc: 6.2.1(openapi-types@12.1.0)
+      uuid: 9.0.0
+    transitivePeerDependencies:
+      - '@aws-sdk/credential-providers'
+      - aws-crt
+      - bufferutil
+      - mongodb-client-encryption
+      - openapi-types
+      - snappy
+      - supports-color
+      - utf-8-validate
+
+  /tms-koa@0.2.7(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.8):
+    resolution: {integrity: sha512-+CFzW7MmBjraZnKAhSi706E0AeXDDCJLpKpcP5yFjVM4stYXA2QWzj88rBZutdi9DTDQK7ydl6n0XavRs5ZBbA==}
     peerDependencies:
       neo4j-driver: ^4.4.2
       redis: ^4.6.10
@@ -7447,6 +7351,12 @@ packages:
 
   /vanilla-picker@2.12.1:
     resolution: {integrity: sha512-2qrEP9VYylKXbyzXKsbu2dferBTvqnlsr29XjHwFE+/MEp0VNj6oEUESLDtKZ7DWzGdSv1x/+ujqFZF+KsO3cg==}
+    dependencies:
+      '@sphinxxxx/color-conversion': 2.2.2
+    dev: false
+
+  /vanilla-picker@2.12.2:
+    resolution: {integrity: sha512-dk0gNeNL9fQFGd1VEhNDQfFlbCqAiksRh1H2tVPlavkH88n/a/y30rXi9PPKrYPTK5kEfPO4xcldt4ts/1wIAg==}
     dependencies:
       '@sphinxxxx/color-conversion': 2.2.2
     dev: false
