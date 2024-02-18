@@ -4,6 +4,7 @@ import {
   ModelDb,
   ModelCl,
   ModelDoc,
+  ModelSpreadsheet,
   createDocWebhook,
 } from 'tmw-kit'
 import { PluginBase } from 'tmw-kit/dist/plugin/index.js'
@@ -53,7 +54,8 @@ class ImportPlugin extends PluginBase {
       file,
       fileName,
       clName,
-      headers: headersName,
+      clSpreadsheet, // 字符串 no/yes
+      headers: headersName, // 字符串数组
       headersTitle,
     } = ctrl.request.body.widget
     const dbName = ctrl.request.query.db
@@ -105,67 +107,40 @@ class ImportPlugin extends PluginBase {
     debug(`创建了文档列定义[id=${schemaRst}]`)
 
     // 创建集合
-    const [clFlag, clRst] = await this.createCl(ctrl, existDb, {
+    const clInfo: any = {
       clName,
       title: fileName,
       schema_id: schemaRst,
-    })
+      clSpreadsheet,
+    }
+    const [clFlag, clRst] = await this.createCl(ctrl, existDb, clInfo)
     if (!clFlag) return { code: 10001, msg: clRst }
     debug(
       `创建集合对象[db.name=${existDb.name}][db.sysname=${existDb.sysname}][name=${clName}][sysname=${clName}]`
     )
 
-    const modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
-    const docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK)
-
-    let finishRows = rowsJson.map((row) => {
-      let newRow: any = {}
-      for (let k in row) {
-        let oneRow = _.get(row, k)
-        if (typeof oneRow === 'number') oneRow = String(oneRow)
-        _.set(newRow, k.split('.'), oneRow)
-      }
-      // 加工数据
-      modelDoc.processBeforeStore(newRow, 'insert')
-
-      return newRow
-    })
-
-    try {
-      // 通过webhook处理数据
-      let beforeRst: any = await docWebhook.beforeCreate(finishRows, existDb)
-
-      if (beforeRst.passed !== true)
-        return {
-          code: 10001,
-          msg: beforeRst.reason || '操作被Webhook.beforeCreate阻止',
-        }
-
-      if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
-        finishRows = beforeRst.rewrited
-
-      // 数据存储到集合中
-      const rst = await this.findSysColl(ctrl, existDb, clName)
-        .insertMany(finishRows)
-        .then(async (r) => {
-          debug(`导入的数据已存储到[db=${existDb.name}][cl=${clName}]`)
-          await modelDoc.dataActionLog(r.ops, '创建', existDb.name, clName)
-          return finishRows
-        })
-
-      // 通过webhook处理数据
-      let afterRst: any = await docWebhook.afterCreate(rst, existDb)
-      if (afterRst.passed !== true)
-        return {
-          code: 10001,
-          msg: afterRst.reason || '操作被Webhook.afterCreate阻止',
-        }
-
-      return { code: 0, msg: '导入成功' }
-    } catch (error) {
-      debug(`数据存储错误: ${error.message}`)
-      return { code: 10001, msg: error.message }
+    let result: any
+    if (clSpreadsheet === 'yes') {
+      /**
+       * 表格数据添加到自由表格中
+       */
+      const modelCl = new ModelCl(ctrl.mongoClient, ctrl.bucket, ctrl.client)
+      const newCl = await modelCl.byName(existDb, clName)
+      result = await this.createSpreadsheet(
+        ctrl,
+        existDb,
+        newCl,
+        headersName,
+        rowsJson
+      )
+    } else {
+      /**
+       * 表格数据添加到集合中
+       */
+      result = await this.createDocuments(ctrl, existDb, clName, rowsJson)
     }
+
+    return result
   }
   /**
    * 存储管理对象的集合
@@ -276,12 +251,12 @@ class ImportPlugin extends PluginBase {
 
     tpl.name = schemaName
     tpl.title = schemaTitle
-    if (existDb) {
-      tpl.db = { sysname: existDb.sysname, name: existDb.name }
-    }
+    if (existDb) tpl.db = { sysname: existDb.sysname, name: existDb.name }
+
     if (ctrl.bucket) tpl.bucket = ctrl.bucket.name
     tpl.body.properties = properties
     tpl.TMW_CREATE_TIME = dayjs().format('YYYY-MM-DD HH:mm:ss')
+    tpl.TMW_CREATE_FROM = 'collection'
 
     return this.clMongoObj(ctrl)
       .insertOne(tpl)
@@ -316,12 +291,107 @@ class ImportPlugin extends PluginBase {
       },
     }
 
-    const { clName, title, schema_id } = info
+    const { clName, title, schema_id, clSpreadsheet } = info
     clTpl.name = clName
     clTpl.sysname = clName
     clTpl.title = title
     clTpl.schema_id = schema_id
+    if (clSpreadsheet === 'yes') clTpl.spreadsheet = 'yes'
+
     return await modelCl.create(existDb, clTpl)
+  }
+  /**
+   * 添加文档
+   *
+   * @param ctrl
+   * @param existDb
+   * @param clName
+   * @param rowsJson
+   * @returns
+   */
+  async createDocuments(ctrl, existDb, clName, rowsJson) {
+    const modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
+    const docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK)
+
+    let finishRows = rowsJson.map((row) => {
+      let newRow: any = {}
+      for (let k in row) {
+        let oneRow = _.get(row, k)
+        if (typeof oneRow === 'number') oneRow = String(oneRow)
+        _.set(newRow, k.split('.'), oneRow)
+      }
+      // 加工数据
+      modelDoc.processBeforeStore(newRow, 'insert')
+
+      return newRow
+    })
+
+    try {
+      // 通过webhook处理数据
+      let beforeRst: any = await docWebhook.beforeCreate(finishRows, existDb)
+
+      if (beforeRst.passed !== true)
+        return {
+          code: 10001,
+          msg: beforeRst.reason || '操作被Webhook.beforeCreate阻止',
+        }
+
+      if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
+        finishRows = beforeRst.rewrited
+
+      // 数据存储到集合中
+      const rst = await this.findSysColl(ctrl, existDb, clName)
+        .insertMany(finishRows)
+        .then(async (r) => {
+          debug(`导入的数据已存储到[db=${existDb.name}][cl=${clName}]`)
+          await modelDoc.dataActionLog(r.ops, '创建', existDb.name, clName)
+          return finishRows
+        })
+
+      // 通过webhook处理数据
+      let afterRst: any = await docWebhook.afterCreate(rst, existDb)
+      if (afterRst.passed !== true)
+        return {
+          code: 10001,
+          msg: afterRst.reason || '操作被Webhook.afterCreate阻止',
+        }
+
+      return { code: 0, msg: '导入成功' }
+    } catch (error) {
+      debug(`数据存储错误: ${error.message}`)
+      return { code: 10001, msg: error.message }
+    }
+  }
+  /**
+   * 创建自由表格并填写数据
+   *
+   * @param ctrl
+   * @param tmwDb
+   * @param tmwCl
+   * @param headersName
+   * @param rowsJson
+   * @returns
+   */
+  async createSpreadsheet(ctrl, tmwDb, tmwCl, headersName, rowsJson) {
+    const modelSS = new ModelSpreadsheet(
+      ctrl.mongoClient,
+      ctrl.bucket,
+      ctrl.client
+    )
+
+    const rows = rowsJson.reduce((rows, rowJson, index) => {
+      const cells = {}
+      headersName.forEach((name, index) => {
+        if (rowJson[name]) cells['' + index] = { text: rowJson[name] }
+      })
+      rows['' + index] = { cells }
+      return rows
+    }, {})
+
+    const proto: any = { rows }
+    await modelSS.create(ctrl.client, tmwDb.sysname, tmwCl, proto)
+
+    return { code: 0, msg: '导入成功' }
   }
 }
 

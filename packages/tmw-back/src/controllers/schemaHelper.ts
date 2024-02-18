@@ -1,3 +1,4 @@
+import { ModelSpreadsheet } from 'tmw-kit'
 import { Helper } from 'tmw-kit/dist/ctrl/index.js'
 
 /**
@@ -7,6 +8,14 @@ import { Helper } from 'tmw-kit/dist/ctrl/index.js'
 class SchemaHelper extends Helper {
   constructor(ctrl: any) {
     super(ctrl)
+  }
+  get _modelSpreadsheet() {
+    let model = new ModelSpreadsheet(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
+    return model
   }
   /**
    * 新建文档列定义
@@ -63,6 +72,14 @@ class SchemaHelper extends Helper {
       .then((schema) => {
         return schema
       })
+  }
+  /**
+   * 删除定义
+   *
+   * @param id
+   */
+  async removeById(id: string): Promise<[boolean, string | null]> {
+    return this._modelSpreadsheet().removeById(id)
   }
 }
 

@@ -141,6 +141,12 @@ class Spreadsheet extends Base {
 
     return [true, ss]
   }
+  async byCl(dbSysname: string, clSysname: string): Promise<[boolean, any]> {
+    const query: any = { 'cl.sysname': clSysname }
+    const ss = await this.spreadsheetCl(dbSysname).findOne(query)
+
+    return [true, ss]
+  }
   /**
    * 返回指定修改日志
    *
@@ -196,9 +202,23 @@ class Spreadsheet extends Base {
     } else {
       newSS.data = [{ name: '表格1', rows: {} }]
     }
-
+    /**
+     * 合并rows
+     */
     if (proto && typeof proto === 'object') {
+      const protoRows = proto.rows
+      if (protoRows) delete proto.rows
       Object.assign(newSS.data[0], proto)
+      if (protoRows && newSS.data[0].rows) {
+        const offset = 2
+        let len = 0
+        Object.entries(protoRows).forEach(([key, val]) => {
+          let rIndex = parseInt(key) + offset
+          newSS.data[0].rows['' + rIndex] = val
+          if (rIndex > len) len = rIndex + 1
+        })
+        newSS.data[0].rows.len = len
+      }
     }
 
     return this.spreadsheetCl(dbSysname)
@@ -284,6 +304,23 @@ class Spreadsheet extends Base {
         return [false, `更新失败[modifiedCount=${modifiedCount}]`]
       })
       .catch((err) => [false, err.message])
+  }
+  /**
+   * 删除集合对应的自由表格
+   *
+   * @param dbSysname
+   * @param clSysname
+   */
+  async removeByCl(dbSysname: string, clSysname: string) {
+    const [isOk, ss]: any = await this.byCl(dbSysname, clSysname)
+    if (!isOk) return false
+
+    if (ss) {
+      return this.spreadsheetLogCl(dbSysname)
+        .deleteMany({ spreadsheetId: ss._id.toString() })
+        .then(() => this.spreadsheetCl(dbSysname).deleteOne({ _id: ss._id }))
+    }
+    return false
   }
 }
 

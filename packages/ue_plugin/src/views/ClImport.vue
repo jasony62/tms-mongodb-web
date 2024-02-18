@@ -24,6 +24,13 @@
           <div class="el-upload__tip">* 应符合集合名称（英文）规则</div>
         </div>
       </el-form-item>
+      <el-form-item label="自由表格">
+        <el-select v-model="clSpreadsheet" placeholder="请选择">
+          <el-option label="否" value="no"></el-option>
+          <el-option label="作为自由表格" value="yes"></el-option>
+        </el-select>
+        <div class="el-upload__tip">* 是否生成的集合采用自由表格方式管理数据？</div>
+      </el-form-item>
       <el-form-item>
         <el-upload ref="upload" :action="''" :http-request="handleUpload" :file-list="fileList" :auto-upload="false"
           :limit="1" :on-change="handleChange">
@@ -53,7 +60,7 @@ import * as XLSX from 'xlsx'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { pinyin } from 'pinyin-pro'
 
-const pinYinHandler = (str: string) => {
+const pinYinHandler = (str: string): string => {
   let flag = 1;
   let pinYinRes: any[] = [];
   let pinYinArr = pinyin(str, { type: 'all', toneType: 'none', v: true });
@@ -88,6 +95,7 @@ const isOnlyChinese = ref(false)
 const nameRow = ref(1)
 const titleRow = ref(2)
 const clName = ref('')
+const clSpreadsheet = ref('no')
 
 enum PluginWidgetAction {
   Created = 'Created',
@@ -154,8 +162,8 @@ function handleUpload(req: any) {
     const firstSheetName = wb.SheetNames[0]
     const sh = wb.Sheets[firstSheetName]
     let data = XLSX.utils.sheet_to_json(sh)
-    const excelJson = XLSX.utils.sheet_to_json(sh, { header: 1 })
-    let headersName: any;
+    const excelJson = XLSX.utils.sheet_to_json<string[]>(sh, { header: 1 })
+    let headersName: string[];
     const headersTitle: any = titleRow.value ? excelJson[titleRow.value - 1] : null;
     if (isOnlyChinese.value) {
       // 只上传中文行，自动添加拼音行
@@ -187,6 +195,7 @@ function handleUpload(req: any) {
           headers: headersName,
           headersTitle,
           clName: clName.value,
+          clSpreadsheet: clSpreadsheet.value,
         },
         applyAccessTokenField: 'url',
       }

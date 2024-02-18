@@ -173,19 +173,11 @@ class Schema extends SchemaBase {
     const { id } = this.request.query
     if (!id) return new ResultFault('参数不完整')
 
-    // 是否正在使用
-    let rst = await this.clMongoObj.findOne({
-      schema_id: id,
-      type: 'collection',
-    })
-    if (rst) {
-      return new ResultFault(
-        `文档列定义正在被[${rst.database}]数据库中的[${rst.name}]集合使用，不能删除`
-      )
-    }
-    const query: any = { _id: new ObjectId(id), type: 'schema' }
-    if (this.bucketObj) query.bucket = this.bucketObj.name
-    return this.clMongoObj.deleteOne(query).then(() => new ResultData('ok'))
+    const [isOk, result] = await this.schemaHelper.removeById(id)
+
+    if (!isOk) return new ResultFault(result)
+
+    return new ResultData('ok')
   }
 }
 

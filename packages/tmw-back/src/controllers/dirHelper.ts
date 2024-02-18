@@ -8,6 +8,14 @@ class DirHelper extends CtrlHelper {
   constructor(ctrl) {
     super(ctrl)
   }
+  get _modelDir() {
+    let model = new ModelDir(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
+    return model
+  }
   /**
    * 创建集合分类
    */
@@ -16,49 +24,25 @@ class DirHelper extends CtrlHelper {
     info,
     parentFullName?: string
   ): Promise<boolean | any> {
-    let modelDir = new ModelDir(
-      this.ctrl.mongoClient,
-      this.ctrl.bucket,
-      this.ctrl.client
-    )
-
-    return await modelDir.create(existDb, info, parentFullName)
+    return await this._modelDir.create(existDb, info, parentFullName)
   }
   /**
    * 创建集合分类
    */
   async updateDir(existDb, id: string, info): Promise<boolean | any> {
-    let modelDir = new ModelDir(
-      this.ctrl.mongoClient,
-      this.ctrl.bucket,
-      this.ctrl.client
-    )
-
-    return await modelDir.update(existDb, id, info)
+    return await this._modelDir.update(existDb, id, info)
   }
   /**
    * 创建集合分类
    */
   async removeDir(existDb, id: string): Promise<[boolean, string | null]> {
-    let modelDir = new ModelDir(
-      this.ctrl.mongoClient,
-      this.ctrl.bucket,
-      this.ctrl.client
-    )
-
-    return await modelDir.remove(existDb, id)
+    return await this._modelDir.remove(existDb, id)
   }
   /**
    * 列出集合分类
    */
   async listDir(existDb): Promise<[boolean, any]> {
-    const modelDir = new ModelDir(
-      this.ctrl.mongoClient,
-      this.ctrl.bucket,
-      this.ctrl.client
-    )
-
-    let [flag, result] = await modelDir.list(existDb)
+    let [flag, result] = await this._modelDir.list(existDb)
     if (!flag) {
       return [flag, result]
     }

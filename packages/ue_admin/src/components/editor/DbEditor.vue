@@ -25,7 +25,7 @@
       </el-form-item>
       <el-form-item label="自由表格">
         <el-select v-model="database.spreadsheet" placeholder="请选择">
-          <el-option label="不支持" value="no"></el-option>
+          <el-option label="否" value="no"></el-option>
           <el-option label="作为自由表格" value="yes"></el-option>
         </el-select>
       </el-form-item>

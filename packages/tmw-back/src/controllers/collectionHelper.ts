@@ -43,6 +43,18 @@ class CollectionHelper extends Helper {
 
     return await modelCl.create(existDb, info)
   }
+  /**
+   * 删除集合
+   */
+  async removeCl(tmwDb, tmwCl) {
+    let modelCl = new ModelCl(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
+    let result = await modelCl.remove(tmwDb, tmwCl._id.toString())
+    return result
+  }
 }
 
 export default CollectionHelper

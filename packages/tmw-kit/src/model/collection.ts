@@ -4,6 +4,8 @@ import Base from './base.js'
 import unescape from 'mongo-escape'
 import { ElasticSearchIndex } from '../elasticsearch/index.js'
 import { SchemaIter } from '../schema.js'
+import ModelSpreadsheet from './spreadsheet.js'
+import ModelSchema from './schema.js'
 import Document from './document.js'
 import Debug from 'debug'
 
@@ -230,6 +232,66 @@ class Collection extends Base {
     return [true, info]
   }
   /**
+   * 删除集合
+   * @param tmwDb
+   * @param id
+   * @returns
+   */
+  async remove(tmwDb, id: string) {
+    const tmwCl = await this.byId(tmwDb, id)
+    /**
+     * 删除自由表格数据
+     */
+    if (tmwCl.spreadsheet === 'yes') {
+      await this._removeSpreadsheet(tmwDb, tmwCl)
+    }
+    /**
+     * 删除集合的元数据定义
+     */
+    await this.clMongoObj.deleteOne({ _id: tmwCl._id })
+    /**
+     * 删除schema
+     */
+    await this._removeClSchema(tmwCl)
+    /**
+     * 删除数据库集合
+     */
+    return this.mongoClient
+      .db(tmwDb.sysname)
+      .dropCollection(tmwCl.sysname)
+      .then(() => 'ok')
+      .catch((error) => {
+        if (error.message === 'ns not found') return 'ok'
+        return error.message
+      })
+  }
+  /**
+   * 删除关联的自由表格
+   * @param tmwDb
+   * @param tmwCl
+   */
+  async _removeSpreadsheet(tmwDb, tmwCl) {
+    const modelSS = new ModelSpreadsheet(
+      this.mongoClient,
+      this.bucket,
+      this.client
+    )
+    await modelSS.removeByCl(tmwDb.sysname, tmwCl.sysname)
+  }
+  /**
+   * 删除集合关联的文档列定义
+   * @param tmwCl
+   */
+  async _removeClSchema(tmwCl) {
+    const modelSc = new ModelSchema(this.mongoClient, this.bucket, this.client)
+    const schema = await modelSc.bySchemaId(tmwCl.schema_id, {
+      onlyProperties: false,
+    })
+    if (schema.TMW_CREATE_FROM === 'collection') {
+      await modelSc.removeById(tmwCl.schema_id)
+    }
+  }
+  /**
    *
    * @param {object} tmwCl
    */
@@ -308,16 +370,39 @@ class Collection extends Base {
   /**
    * 获得用户指定的集合信息
    *
-   * @param {object|string} db - 集合所属数据库
+   * @param {object|string} tmwDb - 集合所属数据库
+   * @param {string} id - 用户指定集合Id
+   *
+   * @returns {object} 集合对象
+   */
+  async byId(tmwDb, id: string) {
+    const query: any = { _id: new ObjectId(id), type: 'collection' }
+
+    if (typeof tmwDb === 'object') query['db.sysname'] = tmwDb.sysname
+    else if (typeof tmwDb === 'string') query['db.name'] = tmwDb
+
+    if (this.bucket) query.bucket = this.bucket.name
+
+    const client = this.mongoClient
+    const clMongoObj = client.db(META_ADMIN_DB).collection('mongodb_object')
+
+    const cl = await clMongoObj.findOne(query)
+
+    return cl
+  }
+  /**
+   * 获得用户指定的集合信息
+   *
+   * @param {object|string} tmwDb - 集合所属数据库
    * @param {string} clName - 用户指定集合名称
    *
    * @returns {object} 集合对象
    */
-  async byName(db, clName) {
+  async byName(tmwDb, clName: string) {
     const query: any = { name: clName, type: 'collection' }
 
-    if (typeof db === 'object') query['db.sysname'] = db.sysname
-    else if (typeof db === 'string') query['db.name'] = db
+    if (typeof tmwDb === 'object') query['db.sysname'] = tmwDb.sysname
+    else if (typeof tmwDb === 'string') query['db.name'] = tmwDb
 
     if (this.bucket) query.bucket = this.bucket.name
 

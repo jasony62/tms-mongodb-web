@@ -52,6 +52,30 @@ class Schema extends Base {
       return schema
     })
   }
+  /**
+   * 删除文档列定义
+   *
+   * @param id
+   * @returns
+   */
+  async removeById(id: string): Promise<[boolean, string | null]> {
+    // 是否正在使用
+    let rst = await this.clMongoObj.findOne({
+      schema_id: id,
+      type: 'collection',
+    })
+    if (rst) {
+      return [
+        false,
+        `文档列定义正在被[${rst.database}]数据库中的[${rst.name}]集合使用，不能删除`,
+      ]
+    }
+
+    const query: any = { _id: new ObjectId(id), type: 'schema' }
+    if (this.bucket) query.bucket = this.bucket.name
+
+    return this.clMongoObj.deleteOne(query).then(() => [true])
+  }
 }
 
 export default Schema

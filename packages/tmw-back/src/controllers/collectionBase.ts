@@ -158,12 +158,13 @@ class CollectionBase extends Base {
     return new ResultData(info)
   }
   /**
-   * 删除集合。如果集合中存在文档可以被删除吗？
+   * 删除集合
+   * 如果集合中存在文档可以被删除吗？
    */
   async remove() {
     const existCl = await this.clHelper.findRequestCl()
 
-    let { db, name: clName, usage } = existCl
+    let { db, name: clName, usage, spreadsheet } = existCl
 
     // 如果是系统自带集合不能删除
     if (
@@ -181,24 +182,15 @@ class CollectionBase extends Base {
       return new ResultFault(`系统自带集合[${clName}]，不能删除`)
 
     if (usage !== undefined) {
-      const [flag] = await this['rpHelper'].byId(existCl)
+      const [flag] = await this.rpHelper.byId(existCl)
       if (flag) return new ResultFault(`该集合存在关联关系不允许删除`)
     }
-
-    const client = this.mongoClient
-
-    return this.clMongoObj
-      .deleteOne({ _id: existCl._id })
-      .then(() =>
-        client
-          .db(this.reqDb.sysname)
-          .dropCollection(existCl.sysname)
-          .catch((error) => {
-            if (error.message === 'ns not found') return new ResultData('ok')
-          })
-      )
-      .then(() => new ResultData('ok'))
-      .catch((err) => new ResultFault(err.message))
+    try {
+      const result = await this.clHelper.removeCl(this.reqDb, existCl)
+      return new ResultData(result)
+    } catch (e) {
+      return new ResultFault(e)
+    }
   }
   /**
    * 填充集合对应的schema信息
