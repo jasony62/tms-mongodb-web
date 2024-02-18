@@ -1,8 +1,3 @@
 {
-  "authApiBase": "auth",
-  "authApiPort": 3030,
-  "backApiBase": "api",
-  "backApiPort": 3030,
-  "backPushPort": 3031,
-  "loginCaptchaDisabled": true
+  "backPushPort": 3031 
 }
