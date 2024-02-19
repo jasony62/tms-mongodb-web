@@ -20,9 +20,7 @@ import Invite from '../views/Invite.vue'
 import DocEditor from '../views/editor/Document.vue'
 import SchemaEditor from '../views/editor/Schema.vue'
 
-import { TmsRouterHistory } from 'tms-vue3'
 import { getLocalToken } from '../global'
-import { getCurrentInstance } from 'vue'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
   ? import.meta.env.VITE_BASE_URL
@@ -152,6 +150,10 @@ const routes: RouteRecordRaw[] = [
         props: true,
       },
     ],
+  },
+  {
+    path: `${BucketPart}/:catchAll(.*)`,
+    redirect: `${BucketPart}/database/`,
   },
 ]
 
