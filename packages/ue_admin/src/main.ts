@@ -116,6 +116,15 @@ function afterLoadSettings() {
     .use(JsonSchema.install)
     .use(ElementPlus)
     .use(dialogPlugin)
+    .use({
+      /**
+       * 为了解决在路由中可以访问app实例问题
+       * @param app
+       */
+      install: (app) => {
+        window['_VueApp'] = app
+      },
+    })
     .component('GDialog', GDialog)
     .mount('#app')
 }

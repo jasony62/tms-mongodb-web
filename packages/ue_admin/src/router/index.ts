@@ -22,6 +22,7 @@ import SchemaEditor from '../views/editor/Schema.vue'
 
 import { TmsRouterHistory } from 'tms-vue3'
 import { getLocalToken } from '../global'
+import { getCurrentInstance } from 'vue'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
   ? import.meta.env.VITE_BASE_URL
@@ -165,7 +166,14 @@ router.beforeEach((to, from, next) => {
   if (['login', 'register', 'smscode'].indexOf(to.name) === -1) {
     let token = getLocalToken()
     if (!token) {
-      new TmsRouterHistory().push(to.path)
+      //@ts-ignore
+      const vueApp = window['_VueApp']
+      if (vueApp) {
+        const routerHistory = vueApp.config.globalProperties.$tmsRouterHistory
+        if (routerHistory) {
+          routerHistory.push(to.path)
+        }
+      }
       return next({ name: 'login' })
     }
   }
