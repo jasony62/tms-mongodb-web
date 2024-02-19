@@ -54,6 +54,7 @@ class ImportPlugin extends PluginBase {
       file,
       fileName,
       clName,
+      dir_full_name, // 集合所属分类目录，字符串
       clSpreadsheet, // 字符串 no/yes
       headers: headersName, // 字符串数组
       headersTitle,
@@ -109,6 +110,7 @@ class ImportPlugin extends PluginBase {
     // 创建集合
     const clInfo: any = {
       clName,
+      dir_full_name,
       title: fileName,
       schema_id: schemaRst,
       clSpreadsheet,
@@ -291,11 +293,12 @@ class ImportPlugin extends PluginBase {
       },
     }
 
-    const { clName, title, schema_id, clSpreadsheet } = info
+    const { clName, title, schema_id, dir_full_name, clSpreadsheet } = info
     clTpl.name = clName
     clTpl.sysname = clName
     clTpl.title = title
     clTpl.schema_id = schema_id
+    if (dir_full_name) clTpl.dir_full_name = dir_full_name
     if (clSpreadsheet === 'yes') clTpl.spreadsheet = 'yes'
 
     return await modelCl.create(existDb, clTpl)

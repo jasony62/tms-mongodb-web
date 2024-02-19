@@ -9,7 +9,7 @@
     </div>
     <!--content-->
     <div class="flex flex-row gap-2">
-      <!--right-->
+      <!--right: 集合分类目录-->
       <div class="flex flex-col items-start space-y-3 w-1/6" v-if="!COMPACT && data.clDirs?.length">
         <div v-if="currentClDir">
           <el-button type="primary" @click="removeCurrentClDir">{{ currentClDir.full_title }}<el-icon
@@ -132,7 +132,7 @@ const ClDirTreeProps = {
   children: 'children',
   label: 'title',
 }
-const currentClDir = ref()
+const currentClDir = ref() // 当前选择的集合分类目录
 const handleClDirCurrentChange = (data: any) => {
   const clicked = toRaw(data)
   currentClDir.value = currentClDir.value === clicked ? null : clicked
@@ -246,6 +246,16 @@ const setPluginDocParam = (docScope: string) => {
     return { ids }
   }
 }
+/**
+ * 执行插件操作
+ * 
+ * @param plugin 
+ * @param docScope 
+ * @param widgetResult 
+ * @param widgetHandleResponse 
+ * @param widgetDefaultHandleResponseRequired 
+ * @param applyAccessTokenField 
+ */
 const onExecute = (plugin: any,
   docScope = '',
   widgetResult = undefined,
@@ -289,7 +299,7 @@ const onExecute = (plugin: any,
     postBody.widget = widgetResult
   }
   // 插件执行的基础参数
-  let queryParams: any = {
+  const queryParams: any = {
     bucket: props.bucketName ?? '',
     plugin: plugin.name,
     db: props.dbName
@@ -389,7 +399,7 @@ const listClDir = (async () => {
   })
 })
 /**
- * 插件
+ * 打开插件
  */
 const { handlePlugin } = useTmwPlugins({
   bucketName: props.bucketName,
@@ -403,6 +413,10 @@ const { handlePlugin } = useTmwPlugins({
       const cl = toRaw(data.multipleCl[0])
       cl.schema = await apiSchema.get(props.bucketName, cl.schema_id)
       msg.collection = cl
+    }
+    // 传递当前选择的目录
+    if (currentClDir.value) {
+      msg.clDir = toRaw(currentClDir.value)
     }
   },
   onClose: () => {

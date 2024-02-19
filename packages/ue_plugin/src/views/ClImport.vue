@@ -27,7 +27,7 @@
       <el-form-item label="自由表格">
         <el-select v-model="clSpreadsheet" placeholder="请选择">
           <el-option label="否" value="no"></el-option>
-          <el-option label="作为自由表格" value="yes"></el-option>
+          <el-option label="是" value="yes"></el-option>
         </el-select>
         <div class="el-upload__tip">* 是否生成的集合采用自由表格方式管理数据？</div>
       </el-form-item>
@@ -97,6 +97,9 @@ const titleRow = ref(2)
 const clName = ref('')
 const clSpreadsheet = ref('no')
 
+// 指定的集合所属目录
+const assignedClDir = ref()
+
 enum PluginWidgetAction {
   Created = 'Created',
   Cancel = 'Cancel',
@@ -125,7 +128,11 @@ Caller.postMessage(message, '*')
 /**接收结果*/
 window.addEventListener('message', (event) => {
   const { data } = event
-  const { response } = data
+  const { clDir, response } = data
+  // 打开插件时，指定了集合所属目录
+  if (clDir) {
+    assignedClDir.value = clDir
+  }
   if (response) {
     noUpload.value = false
     if (typeof response === 'string') {
@@ -185,7 +192,6 @@ function handleUpload(req: any) {
 
       data = headersTitle ? data.slice(1) : data
     }
-
     if (Caller && typeof data === 'object') {
       const message: PluginWidgetResult = {
         action: PluginWidgetAction.Execute,
@@ -195,6 +201,7 @@ function handleUpload(req: any) {
           headers: headersName,
           headersTitle,
           clName: clName.value,
+          dir_full_name: assignedClDir.value?.full_name,
           clSpreadsheet: clSpreadsheet.value,
         },
         applyAccessTokenField: 'url',
