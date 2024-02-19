@@ -93,6 +93,70 @@ class Db extends Base {
   }
   /**
    *
+   * @param keyword
+   * @param skip
+   * @param limit
+   * @returns
+   */
+  async list(keyword: string, skip: number, limit: number) {
+    const query: any = { type: 'database' }
+    // 控制仅管理员可见
+    if (this.client.isAdmin !== true) {
+      query.adminOnly = { $ne: true }
+    }
+    // 近创建人可见
+    const queryCreatorOnly = [
+      { creatorOnly: { $ne: true } },
+      { creator: { $eq: this.client.id } },
+    ]
+
+    if (this.bucket) query.bucket = this.bucket.name
+
+    if (keyword) {
+      if (/\(/.test(keyword)) {
+        keyword = keyword.replace(/\(/g, '\\(')
+      }
+      if (/\)/.test(keyword)) {
+        keyword = keyword.replace(/\)/g, '\\)')
+      }
+      let re = new RegExp(keyword)
+      query.$and = [
+        {
+          $or: queryCreatorOnly,
+        },
+        {
+          $or: [
+            { name: { $regex: re, $options: 'i' } },
+            { title: { $regex: re, $options: 'i' } },
+            { description: { $regex: re, $options: 'i' } },
+            { tag: { $regex: re, $options: 'i' } },
+          ],
+        },
+      ]
+    } else {
+      query.$or = queryCreatorOnly
+    }
+
+    const options: any = {
+      projection: { type: 0 },
+      sort: { top: -1, _id: -1 },
+    }
+    // 添加分页条件
+    if (typeof skip === 'number') {
+      options.skip = skip
+      options.limit = limit
+    }
+
+    const tmwDbs = await this.clMongoObj.find(query, options).toArray()
+    if (typeof skip === 'number') {
+      let total = await this.clMongoObj.countDocuments(query)
+      return { databases: tmwDbs, total }
+    }
+
+    return tmwDbs
+  }
+  /**
+   *
    */
   async getProfilingStatus(dbOrDbName: string) {
     let db

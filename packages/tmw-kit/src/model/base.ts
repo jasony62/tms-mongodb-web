@@ -185,6 +185,9 @@ class Base {
       case 'insert':
         if (typeof data[tmwConfig.TMW_APP_UPDATETIME] !== 'undefined')
           delete data[tmwConfig.TMW_APP_UPDATETIME]
+        // 对象的创建人
+        data.creator = this.client.id
+        // 对象创建时间
         data[tmwConfig.TMW_APP_CREATETIME] = current
         /**根据schema处理数据 */
         if (schema && typeof schema === 'object') {

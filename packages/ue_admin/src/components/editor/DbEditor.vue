@@ -20,6 +20,9 @@
         </el-select>
         <el-alert title="通过指定【集合扩展属性定义】，给数据库下的集合添加属性字段，记录扩展业务信息。" type="info" :closable="false" />
       </el-form-item>
+      <el-form-item label="仅数据库创建人可见">
+        <el-switch v-model="database.creatorOnly"></el-switch>
+      </el-form-item>
       <el-form-item label="仅系统管理员可见">
         <el-switch v-model="database.adminOnly"></el-switch>
       </el-form-item>
@@ -51,7 +54,7 @@ const props = defineProps({
   database: {
     type: Object,
     default: () => {
-      return { name: '', title: '', description: '', adminOnly: false, spreadsheet: 'no' }
+      return { name: '', title: '', description: '', creatorOnly: false, adminOnly: false, spreadsheet: 'no' }
     }
   },
   onClose: { type: Function, default: (newDb: any) => { } }

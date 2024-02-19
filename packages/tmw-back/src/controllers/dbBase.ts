@@ -48,46 +48,11 @@ class DbBase extends Base {
    * 返回集合列表
    */
   async list() {
-    const query: any = { type: 'database' }
-    if (this.client.isAdmin !== true) {
-      query.adminOnly = { $ne: true }
-    }
-    if (this.bucketObj) query.bucket = this.bucketObj.name
     let { keyword } = this.request.query
-    if (keyword) {
-      if (/\(/.test(keyword)) {
-        keyword = keyword.replace(/\(/g, '\\(')
-      }
-      if (/\)/.test(keyword)) {
-        keyword = keyword.replace(/\)/g, '\\)')
-      }
-      let re = new RegExp(keyword)
-      query['$or'] = [
-        { name: { $regex: re, $options: 'i' } },
-        { title: { $regex: re, $options: 'i' } },
-        { description: { $regex: re, $options: 'i' } },
-        { tag: { $regex: re, $options: 'i' } },
-      ]
-    }
-    const options: any = {
-      projection: { type: 0 },
-      sort: { top: -1, _id: -1 },
-    }
     let { skip, limit } = this.dbHelper.requestPage()
-    // 添加分页条件
-    if (typeof skip === 'number') {
-      options.skip = skip
-      options.limit = limit
-    }
+    const result = await this.dbHelper.list(keyword, skip, limit)
 
-    const tmwDbs = await this.clMongoObj.find(query, options).toArray()
-
-    if (typeof skip === 'number') {
-      let total = await this.clMongoObj.countDocuments(query)
-      return new ResultData({ databases: tmwDbs, total })
-    }
-
-    return new ResultData(tmwDbs)
+    return new ResultData(result)
   }
   /**
    * 新建数据库

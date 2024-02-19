@@ -8,6 +8,14 @@ class DbHelper extends Helper {
   constructor(ctrl) {
     super(ctrl)
   }
+  get _modelDb() {
+    let model = new ModelDb(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
+    return model
+  }
   /**
    * 在系统范围内按名称查找数据库
    *
@@ -40,15 +48,17 @@ class DbHelper extends Helper {
    */
   async dbCreate(info) {
     info.type = 'database'
-
-    // 检查数据库名
-    let modelDb = new ModelDb(
-      this.ctrl.mongoClient,
-      info.bucket,
-      this.ctrl.client
-    )
-
-    return await modelDb.create(info)
+    return await this._modelDb.create(info)
+  }
+  /**
+   *
+   * @param keyword
+   * @param skip
+   * @param limit
+   * @returns
+   */
+  async list(keyword: string, skip: number, limit: number) {
+    return await this._modelDb.list(keyword, skip, limit)
   }
 }
 
