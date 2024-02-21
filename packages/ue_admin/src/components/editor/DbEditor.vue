@@ -50,15 +50,12 @@
           <el-button type="primary" @click="onAddAclUser(newAclUser)">添加</el-button>
         </el-form-item>
       </el-form>
-      <div>
-        <el-table :data="aclUserList">
-          <el-table-column prop="user.id" label="用户" width="120" />
-          <el-table-column fixed="right" label="操作" width="120">
-            <template #default="scope">
-              <el-button type="primary" size="small" @click="removeAclUser(scope.row, scope.$index)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+      <div style="height:300px">
+        <el-auto-resizer>
+          <template #default="{ height, width }">
+            <el-table-v2 :data="aclUserList" :columns="aclUserColumns" :width="width" :height="height" />
+          </template>
+        </el-auto-resizer>
       </div>
     </div>
     <template #footer>
@@ -68,8 +65,8 @@
   </el-dialog>
 </template>
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
-import { ElMessageBox } from 'element-plus'
+import { onMounted, reactive, ref, toRaw, h } from 'vue'
+import { ElMessageBox, ElButton } from 'element-plus'
 import apiDb from '@/apis/database'
 import apiSchema from '@/apis/schema'
 import apiAcl from '@/apis/acl'
@@ -96,6 +93,16 @@ const database = reactive(props.database)
 const activeTab = ref('info')
 const schemas = reactive([] as any[])
 const newAclUser = reactive({} as any)
+const aclUserColumns = [{
+  key: 'id',
+  dataKey: 'user.id',
+  title: '用户',
+  width: '200px'
+}, {
+  key: 'operaations',
+  title: '操作',
+  cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h(ElButton, { onClick: () => removeAclUser(rowData, rowIndex) }, { default: () => '删除' })
+}]
 const aclUserList = ref([] as any[])
 
 // 关闭对话框时执行指定的回调方法
@@ -135,6 +142,7 @@ const onAddAclUser = (newUser: any) => {
   const user = { id }
   apiAcl.add(target, user).then((data: any) => {
     aclUserList.value.splice(0, 0, { user: { id } })
+    newAclUser.id = ''
   })
 }
 const removeAclUser = (aclUser: any, index: number) => {
@@ -152,10 +160,10 @@ onMounted(() => {
         schemas.push(s)
       })
     })
-  if (mode === 'update') {
+  if (mode === 'update' && database.aclCheck === true) {
     apiAcl.list({ type: 'database', id: database._id }).then((result: any) => {
-      console.log('rrrr', result)
       aclUserList.value = result
+      console.log(toRaw(aclUserList.value))
     })
   }
 })

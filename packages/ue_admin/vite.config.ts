@@ -34,7 +34,7 @@ export default ({ mode }) => {
       fs: {
         strict: false,
         allow: [],
-      }
+      },
     },
   })
 }
