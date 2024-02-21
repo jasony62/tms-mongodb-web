@@ -1,5 +1,5 @@
 import { ModelDir } from 'tmw-kit'
-import { Helper as CtrlHelper } from 'tmw-kit/dist/ctrl/index.js'
+import { CtrlHelper } from './ctrlHelper.js'
 
 /**
  * 集合分类控制器辅助类

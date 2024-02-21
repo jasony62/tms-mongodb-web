@@ -1,5 +1,5 @@
 import { ResultData, ResultFault } from 'tms-koa'
-import { Base } from 'tmw-kit/dist/ctrl/index.js'
+import { CtrlBase } from './ctrlBase.js'
 import DbHelper from './dbHelper.js'
 import { ModelDb } from 'tmw-kit'
 import mongodb from 'mongodb'
@@ -9,7 +9,7 @@ const ObjectId = mongodb.ObjectId
  * 数据库控制器基类
  * @extends Base
  */
-class DbBase extends Base {
+class DbBase extends CtrlBase {
   dbHelper
   clMongoObj
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {

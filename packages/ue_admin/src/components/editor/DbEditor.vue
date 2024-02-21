@@ -1,7 +1,12 @@
 <template>
   <el-dialog title="数据库" v-model="dialogVisible" :destroy-on-close="true" :close-on-click-modal="false"
     :before-close="onBeforeClose">
-    <el-form ref="form" :model="database" label-position="top">
+    <el-tabs v-model="activeTab" type="card">
+      <el-tab-pane label="基本信息" name="info"></el-tab-pane>
+      <el-tab-pane label="设置" name="setting"></el-tab-pane>
+      <el-tab-pane label="访问控制列表" name="acl" v-if="database._id && database.aclCheck"></el-tab-pane>
+    </el-tabs>
+    <el-form ref="form" :model="database" label-position="top" v-show="activeTab === 'info'">
       <el-form-item label="数据库名称（系统）">
         <el-input v-model="database.sysname" :disabled="mode === 'update'"></el-input>
       </el-form-item>
@@ -14,18 +19,6 @@
       <el-form-item label="说明">
         <el-input type="textarea" v-model="database.description"></el-input>
       </el-form-item>
-      <el-form-item label="集合扩展属性定义" prop="cl_schema_id">
-        <el-select v-model="database.cl_schema_id" clearable placeholder="请选择定义名称">
-          <el-option v-for="schema in schemas" :key="schema._id" :label="schema.title" :value="schema._id" />
-        </el-select>
-        <el-alert title="通过指定【集合扩展属性定义】，给数据库下的集合添加属性字段，记录扩展业务信息。" type="info" :closable="false" />
-      </el-form-item>
-      <el-form-item label="仅数据库创建人可见">
-        <el-switch v-model="database.creatorOnly"></el-switch>
-      </el-form-item>
-      <el-form-item label="仅系统管理员可见">
-        <el-switch v-model="database.adminOnly"></el-switch>
-      </el-form-item>
       <el-form-item label="自由表格">
         <el-select v-model="database.spreadsheet" placeholder="请选择">
           <el-option label="否" value="no"></el-option>
@@ -33,8 +26,43 @@
         </el-select>
       </el-form-item>
     </el-form>
+    <el-form ref="form2" :model="database" label-position="top" v-show="activeTab === 'setting'">
+      <el-form-item label="集合扩展属性定义" prop="cl_schema_id">
+        <el-select v-model="database.cl_schema_id" clearable placeholder="请选择定义名称">
+          <el-option v-for="schema in schemas" :key="schema._id" :label="schema.title" :value="schema._id" />
+        </el-select>
+        <el-alert title="通过指定【集合扩展属性定义】，给数据库下的集合添加属性字段，记录扩展业务信息。" type="info" :closable="false" />
+      </el-form-item>
+      <el-form-item label="使用访问控制列表">
+        <el-switch v-model="database.aclCheck"></el-switch>
+        <el-alert title="数据库创建成功后可设置访问控制列表。" type="info" :closable="false" v-if="!database._id" />
+      </el-form-item>
+      <el-form-item label="仅系统管理员可见">
+        <el-switch v-model="database.adminOnly"></el-switch>
+      </el-form-item>
+    </el-form>
+    <div v-show="activeTab === 'acl'">
+      <el-form :inline="true" :model="newAclUser" label-position="left">
+        <el-form-item label="用户">
+          <el-input v-model="newAclUser.id"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onAddAclUser(newAclUser)">添加</el-button>
+        </el-form-item>
+      </el-form>
+      <div>
+        <el-table :data="aclUserList">
+          <el-table-column prop="user.id" label="用户" width="120" />
+          <el-table-column fixed="right" label="操作" width="120">
+            <template #default="scope">
+              <el-button type="primary" size="small" @click="removeAclUser(scope.row, scope.$index)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
     <template #footer>
-      <el-button type="primary" @click="onSubmit">提交</el-button>
+      <el-button type="primary" @click="onSubmit" :disabled="activeTab === 'acl'">提交</el-button>
       <el-button @click="onBeforeClose">取消</el-button>
     </template>
   </el-dialog>
@@ -44,6 +72,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { ElMessageBox } from 'element-plus'
 import apiDb from '@/apis/database'
 import apiSchema from '@/apis/schema'
+import apiAcl from '@/apis/acl'
 
 const emit = defineEmits(['submit'])
 
@@ -54,7 +83,7 @@ const props = defineProps({
   database: {
     type: Object,
     default: () => {
-      return { name: '', title: '', description: '', creatorOnly: false, adminOnly: false, spreadsheet: 'no' }
+      return { name: '', title: '', description: '', aclCheck: false, adminOnly: false, spreadsheet: 'no' }
     }
   },
   onClose: { type: Function, default: (newDb: any) => { } }
@@ -64,8 +93,10 @@ const { mode, bucketName, onClose } = props
 
 const dialogVisible = ref(props.dialogVisible)
 const database = reactive(props.database)
-
+const activeTab = ref('info')
 const schemas = reactive([] as any[])
+const newAclUser = reactive({} as any)
+const aclUserList = ref([] as any[])
 
 // 关闭对话框时执行指定的回调方法
 const closeDialog = (newDb?: any) => {
@@ -98,6 +129,21 @@ const onSubmit = () => {
       })
   }
 }
+const onAddAclUser = (newUser: any) => {
+  const { id } = newUser
+  const target = { type: 'database', id: database._id }
+  const user = { id }
+  apiAcl.add(target, user).then((data: any) => {
+    aclUserList.value.splice(0, 0, { user: { id } })
+  })
+}
+const removeAclUser = (aclUser: any, index: number) => {
+  const { user } = aclUser
+  const target = { type: 'database', id: database._id }
+  apiAcl.remove(target, { id: user.id }).then(() => {
+    aclUserList.value.splice(index, 1)
+  })
+}
 onMounted(() => {
   apiSchema
     .listSimple(bucketName, 'collection')
@@ -106,5 +152,11 @@ onMounted(() => {
         schemas.push(s)
       })
     })
+  if (mode === 'update') {
+    apiAcl.list({ type: 'database', id: database._id }).then((result: any) => {
+      console.log('rrrr', result)
+      aclUserList.value = result
+    })
+  }
 })
 </script>

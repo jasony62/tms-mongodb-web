@@ -30,6 +30,10 @@ const META_ADMIN_CL = 'mongodb_object'
  * 管理对象分类目录
  */
 const DIR_CL = 'mongodb_object_dir'
+/**
+ * 管理对象访问控制列表
+ */
+const ACL_CL = 'mongodb_object_acl'
 
 const TMW_CONFIG = await loadTmwConfig()
 
@@ -269,6 +273,15 @@ class Base {
   get clDir() {
     const client = this.mongoClient
     const cl = client.db(META_ADMIN_DB).collection(DIR_CL)
+
+    return cl
+  }
+  /**
+   * 存储管理对象访问控制列表
+   */
+  get clAcl() {
+    const client = this.mongoClient
+    const cl = client.db(META_ADMIN_DB).collection(ACL_CL)
 
     return cl
   }

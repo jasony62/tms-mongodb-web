@@ -2,6 +2,7 @@ import ModelBkt from './bucket.js'
 import ModelDb from './db.js'
 import ModelCl from './collection.js'
 import ModelDir from './dir.js'
+import ModelAcl from './acl.js'
 import ModelDoc from './document.js'
 import ModelTag from './tag.js'
 import ModelReplicaMap from './replicaMap.js'
@@ -13,6 +14,7 @@ export {
   ModelDb,
   ModelCl,
   ModelDir,
+  ModelAcl,
   ModelDoc,
   ModelTag,
   ModelReplicaMap,

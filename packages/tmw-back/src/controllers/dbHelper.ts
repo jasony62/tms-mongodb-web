@@ -1,10 +1,10 @@
-import { Helper } from 'tmw-kit/dist/ctrl/index.js'
+import { CtrlHelper } from './ctrlHelper.js'
 import { ModelDb } from 'tmw-kit'
 
 /**
  * 数据库控制器辅助类
  */
-class DbHelper extends Helper {
+class DbHelper extends CtrlHelper {
   constructor(ctrl) {
     super(ctrl)
   }

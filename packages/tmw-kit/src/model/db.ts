@@ -1,11 +1,16 @@
-import { Double } from 'mongodb'
+import { Double, ObjectId } from 'mongodb'
 import { nanoid } from 'nanoid'
 import Base from './base.js'
+import ModelAcl from './acl.js'
 
 // 数据库名正则表达式
 const DB_NAME_RE = '^[a-zA-Z]+[0-9a-zA-Z_-]{0,63}$'
 
 class Db extends Base {
+  get _modelAcl() {
+    const model = new ModelAcl(this.mongoClient, this.bucket, this.client)
+    return model
+  }
   /**
    *  检查数据库名
    * @param {string} dbName - 用户指定数据库名称
@@ -92,6 +97,7 @@ class Db extends Base {
     return db
   }
   /**
+   * 获得当前用户可访问数据库列表
    *
    * @param keyword
    * @param skip
@@ -100,15 +106,29 @@ class Db extends Base {
    */
   async list(keyword: string, skip: number, limit: number) {
     const query: any = { type: 'database' }
-    // 控制仅管理员可见
+
+    // 检查授权访问列表条件
+    let queryAclCheck: any[]
+
+    // 当前用户不是管理员，仅管理员可见的数据库不允许访问
     if (this.client.isAdmin !== true) {
+      // 不能是仅管理员访问
       query.adminOnly = { $ne: true }
+      // 检查授权访问列表
+      queryAclCheck = [
+        { creator: { $eq: this.client.id } }, // 创建人允许访问
+        { aclCheck: { $ne: true } }, // 没有限制访问
+      ]
+      // 获得当前用户在acl列表中授权访问的数据库
+      const aclResult = await this._modelAcl.targetByUser(
+        { type: 'database' },
+        { id: this.client.id }
+      )
+      if (Array.isArray(aclResult.database) && aclResult.database.length) {
+        const queryAcl = aclResult.database.map((id) => new ObjectId(id))
+        queryAclCheck.push({ _id: { $in: queryAcl } })
+      }
     }
-    // 近创建人可见
-    const queryCreatorOnly = [
-      { creatorOnly: { $ne: true } },
-      { creator: { $eq: this.client.id } },
-    ]
 
     if (this.bucket) query.bucket = this.bucket.name
 
@@ -122,9 +142,6 @@ class Db extends Base {
       let re = new RegExp(keyword)
       query.$and = [
         {
-          $or: queryCreatorOnly,
-        },
-        {
           $or: [
             { name: { $regex: re, $options: 'i' } },
             { title: { $regex: re, $options: 'i' } },
@@ -133,8 +150,12 @@ class Db extends Base {
           ],
         },
       ]
+      if (queryAclCheck)
+        query.$and.push({
+          $or: queryAclCheck,
+        })
     } else {
-      query.$or = queryCreatorOnly
+      if (queryAclCheck) query.$or = queryAclCheck
     }
 
     const options: any = {
