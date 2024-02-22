@@ -34,7 +34,6 @@ class Collection extends Base {
       description,
       dir_full_name,
       schema_id,
-      usage,
       spreadsheet,
       adminOnly,
       tags,
@@ -50,7 +49,6 @@ class Collection extends Base {
       description,
       dir_full_name,
       schema_id,
-      usage,
       spreadsheet,
       adminOnly,
       tags,
@@ -61,7 +59,6 @@ class Collection extends Base {
       custom,
     }
     if (info.sysname) newCl.sysname = info.sysname
-    if (info.usage) newCl.usage = info.usage
 
     return newCl
   }
@@ -94,14 +91,6 @@ class Collection extends Base {
         false,
         `数据库[name=${existDb.name}]中，已存在同名集合[name=${newCl.name}]`,
       ]
-
-    // 检查是否指定了用途
-    let { usage } = newCl
-    if (usage !== undefined) {
-      if (![0, 1].includes(parseInt(usage)))
-        return [false, `指定了不支持的集合用途值[usage=${usage}]`]
-      newCl.usage = parseInt(usage)
-    }
 
     // 生成数据库系统名
     let existSysCl, sysname
@@ -170,8 +159,7 @@ class Collection extends Base {
         ]
     }
 
-    const { _id, sysname, database, db, type, bucket, usage, ...updatedInfo } =
-      info
+    const { _id, sysname, database, db, type, bucket, ...updatedInfo } = info
 
     // 需要清除的字段。应该考虑根据schema做清除。
     const cleaned = { children: '' }

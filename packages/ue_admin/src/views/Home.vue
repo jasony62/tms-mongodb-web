@@ -1,6 +1,7 @@
 <template>
   <div class="flex flex-row gap-2 h-full">
     <div class="w-36 flex-none h-full flex flex-col">
+      <!--left-->
       <el-menu v-if="EXTRACT !== true" class="overflow-auto flex-none" default-active="/database/" router>
         <el-menu-item index="/database/">
           <span>{{ DbLabel }}</span>
@@ -23,9 +24,6 @@
         <el-menu-item index="/files/" v-if="EXTERNALFSURL">
           <span>文件管理</span>
         </el-menu-item>
-        <el-menu-item index="/replica/" v-if="REPLICA">
-          <span>全量复制定义</span>
-        </el-menu-item>
       </el-menu>
       <div class="flex-grow border-t border-r p-4 flex flex-col gap-2">
         <div>
@@ -39,6 +37,7 @@
         </div>
       </div>
     </div>
+    <!--content-->
     <div class="flex-grow flex flex-col gap-2 mt-4 mx-4 h-full">
       <router-view :key="route.path"></router-view>
     </div>
@@ -46,7 +45,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { COMPACT_MODE, EXTRACT_MODE, EXTERNAL_FS_URL, REPLICA_MODE, LABEL } from '@/global'
+import { COMPACT_MODE, EXTRACT_MODE, EXTERNAL_FS_URL, LABEL } from '@/global'
 import { computed } from 'vue';
 import Assistant from '@/components/Assistant.vue'
 import { useAssistant } from '@/composables/assistant';
@@ -58,7 +57,6 @@ const route = useRoute()
 const COMPACT = computed(() => COMPACT_MODE())
 const EXTRACT = computed(() => EXTRACT_MODE())
 const EXTERNALFSURL = computed(() => EXTERNAL_FS_URL())
-const REPLICA = computed(() => REPLICA_MODE())
 const DbLabel = computed(() => LABEL('database', '数据库'))
 
 const { opened } = useAssistant()

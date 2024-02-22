@@ -43,12 +43,6 @@
             <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="集合用途" prop="usage">
-          <el-select v-model="collection.usage" clearable placeholder="请选择集合用途">
-            <el-option label="普通集合" :value="0"></el-option>
-            <el-option label="从集合" :value="1"></el-option>
-          </el-select>
-        </el-form-item>
         <el-form-item label="说明">
           <el-input type="textarea" v-model="collection.description"></el-input>
         </el-form-item>
@@ -166,7 +160,6 @@ const props = defineProps({
         schema_default_tags: [],
         tags: [],
         dir_full_name: '',
-        usage: 0,
         spreadsheet: 'no',
         adminOnly: false,
         custom: {
@@ -314,7 +307,6 @@ const onBeforeClose = () => {
 
 const rules = reactive<FormRules>({
   name: [{ required: true, message: '集合名称不允许为空' }],
-  usage: [{ required: true, message: '集合用途不允许为空' }],
   schema_id: [{ required: true, message: '集合文档定义不允许为空' }]
 })
 const changeDb = () => {

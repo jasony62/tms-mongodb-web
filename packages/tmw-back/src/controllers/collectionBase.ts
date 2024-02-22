@@ -1,7 +1,6 @@
 import { ObjectId } from 'mongodb'
 import { ResultData, ResultFault } from 'tms-koa'
 import CollectionHelper from './collectionHelper.js'
-import ReplicaHelper from './replicaHelper.js'
 import SchemaHelper from './schemaHelper.js'
 import { ModelCl } from 'tmw-kit'
 import { Base } from 'tmw-kit/dist/ctrl/index.js'
@@ -22,14 +21,12 @@ const META_ADMIN_CL_BUCKET = 'bucket'
  */
 class CollectionBase extends Base {
   clHelper
-  rpHelper
   reqDb
   clMongoObj
   schemaHelper
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
     this.clHelper = new CollectionHelper(this)
-    this.rpHelper = new ReplicaHelper(this)
     this.schemaHelper = new SchemaHelper(this)
   }
   /**
@@ -164,7 +161,7 @@ class CollectionBase extends Base {
   async remove() {
     const existCl = await this.clHelper.findRequestCl()
 
-    let { db, name: clName, usage, spreadsheet } = existCl
+    let { db, name: clName } = existCl
 
     // 如果是系统自带集合不能删除
     if (
@@ -176,15 +173,10 @@ class CollectionBase extends Base {
       (db.sysname === META_ADMIN_DB && clName === META_ADMIN_CL_BUCKET) ||
       (db.sysname === META_ADMIN_DB && clName === 'bucket_invite_log') ||
       (db.sysname === META_ADMIN_DB && clName === 'bucket_preset_object') ||
-      (db.sysname === META_ADMIN_DB && clName === 'tms_app_data_action_log') ||
-      (db.sysname === META_ADMIN_DB && clName === 'replica_map')
+      (db.sysname === META_ADMIN_DB && clName === 'tms_app_data_action_log')
     )
       return new ResultFault(`系统自带集合[${clName}]，不能删除`)
 
-    if (usage !== undefined) {
-      const [flag] = await this.rpHelper.byId(existCl)
-      if (flag) return new ResultFault(`该集合存在关联关系不允许删除`)
-    }
     try {
       const result = await this.clHelper.removeCl(this.reqDb, existCl)
       return new ResultData(result)

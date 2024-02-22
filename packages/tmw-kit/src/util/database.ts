@@ -49,7 +49,6 @@ const CollectionTemplate: any = {
   schema_tags: [],
   schema_default_tags: [],
   tags: [],
-  usage: 0,
   custom: {
     docOperations: {
       create: true,

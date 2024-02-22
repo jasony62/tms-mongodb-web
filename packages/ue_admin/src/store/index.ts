@@ -19,7 +19,6 @@ export default defineStore('mongodb', {
       tags: [] as any[],
       documents: [] as any[],
       conditions: [] as any[],
-      replicas: [] as any[],
       collCache: new Map<string, any>(),
     }
   },
@@ -321,96 +320,6 @@ export default defineStore('mongodb', {
     },
     conditionReset() {
       this.conditions = []
-    },
-    listReplica(payload: { bucket: any; size: any; keyword: any }) {
-      const { bucket, size, keyword } = payload
-      return startBatch(
-        (
-          keyword: any,
-          batchArg: { keyword: any; page: any; size: any } | undefined
-        ) => {
-          return apis.replica
-            .list(bucket, { keyword, ...batchArg })
-            .then((result: { replicas: any[] }) => {
-              result.replicas = result.replicas
-                .filter(
-                  (result: {
-                    primary: { db: any; cl: any }
-                    secondary: { db: any; cl: any }
-                  }) => {
-                    let {
-                      primary: { db: pdb, cl: pcl },
-                      secondary: { db: sdb, cl: scl },
-                    } = result
-                    return pdb.title && pcl.title && sdb.title && scl.title
-                  }
-                )
-                .map(
-                  (result: {
-                    primary: { db: any; cl: any }
-                    secondary: { db: any; cl: any }
-                  }) => {
-                    let {
-                      primary: { db: pdb, cl: pcl },
-                      secondary: { db: sdb, cl: scl },
-                    } = result
-                    ;[pdb, pcl, sdb, scl].forEach((item) => {
-                      item.label = `${item.title} (${item.name})`
-                    })
-                    return {
-                      primary: { db: pdb, cl: pcl },
-                      secondary: { db: sdb, cl: scl },
-                    }
-                  }
-                )
-              this.replicas = result.replicas
-              return result
-            })
-        },
-        [keyword],
-        {
-          size: size,
-        }
-      )
-    },
-    appendReplica(payload: { replica: any }) {
-      this.replicas.push(payload.replica)
-    },
-    removeReplica(payload: { bucket: any; params: any }) {
-      const { bucket, params } = payload
-      return apis.replica.remove(bucket, params).then(() => {
-        this.replicas.splice(this.replicas.indexOf(params), 1)
-        return { params }
-      })
-    },
-    syncReplica(payload: { bucket: any; params: any }) {
-      const { bucket, params } = payload
-      return apis.replica.synchronize(bucket, params)
-    },
-    synchronizeAll(payload: { bucket: any; params: any }) {
-      const { bucket, params } = payload
-      let result = { success: [] as any[], error: [] as any[] }
-      for (const param of params) {
-        let transfer = {
-          primary: {
-            db: param.primary.db.name,
-            cl: param.primary.cl.name,
-          },
-          secondary: {
-            db: param.secondary.db.name,
-            cl: param.secondary.cl.name,
-          },
-        }
-        apis.replica
-          .synchronize(bucket, transfer)
-          .then(() => {
-            result.success.push(param)
-          })
-          .catch(() => {
-            result.error.push(param)
-          })
-      }
-      return result
     },
   },
 })

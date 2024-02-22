@@ -92,24 +92,10 @@ class Document extends Base {
     const modelCl = new ModelColl(this.mongoClient, this.bucket, this.client)
     let removeQuery, removeSysCl
 
-    if (existCl.usage !== 1) {
-      /**主集合删除文档 */
-      removeSysCl = sysCl
-      removeQuery = { _id: new ObjectId(id) }
-      await modelCl.checkRemoveConstraint(existCl, removeQuery, sysCl)
-    } else {
-      /**检查要删除的文档是否存在 */
-      let doc = await sysCl.findOne({ _id: new ObjectId(id) })
-      if (!doc) return false
-
-      /**从集合转到主集合删除 */
-      let { __pri } = doc
-      let priCl = mongoClient.db(__pri.db).collection(__pri.cl)
-      let existPriCl = await modelCl.bySysname({ sysname: __pri.db }, __pri.cl)
-      removeQuery = { _id: __pri.id }
-      await modelCl.checkRemoveConstraint(existPriCl, removeQuery, priCl)
-      removeSysCl = priCl
-    }
+    /**主集合删除文档 */
+    removeSysCl = sysCl
+    removeQuery = { _id: new ObjectId(id) }
+    await modelCl.checkRemoveConstraint(existCl, removeQuery, sysCl)
 
     const result = this.findUnRepeatRule(existCl)
     if (result[0] && result[1]['insert']) {
@@ -158,86 +144,31 @@ class Document extends Base {
 
     const modelCl = new ModelColl(this.mongoClient, this.bucket, this.client)
 
-    if (existCl.usage !== 1) {
-      const result = this.findUnRepeatRule(existCl)
-      if (result[0] && result[1]['insert']) {
-        const dbSysName = result[1]['dbSysName']
-        const clSysName = result[1]['clSysName']
-        const keys = result[1]['keys']
-        const { targetSysCl, targetQuery } = await this.getUnRepeatSQ(
-          sysCl,
-          query,
-          dbSysName,
-          clSysName,
-          keys
-        )
-        targetSysCl.deleteMany(targetQuery)
-      }
-      await modelCl.checkRemoveConstraint(existCl, query, sysCl)
-      const { deletedCount } = await sysCl.deleteMany(query)
-      // 从es中删除文档
-      if (ElasticSearchIndex.available()) {
-        const esIndex = newEsIndex(existCl)
-        const promises = removedDocs.map(({ _id }) => {
-          return esIndex.removeDocument(_id.toString())
-        })
-        await Promise.all(promises)
-      }
-      return deletedCount
-    } else {
-      let removedDocs = await sysCl
-        .find(query, { projection: { __pri: 1 } })
-        .toArray()
-      if (removedDocs.length === 0) return 0
-
-      let priIdsByCl = new Map() // 按文档所属集合对文档的id分组记录
-      removedDocs.forEach(({ __pri }) => {
-        let priDbDotCl = `${__pri.db}.${__pri.cl}`
-        if (!priIdsByCl.has(priDbDotCl)) priIdsByCl.set(priDbDotCl, [])
-        priIdsByCl.get(priDbDotCl).push(__pri.id)
-      })
-
-      /**检查是否符合删除约束条件 */
-      for (const entry of priIdsByCl) {
-        let [dbDotCl, ids] = entry
-        let [db, cl] = dbDotCl.split('.')
-        let sysCl = mongoClient.db(db).collection(cl)
-        let tmwCl = await modelCl.bySysname({ sysname: db }, cl)
-        const result = this.findUnRepeatRule(tmwCl)
-
-        if (result[0]['flag'] && 'insert') {
-          const dbSysName = result[1]['dbSysName']
-          const clSysName = result[1]['clSysName']
-          const keys = result[1]['keys']
-          const insert = result[1]['insert']
-          const { targetSysCl, targetQuery } = await this.getUnRepeatSQ(
-            sysCl,
-            { _id: { $in: ids } },
-            dbSysName,
-            clSysName,
-            keys
-          )
-          targetSysCl.deleteMany(targetQuery)
-        }
-        await modelCl.checkRemoveConstraint(tmwCl, { _id: { $in: ids } }, sysCl)
-      }
-
-      let promises = [] // 每个主集合中删除文档的promise
-      priIdsByCl.forEach((ids, dbDotCl) => {
-        let [db, cl] = dbDotCl.split('.')
-        promises.push(
-          mongoClient
-            .db(db)
-            .collection(cl)
-            .deleteMany({ _id: { $in: ids } })
-            .then(({ deletedCount }) => deletedCount)
-        )
-      })
-
-      return Promise.all(promises).then((deletedCounts) =>
-        deletedCounts.reduce((total, deletedCount) => total + deletedCount, 0)
+    const result = this.findUnRepeatRule(existCl)
+    if (result[0] && result[1]['insert']) {
+      const dbSysName = result[1]['dbSysName']
+      const clSysName = result[1]['clSysName']
+      const keys = result[1]['keys']
+      const { targetSysCl, targetQuery } = await this.getUnRepeatSQ(
+        sysCl,
+        query,
+        dbSysName,
+        clSysName,
+        keys
       )
+      targetSysCl.deleteMany(targetQuery)
     }
+    await modelCl.checkRemoveConstraint(existCl, query, sysCl)
+    const { deletedCount } = await sysCl.deleteMany(query)
+    // 从es中删除文档
+    if (ElasticSearchIndex.available()) {
+      const esIndex = newEsIndex(existCl)
+      const promises = removedDocs.map(({ _id }) => {
+        return esIndex.removeDocument(_id.toString())
+      })
+      await Promise.all(promises)
+    }
+    return deletedCount
   }
   /**
    * 按条件批量复制文档
@@ -297,6 +228,9 @@ class Document extends Base {
     let mongoClient = this.mongoClient
     let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
 
+    // 对象的创建人
+    data.creator = this.client.id
+
     const newDoc = await sysCl.insertOne(data).then(async (r) => {
       // 记录操作日志
       await this.dataActionLog(r.ops, '创建', existCl.db.name, existCl.name)
@@ -321,6 +255,9 @@ class Document extends Base {
     const dbName = tmwCl.db.sysname
     const clName = tmwCl.sysname
     const sysCl = this.mongoClient.db(dbName).collection(clName)
+
+    // 对象的创建人
+    rows.forEach((row) => (row.creator = this.client.id))
 
     const rst = await sysCl.insertMany(rows).then(async ({ insertedIds }) => {
       // await this.dataActionLog(r.ops, '创建', dbName, clName)
@@ -352,44 +289,21 @@ class Document extends Base {
   async update(existCl, id: string, updated: any, removed?: any) {
     let mongoClient = this.mongoClient
     let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
-    if (existCl.usage !== 1) {
-      let ops = {}
-      if (updated && typeof updated === 'object' && Object.keys(updated).length)
-        ops['$set'] = updated
-      if (removed && typeof removed === 'object' && Object.keys(removed).length)
-        ops['$unset'] = removed
-      return sysCl
-        .updateOne({ _id: new ObjectId(id) }, ops)
-        .then(async ({ modifiedCount }) => {
-          // 提交到es
-          if (ElasticSearchIndex.available()) {
-            const esIndex = newEsIndex(existCl)
-            await esIndex.updateDocument(id, updated)
-          }
-          return modifiedCount === 1
-        })
-    } else {
-      let __pri
-      if (updated.__pri) {
-        __pri = updated.__pri
-      } else {
-        let doc = await sysCl.findOne({ _id: new ObjectId(id) })
-        if (!doc) return false
-        __pri = doc.__pri
-      }
-      let priCl = mongoClient.db(__pri.db).collection(__pri.cl)
-      return priCl
-        .updateOne({ _id: new ObjectId(__pri.id) }, { $set: updated })
-        .then(async ({ modifiedCount }) => {
-          // 操作日志？
-          // 提交到es
-          if (ElasticSearchIndex.available()) {
-            const esIndex = newEsIndex(existCl)
-            await esIndex.updateDocument(id, updated)
-          }
-          return modifiedCount === 1
-        })
-    }
+    let ops = {}
+    if (updated && typeof updated === 'object' && Object.keys(updated).length)
+      ops['$set'] = updated
+    if (removed && typeof removed === 'object' && Object.keys(removed).length)
+      ops['$unset'] = removed
+    return sysCl
+      .updateOne({ _id: new ObjectId(id) }, ops)
+      .then(async ({ modifiedCount }) => {
+        // 提交到es
+        if (ElasticSearchIndex.available()) {
+          const esIndex = newEsIndex(existCl)
+          await esIndex.updateDocument(id, updated)
+        }
+        return modifiedCount === 1
+      })
   }
   /**
    * 按条件批量更新文档
@@ -405,42 +319,9 @@ class Document extends Base {
   async updateMany(existCl, query, updated) {
     let mongoClient = this.mongoClient
     let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
-    if (existCl.usage !== 1) {
-      return sysCl
-        .updateMany(query, { $set: updated })
-        .then(({ modifiedCount }) => modifiedCount)
-    } else {
-      let updatedDocs = await sysCl
-        .find(query, { projection: { __pri: 1 } })
-        .toArray()
-      if (updatedDocs.length === 0) return 0
-
-      let priIdsByCl = new Map() // 按文档所属集合对文档的id分组记录
-      updatedDocs.forEach(({ __pri }) => {
-        let priDbDotCl = `${__pri.db}.${__pri.cl}`
-        if (!priIdsByCl.has(priDbDotCl)) priIdsByCl.set(priDbDotCl, [])
-        priIdsByCl.get(priDbDotCl).push(__pri.id)
-      })
-
-      let promises = [] // 每个主集合中更新文档的promise
-      priIdsByCl.forEach((ids, dbDotCl) => {
-        let [db, cl] = dbDotCl.split('.')
-        promises.push(
-          mongoClient
-            .db(db)
-            .collection(cl)
-            .updateMany({ _id: { $in: ids } }, { $set: updated })
-            .then(({ modifiedCount }) => modifiedCount)
-        )
-      })
-
-      return Promise.all(promises).then((modifiedCounts) =>
-        modifiedCounts.reduce(
-          (total, modifiedCount) => total + modifiedCount,
-          0
-        )
-      )
-    }
+    return sysCl
+      .updateMany(query, { $set: updated })
+      .then(({ modifiedCount }) => modifiedCount)
   }
   /**
    * 替换指定id的文档
@@ -468,20 +349,7 @@ class Document extends Base {
         })
     }
     let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
-    if (existCl.usage !== 1) {
-      return await replaceOne(sysCl)
-    } else {
-      let __pri
-      if (newDoc.__pri) {
-        __pri = newDoc.__pri
-      } else {
-        let doc = await sysCl.findOne({ _id: new ObjectId(id) })
-        if (!doc) return false
-        __pri = doc.__pri
-      }
-      let priCl = mongoClient.db(__pri.db).collection(__pri.cl)
-      return await replaceOne(priCl)
-    }
+    return await replaceOne(sysCl)
   }
   /**
    * 模糊搜索数据

@@ -2,7 +2,6 @@ import DbEditor from './DbEditor.vue'
 import DirEditor from './DirEditor.vue'
 import CollectionEditor from './CollectionEditor.vue'
 import TagEditor from './TagEditor.vue'
-import ReplicaEditor from './ReplicaEditor.vue'
 import SelectCondition from './SelectCondition.vue'
 import SchemaEditor from './SchemaEditor.vue'
 import BucketEditor from './BucketEditor.vue'
@@ -50,12 +49,6 @@ type TagEditorOptions = {
   mode: any
   bucketName?: any
   tag?: any
-  onBeforeClose: Function
-}
-
-type ReplicaEditorOptions = {
-  bucketName?: any
-  replica?: any
   onBeforeClose: Function
 }
 
@@ -165,21 +158,6 @@ export function openTagEditor(options: TagEditorOptions) {
   app.use(ElementPlus).mount(root)
 }
 /***/
-export function openReplicaEditor(options: ReplicaEditorOptions) {
-  const root = document.createElement('div')
-  document.body.appendChild(root)
-  const { bucketName, replica, onBeforeClose } = options
-  let app = createApp(ReplicaEditor, {
-    bucketName,
-    replica,
-    onClose: (newReplica: any) => {
-      if (newReplica && onBeforeClose) onBeforeClose(newReplica)
-      app.unmount()
-      document.body.removeChild(root)
-    },
-  })
-  app.use(ElementPlus).mount(root)
-}
 export function openSelectConditionEditor(options: SelectConditionOptions) {
   const root = document.createElement('div')
   document.body.appendChild(root)

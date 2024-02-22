@@ -16,7 +16,6 @@ type Globalsettings = {
   multiple: boolean // 提取数据模式下，是否支持多选
   manual?: any // 在线用户手册
   labels?: { [k: string]: string } // 标题定义
-  replica: boolean // 是否开启全量复制定义
   pagination?: { [k: string]: { [k: string]: number } } // 分页参数
 }
 
@@ -35,7 +34,6 @@ let _globalsettings: Globalsettings = {
   compact: false,
   extract: false,
   multiple: true,
-  replica: /yes|true/i.test(import.meta.env.VITE_TMW_APP_REPLICA),
 }
 /**
  * 根据在线获取的全局设置
@@ -62,7 +60,6 @@ export function init(settings: Globalsettings) {
     _globalsettings.manual = settings.manual
   if (settings.labels && typeof settings.labels === 'object')
     _globalsettings.labels = settings.labels
-  if (settings.replica) _globalsettings.replica = settings.replica
   if (settings.pagination && typeof settings.pagination === 'object') {
     _globalsettings.pagination = settings.pagination
   }
@@ -237,10 +234,6 @@ export const LABEL = (key: string, defaultValue?: string) => {
   }
   return defaultValue
 }
-/**
- * 是否开启全量复制定义
- */
-export const REPLICA_MODE = () => _globalsettings.replica
 
 const way = import.meta.env.VITE_STORETOKEN_WAY
 
