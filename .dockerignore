@@ -8,6 +8,9 @@
 # ue_admin
 
 /packages/ue_admin/public/settings.json
+/packages/ue_admin/node_modules/*
+/packages/ue_admin/.env.*
+/packages/ue_admin/.env
 
 # common
 
@@ -28,12 +31,4 @@
 
 /back/config/*.local.js
 
-/ue_admin2/node_modules/*
-/ue_admin2/.env.*
-/ue_admin2/.env
-/ue_admin/node_modules/*
-/ue_admin/.env.*
-/ue_admin/.env
-/ue_mongo/node_modules/*
-/ue_mongo/.env.*
-/ue_mongo/.env
+
