@@ -1,130 +1,35 @@
 version: '3.7'
 services:
   mongodb:
-    build: ../mongodb
-    image: tmw/mongo:7.0.4
+    build: ./mongodb
+    image: jasony62/mongo:7.0.4
     container_name: tmw-mongo
     # environment:
     #   MONGODB_INITDB_ROOT_USERNAME: root
     #   MONGODB_INITDB_ROOT_PASSWORD: root
-    networks:
-      - net
-  # 后端服务
-  back:
-    build:
-      context: ../
-      dockerfile: packages/tmw-back/Dockerfile
-    image: tmw/back:latest
-    container_name: tmw-back
-    # ports:
-    #   - '3030:3000'
-    #   - '3031:3001'
-    # environment:
-    #   默认
-    #   - NODE_ENV=production
-    #   app 名称
-    #   - TMS_APP_NAME=tms-mongo-web
-    #   app 端口号
-    #   - TMS_APP_PORT=3000
-    #   导入文件存放目录
-    #   - TMS_FINDER_FS_ROOTDIR=/storage
-    #   导出文件存放目录
-    #   - TMS_FINDER_FS_OUTDIR=/storage
-    #   是否使用文件自身命名
-    #   - TMS_FINDER_FS_CUSTOMNAME=true
-    #   日志输出级别
-    #   - TMS_APP_LOG4JS_LEVEL=debug
-    #   默认鉴权方式
-    #   - TMS_APP_AUTH_TYPE=jwt
-    #   保存元数据的数据库（可选）
-    #   - TMW_APP_META_ADMIN_DB=tms_admin
-    #   mongodb 配置
-    #   - TMW_MONGODB_HOST=mongodb
-    #   - TMW_MONGODB_PORT=27017
-    #   - TMW_MONGODB_USER=root
-    #   - TMW_MONGODB_PASSWORD=root
-    #   redis 配置
-    #   - TMS_REDIS_DISABLED=yes
-    #   - TMS_REDIS_PREFIX=dev-op
-    #   - TMS_REDIS_HOST=host.docker.internal
-    #   - TMS_REDIS_PORT=6379
-    #   - TMS_REDIS_EXPIRESIN=7200
-    #   swagger 配置
-    #   - TMW_API_HOST=http://back
-    #   - TMW_API_PORT=3000
-    #   bucket
-    #   - TMW_REQUIRE_BUCKET=
-    #   复制集：开启实时复制
-    #    - TMW_REALTIME_REPLICA=true
-    #    - TMW_REPLICA_SET_NAME=tmw-rA_s
-    #    - TMW_MONGODB_S_PORT=27018
-    #    - TMW_MONGODB_A_PORT=27019
-    #    - TMS_MONGODB_S_HOST=
-    #    - TMS_MONGODB_A_HOST=
-    #   redis增加密码
-    #    - TMS_REDIS_PWD=
-    #   应用路由前缀，不配置会用代码中的默认值
-    #    - TMS_APP_ROUTER_AUTH=
-    #    - TMS_APP_ROUTER_CONTROLLER=
-    #    - TMS_APP_ROUTER_PLUGIN=
-    #    - TMS_APP_ROUTER_FSDOMAIN=
-    #    - TMS_APP_DATA_ACTION_LOG=
-    #   account 配置
-    #    - TMS_ACCOUNT_DBNAME=tms_account
-    #    - TMS_ACCOUNT_CLNAME=account
-    #   支持可信主机的控制器跳过检查直接通过
-    #    - TMS_KOA_SKIP_TRUSTED_HOST=yes
-    # 插件配置
-    ## 创建账号
-    #    - TMW_PLUGIN_DOC_CREATE_ACCOUNT_DB=
-    #    - TMW_PLUGIN_DOC_CREATE_ACCOUNT_CL=
+    # volumes:
+    #   - ../volumes/mongodb/data:/data/db
     networks:
       - net
 
-  ue_admin:
+  tmw-aio:
     build:
       context: ../
-      dockerfile: packages/ue_admin/Dockerfile
-      # args:
-      #   vue_app_login_key_username: username
-      #   vue_app_login_key_password: password
-      #   vue_app_login_key_pin: pin
-      #   vue_app_base_url: /admin
-      #   vue_app_back_auth_base: /auth
-      #   vue_app_back_api_base: /api
-      #   vue_app_back_api_fs: /fs
-      #   vue_app_front_doceditor_add: ''
-      #   vue_app_front_doceditor_modify: ''
-      #   vue_app_storetoken_way: session
-    image: tmw/ue-admin:latest
-    container_name: tmw-ue_admin
+      dockerfile: docker/Dockerfile
+    image: jasony62/tmw-aio
+    # environment:
+    #   # 必须指定才会开放push服务，实现在线表格的协同编写，需要和映射的push端口一致
+    #   - UE_SETTINGS_BACK_PUSH_PORT=30002
     # ports:
-    #   - '8080:80'
-    environment:
-      # - NGINX_BACK_BASE_URL=http://back:3000
-      - NGINX_WEB_BASE_URL=/admin
-      # # 定义连接基数区域，10m 可以储存 320000 个并发会话
-      # - NGINX_LIMIT_CONN_ZONE=10m
-      # # 是限制每个IP只能发起8000个并发连接
-      # - NGINX_LIMIT_CONN_CONNIP=8000
-      # # 指定当触发limit的时候日志打印级别
-      # - NGINX_LIMIT_CONN_LOG_LEVEL=error
-      # # 回复被禁用的连接请求时的状态码
-      - NGINX_LIMIT_CONN_STATUS=488
-      # # 达到阀值后开始限速(字节)
-      # - NGINX_LIMIT_RATE_AFTER=300m
-      # # 限制向客户端传输数据的速度(Byte/s)
-      # - NGINX_LIMIT_RATE=300k
-      # # 指定等待client发送一个包体的超时时间
-      # - NGINX_CLIENT_BODY_TIMEOUT=60s
-      # # 指定等待client发送一个包头的超时时间
-      # - NGINX_CLIENT_HEADER_TIMEOUT=60s
-      # # keep-alive连接超时时间
-      # - NGINX_KEEPALIVE_TIMEOUT=75s
-      # # 服务端向客户端传输数据的超时时间
-      # - NGINX_SEND_TIMEOUT=60s
-      # # 隐藏版本号
-      # - NGINX_SERVER_TOKENS=off
+    #   # api端口
+    #   - 30001:3000
+    #   # push端口
+    #   - 30002:3001
+    #   # web页面端口
+    #   - 3081:80
+    # volumes:
+    # - ../back/config:/usr/app/config
+    # - ../ue_admin/settings.json:/usr/share/nginx/html/admin/settings.json
     networks:
       - net
 

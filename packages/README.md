@@ -4,7 +4,7 @@
 
 数据类型定义。
 
-```bash
+```shell
 pnpm build
 ```
 
@@ -12,7 +12,7 @@ pnpm build
 
 封装`tms-mongodb-web`的通用操作，为开发插件提供支持。作为独立的包`tmw-kit`发布。
 
-```bash
+```shell
 pnpm build
 ```
 
@@ -73,3 +73,7 @@ DEV_SERVER_PORT=7077 pnpm dev
 功能插件。
 
 通过环境变量`TMW_APP_PLUGIN_DIR`指定插件位置。
+
+```shell
+pnpm build
+```

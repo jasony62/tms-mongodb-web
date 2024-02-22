@@ -75,17 +75,21 @@ location / {
 
 在项目根目录执行命令。
 
-```bash
+```shell
 docker build -f ./docker/Dockerfile -t jasony62/tmw-aio .
 ```
 
-```bash
+```shell
+docker compose -f docker/docker-compose.yml build tmw-aio
+```
+
+```shell
 docker build -f ./docker/Dockerfile.dev -t jasony62/tmw-aio_dev .
 ```
 
 # 运行镜像
 
-```bash
+```shell
 docker run -it --rm --name tmw-test -p 3070:3000 -p 7077:80 jasony62/tmw-aio
 ```
 
@@ -111,4 +115,8 @@ docker run -it --rm --name tmw-test -p 3077:3000 -p 7077:80 -v $PWD/docker/back/
 
 ```shell
 docker run -it --rm --name tmw-test -p 3077:3000 -p 7077:80 -e NGINX_BACK_BASE_URL=http://localhost:3000 jasony62/tmw-aio
+```
+
+```shell
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml up tmw-aio
 ```
