@@ -21,6 +21,21 @@ class Schema extends Base {
     })
   }
   /**
+   * 根据ID获得字段定义
+   *
+   * @param ids ObjectId数组
+   * @param options
+   * @returns
+   */
+  async bySchemaIds(ids: [], options = {}) {
+    const query = {
+      type: 'schema',
+      _id: { $in: ids },
+    }
+    const schemas = await this.clMongoObj.find(query, options).toArray()
+    return schemas
+  }
+  /**
    * 根据名称获得字段定义
    * @param {string} name
    */

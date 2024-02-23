@@ -292,15 +292,33 @@ class Collection extends Base {
   }
   /**
    * 填充集合对应的schema信息
+   *
+   * 补充集合的schema信息，解决集合层级关系
    */
-  async processCl(tmwCls) {
+  async processCl(tmwCls: any[]) {
+    /**
+     * 进行批量查询，减少数据库访问次数
+     */
+    const clSchemaIds = tmwCls.reduce((ids, tmwCl) => {
+      const { schema_id } = tmwCl
+      if (schema_id || typeof schema_id === 'string')
+        ids.push(new ObjectId(schema_id))
+      return ids
+    }, [])
+
+    const schemas = await this._modelSchema.bySchemaIds(clSchemaIds, {
+      projection: { name: 1, parentName: 1, order: 1 },
+    })
+    const idToSchema: any = schemas.reduce((m, s) => {
+      m[s._id.toString()] = s
+      return m
+    }, {})
+
     const result = tmwCls.map(async (tmwCl) => {
       // 集合没有指定有效的schema_id
       if (!tmwCl.schema_id || typeof tmwCl.schema_id !== 'string') return tmwCl
 
-      const schema = await this._modelSchema.bySchemaId(
-        new ObjectId(tmwCl.schema_id)
-      )
+      const schema = idToSchema[tmwCl.schema_id]
       // 集合指定的schema不存在
       if (!schema) return tmwCl
 
