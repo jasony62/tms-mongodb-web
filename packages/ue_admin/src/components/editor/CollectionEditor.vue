@@ -108,11 +108,14 @@
             <el-option label="否" :value="false"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="使用访问控制列表">
+        <el-form-item label="集合通过访问控制列表访问">
           <el-switch v-model="collection.aclCheck"></el-switch>
           <el-alert title="集合创建成功后可设置访问控制列表。" type="info" :closable="false" v-if="!collection._id" />
         </el-form-item>
-        <el-form-item label="仅系统管理员可见">
+        <el-form-item label="集合中的文档通过访问控制列表访问">
+          <el-switch v-model="collection.docAclCheck"></el-switch>
+        </el-form-item>
+        <el-form-item label="集合仅系统管理员可见">
           <el-switch v-model="collection.adminOnly"></el-switch>
         </el-form-item>
         <el-form-item label="全文检索">
@@ -185,6 +188,7 @@ const props = defineProps({
         dir_full_name: '',
         spreadsheet: 'no',
         aclCheck: false,
+        docAclCheck: false,
         adminOnly: false,
         custom: {
           docOperations: {

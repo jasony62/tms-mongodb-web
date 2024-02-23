@@ -154,9 +154,13 @@ class Acl extends Base {
    * 获得指定对象的访问控制清单
    *
    * @param target
+   * @param options
    * @returns
    */
-  async list(target: Partial<AclTarget>): Promise<[boolean, string | any[]]> {
+  async list(
+    target: Partial<AclTarget>,
+    options = { nonexistentAsFault: false }
+  ): Promise<[boolean, string | any[]]> {
     const query = {
       'target.id': target.id,
       'target.type': target.type,
@@ -169,7 +173,10 @@ class Acl extends Base {
       },
     })
 
-    if (!result) return [false, '没有匹配的授权列表']
+    if (!result) {
+      if (options.nonexistentAsFault) return [false, '没有匹配的授权列表']
+      return [true, []]
+    }
 
     const { acl } = result
 

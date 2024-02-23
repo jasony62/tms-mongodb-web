@@ -65,7 +65,7 @@
   </el-dialog>
 </template>
 <script setup lang="ts">
-import { onMounted, reactive, ref, toRaw, h } from 'vue'
+import { onMounted, reactive, ref, h } from 'vue'
 import { ElMessageBox, ElButton } from 'element-plus'
 import apiDb from '@/apis/database'
 import apiSchema from '@/apis/schema'
@@ -163,7 +163,6 @@ onMounted(() => {
   if (mode === 'update' && database.aclCheck === true) {
     apiAcl.list({ type: 'database', id: database._id }).then((result: any) => {
       aclUserList.value = result
-      console.log(toRaw(aclUserList.value))
     })
   }
 })

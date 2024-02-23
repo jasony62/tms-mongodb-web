@@ -41,7 +41,7 @@ export class EtlModel extends Base {
     const modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
     const [ok, result] = await modelDoc.list(etlCl, { filter }, {}, false)
 
-    if (ok === false) return [false, result]
+    if (ok === false || typeof result === 'string') return [false, result]
 
     return [true, result.docs]
   }

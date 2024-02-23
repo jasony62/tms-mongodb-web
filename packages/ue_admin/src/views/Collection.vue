@@ -120,6 +120,9 @@
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
+                    <el-dropdown-item v-if="collection.docAclCheck">
+                      <el-button @click="openAclEditor(scope.row)" type="primary" link size="small">访问控制</el-button>
+                    </el-dropdown-item>
                     <el-dropdown-item>
                       <el-button v-if="docOperations.copy" type="primary" link size="small"
                         @click="copyDocument(scope.row)">复制</el-button>
@@ -207,7 +210,7 @@ import {
 } from '@/global'
 
 import facStore from '@/store'
-import { openSelectConditionEditor } from '@/components/editor'
+import { openDocAclEditor, openSelectConditionEditor } from '@/components/editor'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { ElTable } from 'element-plus'
 import { useMitt } from '@/composables/mitt'
@@ -229,6 +232,7 @@ const store = facStore()
 // const LIST_DB_PAGE_SIZE = 100
 
 let collection = reactive({
+  docAclCheck: false,
   schema_tags: [] as any[],
   schema_default_tags: [] as any[],
   schema: {
@@ -431,6 +435,12 @@ const copyDocument = (document: any) => {
   apiDoc.create(bucketName, dbName, clName, document).then(() => {
     listDocByKw()
   })
+}
+/**
+ * 打开文档acl编辑对话框
+ */
+const openAclEditor = (doc: any) => {
+  openDocAclEditor({ doc })
 }
 /**
  * 文档对象的说明

@@ -2,6 +2,7 @@ import mongodb from 'mongodb'
 import Base from './base.js'
 import ModelColl from './collection.js'
 import ModelSchema from './schema.js'
+import ModelAcl from './acl.js'
 import dayjs from 'dayjs'
 import { ElasticSearchIndex } from '../elasticsearch/index.js'
 import Debug from 'debug'
@@ -27,6 +28,10 @@ function newEsIndex(tmwCl) {
 
 /**文档模型类基类 */
 class Document extends Base {
+  get _modelAcl() {
+    const model = new ModelAcl(this.mongoClient, this.bucket, this.client)
+    return model
+  }
   /**
    * 获得指定id的文档
    * @param {object} existCl - 文档所在集合
@@ -370,14 +375,30 @@ class Document extends Base {
     { page = 0, size = 0 } = {},
     like = true,
     projection = null
-  ) {
+  ): Promise<[boolean, string | { docs: any[]; total: number }]> {
     if (!existCl) return [false, '没有指定存在的集合']
+    // 筛选条件
+    let query: any = filter ? this.assembleQuery(filter, like) : {}
 
-    let query = filter ? this.assembleQuery(filter, like) : {}
-
-    const client = this.mongoClient
-    let cl = client.db(existCl.db.sysname).collection(existCl.sysname)
-
+    // 数据权限，管理员不受限制
+    if (this.client.isAdmin !== true) {
+      // 集合中的文档要通过acl控制访问权限
+      if (existCl.docAclCheck === true) {
+        let queryAclCheck: any = [
+          { creator: { $eq: this.client.id } }, // 创建人允许访问
+        ]
+        // 获得当前用户在acl列表中授权访问的数据库
+        const aclResult = await this._modelAcl.targetByUser(
+          { type: 'document' },
+          { id: this.client.id }
+        )
+        if (Array.isArray(aclResult.document) && aclResult.document.length) {
+          const queryAcl = aclResult.document.map((id) => new ObjectId(id))
+          queryAclCheck.push({ _id: { $in: queryAcl } })
+        }
+        query.$or = queryAclCheck
+      }
+    }
     // 分页
     let { skip, limit } = this.toSkipAndLimit(page, size)
 
@@ -389,8 +410,10 @@ class Document extends Base {
       sort['_id'] = -1
     }
 
-    let data: any = {}
-    data.docs = await cl
+    const client = this.mongoClient
+    let cl = client.db(existCl.db.sysname).collection(existCl.sysname)
+
+    const docs = await cl
       .find(query)
       .project(projection)
       .skip(skip)
@@ -401,9 +424,9 @@ class Document extends Base {
         return docs
       })
 
-    data.total = await cl.countDocuments(query)
+    const total = await cl.countDocuments(query)
 
-    return [true, data]
+    return [true, { docs, total }]
   }
   /**
    * 根据指定的id数组，获得文档列表

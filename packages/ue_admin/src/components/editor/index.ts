@@ -1,6 +1,7 @@
 import DbEditor from './DbEditor.vue'
 import DirEditor from './DirEditor.vue'
 import CollectionEditor from './CollectionEditor.vue'
+import DocAclEditor from './DocAclEditor.vue'
 import TagEditor from './TagEditor.vue'
 import SelectCondition from './SelectCondition.vue'
 import SchemaEditor from './SchemaEditor.vue'
@@ -134,6 +135,27 @@ export function openCollectionEditor(options: CollectionEditorOptions) {
     collection,
     onClose: (newCl: any) => {
       if (newCl && onBeforeClose) onBeforeClose(newCl)
+      app.unmount()
+      document.body.removeChild(root)
+    },
+  })
+  app.use(ElementPlus).mount(root)
+}
+/**
+ * 编辑文档访问控制列表
+ *
+ * @param options
+ */
+export function openDocAclEditor(options: any) {
+  const root = document.createElement('div')
+  document.body.appendChild(root)
+  const { mode, bucketName, doc, onBeforeClose } = options
+  let app = createApp(DocAclEditor, {
+    mode,
+    bucketName,
+    doc,
+    onClose: () => {
+      if (onBeforeClose) onBeforeClose()
       app.unmount()
       document.body.removeChild(root)
     },
