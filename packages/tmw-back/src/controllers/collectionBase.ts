@@ -64,59 +64,18 @@ class CollectionBase extends Base {
    * 指定库下所有的集合，包含未被管理的集合
    */
   async list() {
-    const query: any = {
-      type: 'collection',
-      'db.sysname': this.reqDb.sysname,
-    }
-    if (this.client.isAdmin !== true) {
-      query.adminOnly = { $ne: true }
-    }
-    if (this.bucketObj) query.bucket = this.bucketObj.name
     const { dirFullName, keyword } = this.request.query
-    if (dirFullName) {
-      query.dir_full_name = {
-        $regex: new RegExp('^' + dirFullName + '(?=/|$)'),
-      }
-    }
-    if (keyword) {
-      let re = new RegExp(keyword)
-      query['$or'] = [
-        { name: { $regex: re, $options: 'i' } },
-        { title: { $regex: re, $options: 'i' } },
-        { description: { $regex: re, $options: 'i' } },
-      ]
-    }
-    const options: any = {
-      projection: { type: 0 },
-    }
     let { skip, limit } = this.clHelper.requestPage()
-    // 添加分页条件
-    if (typeof skip === 'number') {
-      options.skip = skip
-      options.limit = limit
-    }
 
-    const tmwCls = await this.clMongoObj
-      .find(query, options)
-      .sort({ _id: -1 })
-      .toArray()
+    const result = await this.clHelper.list(
+      this.reqDb.sysname,
+      dirFullName,
+      keyword,
+      skip,
+      limit
+    )
 
-    // 填充集合对应的schema信息
-    const newTmwCls = await this.processCl(tmwCls)
-
-    // 按order排序
-    newTmwCls.sort((a, b) => {
-      if (!a.schema_order) a.schema_order = 999999
-      if (!b.schema_order) b.schema_order = 999999
-      return a.schema_order - b.schema_order
-    })
-
-    if (typeof skip === 'number') {
-      let total = await this.clMongoObj.countDocuments(query)
-      return new ResultData({ collections: newTmwCls, total })
-    }
-
-    return new ResultData(newTmwCls)
+    return new ResultData(result)
   }
   /**
    * 指定数据库下新建集合

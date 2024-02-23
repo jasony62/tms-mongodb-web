@@ -6,6 +6,7 @@ import { ElasticSearchIndex } from '../elasticsearch/index.js'
 import { SchemaIter } from '../schema.js'
 import ModelSpreadsheet from './spreadsheet.js'
 import ModelSchema from './schema.js'
+import ModelAcl from './acl.js'
 import Document from './document.js'
 import Debug from 'debug'
 
@@ -21,6 +22,14 @@ const CL_NAME_RE = '^[a-zA-Z]+[0-9a-zA-Z_-]{0,63}$'
 const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
 
 class Collection extends Base {
+  get _modelSchema() {
+    const modelSc = new ModelSchema(this.mongoClient, this.bucket, this.client)
+    return modelSc
+  }
+  get _modelAcl() {
+    const model = new ModelAcl(this.mongoClient, this.bucket, this.client)
+    return model
+  }
   /**
    * 从传入的数据生成安全的集合对象
    *
@@ -35,6 +44,7 @@ class Collection extends Base {
       dir_full_name,
       schema_id,
       spreadsheet,
+      aclCheck,
       adminOnly,
       tags,
       schema_tags,
@@ -50,6 +60,7 @@ class Collection extends Base {
       dir_full_name,
       schema_id,
       spreadsheet,
+      aclCheck,
       adminOnly,
       tags,
       schema_tags,
@@ -278,6 +289,131 @@ class Collection extends Base {
     if (schema.TMW_CREATE_FROM === 'collection') {
       await modelSc.removeById(tmwCl.schema_id)
     }
+  }
+  /**
+   * 填充集合对应的schema信息
+   */
+  async processCl(tmwCls) {
+    const result = tmwCls.map(async (tmwCl) => {
+      // 集合没有指定有效的schema_id
+      if (!tmwCl.schema_id || typeof tmwCl.schema_id !== 'string') return tmwCl
+
+      const schema = await this._modelSchema.bySchemaId(
+        new ObjectId(tmwCl.schema_id)
+      )
+      // 集合指定的schema不存在
+      if (!schema) return tmwCl
+
+      const { name, parentName, order } = schema
+
+      tmwCl.schema_name = name
+      tmwCl.schema_parentName = parentName
+      tmwCl.schema_order = order
+
+      return tmwCl
+    })
+    return Promise.all(result).then((newTmwCls) => {
+      return newTmwCls
+    })
+  }
+  /**
+   * 获取数据库下的集合列表
+   *
+   * @param dbSysname
+   * @param dirFullName
+   * @param keyword
+   * @param skip
+   * @param limit
+   * @returns
+   */
+  async list(
+    dbSysname: string,
+    dirFullName: string,
+    keyword: string,
+    skip: number,
+    limit: number
+  ) {
+    const query: any = {
+      type: 'collection',
+      'db.sysname': dbSysname,
+    }
+
+    // 检查授权访问列表条件
+    let queryAclCheck: any[]
+
+    // 当前用户不是管理员，仅管理员可见的集合不允许访问
+    if (this.client.isAdmin !== true) {
+      // 不能是仅管理员访问
+      query.adminOnly = { $ne: true }
+      // 检查授权访问列表
+      queryAclCheck = [
+        { creator: { $eq: this.client.id } }, // 创建人允许访问
+        { aclCheck: { $ne: true } }, // 没有限制访问
+      ]
+      // 获得当前用户在acl列表中授权访问的数据库
+      const aclResult = await this._modelAcl.targetByUser(
+        { type: 'collection' },
+        { id: this.client.id }
+      )
+      if (Array.isArray(aclResult.collection) && aclResult.collection.length) {
+        const queryAcl = aclResult.collection.map((id) => new ObjectId(id))
+        queryAclCheck.push({ _id: { $in: queryAcl } })
+      }
+    }
+    if (this.bucket) query.bucket = this.bucket.name
+    if (dirFullName) {
+      query.dir_full_name = {
+        $regex: new RegExp('^' + dirFullName + '(?=/|$)'),
+      }
+    }
+    if (keyword) {
+      let re = new RegExp(keyword)
+      query.$and = [
+        {
+          $or: [
+            { name: { $regex: re, $options: 'i' } },
+            { title: { $regex: re, $options: 'i' } },
+            { description: { $regex: re, $options: 'i' } },
+          ],
+        },
+      ]
+      if (queryAclCheck)
+        query.$and.push({
+          $or: queryAclCheck,
+        })
+    } else {
+      if (queryAclCheck) query.$or = queryAclCheck
+    }
+    const options: any = {
+      projection: { type: 0 },
+    }
+    // 添加分页条件
+    if (typeof skip === 'number') {
+      options.skip = skip
+      options.limit = limit
+    }
+
+    const tmwCls = await this.clMongoObj
+      .find(query, options)
+      .sort({ _id: -1 })
+      .toArray()
+
+    // 填充集合对应的schema信息
+    const newTmwCls = await this.processCl(tmwCls)
+
+    // 按order排序
+    newTmwCls.sort((a, b) => {
+      if (!a.schema_order) a.schema_order = 999999
+      if (!b.schema_order) b.schema_order = 999999
+      return a.schema_order - b.schema_order
+    })
+
+    if (typeof skip === 'number') {
+      let total = await this.clMongoObj.countDocuments(query)
+      return { collections: newTmwCls, total }
+    }
+
+    return newTmwCls
   }
   /**
    *

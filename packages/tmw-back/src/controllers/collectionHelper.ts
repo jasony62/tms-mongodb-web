@@ -6,6 +6,14 @@ class CollectionHelper extends Helper {
   constructor(ctrl: any) {
     super(ctrl)
   }
+  get _modelCl() {
+    let model = new ModelCl(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
+    return model
+  }
   /**
    * 修改集合名称
    */
@@ -35,24 +43,38 @@ class CollectionHelper extends Helper {
    * 创建集合
    */
   async createCl(existDb, info) {
-    let modelCl = new ModelCl(
-      this.ctrl.mongoClient,
-      this.ctrl.bucket,
-      this.ctrl.client
-    )
-
-    return await modelCl.create(existDb, info)
+    return await this._modelCl.create(existDb, info)
   }
   /**
    * 删除集合
    */
   async removeCl(tmwDb, tmwCl) {
-    let modelCl = new ModelCl(
-      this.ctrl.mongoClient,
-      this.ctrl.bucket,
-      this.ctrl.client
+    let result = await this._modelCl.remove(tmwDb, tmwCl._id.toString())
+    return result
+  }
+  /**
+   * 获取数据库下的集合列表
+   *
+   * @param dbSysname
+   * @param dirFullName
+   * @param keyword
+   * @param skip
+   * @param limit
+   */
+  async list(
+    dbSysname: string,
+    dirFullName: string,
+    keyword: string,
+    skip: number,
+    limit: number
+  ) {
+    let result = await this._modelCl.list(
+      dbSysname,
+      dirFullName,
+      keyword,
+      skip,
+      limit
     )
-    let result = await modelCl.remove(tmwDb, tmwCl._id.toString())
     return result
   }
 }

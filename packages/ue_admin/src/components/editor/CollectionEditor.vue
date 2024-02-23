@@ -6,7 +6,8 @@
         <el-tab-pane label="基本信息" name="info"></el-tab-pane>
         <el-tab-pane label="扩展信息" name="extra" v-if="clSchema._id"></el-tab-pane>
         <el-tab-pane label="设置" name="setting"></el-tab-pane>
-        <el-tab-pane label="文档编辑转换规则" name="convert"></el-tab-pane>
+        <el-tab-pane label="文档编辑转换规则" name="convert" v-if="false"></el-tab-pane>
+        <el-tab-pane label="访问控制列表" name="acl" v-if="collection._id && collection.aclCheck"></el-tab-pane>
       </el-tabs>
       <el-form :model="collection" label-position="top" v-show="activeTab === 'info'" :rules="rules">
         <el-form-item label="所属分类目录" prop="title" v-if="clDir?.full_title">
@@ -52,9 +53,6 @@
             <el-option label="是" value="yes"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="仅系统管理员可见">
-          <el-switch v-model="collection.adminOnly"></el-switch>
-        </el-form-item>
       </el-form>
       <div v-show="activeTab === 'extra'">
         <div v-if="clSchema.body">
@@ -63,7 +61,7 @@
         </div>
       </div>
       <el-form :model="collection.custom" label-position="top" v-show="activeTab === 'setting'">
-        <el-form-item label="文档操作">
+        <el-form-item label="文档操作" v-if="false">
           <el-checkbox v-model="collection.custom.docOperations.create">添加数据</el-checkbox>
           <el-checkbox v-model="collection.custom.docOperations.edit">修改</el-checkbox>
           <el-checkbox v-model="collection.custom.docOperations.remove">删除</el-checkbox>
@@ -75,7 +73,7 @@
           <el-checkbox v-model="collection.custom.docOperations.export">导出数据</el-checkbox>
           <el-checkbox v-model="collection.custom.docOperations.copyMany">批量复制</el-checkbox>
         </el-form-item>
-        <el-form-item label="文档操作规则">
+        <el-form-item label="文档操作规则" v-if="false">
           <el-checkbox v-model="collection.operateRules.scope.unrepeat">添加/导入数据时去重</el-checkbox>
         </el-form-item>
         <el-form-item label="设置去重规则" v-if="collection.operateRules.scope.unrepeat === true" class="tmw-formItem__flex">
@@ -110,6 +108,13 @@
             <el-option label="否" :value="false"></el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="使用访问控制列表">
+          <el-switch v-model="collection.aclCheck"></el-switch>
+          <el-alert title="集合创建成功后可设置访问控制列表。" type="info" :closable="false" v-if="!collection._id" />
+        </el-form-item>
+        <el-form-item label="仅系统管理员可见">
+          <el-switch v-model="collection.adminOnly"></el-switch>
+        </el-form-item>
         <el-form-item label="全文检索">
           <el-checkbox v-model="collection.custom.elasticsearch.enabled">保存到Elasticsearch</el-checkbox>
         </el-form-item>
@@ -118,9 +123,26 @@
         <textarea ref="elConvEditor" class="h-full w-full border border-gray-200 p-2"
           v-model="docFieldConvertRules"></textarea>
       </div>
+      <div v-show="activeTab === 'acl'">
+        <el-form :inline="true" :model="newAclUser" label-position="left">
+          <el-form-item label="用户">
+            <el-input v-model="newAclUser.id"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="onAddAclUser(newAclUser)">添加</el-button>
+          </el-form-item>
+        </el-form>
+        <div style="height:300px">
+          <el-auto-resizer>
+            <template #default="{ height, width }">
+              <el-table-v2 :data="aclUserList" :columns="aclUserColumns" :width="width" :height="height" />
+            </template>
+          </el-auto-resizer>
+        </div>
+      </div>
     </div>
     <template #footer>
-      <el-button type="primary" @click="onSubmit">提交</el-button>
+      <el-button type="primary" @click="onSubmit" :disabled="activeTab === 'acl'">提交</el-button>
       <el-button @click="onBeforeClose">取消</el-button>
     </template>
   </el-dialog>
@@ -131,8 +153,9 @@ import apiDb from '@/apis/database'
 import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
-import { computed, onMounted, reactive, ref, toRaw } from 'vue'
-import { FormRules, ElMessage, ElMessageBox } from 'element-plus'
+import apiAcl from '@/apis/acl'
+import { computed, h, onMounted, reactive, ref, toRaw } from 'vue'
+import { FormRules, ElMessage, ElMessageBox, ElButton } from 'element-plus'
 import TmsJsonDoc, { DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 
@@ -161,6 +184,7 @@ const props = defineProps({
         tags: [],
         dir_full_name: '',
         spreadsheet: 'no',
+        aclCheck: false,
         adminOnly: false,
         custom: {
           docOperations: {
@@ -265,6 +289,19 @@ const docFieldConvertRules = computed({
 
 // 文档编辑器
 const elJdeDoc = ref<{ editing: () => any; editDoc: DocAsArray } | null>(null)
+
+const newAclUser = reactive({} as any)
+const aclUserColumns = [{
+  key: 'id',
+  dataKey: 'user.id',
+  title: '用户',
+  width: '200px'
+}, {
+  key: 'operaations',
+  title: '操作',
+  cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h(ElButton, { onClick: () => removeAclUser(rowData, rowIndex) }, { default: () => '删除' })
+}]
+const aclUserList = ref([] as any[])
 
 onMounted(() => {
   apiSchema
@@ -462,5 +499,21 @@ const onSubmit = () => {
         closeDialog(newCollection)
       })
   }
+}
+const onAddAclUser = (newUser: any) => {
+  const { id } = newUser
+  const target = { type: 'collection', id: collection._id }
+  const user = { id }
+  apiAcl.add(target, user).then((data: any) => {
+    aclUserList.value.splice(0, 0, { user: { id } })
+    newAclUser.id = ''
+  })
+}
+const removeAclUser = (aclUser: any, index: number) => {
+  const { user } = aclUser
+  const target = { type: 'collection', id: collection._id }
+  apiAcl.remove(target, { id: user.id }).then(() => {
+    aclUserList.value.splice(index, 1)
+  })
 }
 </script>
