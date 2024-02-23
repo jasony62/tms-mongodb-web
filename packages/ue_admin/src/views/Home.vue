@@ -1,4 +1,14 @@
 <template>
+  <div class="px-2 py-1 text-right border-b">
+    <el-dropdown>
+      <el-button circle :icon="Avatar"></el-button>
+      <template #dropdown>
+        <el-dropdown-menu>
+          <el-dropdown-item @click="logout">退出</el-dropdown-item>
+        </el-dropdown-menu>
+      </template>
+    </el-dropdown>
+  </div>
   <div class="flex flex-row gap-2 h-full">
     <div class="w-36 flex-none h-full flex flex-col">
       <!--left-->
@@ -46,12 +56,14 @@
 </template>
 <script setup lang="ts">
 import { COMPACT_MODE, EXTRACT_MODE, EXTERNAL_FS_URL, LABEL } from '@/global'
-import { computed } from 'vue';
+import { computed } from 'vue'
 import Assistant from '@/components/Assistant.vue'
-import { useAssistant } from '@/composables/assistant';
-import { useMitt } from '@/composables/mitt';
-import { useRoute } from 'vue-router';
+import { useAssistant } from '@/composables/assistant'
+import { useMitt } from '@/composables/mitt'
+import { useRouter, useRoute } from 'vue-router'
+import { Avatar } from '@element-plus/icons-vue'
 
+const router = useRouter()
 const route = useRoute()
 
 const COMPACT = computed(() => COMPACT_MODE())
@@ -86,5 +98,9 @@ const confirmAssistant = () => {
   const emitter = useMitt()
   emitter.on('extract.confirm.result', extractResult)
   emitter.emit('extract.confirm')
+}
+
+const logout = () => {
+  router.push({ name: 'login' })
 }
 </script>
