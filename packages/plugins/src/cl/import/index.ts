@@ -154,9 +154,9 @@ class ImportPlugin extends PluginBase {
     return cl
   }
 
-  private findSysColl(ctrl, existDb, clName) {
+  private findSysColl(ctrl, existDb, clSysname) {
     let { mongoClient } = ctrl
-    let sysCl = mongoClient.db(existDb.sysname).collection(clName)
+    let sysCl = mongoClient.db(existDb.sysname).collection(clSysname)
 
     return sysCl
   }

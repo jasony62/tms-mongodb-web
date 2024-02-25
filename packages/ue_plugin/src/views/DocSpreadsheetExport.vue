@@ -4,9 +4,13 @@
       <el-form size="large" label-position="right">
         <el-form-item label="导出类型">
           <el-radio-group v-model="outType" class="ml-4">
-            <el-radio label="excel" size="large">Excel</el-radio>
-            <el-radio label="json" size="large">JSON</el-radio>
+            <el-radio label="excel">Excel</el-radio>
+            <el-radio label="json">JSON</el-radio>
+            <el-radio label="docs">集合文档</el-radio>
           </el-radio-group>
+        </el-form-item>
+        <el-form-item label="数据起始行号">
+          <el-input-number v-model="startRow" :step="1" :min="0" step-strictly />
         </el-form-item>
         <div class="response-content flex-grow border border-gray-200 rounded-md overflow-auto" v-if="responseContent">
           <pre>{{ responseContent }}</pre>
@@ -45,7 +49,10 @@ interface PluginWidgetResult {
 
 interface Result {
   outType: string
+  startRow: number
 }
+// 数据起始行号
+const startRow = ref(1)
 
 // 调用插件的页面
 const Caller = window.parent
@@ -72,6 +79,7 @@ window.addEventListener('message', (event) => {
 function onExecute() {
   let result: Result = {
     outType: outType.value,
+    startRow: startRow.value
   }
   if (Caller && outType.value) {
     const message: PluginWidgetResult = {

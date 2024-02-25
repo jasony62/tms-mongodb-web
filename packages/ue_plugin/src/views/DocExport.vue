@@ -4,8 +4,9 @@
       <el-form size="large" label-position="right">
         <el-form-item label="导出类型">
           <el-radio-group v-model="outType" class="ml-4">
-            <el-radio label="json" size="large">JSON</el-radio>
-            <el-radio label="excel" size="large">Excel</el-radio>
+            <el-radio label="json">JSON</el-radio>
+            <el-radio label="excel">Excel</el-radio>
+            <el-radio label="spreadsheet">自由表格</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="保存方式" v-if="outType === 'json'">

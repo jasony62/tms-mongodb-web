@@ -1,8 +1,14 @@
 import { PluginProfileScope, PluginProfileAmount } from 'tmw-data'
-import { loadConfig, ModelSchema, SchemaIter, exportJSON } from 'tmw-kit'
+import {
+  loadConfig,
+  ModelSchema,
+  SchemaIter,
+  ModelSpreadsheet,
+  exportJSON,
+} from 'tmw-kit'
 import { PluginBase } from 'tmw-kit/dist/plugin/index.js'
 import { LocalFS } from 'tms-koa/dist/model/fs/local.js'
-import path from 'path'
+import path, { relative } from 'path'
 import _ from 'lodash'
 import fs from 'fs'
 
@@ -15,6 +21,164 @@ const ConfigDir = path.resolve(
 const ConfigFile =
   process.env.TMW_PLUGIN_DOC_EXPORT_CONFIG_NAME || './plugin/doc/export'
 
+type ExportFileInfoResult = {
+  filePath: string
+  fileName: string
+  domain: any
+  tmsFs: any
+}
+/**
+ * 导出文件信息
+ *
+ * @param ctrl
+ * @param tmwCl
+ * @returns
+ */
+function getExportFileInfo(ctrl, tmwCl): ExportFileInfoResult {
+  const fsContext = ctrl.tmsContext.FsContext.insSync()
+  const domain = fsContext.getDomain(fsContext.defaultDomain)
+
+  const tmsFs = new LocalFS(ctrl.tmsContext, domain.name)
+
+  const { name: fileName } = tmwCl
+  let filePath = tmsFs.pathWithRoot(fileName)
+
+  if (fs.existsSync(filePath)) {
+    fs.rmSync(filePath, { recursive: true })
+  }
+  fs.mkdirSync(filePath, { recursive: true })
+
+  return { filePath, fileName, domain, tmsFs }
+}
+/**
+ *
+ * @param ctrl
+ * @param schema_id
+ * @returns
+ */
+async function getDocSchemaIter(ctrl: any, schema_id: string) {
+  const modelSchema = new ModelSchema(
+    ctrl.mongoClient,
+    ctrl.bucket,
+    ctrl.client
+  )
+  const docSchema = await modelSchema.bySchemaId(schema_id)
+  const schemaIter = new SchemaIter({
+    type: 'object',
+    properties: docSchema,
+  })
+  return schemaIter
+}
+/**
+ *
+ * @param ctrl
+ * @param tmwCl
+ * @param docs
+ * @param leafLevel
+ * @returns
+ */
+async function exportAsExcel(ctrl, tmwCl, docs, leafLevel): Promise<string> {
+  const { schema_id } = tmwCl
+  if (!schema_id || typeof schema_id !== 'string')
+    throw Error('集合没有提供schema，无法执行自由表格导出到集合文档')
+
+  const XLSX = await import('xlsx')
+
+  let { filePath, fileName, tmsFs } = getExportFileInfo(ctrl, tmwCl)
+
+  leafLevel = leafLevel ? leafLevel : 0
+  filePath = path.join(filePath, `${fileName}.xlsx`)
+
+  // 集合的schema定义
+  const schemaIter = await getDocSchemaIter(ctrl, schema_id)
+
+  let newDocs = []
+  docs.forEach((doc) => {
+    let middleAry = {}
+    for (let schemaProp of schemaIter) {
+      const { fullname, _path, _name } = schemaProp
+      if (!_name) continue
+      if (leafLevel > 0 && fullname.split(/\./g).length - 1 >= leafLevel)
+        continue
+      let val = _.get(doc, fullname)
+      if (!val) continue
+      if (typeof val === 'object') val = JSON.stringify(val)
+      middleAry[fullname] = val
+      if (_path && middleAry[_path]) delete middleAry[_path]
+    }
+    newDocs.push(middleAry)
+  })
+
+  const ws = XLSX.utils.json_to_sheet(newDocs)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws)
+  XLSX.writeFile(wb, filePath)
+  // 文件地址
+  const relativeUrl = tmsFs.pathWithPrefix(
+    path.join(fileName, `${fileName}.xlsx`)
+  )
+  return relativeUrl
+}
+
+/**
+ *
+ * @param ctrl
+ * @param tmwCl
+ * @param docs
+ * @param outAmount
+ * @returns
+ */
+async function exportAsJson(ctrl, tmwCl, docs, outAmount): Promise<string> {
+  const { domain, tmsFs } = getExportFileInfo(ctrl, tmwCl)
+  // 文件名同时也做为目录名
+  const { name: fileName } = tmwCl
+  exportJSON(ctrl.tmsContext, domain.name, docs, `${fileName}.zip`, {
+    dir: fileName,
+    outAmount,
+  })
+  // 文件地址
+  let relativeUrl = tmsFs.pathWithPrefix(path.join(fileName, `${fileName}.zip`))
+  return relativeUrl
+}
+/**
+ * 文档数据导出到自由表格
+ *
+ * @param ctrl
+ * @param tmwCl
+ * @param docs
+ */
+async function exportAsSpreadsheet(ctrl, tmwCl, docs) {
+  // 集合的schema定义
+  const schemaIter = await getDocSchemaIter(ctrl, tmwCl.schema_id)
+  const headersName: string[] = []
+  for (let schemaProp of schemaIter) {
+    const { _name } = schemaProp
+    if (!_name) continue
+    headersName.push(_name)
+  }
+  /**
+   * 生成自由表格数据部分
+   */
+  const rows = docs.reduce((rows, rowJson, index) => {
+    const cells = {}
+    headersName.forEach((name, index) => {
+      if (rowJson[name]) cells['' + index] = { text: rowJson[name] }
+    })
+    rows['' + index] = { cells }
+    return rows
+  }, {})
+
+  const proto: any = { rows }
+  const modelSS = new ModelSpreadsheet(
+    ctrl.mongoClient,
+    ctrl.bucket,
+    ctrl.client
+  )
+  // 删除已有的数据
+  await modelSS.removeByCl(tmwCl.db.sysname, tmwCl.sysname)
+  // 创建自由表格
+  await modelSS.create(ctrl.client, tmwCl.db.sysname, tmwCl, proto)
+}
 /**
  * 将集合中的文档数据导出为json或者excel文件
  */
@@ -34,82 +198,29 @@ class ExportPlugin extends PluginBase {
 
     if (ok === false) return { code: 10001, msg: docsOrCause }
 
-    /**文档导出文件*/
-    const fsContext = ctrl.tmsContext.FsContext.insSync()
-    const domain = fsContext.getDomain(fsContext.defaultDomain)
-
-    const tmsFs = new LocalFS(ctrl.tmsContext, domain.name)
-
-    // 文件名同时也做为目录名
-    const { name: fileName, schema_id } = tmwCl
-    let filePath = tmsFs.pathWithRoot(fileName)
-
-    if (fs.existsSync(filePath)) {
-      fs.rmSync(filePath, { recursive: true })
-    }
-    fs.mkdirSync(filePath, { recursive: true })
-
     let { outType, outAmount, leafLevel } = ctrl.request.body.widget
     let relativeUrl, url
-    if (outType === 'excel') {
-      const XLSX = await import('xlsx')
-
-      leafLevel = leafLevel ? leafLevel : 0
-      filePath = path.join(filePath, `${fileName}.xlsx`)
-
-      // 集合的schema定义
-      const modelSchema = new ModelSchema(
-        ctrl.mongoClient,
-        ctrl.bucket,
-        ctrl.client
-      )
-      let docSchema
-      if (schema_id && typeof schema_id === 'string')
-        docSchema = await modelSchema.bySchemaId(schema_id)
-
-      const schemaIter = new SchemaIter({
-        type: 'object',
-        properties: docSchema,
-      })
-      let newDocs = []
-      docsOrCause.forEach((doc) => {
-        let middleAry = {}
-        for (let schemaProp of schemaIter) {
-          const { fullname, _path, _name } = schemaProp
-          if (!_name) continue
-          if (leafLevel > 0 && fullname.split(/\./g).length - 1 >= leafLevel)
-            continue
-          let val = _.get(doc, fullname)
-          if (!val) continue
-          if (typeof val === 'object') val = JSON.stringify(val)
-          middleAry[fullname] = val
-          if (_path && middleAry[_path]) delete middleAry[_path]
-        }
-        newDocs.push(middleAry)
-      })
-
-      const ws = XLSX.utils.json_to_sheet(newDocs)
-      const wb = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wb, ws)
-      XLSX.writeFile(wb, filePath)
-      // 文件地址
-      relativeUrl = tmsFs.pathWithPrefix(
-        path.join(fileName, `${fileName}.xlsx`)
-      )
-    } else if (outType === 'json') {
-      exportJSON(ctrl.tmsContext, domain.name, docsOrCause, `${fileName}.zip`, {
-        dir: fileName,
-        outAmount,
-      })
-      // 文件地址
-      relativeUrl = tmsFs.pathWithPrefix(path.join(fileName, `${fileName}.zip`))
+    switch (outType) {
+      case 'excel':
+        relativeUrl = await exportAsExcel(ctrl, tmwCl, docsOrCause, leafLevel)
+        break
+      case 'json':
+        relativeUrl = await exportAsJson(ctrl, tmwCl, docsOrCause, outAmount)
+        break
+      case 'spreadsheet':
+        await exportAsSpreadsheet(ctrl, tmwCl, docsOrCause)
+        break
+      default:
+        return { code: 10001, msg: `不支持的导出类型【${outType}】` }
     }
+
     if (relativeUrl) {
       let appContext = ctrl.tmsContext.AppContext.insSync()
       url = `${appContext.router?.fsdomain?.prefix ?? ''}/${relativeUrl}`
+      return { code: 0, msg: { url } }
+    } else {
+      return { code: 0, msg: {} }
     }
-
-    return { code: 0, msg: { url } }
   }
 }
 
