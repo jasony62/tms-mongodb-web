@@ -22,6 +22,7 @@
     "jsondiffpatch": "^0.6.0",
     "jsoneditor": "^10.0.1",
     "jsonpath-plus": "^8.0.0",
+    "jsonpointer": "^5.0.1",
     "lodash": "^4.17.21",
     "mitt": "^3.0.0",
     "pinia": "^2.1.6",

@@ -9,6 +9,7 @@ type DbPayload = { bucket?: string; keyword?: string; size: number }
 export default defineStore('mongodb', {
   state: () => {
     return {
+      clientInfo: {} as any,
       buckets: [] as any[],
       dbs: [] as any[],
       documentSchemas: [] as any[],

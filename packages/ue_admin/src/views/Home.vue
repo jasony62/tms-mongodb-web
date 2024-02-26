@@ -4,7 +4,8 @@
       <el-button circle :icon="Avatar"></el-button>
       <template #dropdown>
         <el-dropdown-menu>
-          <el-dropdown-item @click="logout">退出</el-dropdown-item>
+          <el-dropdown-item>{{ ClientName }}</el-dropdown-item>
+          <el-dropdown-item divided @click="logout">退出</el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>
@@ -55,17 +56,27 @@
   </div>
 </template>
 <script setup lang="ts">
-import { COMPACT_MODE, EXTRACT_MODE, EXTERNAL_FS_URL, LABEL } from '@/global'
+import { COMPACT_MODE, EXTRACT_MODE, EXTERNAL_FS_URL, LABEL, LOGIN_USERNAME_JSONPOINTER } from '@/global'
 import { computed } from 'vue'
 import Assistant from '@/components/Assistant.vue'
 import { useAssistant } from '@/composables/assistant'
 import { useMitt } from '@/composables/mitt'
 import { useRouter, useRoute } from 'vue-router'
 import { Avatar } from '@element-plus/icons-vue'
+import * as jsonpointer from 'jsonpointer'
+import facStore from '@/store'
 
 const router = useRouter()
 const route = useRoute()
-
+/**
+ * 获取当前用户的信息
+ */
+const { clientInfo } = facStore()
+const ClientName = computed(() => {
+  const jp = LOGIN_USERNAME_JSONPOINTER()
+  const name = jsonpointer.get(clientInfo, jp)
+  return name
+})
 const COMPACT = computed(() => COMPACT_MODE())
 const EXTRACT = computed(() => EXTRACT_MODE())
 const EXTERNALFSURL = computed(() => EXTERNAL_FS_URL())

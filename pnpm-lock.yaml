@@ -230,6 +230,9 @@ importers:
       jsonpath-plus:
         specifier: ^8.0.0
         version: 8.0.0
+      jsonpointer:
+        specifier: ^5.0.1
+        version: 5.0.1
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -5251,6 +5254,11 @@ packages:
   /jsonpath-plus@8.0.0:
     resolution: {integrity: sha512-+AOBHcQvRr8DcWVIkfOCCCLSlYgQuNZ+gFNqwkBrNpdUfdfkcrbO4ml3F587fWUMFOmoy6D9c+5wrghgjN3mbg==}
     engines: {node: '>=14.0.0'}
+    dev: false
+
+  /jsonpointer@5.0.1:
+    resolution: {integrity: sha512-p/nXbhSEcu3pZRdkW1OfJhpsVtW1gd4Wa1fnQc9YLiTfAjn0312eMKimbdIQzuZl9aa9xUGaRlP9T/CJE/ditQ==}
+    engines: {node: '>=0.10.0'}
     dev: false
 
   /jsonrepair@2.2.1:

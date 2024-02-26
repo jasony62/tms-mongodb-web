@@ -8,6 +8,7 @@ type Globalsettings = {
   backApiPort: number
   backPushPort: number
   loginCaptchaDisabled: boolean
+  loginUsernameJsonPointer: string // 从用户信息中获取用户名称的路径
   externalFsUrl: string
   templateVarsApiUrl: string
   tmwAppTags: string // 标签字段名称
@@ -28,6 +29,8 @@ let _globalsettings: Globalsettings = {
   loginCaptchaDisabled: /yes|true/i.test(
     import.meta.env.VITE_LOGIN_CAPTCHA_DISABLED
   ),
+  loginUsernameJsonPointer:
+    import.meta.env.VITE_LOGIN_USERNAME_JSONPOINTER || '/data/username',
   externalFsUrl: import.meta.env.VITE_EXTERNAL_FS_URL,
   templateVarsApiUrl: import.meta.env.VITE_TEMPLATE_VARS_API_URL,
   tmwAppTags: import.meta.env.VITE_TMW_APP_TAGS || 'TMW_TAGS',
@@ -48,6 +51,8 @@ export function init(settings: Globalsettings) {
     _globalsettings.backPushPort = settings.backPushPort
   if (settings.loginCaptchaDisabled)
     _globalsettings.loginCaptchaDisabled = settings.loginCaptchaDisabled
+  if (settings.loginUsernameJsonPointer)
+    _globalsettings.loginUsernameJsonPointer = settings.loginUsernameJsonPointer
   if (settings.externalFsUrl)
     _globalsettings.externalFsUrl = settings.externalFsUrl
   if (settings.templateVarsApiUrl)
@@ -173,6 +178,11 @@ export const FS_BASE_URL = () => {
  */
 export const LOGIN_CAPTCHA_DISABLED = () => _globalsettings.loginCaptchaDisabled
 /**
+ * 获取登录用户名称的路径
+ */
+export const LOGIN_USERNAME_JSONPOINTER = () =>
+  _globalsettings.loginUsernameJsonPointer
+/**
  * 外部文件服务地址
  */
 export const EXTERNAL_FS_URL = () => _globalsettings.externalFsUrl
@@ -246,7 +256,9 @@ function getCookie(cname: string) {
   }
   return ''
 }
-
+/**
+ *
+ */
 export function setLocalToken(token: string) {
   if (way === 'session') {
     sessionStorage.setItem('access_token', token)

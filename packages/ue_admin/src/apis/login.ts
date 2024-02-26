@@ -91,4 +91,18 @@ export default {
         return Promise.resolve(rst.data)
       })
   },
+  /**
+   * 获取当前登录用户的用户信息
+   */
+  fnClient(access_token: string) {
+    const baseAuth = AUTH_API_URL()
+    const url = `${baseAuth}/client`
+    const params = { access_token }
+    return TmsAxios.ins('auth-api')
+      .get(url, { params })
+      .then((rsp: any) => {
+        const { data } = rsp
+        return Promise.resolve(data.result)
+      })
+  },
 }

@@ -18,8 +18,8 @@ import Smscode from '../views/Smscode.vue'
 import Invite from '../views/Invite.vue'
 import DocEditor from '../views/editor/Document.vue'
 import SchemaEditor from '../views/editor/Schema.vue'
-
 import { getLocalToken } from '../global'
+import apiLogin from '@/apis/login'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
   ? import.meta.env.VITE_BASE_URL
@@ -155,7 +155,7 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   // 进入页面前检查是否已经通过用户认证
   //@ts-ignore
   if (['login', 'register', 'smscode'].indexOf(to.name) === -1) {
@@ -170,6 +170,17 @@ router.beforeEach((to, from, next) => {
         }
       }
       return next({ name: 'login' })
+    } else {
+      /**
+       * 如果没有当前用户的信息，获取信息
+       */
+      const facStore = (await import('@/store')).default
+      const store = facStore()
+      if (!store.clientInfo.id) {
+        apiLogin.fnClient(token).then((result: any) => {
+          Object.assign(store.clientInfo, result)
+        })
+      }
     }
   }
   next()

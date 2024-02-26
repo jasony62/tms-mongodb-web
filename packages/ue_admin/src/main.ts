@@ -106,8 +106,8 @@ TmsAxios.ins({ name: 'mongodb-api', rules: rules })
 
 function afterLoadSettings() {
   createApp(App)
-    .use(router)
     .use(createPinia())
+    .use(router)
     .use(TmsAxiosPlugin)
     .use(TmsErrorPlugin)
     .use(TmsRouterHistoryPlugin, { router })
