@@ -1,45 +1,55 @@
 <template>
-  <div class="flex flex-row gap-2 h-full">
-    <div :class="COMPACT ? 'w-full' : 'w-4/5'">
-      <div class="flex flex-col gap-2">
-        <el-table :data="topSchemas" row-key="_id" stripe>
-          <el-table-column label="定义名称" width="240">
-            <template #default="scope">
-              <router-link
-                :to="{ name: 'schemaEditor', params: { bucketName, scope: 'document', schemaId: scope.row._id } }">
-                {{
-                  scope.row.name
-                }}
-              </router-link>
-            </template>
-          </el-table-column>
-          <el-table-column prop="title" label="名称" width="180"></el-table-column>
-          <el-table-column prop="description" label="说明"></el-table-column>
-          <el-table-column label="操作" width="180">
-            <template #default="scope">
-              <el-button type="primary" link size="small" @click="editSchema(scope.row, 'document')">修改</el-button>
-              <el-button type="primary" link size="small" @click="removeSchema(scope.row)">删除</el-button>
-              <el-button type="primary" link size="small" @click="copySchema(scope.row, scope.$index, true)">复制
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
+  <div class="flex flex-col gap-2">
+    <div class="h-12 py-4 px-2" v-if="dbName">
+      <el-breadcrumb :separator-icon="ArrowRight">
+        <el-breadcrumb-item :to="{ name: 'databases' }">{{ DbLabel }}</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ dbName }}</el-breadcrumb-item>
+      </el-breadcrumb>
     </div>
-    <!--right-->
-    <div v-if="!COMPACT">
-      <el-button @click="createSchema('document')">添加文档字段定义</el-button>
+    <div class="flex-grow flex flex-row gap-2">
+      <div :class="COMPACT ? 'w-full' : 'w-4/5'">
+        <div class="flex flex-col gap-2">
+          <el-table :data="topSchemas" row-key="_id" stripe>
+            <el-table-column label="定义名称" width="240">
+              <template #default="scope">
+                <router-link
+                  :to="{ name: 'schemaEditor', params: { bucketName, scope: 'document', schemaId: scope.row._id } }">
+                  {{
+                    scope.row.name
+                  }}
+                </router-link>
+              </template>
+            </el-table-column>
+            <el-table-column prop="title" label="名称" width="180"></el-table-column>
+            <el-table-column prop="description" label="说明"></el-table-column>
+            <el-table-column label="操作" width="180">
+              <template #default="scope">
+                <el-button type="primary" link size="small" @click="editSchema(scope.row, 'document')">修改</el-button>
+                <el-button type="primary" link size="small" @click="removeSchema(scope.row)">删除</el-button>
+                <el-button type="primary" link size="small" @click="copySchema(scope.row, scope.$index, true)">复制
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
+      <!--right-->
+      <div v-if="!COMPACT">
+        <el-button @click="createSchema('document')">添加文档字段定义</el-button>
+      </div>
     </div>
   </div>
 </template>
 <script setup lang="ts">
+import { ArrowRight } from '@element-plus/icons-vue'
 import { computed, onMounted, ref, toRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import facStore from '@/store'
 import { openSchemaEditor } from '@/components/editor'
-import { COMPACT_MODE } from '@/global'
+import { COMPACT_MODE, LABEL } from '@/global'
 
+const DbLabel = computed(() => LABEL('database', '数据库'))
 const COMPACT = computed(() => COMPACT_MODE())
 
 const store = facStore()
