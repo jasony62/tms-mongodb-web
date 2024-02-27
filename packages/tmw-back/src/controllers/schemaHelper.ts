@@ -1,4 +1,4 @@
-import { ModelSpreadsheet } from 'tmw-kit'
+import { ModelSchema } from 'tmw-kit'
 import { Helper } from 'tmw-kit/dist/ctrl/index.js'
 
 /**
@@ -9,8 +9,8 @@ class SchemaHelper extends Helper {
   constructor(ctrl: any) {
     super(ctrl)
   }
-  get _modelSpreadsheet() {
-    let model = new ModelSpreadsheet(
+  get _modelSchema() {
+    let model = new ModelSchema(
       this.ctrl.mongoClient,
       this.ctrl.bucket,
       this.ctrl.client
@@ -79,7 +79,7 @@ class SchemaHelper extends Helper {
    * @param id
    */
   async removeById(id: string): Promise<[boolean, string | null]> {
-    return this._modelSpreadsheet().removeById(id)
+    return this._modelSchema.removeById(id)
   }
 }
 
