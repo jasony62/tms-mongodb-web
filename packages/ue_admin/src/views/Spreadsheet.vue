@@ -10,7 +10,8 @@
       <el-breadcrumb :separator-icon="ArrowRight" v-else>
         <el-breadcrumb-item :to="{ name: 'databases' }">{{ DbLabel }}</el-breadcrumb-item>
         <el-breadcrumb-item v-if="!clName">{{ dbName }}</el-breadcrumb-item>
-        <el-breadcrumb-item v-if="clName" :to="{ name: 'database', params: { dbName } }">{{ dbName }}</el-breadcrumb-item>
+        <el-breadcrumb-item v-if="clName" :to="{ name: 'database', params: { dbName } }">{{ dbName
+        }}</el-breadcrumb-item>
         <el-breadcrumb-item v-if="clName">{{ clName }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
@@ -31,9 +32,19 @@
 #x-spreadsheet .x-spreadsheet-toolbar {
   box-sizing: content-box;
 }
+
+#x-spreadsheet.fullscreen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+}
 </style>
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { ArrowRight } from '@element-plus/icons-vue'
 import Spreadsheet from "x-data-spreadsheet"
 //@ts-ignore
@@ -64,6 +75,7 @@ let xs: any = null
 let latestSpreadsheet: any = null
 const WaitSaveTime = 500 // 等待500毫秒未更新数据自动保存
 let saveTimer: any = null
+const isFullscreen = ref(false)
 
 /**
  * 合并行数据
@@ -169,28 +181,57 @@ async function unsubscribe(spreadsheetId: string) {
     await apiSS.unsubscribe(spreadsheetId, socket.id)
   }
 }
+/**
+ * 在自由表格的toolbar上添加自定义按钮
+ */
+function addButtonInToolbar() {
+  const elToolbar = document.querySelector('.x-spreadsheet-toolbar')
+  if (elToolbar) {
+    const btn = document.createElement('div')
+    btn.innerHTML = isFullscreen.value ? '关闭' : '全屏'
+    btn.classList.add('x-spreadsheet-toolbar-btn')
+    btn.addEventListener('click', () => {
+      let elWrap = document.querySelector('#x-spreadsheet')
+      if (isFullscreen.value === false) {
+        btn.innerHTML = '关闭'
+        elWrap?.classList.add('fullscreen')
+        isFullscreen.value = true
+      } else {
+        btn.innerHTML = '全屏'
+        elWrap?.classList.remove('fullscreen')
+        isFullscreen.value = false
+      }
+      let editingData = xs.getData()
+      let elSS = document.querySelector('.x-spreadsheet')
+      if (elSS) elWrap?.removeChild(elSS)
+      initSpreadsheet(editingData)
+    })
+    elToolbar.appendChild(btn)
+  }
+}
 
 async function initSpreadsheet(data = []) {
   const elWrap = document.querySelector('#x-spreadsheet')
   if (!elWrap) return
   xs = new Spreadsheet('#x-spreadsheet', {
     showToolbar: true, showGrid: true, showBottomBar: !clName, view: {
-      height: () => elWrap!.clientHeight - 40,
+      height: () => elWrap!.clientHeight - (isFullscreen.value ? 0 : 40),
       width: () => elWrap!.clientWidth,
     }
   }).loadData(data)
+  setTimeout(addButtonInToolbar)
   xs.change((data: any) => {
     /**
      * 等待一段时间再提交修改数据，避免频繁提交
      */
-    if (saveTimer) clearTimeout(saveTimer)
-    saveTimer = setTimeout(save, WaitSaveTime)
+    // if (saveTimer) clearTimeout(saveTimer)
+    // saveTimer = setTimeout(save, WaitSaveTime)
     // }).on('cell-selected', (cell: any, ri: any, ci: any) => {
     //   console.log('cell-selected:cell:', cell, ', ri:', ri, ', ci:', ci);
     // }).on('cell-edited', (text: string, ri: number, ci: number) => {
     //   console.log('cell-edited:text:', text, ', ri: ', ri, ', ci:', ci);
   })
-  // 解决修改sheet页名称事件
+  // 解决修改sheet页名称事件，需要吗？
   document.querySelector('.x-spreadsheet-bottombar')?.addEventListener('change', (evt) => {
     const { target } = evt
     if (target) {
@@ -324,6 +365,8 @@ onMounted(async () => {
       initSpreadsheet(data ? JSON.parse(JSON.stringify(data)) : [])
       subscribe(latestSpreadsheet._id)
     }
+    // 定时保存数据，解决样式调整没有回调事件的问题
+    saveTimer = setInterval(save, WaitSaveTime)
   }
   if (dbName) {
     if (clName) {
@@ -342,6 +385,7 @@ onMounted(async () => {
 })
 
 onUnmounted(async () => {
+  if (saveTimer) clearInterval(saveTimer)
   unsubscribe(latestSpreadsheet._id)
 })
 </script>

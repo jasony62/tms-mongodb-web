@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full">
+  <div class="h-full flex flex-col">
     <!--header-->
     <div class="px-2 py-1 text-right border-b">
       <el-dropdown>
@@ -13,7 +13,7 @@
       </el-dropdown>
     </div>
     <!--content-->
-    <div class="flex flex-row gap-2 h-full">
+    <div class="flex-grow flex flex-row gap-2 h-full">
       <div class="w-36 flex-none h-full flex flex-col">
         <!--left-->
         <el-menu v-if="EXTRACT !== true" class="overflow-auto flex-none" default-active="/database/" router>
