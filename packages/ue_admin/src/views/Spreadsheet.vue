@@ -272,6 +272,12 @@ function onExecute(
       /**下载文件*/
       let url = FS_BASE_URL() + result.url
       window.open(url)
+    } else {
+      // 更新数据
+      apiSS.byId(bucketName, dbName, latestSpreadsheet._id).then((ss: any) => {
+        latestSpreadsheet = ss
+        xs.loadData(ss.data)
+      })
     }
 
     ElMessage.success({
