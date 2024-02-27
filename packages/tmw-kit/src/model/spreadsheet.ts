@@ -183,7 +183,9 @@ class Spreadsheet extends Base {
     return [true, ss]
   }
   /**
-   * 保存自由表格
+   * 创建自由表格
+   *
+   * 自动生成表头行
    *
    * @param dbSysname 所在的数据库名称
    * @returns 新建的自由表格文档对象或错误信息
@@ -239,6 +241,21 @@ class Spreadsheet extends Base {
         return [true, { _id: insertedId, ver: newSS.ver, data: newSS.data }]
       })
       .catch((err) => [false, err.message])
+  }
+  /**
+   *
+   * @param dbSysname
+   * @param clSysname
+   * @param newSheet
+   */
+  async update(dbSysname: string, clSysname: string, newSheet: any) {
+    const newSS = { data: [] }
+    const result = await this.spreadsheetCl(dbSysname).updateOne(
+      { 'cl.sysname': clSysname },
+      { $set: { data: [newSheet] } }
+    )
+
+    return result
   }
   /**
    * 保存表格数据修改

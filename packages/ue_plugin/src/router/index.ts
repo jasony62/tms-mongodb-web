@@ -8,6 +8,7 @@ import DocManageAccount from '@/views/DocManageAccount.vue'
 import DbAdmin from '@/views/DbAdmin.vue'
 import DocExport from '@/views/DocExport.vue'
 import DocSpreadsheetExport from '@/views/DocSpreadsheetExport.vue'
+import DocSpreadsheetImport from '@/views/DocSpreadsheetImport.vue'
 import DocVersionRepos from '@/views/DocVersionRepos.vue'
 import ClImport from '@/views/ClImport.vue'
 import ClSpreadsheetExport from '@/views/ClSpreadsheetExport.vue'
@@ -67,6 +68,11 @@ const routes: RouteRecordRaw[] = [
     path: '/doc-export',
     name: 'docExport',
     component: DocExport,
+  },
+  {
+    path: '/doc-spreadsheet-import',
+    name: 'docSpreadsheetImport',
+    component: DocSpreadsheetImport,
   },
   {
     path: '/doc-spreadsheet-export',

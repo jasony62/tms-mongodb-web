@@ -223,7 +223,7 @@ const emptyCollection = ((collection: any) => {
         collection
       }).then(() => {
         ElMessage({ message: '集合已清空', type: 'success' })
-        listClByKw()
+        // listClByKw()
       })
     }).catch(() => { })
 })

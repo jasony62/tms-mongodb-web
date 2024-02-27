@@ -9,15 +9,18 @@ const logger = log4js.getLogger('tms-mongodb-web')
 import xlsx from 'xlsx'
 
 import { ModelDoc, ModelCl, ModelSchema } from 'tmw-kit'
-import { Helper } from 'tmw-kit/dist/ctrl/index.js'
 import { TMW_CONFIG } from '../global.js'
 import { LocalFS } from 'tms-koa/dist/model/fs/local.js'
 import { Upload } from 'tms-koa/dist/model/fs/upload.js'
 import { MinioFS } from 'tms-koa/dist/model/fs/minio.js'
+import { CtrlHelper } from './ctrlHelper.js'
 /**
  * 数据库控制器辅助类
  */
-class DocumentHelper extends Helper {
+class DocumentHelper extends CtrlHelper {
+  constructor(ctrl: any) {
+    super(ctrl)
+  }
   /**
    * 获得请求的批量更新/删除条件
    *

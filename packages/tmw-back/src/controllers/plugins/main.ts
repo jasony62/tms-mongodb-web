@@ -101,6 +101,7 @@ class Plugin extends CtrlBase {
         clBlacklist,
         schemaBlacklist,
         spreadsheet,
+        // match,
       } = plugin
       // 自由表格适用的插件
       if (forSpreadsheet === 'true') {
@@ -134,6 +135,12 @@ class Plugin extends CtrlBase {
         if (!clSchema?.name) return false
         if (schemaName.test(clSchema.name) === false) return false
       }
+      // if (match && typeof match === 'function') {
+      //   console.log('mmm', match)
+      //   if (scope === 'document') {
+      //     if (true !== (await match(existCl))) return false
+      //   }
+      // }
 
       // 集合标签中不能包括指定的标签
       if (Array.isArray(excludeTags) && excludeTags.length)

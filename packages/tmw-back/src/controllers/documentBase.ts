@@ -1,9 +1,14 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import { Base } from 'tmw-kit/dist/ctrl/index.js'
-import { createDocWebhook } from 'tmw-kit/dist/webhook/document.js'
 import DocumentHelper from './documentHelper.js'
 import unrepeat from './unrepeat.js'
-import { ModelDoc, ModelCl, makeTagsFilter } from 'tmw-kit'
+import {
+  ModelDoc,
+  ModelCl,
+  ModelSpreadsheet,
+  makeTagsFilter,
+  createDocWebhook,
+} from 'tmw-kit'
 import { ElasticSearchIndex } from 'tmw-kit/dist/elasticsearch/index.js'
 import _ from 'lodash'
 import mongodb from 'mongodb'
@@ -458,25 +463,34 @@ class DocBase extends Base {
     const { query, operation, errCause } = docHelper.getRequestBatchQuery()
     if (errCause) return new ResultFault(errCause)
 
-    let total = await modelDoc.count(existCl, query)
-    if (total === 0)
-      return new ResultFault('没有符合条件的数据，未执行删除操作')
-
-    if (this.tmwConfig.TMW_APP_DATA_ACTION_LOG === 'Y') {
-      // 记录操作日志
-      let sysCl = docHelper.findSysColl(existCl)
-      let removedDocs = await sysCl.find(query).toArray()
-      await modelDoc.dataActionLog(
-        removedDocs,
-        `${operation}删除`,
-        existCl.db.name,
-        existCl.name
+    if (existCl.spreadsheet === 'yes') {
+      const modelSS = new ModelSpreadsheet(
+        this.mongoClient,
+        this.bucket,
+        this.client
       )
-    }
+      await modelSS.removeByCl(existCl.db.sysname, existCl.sysname)
+      return new ResultData('ok')
+    } else {
+      let total = await modelDoc.count(existCl, query)
+      if (total === 0)
+        return new ResultFault('没有符合条件的数据，未执行删除操作')
 
-    return modelDoc
-      .removeMany(existCl, query)
-      .then((deletedCount) => new ResultData({ total, deletedCount }))
+      if (this.tmwConfig.TMW_APP_DATA_ACTION_LOG === 'Y') {
+        // 记录操作日志
+        let sysCl = docHelper.findSysColl(existCl)
+        let removedDocs = await sysCl.find(query).toArray()
+        await modelDoc.dataActionLog(
+          removedDocs,
+          `${operation}删除`,
+          existCl.db.name,
+          existCl.name
+        )
+      }
+      return modelDoc
+        .removeMany(existCl, query)
+        .then((deletedCount) => new ResultData({ total, deletedCount }))
+    }
   }
   /**
    * 批量修改数据

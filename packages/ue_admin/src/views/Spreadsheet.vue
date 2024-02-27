@@ -297,16 +297,21 @@ const { handlePlugin } = useTmwPlugins({
 })
 
 onMounted(async () => {
+  // 获得当前对象的自由表格
   const existed = await apiSS.list(bucketName, dbName, clName)
   if (Array.isArray(existed)) {
     if (existed.length === 0) {
+      // 如果不存在，创建自由表格
       const newSS = await apiSS.create(bucketName, dbName, clName)
       latestSpreadsheet = newSS
     } else if (existed.length === 1) {
+      // 如果存在，获取完整数据
       const ss = await apiSS.byId(bucketName, dbName, existed[0]._id)
       if (ss) {
         latestSpreadsheet = ss
       }
+    } else {
+      // 不支持有一个业务对象有多个自由表格
     }
     if (latestSpreadsheet) {
       const { data } = latestSpreadsheet
@@ -329,6 +334,7 @@ onMounted(async () => {
     }
   }
 })
+
 onUnmounted(async () => {
   unsubscribe(latestSpreadsheet._id)
 })

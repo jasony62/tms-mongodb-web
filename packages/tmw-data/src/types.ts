@@ -133,6 +133,13 @@ export interface PluginProfile {
    * 和文档列定义名称匹配的正则表达式
    */
   schemaBlacklist?: RegExp
+  /**
+   * 指定其它过滤条件
+   *
+   * @param args
+   * @returns
+   */
+  match?: (obj: any) => {}
 }
 /**
  * 插件执行结果
