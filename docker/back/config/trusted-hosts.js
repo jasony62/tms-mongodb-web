@@ -17,5 +17,4 @@
 
 export default {
   // ...Rules,
-  a: 1,
 }

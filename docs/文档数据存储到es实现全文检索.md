@@ -10,7 +10,7 @@
 
 # 数据同步规则
 
-`index`的命令规则：`${dbName}+${clName}`
+`index`的命名规则：`${dbName}+${clName}`
 
 `tmw`中，`dbName`和`clName`中不允许包含字符`+`，所以用字符`+`作为分割符。
 

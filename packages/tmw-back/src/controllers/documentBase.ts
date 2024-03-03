@@ -351,7 +351,7 @@ class DocBase extends Base {
 
     const tmwCl = await this.docHelper.findRequestCl()
     if (tmwCl.custom?.elasticsearch?.enabled !== true)
-      return new ResultFault('集合为设置全文检索功能')
+      return new ResultFault('集合未设置全文检索功能')
 
     let { match } = this.request.body
 

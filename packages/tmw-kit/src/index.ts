@@ -13,3 +13,5 @@ export * from './schema.js'
 export * from './crypto.js'
 
 export * from './etl/index.js'
+
+export * from './elasticsearch/index.js'

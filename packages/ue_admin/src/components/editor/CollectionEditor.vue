@@ -90,7 +90,8 @@
           <el-select v-model="collection.operateRules.unrepeat.collection" value-key="sysname" @clear="listClByKw"
             @change="changeCl" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw"
             :loading="criteria.collectionLoading">
-            <el-option v-for="item in criteria.collections" :key="item._id" :label="item.label" :value="item"></el-option>
+            <el-option v-for="item in criteria.collections" :key="item._id" :label="item.label"
+              :value="item"></el-option>
             <el-option :disabled="true" value="" v-if="criteria.clBatch.pages > 1">
               <el-pagination :current-page="criteria.clBatch.page" :total="criteria.clBatch.total"
                 :page-size="criteria.clBatch.size" layout="prev, next" @current-change="changeClPage">
@@ -102,8 +103,8 @@
             </el-option>
           </el-select>
           <el-select v-model="collection.operateRules.unrepeat.insert" placeholder="是否插入当前表" v-if="collection.operateRules.unrepeat.collection.sysname !==
-            collection.sysname
-            ">
+    collection.sysname
+    ">
             <el-option label="是" :value="true"></el-option>
             <el-option label="否" :value="false"></el-option>
           </el-select>
@@ -118,8 +119,8 @@
         <el-form-item label="集合仅系统管理员可见">
           <el-switch v-model="collection.adminOnly"></el-switch>
         </el-form-item>
-        <el-form-item label="全文检索">
-          <el-checkbox v-model="collection.custom.elasticsearch.enabled">保存到Elasticsearch</el-checkbox>
+        <el-form-item label="集合中的文档保存到Elasticsearch">
+          <el-switch v-model="collection.custom.elasticsearch.enabled"></el-switch>
         </el-form-item>
       </el-form>
       <div v-show="activeTab === 'convert'" class="h-96">
@@ -144,12 +145,14 @@
         </div>
       </div>
     </div>
+
     <template #footer>
       <el-button type="primary" @click="onSubmit" :disabled="activeTab === 'acl'">提交</el-button>
       <el-button @click="onBeforeClose">取消</el-button>
     </template>
   </el-dialog>
 </template>
+
 <script setup lang="ts">
 import { Batch, startBatch } from 'tms-vue3'
 import apiDb from '@/apis/database'
