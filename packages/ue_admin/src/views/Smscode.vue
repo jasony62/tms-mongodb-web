@@ -12,9 +12,9 @@
 import { SmsCode } from 'tms-vue3-ui'
 import 'tms-vue3-ui/dist/es/sms-code/style/tailwind.scss'
 import { fnVerify, schema, fnSendSmsCode } from '@/data/smscode'
-import apiLogin from '@/apis/login'
+import apiAuth from '@/apis/auth'
 
-const { fnCaptcha: fnSendCode } = apiLogin
+const { fnCaptcha: fnSendCode } = apiAuth
 const showSmsCodeDialog = () => {
   SmsCode.open({ schema, fnSendCode, fnVerify })
 }
@@ -24,4 +24,4 @@ const fnSuccessVerify = (token: string) => {
 const fnFailVerify = (msg: string) => {
   console.log(msg)
 }
-</script>
+</script>@/apis/auth

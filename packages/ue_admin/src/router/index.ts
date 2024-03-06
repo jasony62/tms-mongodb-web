@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
 import Login from '../views/Login.vue'
+import Logout from '../views/Logout.vue'
 import Home from '../views/Home.vue'
 import Bucket from '../views/Bucket.vue'
 import Databases from '../views/Databases.vue'
@@ -18,8 +19,8 @@ import Smscode from '../views/Smscode.vue'
 import Invite from '../views/Invite.vue'
 import DocEditor from '../views/editor/Document.vue'
 import SchemaEditor from '../views/editor/Schema.vue'
-import { getLocalToken } from '../global'
-import apiLogin from '@/apis/login'
+import { EXTERNAL_LOGIN_URL, getLocalToken, removeLocalToken } from '../global'
+import apiAuth from '@/apis/auth'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
   ? import.meta.env.VITE_BASE_URL
@@ -34,6 +35,11 @@ const routes: RouteRecordRaw[] = [
     path: '/login',
     name: 'login',
     component: Login,
+  },
+  {
+    path: '/logout',
+    name: 'logout',
+    component: Logout,
   },
   {
     path: `/register`,
@@ -154,13 +160,53 @@ const router = createRouter({
   history: createWebHistory(BASE_URL),
   routes,
 })
+/**
+ * 跳转到外部登录页
+ *
+ * 1. 提供回调地址。回调地址处理好token
+ */
+function externalLogin() {
+  let appurl = location.toString()
+  if (/login/.test(appurl)) {
+    // 跳转到应用首页
+    appurl = appurl.replace(/login.*/, 'database')
+  }
+  // 保存要返回应用页
+  sessionStorage.setItem('oauth_passed_appurl', appurl)
 
+  const url = EXTERNAL_LOGIN_URL()
+  location.href = url
+}
+/**
+ * 客户端登出
+ */
+async function logout() {
+  const access_token = getLocalToken()
+  if (access_token) {
+    // 清除token
+    removeLocalToken()
+    // 通知服务端登出
+    await apiAuth.fnLogout(access_token)
+  }
+}
+/**
+ * 进入路由前检查
+ *
+ * 1. 已经通过认证？
+ */
 router.beforeEach(async (to, from, next) => {
   // 进入页面前检查是否已经通过用户认证
+  if ('logout' === to.name) {
+    await logout()
+    return next({ name: 'login' })
+  }
   //@ts-ignore
   if (['login', 'register', 'smscode'].indexOf(to.name) === -1) {
-    let token = getLocalToken()
+    const token = getLocalToken()
     if (!token) {
+      if (EXTERNAL_LOGIN_URL()) {
+        return externalLogin()
+      }
       //@ts-ignore
       const vueApp = window['_VueApp']
       if (vueApp) {
@@ -177,11 +223,13 @@ router.beforeEach(async (to, from, next) => {
       const facStore = (await import('@/store')).default
       const store = facStore()
       if (!store.clientInfo.id) {
-        apiLogin.fnClient(token).then((result: any) => {
+        apiAuth.fnClient(token).then((result: any) => {
           Object.assign(store.clientInfo, result)
         })
       }
     }
+  } else if (EXTERNAL_LOGIN_URL()) {
+    return externalLogin()
   }
   next()
 })

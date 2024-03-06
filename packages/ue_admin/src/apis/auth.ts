@@ -40,8 +40,8 @@ export default {
    */
   fnRegister(userArg: any) {
     const baseAuth = AUTH_API_URL()
-    let params = { ...userArg }
-    let url = `${baseAuth}/register`
+    const params = { ...userArg }
+    const url = `${baseAuth}/register`
     if (ISCRYPTO === 'yes') {
       const encode: any = encodeAccountV1({
         username: params['uname'],
@@ -68,8 +68,8 @@ export default {
    */
   fnLogin(userArg: any) {
     const baseAuth = AUTH_API_URL()
-    let params = { ...userArg }
-    let url = `${baseAuth}/authenticate`
+    const params = { ...userArg }
+    const url = `${baseAuth}/authenticate`
     if (ISCRYPTO === 'yes') {
       const encode: any = encodeAccountV1({
         username: params['uname'],
@@ -97,6 +97,20 @@ export default {
   fnClient(access_token: string) {
     const baseAuth = AUTH_API_URL()
     const url = `${baseAuth}/client`
+    const params = { access_token }
+    return TmsAxios.ins('auth-api')
+      .get(url, { params })
+      .then((rsp: any) => {
+        const { data } = rsp
+        return Promise.resolve(data.result)
+      })
+  },
+  /**
+   * 获取当前登录用户的用户信息
+   */
+  fnLogout(access_token: string) {
+    const baseAuth = AUTH_API_URL()
+    const url = `${baseAuth}/logout`
     const params = { access_token }
     return TmsAxios.ins('auth-api')
       .get(url, { params })

@@ -21,6 +21,7 @@
             <span>{{ DbLabel }}</span>
           </el-menu-item>
           <el-sub-menu index="globalSchema">
+
             <template #title>字段定义</template>
             <el-menu-item index="/docSchemas/">
               <span>文档</span>
@@ -59,6 +60,7 @@
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
 import { COMPACT_MODE, EXTRACT_MODE, EXTERNAL_FS_URL, LABEL, LOGIN_USERNAME_JSONPOINTER } from '@/global'
 import { computed } from 'vue'
@@ -116,6 +118,6 @@ const confirmAssistant = () => {
 }
 
 const logout = () => {
-  router.push({ name: 'login' })
+  router.push({ name: 'logout' })
 }
 </script>

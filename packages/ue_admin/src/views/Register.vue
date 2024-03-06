@@ -14,10 +14,10 @@ import { ElMessage } from 'element-plus'
 import 'tms-vue3-ui/dist/es/register/style/tailwind.scss'
 
 import { schema } from '@/data/register'
-import apiLogin from '@/apis/login'
+import apiAuth from '@/apis/auth'
 import router from '@/router/index'
 
-const { fnCaptcha, fnRegister } = apiLogin
+const { fnCaptcha, fnRegister } = apiAuth
 
 const fnSuccessToken = (data: any) => {
   if (data.result) {
@@ -34,4 +34,4 @@ const fnSuccessToken = (data: any) => {
 const fnFailToken = (response: any) => {
   ElMessage.error(response.msg || '注册失败')
 }
-</script>
+</script>@/apis/auth

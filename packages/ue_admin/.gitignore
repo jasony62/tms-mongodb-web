@@ -26,4 +26,6 @@ dist-ssr
 .env.*
 pnpm-lock.yaml
 
+# 方便本地调试的数据
 public/settings.json
+public/oauth

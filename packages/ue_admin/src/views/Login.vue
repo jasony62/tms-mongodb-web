@@ -19,11 +19,11 @@ import { ElMessage } from 'element-plus'
 import { Login, LoginResponse } from 'tms-vue3-ui'
 import 'tms-vue3-ui/dist/es/login/style/tailwind.scss'
 import { schema } from '@/data/login'
-import apiLogin from '@/apis/login'
+import apiAuth from '@/apis/auth'
 import { setLocalToken } from '@/global'
 import facStore from '@/store'
 
-const { fnCaptcha, fnLogin, fnClient } = apiLogin
+const { fnCaptcha, fnLogin, fnClient } = apiAuth
 const { proxy }: any = getCurrentInstance()
 const router = useRouter()
 const store = facStore()
@@ -62,4 +62,4 @@ const fnSuccessLogin = async (response: LoginResponse) => {
 const fnFailLogin = (response: LoginResponse) => {
   ElMessage.error(response.msg || '登录失败')
 }
-</script>
+</script>@/apis/auth

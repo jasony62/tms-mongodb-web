@@ -10,13 +10,13 @@ RUN npm config set registry https://registry.npmmirror.com
 # RUN npm config set sharp_binary_host https://npmmirror.com/mirrors/sharp
 # RUN npm config set sharp_libvips_binary_host https://npmmirror.com/mirrors/sharp-libvips
 
-# 安装基础包
-RUN npm install --location=global pnpm typescript better-sqlite3
-
 # 安装sharp包需要的工具
 RUN apk update && apk upgrade && apk add python3 make gcc g++
 # 解决sharp依赖的libvips包下载慢的问题
 COPY ./docker/back/npmlibs/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br /root/.npm/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br
+
+# 安装基础包
+RUN npm install --location=global pnpm typescript better-sqlite3
 
 # 复制源代码
 ## data
