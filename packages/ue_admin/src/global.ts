@@ -252,8 +252,10 @@ export const LABEL = (key: string, defaultValue?: string) => {
   }
   return defaultValue
 }
-
+// 默认将accessToken保存在sessionStorage中
 const way = import.meta.env.VITE_STORETOKEN_WAY
+  ? import.meta.env.VITE_STORETOKEN_WAY
+  : 'session'
 
 function getCookie(cname: string) {
   let name = cname + '='

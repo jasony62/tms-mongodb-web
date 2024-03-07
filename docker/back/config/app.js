@@ -38,9 +38,7 @@ let appConfig = {
         logout: 'logout.js',
       },
       path: env.TMW_APP_AUTH_CLIENT_PATH || '',
-      logoutPath:
-        env.TMW_APP_AUTH_CLIENT_LOGOUT_PATTMW_APP_AUTH_CLIENT_LOGOUT_PATHH ||
-        '',
+      logoutPath: env.TMW_APP_AUTH_CLIENT_LOGOUT_PATH || '',
     },
     // 保存鉴权信息
     jwt: {
