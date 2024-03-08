@@ -121,6 +121,14 @@ class Collection extends Base {
 
     newCl.sysname = sysname
 
+    // 没有指定访问控制要求时，使用系统指定的默认配置
+    if (newCl.aclCheck === null || newCl.aclCheck === undefined) {
+      newCl.aclCheck = !!this.tmwConfig.TMW_APP_DEFAULT_ACLCHECK_CL
+    }
+    if (newCl.docAclCheck === null || newCl.docAclCheck === undefined) {
+      newCl.docAclCheck = !!this.tmwConfig.TMW_APP_DEFAULT_ACLCHECK_DOC
+    }
+
     /**在系统中创建集合后记录集合对象信息 */
     const mgdb = this.mongoClient.db(existDb.sysname)
 

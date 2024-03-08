@@ -17,6 +17,14 @@ type Globalsettings = {
   extract: boolean // 提取数据模式，在iframe打开时使用
   multiple: boolean // 提取数据模式下，是否支持多选
   manual?: any // 在线用户手册
+  // 默认值配置
+  defaultValues?: {
+    aclCheck?: {
+      db?: boolean
+      cl?: boolean
+      doc?: boolean
+    }
+  }
   labels?: { [k: string]: string } // 标题定义
   pagination?: { [k: string]: { [k: string]: number } } // 分页参数
 }
@@ -39,6 +47,19 @@ let _globalsettings: Globalsettings = {
   compact: false,
   extract: false,
   multiple: true,
+  defaultValues: {
+    aclCheck: {
+      db:
+        /yes|true/i.test(import.meta.env.VITE_TMW_APP_DEFAULT_DB_CHECK) ||
+        false,
+      cl:
+        /yes|true/i.test(import.meta.env.VITE_TMW_APP_DEFAULT_CL_CHECK) ||
+        false,
+      doc:
+        /yes|true/i.test(import.meta.env.VITE_TMW_APP_DEFAULT_DOC_CHECK) ||
+        false,
+    },
+  },
 }
 /**
  * 根据在线获取的全局设置
@@ -67,6 +88,8 @@ export function init(settings: Globalsettings) {
   if (settings.multiple === false) _globalsettings.multiple = false
   if (settings.manual && typeof settings.manual === 'object')
     _globalsettings.manual = settings.manual
+  if (settings.defaultValues && typeof settings.defaultValues === 'object')
+    _globalsettings.defaultValues = settings.defaultValues
   if (settings.labels && typeof settings.labels === 'object')
     _globalsettings.labels = settings.labels
   if (settings.pagination && typeof settings.pagination === 'object') {
@@ -241,6 +264,10 @@ export const DOC_MANUAL = (dbName: string, clName: string) => {
 
   return tpl ? tpl : DocManualTpl
 }
+/**
+ * 默认值
+ */
+export const DEFAULT_VALUES = () => _globalsettings.defaultValues
 /**
  * 标题
  */

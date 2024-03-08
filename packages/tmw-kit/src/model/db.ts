@@ -58,6 +58,11 @@ class Db extends Base {
 
     info.sysname = sysname
 
+    // 没有指定访问控制要求时，使用系统指定的默认配置
+    if (info.aclCheck === null || info.aclCheck === undefined) {
+      info.aclCheck = !!this.tmwConfig.TMW_APP_DEFAULT_ACLCHECK_DB
+    }
+
     // 加工数据
     this.processBeforeStore(info, 'insert')
 

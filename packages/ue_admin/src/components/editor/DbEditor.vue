@@ -58,18 +58,21 @@
         </el-auto-resizer>
       </div>
     </div>
+
     <template #footer>
       <el-button type="primary" @click="onSubmit" :disabled="activeTab === 'acl'">提交</el-button>
       <el-button @click="onBeforeClose">取消</el-button>
     </template>
   </el-dialog>
 </template>
+
 <script setup lang="ts">
 import { onMounted, reactive, ref, h } from 'vue'
 import { ElMessageBox, ElButton } from 'element-plus'
 import apiDb from '@/apis/database'
 import apiSchema from '@/apis/schema'
 import apiAcl from '@/apis/acl'
+import { DEFAULT_VALUES } from '@/global'
 
 const emit = defineEmits(['submit'])
 
@@ -80,7 +83,7 @@ const props = defineProps({
   database: {
     type: Object,
     default: () => {
-      return { name: '', title: '', description: '', aclCheck: false, adminOnly: false, spreadsheet: 'no' }
+      return { name: '', title: '', description: '', aclCheck: DEFAULT_VALUES()?.aclCheck?.db, adminOnly: false, spreadsheet: 'no' }
     }
   },
   onClose: { type: Function, default: (newDb: any) => { } }

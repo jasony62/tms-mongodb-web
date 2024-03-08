@@ -9,7 +9,6 @@ const logger = log4js.getLogger('tms-mongodb-web')
 import xlsx from 'xlsx'
 
 import { ModelDoc, ModelCl, ModelSchema } from 'tmw-kit'
-import { TMW_CONFIG } from '../global.js'
 import { LocalFS } from 'tms-koa/dist/model/fs/local.js'
 import { Upload } from 'tms-koa/dist/model/fs/upload.js'
 import { MinioFS } from 'tms-koa/dist/model/fs/minio.js'
@@ -18,8 +17,21 @@ import { CtrlHelper } from './ctrlHelper.js'
  * 数据库控制器辅助类
  */
 class DocumentHelper extends CtrlHelper {
+  _modelDoc
+
   constructor(ctrl: any) {
     super(ctrl)
+  }
+
+  get modelDoc() {
+    if (!this._modelDoc) {
+      this._modelDoc = new ModelDoc(
+        this.ctrl.mongoClient,
+        this.ctrl.bucket,
+        this.ctrl.client
+      )
+    }
+    return this._modelDoc
   }
   /**
    * 获得请求的批量更新/删除条件
@@ -43,13 +55,7 @@ class DocumentHelper extends CtrlHelper {
       query = {}
       operation = '批量（按全部）'
     } else if (typeof filter === 'object' && Object.keys(filter).length) {
-      // 按条件删除
-      const modelDoc = new ModelDoc(
-        this.ctrl.mongoClient,
-        this.ctrl.bucket,
-        this.ctrl.client
-      )
-      query = modelDoc.assembleQuery(filter)
+      query = this.modelDoc.assembleQuery(filter)
       operation = '批量（按条件）'
     } else {
       errCause = '无效的批量文档指定条件，未执行删除操作'
@@ -74,11 +80,6 @@ class DocumentHelper extends CtrlHelper {
     reqMode,
     rowsJson = []
   ) {
-    const modelDoc = new ModelDoc(
-      this.ctrl.mongoClient,
-      this.ctrl.bucket,
-      this.ctrl.client
-    )
     if (!rowsJson.length) {
       if (!fs.existsSync(filename)) return [false, '指定的文件不存在']
       const xlsx = await import('xlsx')
@@ -203,28 +204,35 @@ class DocumentHelper extends CtrlHelper {
         )
       }
 
-      return this.findSysColl(existCl)
-        .insertMany(jsonFinishRows)
-        .then(() => {
-          if (TMW_CONFIG.TMW_APP_DATA_ACTION_LOG === 'Y') {
-            // 记录日志
-            modelDoc.dataActionLog(
-              jsonFinishRows,
-              '导入',
-              existCl.db.name,
-              existCl.name
-            )
-          }
-          if (failDatas.length) {
-            let failMsg = getFailMsg(noRepeatconfig, failDatas)
-            return [false, `${failMsg}已存在或重复`]
-          } else {
-            if (reqMode === 'api') {
-              return [true, jsonFinishRows]
-            }
-            return [true, '导入成功']
-          }
-        })
+      // 写入到数据库
+      const newRows = await this.modelDoc.createMany(existCl, jsonFinishRows)
+      if (reqMode === 'api') {
+        return [true, newRows]
+      }
+      return [true, '导入成功']
+
+      // return this.findSysColl(existCl)
+      //   .insertMany(jsonFinishRows)
+      //   .then(() => {
+      //     // if (TMW_CONFIG.TMW_APP_DATA_ACTION_LOG === 'Y') {
+      //     //   // 记录日志
+      //     //   modelDoc.dataActionLog(
+      //     //     jsonFinishRows,
+      //     //     '导入',
+      //     //     existCl.db.name,
+      //     //     existCl.name
+      //     //   )
+      //     // }
+      //     if (failDatas.length) {
+      //       let failMsg = getFailMsg(noRepeatconfig, failDatas)
+      //       return [false, `${failMsg}已存在或重复`]
+      //     } else {
+      //       if (reqMode === 'api') {
+      //         return [true, jsonFinishRows]
+      //       }
+      //       return [true, '导入成功']
+      //     }
+      //   })
     } catch (err) {
       logger.error('提取excel数据到集合中', err)
       return [false, err]

@@ -164,6 +164,7 @@ import { computed, h, onMounted, reactive, ref, toRaw } from 'vue'
 import { FormRules, ElMessage, ElMessageBox, ElButton } from 'element-plus'
 import TmsJsonDoc, { DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
+import { DEFAULT_VALUES } from '@/global'
 
 // 查找条件下拉框分页包含记录数
 const SELECT_PAGE_SIZE = 7
@@ -190,8 +191,8 @@ const props = defineProps({
         tags: [],
         dir_full_name: '',
         spreadsheet: 'no',
-        aclCheck: false,
-        docAclCheck: false,
+        aclCheck: DEFAULT_VALUES()?.aclCheck?.cl,
+        docAclCheck: DEFAULT_VALUES()?.aclCheck?.doc,
         adminOnly: false,
         custom: {
           docOperations: {

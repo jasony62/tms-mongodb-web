@@ -59,6 +59,12 @@ let appConfig = {
     },
   },
   tmwConfig: {
+    TMW_APP_DEFAULT_ACLCHECK_DB:
+      /true|yes/i.test(env.TMW_APP_DEFAULT_ACLCHECK_DB) || false, // 数据库默认开启访问控制？
+    TMW_APP_DEFAULT_ACLCHECK_CL:
+      /true|yes/i.test(env.TMW_APP_DEFAULT_ACLCHECK_CL) || false, // 集合默认开启访问控制？
+    TMW_APP_DEFAULT_ACLCHECK_DOC:
+      /true|yes/i.test(env.TMW_APP_DEFAULT_ACLCHECK_DOC) || false, // 文档默认开启访问控制？
     TMW_APP_CREATETIME: env.TMW_APP_CREATETIME || 'TMW_CREATE_TIME', // 集合中添加、创建、导入数据时默认添加创建时间字段，字段名
     TMW_APP_UPDATETIME: env.TMW_APP_UPDATETIME || 'TMW_UPDATE_TIME', // 修改集合中文档时默认增加修改时间字段，字段名名
     TMW_APP_DATA_ACTION_LOG: env.TMW_APP_DATA_ACTION_LOG || 'N', // 数据操作日志， 日志会记录到tms_admin库下的 tms_app_data_action_log 集合中
