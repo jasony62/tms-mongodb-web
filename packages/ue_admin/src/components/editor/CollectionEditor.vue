@@ -4,7 +4,7 @@
     <div class="el-dialog-div">
       <el-tabs v-model="activeTab" type="card">
         <el-tab-pane label="基本信息" name="info"></el-tab-pane>
-        <el-tab-pane label="扩展信息" name="extra" v-if="clSchema._id"></el-tab-pane>
+        <el-tab-pane label="扩展信息" name="extra"></el-tab-pane>
         <el-tab-pane label="设置" name="setting"></el-tab-pane>
         <el-tab-pane label="文档编辑转换规则" name="convert" v-if="false"></el-tab-pane>
         <el-tab-pane label="访问控制列表" name="acl" v-if="collection._id && collection.aclCheck"></el-tab-pane>
@@ -22,26 +22,11 @@
         <el-form-item label="集合显示名（中文）" prop="title">
           <el-input v-model="collection.title"></el-input>
         </el-form-item>
-        <el-form-item label="集合文档内容定义（默认）" prop="schema_id">
+        <el-form-item label="集合文档内容定义（基础）" prop="schema_id">
           <el-select v-model="collection.schema_id" clearable placeholder="请选择定义名称">
             <el-option-group v-for="schema in schemas" :key="schema.label" :label="schema.label">
               <el-option v-for="item in schema.options" :key="item._id" :label="item.title" :value="item._id" />
             </el-option-group>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="集合文档内容定义（定制-修改）">
-          <el-select v-model="collection.schema_tags" clearable multiple placeholder="请选择定义标签">
-            <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="集合文档内容定义（定制-展示）">
-          <el-select v-model="collection.schema_default_tags" clearable multiple placeholder="请选择定义标签">
-            <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="集合标签">
-          <el-select v-model="collection.tags" clearable multiple placeholder="请选择集合标签">
-            <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="说明">
@@ -55,10 +40,47 @@
         </el-form-item>
       </el-form>
       <div v-show="activeTab === 'extra'">
-        <div v-if="clSchema.body">
-          <tms-json-doc ref="elJdeDoc" :schema="clSchema.body" :value="collection" :hide-root-title="true"
-            :hide-root-description="true"></tms-json-doc>
-        </div>
+        <el-form :model="collection" label-position="top" :rules="rules">
+          <el-form-item label="集合文档内容定义（扩展）">
+            <div>
+              <el-form :inline="true" label-position="left">
+                <el-form-item>
+                  <el-select v-model="newClExtSchema.id" clearable placeholder="请选择定义名称" style="width: 240px">
+                    <el-option-group v-for="schema in schemas" :key="schema.label" :label="schema.label">
+                      <el-option v-for="item in schema.options" :key="item._id" :label="item.title" :value="item._id" />
+                    </el-option-group>
+                  </el-select>
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" @click="onAddClExtSchema()">添加</el-button>
+                </el-form-item>
+              </el-form>
+              <div class="flex flex-col mt-2" v-if="collection.ext_schemas.length">
+                <div v-for="(s, index) in collection.ext_schemas" class="flex flex-row gap-2">
+                  <div>{{ s.title }}</div>
+                  <div><el-button size="small" @click="onRemoveClExtSchema(s, index)" :icon="Delete" circle></el-button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <el-alert title="在基础文档内容定义的基础上，合并多个文档定义，构成使用的定义。" type="info" :closable="false" />
+          </el-form-item>
+          <el-form-item label="集合文档内容定义（定制-修改）">
+            <el-select v-model="collection.schema_tags" clearable multiple placeholder="请选择定义标签">
+              <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="集合文档内容定义（定制-展示）">
+            <el-select v-model="collection.schema_default_tags" clearable multiple placeholder="请选择定义标签">
+              <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="集合标签">
+            <el-select v-model="collection.tags" clearable multiple placeholder="请选择集合标签">
+              <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-form>
       </div>
       <el-form :model="collection.custom" label-position="top" v-show="activeTab === 'setting'">
         <el-form-item label="文档操作" v-if="false">
@@ -102,9 +124,8 @@
             <el-option v-for="item in criteria.properties" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
-          <el-select v-model="collection.operateRules.unrepeat.insert" placeholder="是否插入当前表" v-if="collection.operateRules.unrepeat.collection.sysname !==
-    collection.sysname
-    ">
+          <el-select v-model="collection.operateRules.unrepeat.insert" placeholder="是否插入当前表"
+            v-if="collection.operateRules.unrepeat.collection.sysname !== collection.sysname">
             <el-option label="是" :value="true"></el-option>
             <el-option label="否" :value="false"></el-option>
           </el-select>
@@ -162,8 +183,8 @@ import apiTag from '@/apis/tag'
 import apiAcl from '@/apis/acl'
 import { computed, h, onMounted, reactive, ref, toRaw } from 'vue'
 import { FormRules, ElMessage, ElMessageBox, ElButton } from 'element-plus'
-import TmsJsonDoc, { DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
+import { Delete } from '@element-plus/icons-vue'
 import { DEFAULT_VALUES } from '@/global'
 
 // 查找条件下拉框分页包含记录数
@@ -177,7 +198,6 @@ const props = defineProps({
   bucketName: { type: String, default: '' },
   dbName: { type: String, default: '' },
   clDir: { type: Object, default: { full_name: '', full_title: '' } },
-  clSchema: { type: Object, default: {} },
   collection: {
     type: Object,
     default: () => {
@@ -186,6 +206,7 @@ const props = defineProps({
         title: '',
         description: '',
         schema_id: '',
+        ext_schemas: [],
         schema_tags: [],
         schema_default_tags: [],
         tags: [],
@@ -230,6 +251,7 @@ const props = defineProps({
 })
 
 // 设置默认值
+props.collection.ext_schemas ??= []
 props.collection.custom ??= { docOperations: {}, elasticsearch: { enabled: false } }
 props.collection.custom.elasticsearch ??= { enabled: false }
 props.collection.operateRules ??= {
@@ -266,7 +288,7 @@ const criteria = reactive({
   properties: {} as { [k: string]: any },
 })
 
-const { mode, bucketName, dbName, clSchema, onClose } = props
+const { mode, bucketName, dbName, onClose } = props
 const collection = reactive(props.collection)
 if (mode === 'create' && props.clDir.full_name) {
   collection.dir_full_name = props.clDir.full_name
@@ -294,10 +316,13 @@ const docFieldConvertRules = computed({
     }
   },
 })
-
-// 文档编辑器
-const elJdeDoc = ref<{ editing: () => any; editDoc: DocAsArray } | null>(null)
-
+/**
+ * 扩展schema
+ */
+const newClExtSchema = ref({ id: null })
+/**
+ * 访问控制列表
+ */
 const newAclUser = reactive({} as any)
 const aclUserColumns = [{
   key: 'id',
@@ -477,18 +502,6 @@ const onSubmit = () => {
     unrepeat.database.label && delete unrepeat.database.label
     unrepeat.collection.label && delete unrepeat.collection.label
   }
-  /**
-   * 指定了扩展属性
-   * 因为JsonDocEditor不会修改传入的数据，返回的是副本，所以需要进行赋值
-   */
-  if (props.clSchema._id) {
-    let extraInfo: any = elJdeDoc.value?.editing()
-    let extraInfo2 = (new DocAsArray(extraInfo)).build(props.clSchema.body)
-    if (extraInfo2) {
-      Object.assign(collection, extraInfo2)
-    }
-  }
-
   if (mode === 'create')
     apiCollection
       .create(bucketName, dbName, collection)
@@ -507,6 +520,21 @@ const onSubmit = () => {
         closeDialog(newCollection)
       })
   }
+}
+const onAddClExtSchema = (usage = 'edit') => {
+  if (newClExtSchema.value.id) {
+    const { id } = newClExtSchema.value
+    let schema = schemas[0].options.find((s) => s._id === id)
+    if (!schema) schema = schemas[1].options.find((s) => s._id === id)
+    if (schema) {
+      const clExtSchema = { id, title: schema.title, usage }
+      collection.ext_schemas.push(clExtSchema)
+    }
+    newClExtSchema.value.id = null
+  }
+}
+const onRemoveClExtSchema = (clExtSchema: any, index: number) => {
+  collection.ext_schemas.splice(index, 1)
 }
 const onAddAclUser = (newUser: any) => {
   const { id } = newUser

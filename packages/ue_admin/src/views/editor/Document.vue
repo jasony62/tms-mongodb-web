@@ -5,12 +5,12 @@
       <el-breadcrumb :separator-icon="ArrowRight">
         <el-breadcrumb-item :to="{ name: 'databases' }">{{ DbLabel }}</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'database', params: { dbName } }">{{
-          dbName
-        }}</el-breadcrumb-item>
+        dbName
+      }}</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'collection', params: { dbName, clName } }">{{ clName }}</el-breadcrumb-item>
         <el-breadcrumb-item>{{
-          document._id ? document._id : '新建文档'
-        }}</el-breadcrumb-item>
+        document._id ? document._id : '新建文档'
+      }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
     <div class="p-2 border border-gray-200 mb-2 rounded-md text-center">
@@ -19,8 +19,8 @@
     </div>
     <div class="flex flex-row gap-4 h-full overflow-auto pb-4" v-if="collection._id && (!docId || document._id)">
       <div class="w-1/3 h-full flex-grow-none overflow-auto">
-        <tms-json-doc ref="elJdeDoc" :schema="collection.schema.body" :value="document" :enable-paste="true"
-          :on-paste="onJdocPaste" :on-lookup="onJdocLookup" :on-file-select="onFileSelect"
+        <tms-json-doc ref="elJdeDoc" :schema="collection.editSchema.body || collection.schema.body" :value="document"
+          :enable-paste="true" :on-paste="onJdocPaste" :on-lookup="onJdocLookup" :on-file-select="onFileSelect"
           :on-file-download="onFileDownload" :show-field-fullname="showFieldFullname" :hide-root-title="true"
           :hide-root-description="true" @jdoc-focus="onJdocFocus"></tms-json-doc>
         <el-form label-position="top">
@@ -88,6 +88,7 @@
     </el-drawer>
   </div>
 </template>
+
 <style lang="scss">
 #docEditor {
   @apply w-full h-full overflow-auto flex flex-col gap-2;
