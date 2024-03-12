@@ -98,22 +98,6 @@ class DocumentHelper extends CtrlHelper {
     if (!columns && reqMode !== 'api')
       return [false, '指定的集合没有指定集合列']
 
-    let publicDoc = {}
-    const { extensionInfo } = existCl
-    if (extensionInfo) {
-      const { info, schemaId } = extensionInfo
-      if (schemaId) {
-        const modelSchema = new ModelSchema(
-          this.ctrl.mongoClient,
-          this.ctrl.bucket,
-          this.ctrl.client
-        )
-        const publicSchema = await modelSchema.bySchemaId(schemaId)
-        Object.keys(publicSchema).forEach((schema) => {
-          publicDoc[schema] = info[schema] ? info[schema] : ''
-        })
-      }
-    }
     let jsonFinishRows = rowsJson.map((row) => {
       let newRow = {}
       if (columns) {
@@ -195,13 +179,6 @@ class DocumentHelper extends CtrlHelper {
 
         failDatas = _.difference(jsonFinishRows, newDocs)
         jsonFinishRows = newDocs
-      }
-
-      // 补充公共属性
-      if (publicDoc) {
-        jsonFinishRows = jsonFinishRows.map((item) =>
-          Object.assign(item, publicDoc)
-        )
       }
 
       // 写入到数据库
@@ -380,19 +357,6 @@ class DocumentHelper extends CtrlHelper {
     //获取新集合列定义
     let newClSchema = await collModel.getSchemaByCollection(newExistCl)
     if (!newClSchema) return [false, '指定的集合未指定集合列定义']
-    //获取新集合公共属性
-    let newPublicDoc = {}
-    let { extensionInfo } = newExistCl
-    if (extensionInfo) {
-      const { info, schemaId } = extensionInfo
-      if (schemaId) {
-        const publicSchema = await modelSchema.bySchemaId(schemaId)
-        Object.keys(publicSchema).forEach((schema) => {
-          newPublicDoc[schema] = info[schema] ? info[schema] : ''
-        })
-      }
-    }
-
     //插入到指定集合中,补充默认值和公共属性
     let newDocs = oldDocus.map((oldDoc) => {
       let newd = {
@@ -406,7 +370,6 @@ class DocumentHelper extends CtrlHelper {
         }
       }
       modelDoc.processBeforeStore(newd, 'insert')
-      if (newPublicDoc) Object.assign(newd, newPublicDoc)
       return newd
     })
     let newDocs2 = JSON.parse(JSON.stringify(newDocs)).map((newDoc) => {

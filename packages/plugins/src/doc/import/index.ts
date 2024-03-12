@@ -46,7 +46,7 @@ class ImportPlugin extends PluginBase {
     if (ok === false) return { code: 10001, msg: docsOrCause }
 
     const { widget } = ctrl.request.body
-    const { name: clName, schema_id, extensionInfo } = tmwCl
+    const { name: clName, schema_id } = tmwCl
 
     const modelSchema = new ModelSchema(
       ctrl.mongoClient,
@@ -81,17 +81,6 @@ class ImportPlugin extends PluginBase {
     let rowsJson = JSON.parse(file)
     if (!Array.isArray(rowsJson) || rowsJson.length === 0)
       return { code: 10001, msg: '上传的文件数据为空或格式错误' }
-
-    // 补充公共属性
-    if (extensionInfo) {
-      const { info, schemaId } = extensionInfo
-      if (schemaId) {
-        const publicSchema = await modelSchema.bySchemaId(schemaId)
-        Object.keys(publicSchema).forEach((schema) => {
-          rowsJson[schema] = info[schema] ? info[schema] : ''
-        })
-      }
-    }
 
     let schemaStr = ''
     if (columns) {

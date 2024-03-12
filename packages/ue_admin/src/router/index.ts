@@ -229,6 +229,7 @@ router.beforeEach(async (to, from, next) => {
       }
     }
   } else if (EXTERNAL_LOGIN_URL()) {
+    console.log('执行第三方登录')
     return externalLogin()
   }
   next()

@@ -25,13 +25,24 @@ function newEsIndex(tmwCl) {
   let indexName = `${tmwCl.db.sysname}+${tmwCl.sysname}`
   return new ElasticSearchIndex(indexName)
 }
-
+/**
+ *
+ * @param tmwCl
+ * @returns
+ */
+function esAvailable(tmwCl): boolean {
+  return (
+    ElasticSearchIndex.available() &&
+    tmwCl.custom?.elasticsearch?.enabled === true
+  )
+}
 /**文档模型类基类 */
 class Document extends Base {
   get _modelAcl() {
     const model = new ModelAcl(this.mongoClient, this.bucket, this.client)
     return model
   }
+
   /**
    * 获得指定id的文档
    * @param {object} existCl - 文档所在集合
@@ -120,7 +131,7 @@ class Document extends Base {
     return removeSysCl.deleteOne(removeQuery).then(async ({ deletedCount }) => {
       // 操作日志？
       // 从es中删除文档
-      if (ElasticSearchIndex.available()) {
+      if (esAvailable(existCl)) {
         const esIndex = newEsIndex(existCl)
         await esIndex.removeDocument(id)
       }
@@ -166,7 +177,7 @@ class Document extends Base {
     await modelCl.checkRemoveConstraint(existCl, query, sysCl)
     const { deletedCount } = await sysCl.deleteMany(query)
     // 从es中删除文档
-    if (ElasticSearchIndex.available()) {
+    if (esAvailable(existCl)) {
       const esIndex = newEsIndex(existCl)
       const promises = removedDocs.map(({ _id }) => {
         return esIndex.removeDocument(_id.toString())
@@ -243,7 +254,7 @@ class Document extends Base {
     })
 
     // 提交到es
-    if (ElasticSearchIndex.available()) {
+    if (esAvailable(existCl)) {
       const esIndex = newEsIndex(existCl)
       await esIndex.createDocument(newDoc._id.toString(), newDoc)
     }
@@ -269,7 +280,7 @@ class Document extends Base {
       rows.forEach(async (row, index) => {
         row._id = insertedIds[`${index}`]
         // 提交到es
-        if (ElasticSearchIndex.available()) {
+        if (esAvailable(tmwCl)) {
           const esIndex = newEsIndex(tmwCl)
           await esIndex.createDocument(row._id.toString(), row)
         }
@@ -303,7 +314,7 @@ class Document extends Base {
       .updateOne({ _id: new ObjectId(id) }, ops)
       .then(async ({ modifiedCount }) => {
         // 提交到es
-        if (ElasticSearchIndex.available()) {
+        if (esAvailable(existCl)) {
           const esIndex = newEsIndex(existCl)
           await esIndex.updateDocument(id, updated)
         }
@@ -346,7 +357,7 @@ class Document extends Base {
         .replaceOne({ _id: new ObjectId(id) }, newDoc)
         .then(async ({ modifiedCount }) => {
           // 提交到es
-          if (ElasticSearchIndex.available()) {
+          if (esAvailable(existCl)) {
             const esIndex = newEsIndex(existCl)
             await esIndex.updateDocument(id, newDoc)
           }

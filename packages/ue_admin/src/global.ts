@@ -66,6 +66,7 @@ let _globalsettings: Globalsettings = {
  * @param settings
  */
 export function init(settings: Globalsettings) {
+  console.log('获得配置数据：', settings)
   if (settings.authApiBase) _globalsettings.authApiBase = settings.authApiBase
   if (settings.authApiPort) _globalsettings.authApiPort = settings.authApiPort
   if (settings.backApiBase) _globalsettings.backApiBase = settings.backApiBase

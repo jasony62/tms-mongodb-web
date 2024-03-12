@@ -47,7 +47,7 @@ class DocBase extends Base {
   async create() {
     const existCl = await this.docHelper.findRequestCl()
 
-    const { schema_id, extensionInfo } = existCl
+    const { schema_id } = existCl
 
     // 集合的文档字段定义
     let docSchema = await this.modelDoc.getDocSchema(schema_id)
@@ -75,20 +75,6 @@ class DocBase extends Base {
       const repeated = await unrepeat(this, curDoc, curConfig)
       if (repeated.length === 0)
         return new ResultFault('添加失败,当前数据已存在')
-    }
-
-    /**
-     * 补充公共属性
-     */
-    if (extensionInfo) {
-      const { info, schemaId } = extensionInfo
-      if (schemaId) {
-        // const publicSchema = await modelSchema.bySchemaId(schemaId)
-        const publicSchema = await this.modelDoc.getDocSchema(schemaId)
-        Object.keys(publicSchema).forEach((schema) => {
-          docData[schema] = info[schema] ? info[schema] : ''
-        })
-      }
     }
 
     // 加工数据

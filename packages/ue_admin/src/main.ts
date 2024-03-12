@@ -138,10 +138,19 @@ TmsAxios.ins('master-api')
   .get(UrlSettings)
   .then((rsp: any) => {
     let settings = rsp.data
-    settings.compact = /compact=Y/i.test(location.search)
-    settings.extract = /extract=Y/i.test(location.search)
-    settings.multiple = !/multiple=N/i.test(location.search)
-    initGlobalSettings(settings)
+    if (settings && typeof settings === 'string')
+      settings = JSON.parse(settings)
+    if (settings && typeof settings === 'object') {
+      settings.compact = /compact=Y/i.test(location.search)
+      settings.extract = /extract=Y/i.test(location.search)
+      settings.multiple = !/multiple=N/i.test(location.search)
+      initGlobalSettings(settings)
+    } else {
+      console.log('获得的配置信息不可用', rsp.data)
+    }
     afterLoadSettings()
   })
-  .catch(afterLoadSettings)
+  .catch((e) => {
+    console.warn('加载配置失败', e)
+    afterLoadSettings()
+  })

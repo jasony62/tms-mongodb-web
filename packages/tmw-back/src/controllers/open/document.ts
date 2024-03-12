@@ -136,39 +136,6 @@ class Document extends Base {
     }
 
     return new ResultData(result)
-
-    // 去重校验
-    // const result = this.modelDoc.findUnRepeatRule(existCl)
-    // if (result[0]) {
-    //   const { dbName, clName: collName, keys, insert } = result[1]
-    //   const curDoc = [doc]
-    //   const curConfig = {
-    //     config: {
-    //       columns: keys,
-    //       db: dbName,
-    //       cl: collName,
-    //       insert: insert,
-    //     },
-    //   }
-    //   const repeated = await unrepeat(this, curDoc, curConfig)
-    //   if (repeated.length === 0)
-    //     return new ResultFault('添加失败,当前数据已存在')
-    // }
-    // 补充公共属性
-    // if (extensionInfo) {
-    //   const { info, schemaId } = extensionInfo
-    //   if (schemaId) {
-    //     const modelSchema = new ModelSchema(
-    //       this['mongoClient'],
-    //      this.bucketObj,
-    //       this['client']
-    //     )
-    //     const publicSchema = await modelSchema.bySchemaId(schemaId)
-    //     Object.keys(publicSchema).forEach((schema) => {
-    //       doc[schema] = info[schema] ? info[schema] : ''
-    //     })
-    //   }
-    // }
   }
 }
 
