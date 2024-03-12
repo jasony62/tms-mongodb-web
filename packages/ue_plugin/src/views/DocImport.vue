@@ -16,6 +16,14 @@
               </template>
             </el-upload>
           </el-form-item>
+          <el-form-item label="数据起始行">
+            <div>
+              <el-input-number v-model="startRow" :step="1" :min="1" step-strictly />
+              <div class="mt-2">
+                <el-alert title="为跳过中文标题行" type="info" :closable="false" />
+              </div>
+            </div>
+          </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="onExecute('upload')" :disabled="noUpload">执行</el-button>
           </el-form-item>
@@ -52,6 +60,9 @@ const fileList = ref([]);
 const upload = ref<any>(null)
 const noUpload = ref(true)
 const leafLevel = ref<number>(0)
+
+// 数据起始行号
+const startRow = ref(2)
 
 enum PluginWidgetAction {
   Created = "Created",
@@ -125,7 +136,27 @@ function handleUpload(req: any) {
       const wb = XLSX.read(fileData, { type: 'binary' })
       const firstSheetName = wb.SheetNames[0]
       const sh = wb.Sheets[firstSheetName]
-      rowsJson = XLSX.utils.sheet_to_json(sh)
+      let content = XLSX.utils.sheet_to_json(sh, { header: 1 })
+      if (Array.isArray(content) && content.length) {
+        const deleteCount = startRow.value - 1
+        if (deleteCount > 0 && deleteCount <= content.length) {
+          content.splice(0, deleteCount)
+        }
+      }
+      rowsJson = []
+      if (Array.isArray(content) && content.length) {
+        let names = content[0] as string[]
+        for (let i = 1; i < content.length; i++) {
+          let row = content[i] as any[]
+          let data = row.reduce((data, cell, index) => {
+            data[names[index]] = cell
+            return data
+          }, {})
+          // 清除全空的行
+          if (Object.keys(data).length)
+            rowsJson.push(data)
+        }
+      }
     }
 
     if (Caller && typeof rowsJson === 'object') {

@@ -93,8 +93,9 @@ class ImportPlugin extends PluginBase {
     const modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
     const docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK)
 
+    // 将没有schema定义的数据保存在指定的属性中
     let extra = process.env.TMW_PLUGIN_DOC_IMPORT_EXTRA_KEY_NAME || 'extra'
-    let finishRows = rowsJson.map((row) => {
+    let importedRows = rowsJson.map((row) => {
       let newRow: any = {}
       if (columns) {
         for (const k in columns) {
@@ -166,7 +167,7 @@ class ImportPlugin extends PluginBase {
 
     try {
       // 通过webhook处理数据
-      let beforeRst: any = await docWebhook.beforeCreate(finishRows, tmwCl)
+      let beforeRst: any = await docWebhook.beforeCreate(importedRows, tmwCl)
 
       if (beforeRst.passed !== true)
         return {
@@ -175,10 +176,10 @@ class ImportPlugin extends PluginBase {
         }
 
       if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
-        finishRows = beforeRst.rewrited
+        importedRows = beforeRst.rewrited
 
       // 数据存储到集合中
-      const rst = await modelDoc.createMany(tmwCl, finishRows)
+      const rst = await modelDoc.createMany(tmwCl, importedRows)
       debug(`导入的数据已存储到[db=${tmwCl.db.sysname}][cl=${clName}]`)
 
       // 通过webhook处理数据
@@ -200,12 +201,11 @@ class ImportPlugin extends PluginBase {
    * 生成excel模板
    */
   private async processExcelTemplate(ctrl, clName, schemaIter, leafLevel) {
-    const XLSX = await import('xlsx')
-
-    let fieldAry = []
+    const titleAry = [] // 标题行
+    const nameAry = [] // 名称行
     leafLevel = leafLevel ? leafLevel : 0
     for (let schemaProp of schemaIter) {
-      let { fullname, _path, _name } = schemaProp
+      let { fullname, _path, _name, attrs } = schemaProp
       if (
         !_name ||
         fullname.replace(/\^\\/, '').indexOf('w+$') > -1 ||
@@ -213,13 +213,18 @@ class ImportPlugin extends PluginBase {
       )
         continue
 
-      fieldAry.push(fullname)
-      if (_path && fieldAry.indexOf(_path) > -1)
-        fieldAry.splice(fieldAry.indexOf(_path), 1)
+      titleAry.push(attrs.title ?? '')
+      nameAry.push(fullname)
+      if (_path && nameAry.indexOf(_path) > -1) {
+        let pos = nameAry.indexOf(_path)
+        titleAry.splice(pos, 1)
+        nameAry.splice(pos, 1)
+      }
     }
-
     const filePath = path.join(this.createDir(ctrl), `${clName}.xlsx`)
-    const ws = XLSX.utils.aoa_to_sheet([fieldAry])
+
+    const XLSX = await import('xlsx')
+    const ws = XLSX.utils.aoa_to_sheet([titleAry, nameAry])
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws)
     XLSX.writeFile(wb, filePath)
