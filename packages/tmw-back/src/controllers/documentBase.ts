@@ -282,18 +282,21 @@ class DocBase extends Base {
    * 获得指定数据库指定集合下的文档
    */
   async list() {
-    const existCl = await this.docHelper.findRequestCl()
+    const tmwCl = await this.docHelper.findRequestCl()
 
-    const { page, size, tags } = this.request.query
+    const { page, size, tags, includeDeleted } = this.request.query
     let { filter, orderBy } = this.request.body
 
     // 包含全部标签
     if (tags) filter = makeTagsFilter(tags, filter)
 
-    let [ok, result] = await this.modelDoc.list(
-      existCl,
+    const [ok, result] = await this.modelDoc.list(
+      tmwCl,
       { filter, orderBy },
-      { page, size }
+      { page, size },
+      true, // like
+      null, // projection
+      /yes|true/i.test(includeDeleted)
     )
     if (ok === false) return new ResultFault(result)
 

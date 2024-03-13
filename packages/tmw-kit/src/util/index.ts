@@ -18,6 +18,7 @@ export async function loadTmwConfig() {
     TMW_CONFIG = {
       TMW_APP_CREATETIME: 'TMW_CREATE_TIME',
       TMW_APP_UPDATETIME: 'TMW_UPDATE_TIME',
+      TMW_APP_DELETETIME: 'TMW_DELETE_TIME',
       TMW_APP_TAGS: 'TMW_TAGS', // 默认的数据标签字段
       TMW_APP_DATA_ACTION_LOG: 'N',
     }

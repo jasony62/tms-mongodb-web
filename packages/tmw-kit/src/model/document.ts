@@ -16,6 +16,11 @@ const ObjectId = mongodb.ObjectId
  */
 const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
 /**
+ * 用update代替delete操作
+ * 添加删除时间
+ */
+const UPDATE_AS_DELETE = /true|yes/i.test(process.env.TMW_APP_UPDATE_AS_DELETE)
+/**
  * 创建ES索引实例
  *
  * @param tmwCl
@@ -108,30 +113,27 @@ class Document extends Base {
    *
    * 如果删除的是从集合中的数据，改为删除主集合中的数据
    *
-   * @param {object} existCl - 文档对象所在集合
+   * @param {object} tmwCl - 文档对象所在集合
    * @param {string} id - 文档对象id
    *
    * @throws 如果不满足删除条件，抛出异常说明原因
    *
    * @returns {boolean} 是否更新成功
    */
-  async remove(existCl, id): Promise<boolean> {
-    let sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
+  async remove(tmwCl, id): Promise<boolean> {
+    let sysCl = this._getSysCl(tmwCl.db.sysname, tmwCl.sysname)
 
-    let removeQuery, removeSysCl
+    const removeQuery = { _id: new ObjectId(id) }
 
-    /**主集合删除文档 */
-    removeSysCl = sysCl
-    removeQuery = { _id: new ObjectId(id) }
-    await this._modelCl.checkRemoveConstraint(existCl, removeQuery, sysCl)
+    // 检查删除约束条件，需要吗？
+    await this._modelCl.checkRemoveConstraint(tmwCl, removeQuery, sysCl)
 
-    const result = this.findUnRepeatRule(existCl)
-    if (result[0] && result[1]['insert']) {
-      const dbSysName = result[1]['dbSysName']
-      const clSysName = result[1]['clSysName']
-      const keys = result[1]['keys']
+    // 检查数据重复条件，需要吗？为什么是把匹配数据删掉？
+    const [isRequired, result] = this.findUnRepeatRule(tmwCl)
+    if (isRequired && result.insert) {
+      const { dbSysName, clSysName, keys } = result
       const { targetSysCl, targetQuery } = await this.getUnRepeatSQ(
-        removeSysCl,
+        sysCl,
         removeQuery,
         dbSysName,
         clSysName,
@@ -140,40 +142,53 @@ class Document extends Base {
       targetSysCl.deleteMany(targetQuery)
     }
 
-    return removeSysCl.deleteOne(removeQuery).then(async ({ deletedCount }) => {
+    let deletedCount
+    if (UPDATE_AS_DELETE) {
+      const current = dayjs().format('YYYY-MM-DD HH:mm:ss')
+      const result = await sysCl.updateOne(removeQuery, {
+        $set: { [this.tmwConfig.TMW_APP_DELETETIME]: current },
+      })
+      deletedCount = result.modifiedCount
+    } else {
+      const result = await sysCl.deleteOne(removeQuery)
+      deletedCount = result.deletedCount
+    }
+
+    if (deletedCount) {
       // 操作日志？
       // 从es中删除文档
-      if (esAvailable(existCl)) {
-        const esIndex = newEsIndex(existCl)
+      if (esAvailable(tmwCl)) {
+        const esIndex = newEsIndex(tmwCl)
         await esIndex.removeDocument(id)
       }
-      return deletedCount === 1
-    })
+    }
+
+    return deletedCount === 1
   }
   /**
    * 按条件批量删除文档
    *
    * 如果删除的是从集合中的数据，改为删除主集合中的数据，从集合的数据等复制机制进行更新
    *
-   * @param {object} existCl - 文档对象所在集合
+   * @param {object} tmwCl - 文档对象所在集合
    * @param {object} query - 文档查询条件
    *
    * @throws 如果不满足删除条件，抛出异常说明原因
    *
    * @returns {number} 删除的文档数量
    */
-  async removeMany(existCl, query) {
-    const sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
+  async removeMany(tmwCl, query) {
+    const sysCl = this._getSysCl(tmwCl.db.sysname, tmwCl.sysname)
+
     const removedDocs = await sysCl
       .find(query, { projection: { _id: 1 } })
       .toArray()
+
     if (removedDocs.length === 0) return 0
 
-    const result = this.findUnRepeatRule(existCl)
-    if (result[0] && result[1]['insert']) {
-      const dbSysName = result[1]['dbSysName']
-      const clSysName = result[1]['clSysName']
-      const keys = result[1]['keys']
+    const [isRequired, result] = this.findUnRepeatRule(tmwCl)
+    if (isRequired && result.insert) {
+      const { dbSysName, clSysName, keys } = result
       const { targetSysCl, targetQuery } = await this.getUnRepeatSQ(
         sysCl,
         query,
@@ -183,16 +198,31 @@ class Document extends Base {
       )
       targetSysCl.deleteMany(targetQuery)
     }
-    await this._modelCl.checkRemoveConstraint(existCl, query, sysCl)
-    const { deletedCount } = await sysCl.deleteMany(query)
-    // 从es中删除文档
-    if (esAvailable(existCl)) {
-      const esIndex = newEsIndex(existCl)
-      const promises = removedDocs.map(({ _id }) => {
-        return esIndex.removeDocument(_id.toString())
+    await this._modelCl.checkRemoveConstraint(tmwCl, query, sysCl)
+
+    let deletedCount
+    if (UPDATE_AS_DELETE) {
+      const current = dayjs().format('YYYY-MM-DD HH:mm:ss')
+      const result = await sysCl.updateMany(query, {
+        $set: { [this.tmwConfig.TMW_APP_DELETETIME]: current },
       })
-      await Promise.all(promises)
+      deletedCount = result.modifiedCount
+    } else {
+      const result = await sysCl.deleteMany(query)
+      deletedCount = result.deletedCount
     }
+
+    if (deletedCount) {
+      // 从es中删除文档
+      if (esAvailable(tmwCl)) {
+        const esIndex = newEsIndex(tmwCl)
+        const promises = removedDocs.map(({ _id }) => {
+          return esIndex.removeDocument(_id.toString())
+        })
+        await Promise.all(promises)
+      }
+    }
+
     return deletedCount
   }
   /**
@@ -200,14 +230,14 @@ class Document extends Base {
    *
    * 保留原文档的id，如果id重复进行替换
    *
-   * @param {object} existCl - 文档对象所在集合
+   * @param {object} tmwCl - 文档对象所在集合
    * @param {object} query - 文档查询条件
    * @param {object} targetCl - 目标集合
    *
    * @returns {number} 复制的文档数量
    */
-  async copyMany(existCl, query, targetCl) {
-    const sourceSysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
+  async copyMany(tmwCl, query, targetCl) {
+    const sourceSysCl = this._getSysCl(tmwCl.db.sysname, tmwCl.sysname)
 
     let copyedDocs = await sourceSysCl.find(query).toArray()
     if (copyedDocs.length === 0) return 0
@@ -370,7 +400,7 @@ class Document extends Base {
   }
   /**
    * 模糊搜索数据
-   * @param {object} existCl
+   * @param {object} tmwCl
    * @param {object} [options={}]
    * @param {object} [options.filter]
    * @param {object} [options.orderBy]
@@ -382,20 +412,26 @@ class Document extends Base {
    * @returns {[]}
    */
   async list(
-    existCl,
+    tmwCl,
     { filter = null, orderBy = null } = {},
     { page = 0, size = 0 } = {},
     like = true,
-    projection = null
+    projection = null,
+    includeDeleted = false
   ): Promise<[boolean, string | { docs: any[]; total: number }]> {
-    if (!existCl) return [false, '没有指定存在的集合']
+    if (!tmwCl) return [false, '没有指定存在的集合']
     // 筛选条件
-    let query: any = filter ? this.assembleQuery(filter, like) : {}
+    const query: any = filter ? this.assembleQuery(filter, like) : {}
+
+    // 排除已删除数据
+    if (UPDATE_AS_DELETE && includeDeleted !== true) {
+      query[this.tmwConfig.TMW_APP_DELETETIME] = { $exists: false }
+    }
 
     // 数据权限，管理员不受限制
     if (this.client.isAdmin !== true) {
       // 集合中的文档要通过acl控制访问权限
-      if (existCl.docAclCheck === true) {
+      if (tmwCl.docAclCheck === true) {
         let queryAclCheck: any = [
           { creator: { $eq: this.client.id } }, // 创建人允许访问
         ]
@@ -411,18 +447,19 @@ class Document extends Base {
         query.$or = queryAclCheck
       }
     }
+
     // 分页
-    let { skip, limit } = this.toSkipAndLimit(page, size)
+    const { skip, limit } = this.toSkipAndLimit(page, size)
 
     // 排序
-    let sort = {}
+    const sort = {}
     if (orderBy && typeof orderBy === 'object' && Object.keys(orderBy).length) {
       for (const key in orderBy) sort[key] = orderBy[key] === 'desc' ? -1 : 1
     } else {
       sort['_id'] = -1
     }
 
-    const sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
+    const sysCl = this._getSysCl(tmwCl.db.sysname, tmwCl.sysname)
 
     const docs = await sysCl
       .find(query)
@@ -621,7 +658,7 @@ class Document extends Base {
    * @param {object} tmwCl - 文档所在集合
    *
    */
-  findUnRepeatRule(tmwCl) {
+  findUnRepeatRule(tmwCl): [boolean, any] {
     const { operateRules } = tmwCl
     if (
       operateRules &&
