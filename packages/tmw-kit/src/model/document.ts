@@ -38,11 +38,26 @@ function esAvailable(tmwCl): boolean {
 }
 /**文档模型类基类 */
 class Document extends Base {
+  get _modelCl() {
+    const modelCl = new ModelColl(this.mongoClient, this.bucket, this.client)
+    return modelCl
+  }
+
   get _modelAcl() {
     const model = new ModelAcl(this.mongoClient, this.bucket, this.client)
     return model
   }
-
+  /**
+   *
+   * @param dbSysname
+   * @param clSysName
+   * @returns
+   */
+  private _getSysCl(dbSysname: string, clSysName) {
+    let mongoClient = this.mongoClient
+    let sysCl = mongoClient.db(dbSysname).collection(clSysName)
+    return sysCl
+  }
   /**
    * 获得指定id的文档
    * @param {object} existCl - 文档所在集合
@@ -52,8 +67,7 @@ class Document extends Base {
    * @returns {object} 文档对象
    */
   async byId(existCl, id, projection = null) {
-    let mongoClient = this.mongoClient
-    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+    const sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
 
     let options: any = {}
     if (projection && typeof projection === 'object')
@@ -77,8 +91,7 @@ class Document extends Base {
    * @returns {object} 文档对象
    */
   async findOne(existCl, { filter, like = false }, projection = null) {
-    let mongoClient = this.mongoClient
-    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+    const sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
 
     let options: any = {}
     if (projection && typeof projection === 'object')
@@ -103,15 +116,14 @@ class Document extends Base {
    * @returns {boolean} 是否更新成功
    */
   async remove(existCl, id): Promise<boolean> {
-    let mongoClient = this.mongoClient
-    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
-    const modelCl = new ModelColl(this.mongoClient, this.bucket, this.client)
+    let sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
+
     let removeQuery, removeSysCl
 
     /**主集合删除文档 */
     removeSysCl = sysCl
     removeQuery = { _id: new ObjectId(id) }
-    await modelCl.checkRemoveConstraint(existCl, removeQuery, sysCl)
+    await this._modelCl.checkRemoveConstraint(existCl, removeQuery, sysCl)
 
     const result = this.findUnRepeatRule(existCl)
     if (result[0] && result[1]['insert']) {
@@ -151,14 +163,11 @@ class Document extends Base {
    * @returns {number} 删除的文档数量
    */
   async removeMany(existCl, query) {
-    const mongoClient = this.mongoClient
-    const sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+    const sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
     const removedDocs = await sysCl
       .find(query, { projection: { _id: 1 } })
       .toArray()
     if (removedDocs.length === 0) return 0
-
-    const modelCl = new ModelColl(this.mongoClient, this.bucket, this.client)
 
     const result = this.findUnRepeatRule(existCl)
     if (result[0] && result[1]['insert']) {
@@ -174,7 +183,7 @@ class Document extends Base {
       )
       targetSysCl.deleteMany(targetQuery)
     }
-    await modelCl.checkRemoveConstraint(existCl, query, sysCl)
+    await this._modelCl.checkRemoveConstraint(existCl, query, sysCl)
     const { deletedCount } = await sysCl.deleteMany(query)
     // 从es中删除文档
     if (esAvailable(existCl)) {
@@ -198,17 +207,12 @@ class Document extends Base {
    * @returns {number} 复制的文档数量
    */
   async copyMany(existCl, query, targetCl) {
-    let mongoClient = this.mongoClient
-    let existSysCl = mongoClient
-      .db(existCl.db.sysname)
-      .collection(existCl.sysname)
+    const sourceSysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
 
-    let copyedDocs = await existSysCl.find(query).toArray()
+    let copyedDocs = await sourceSysCl.find(query).toArray()
     if (copyedDocs.length === 0) return 0
 
-    let targetSysCl = mongoClient
-      .db(targetCl.db.sysname)
-      .collection(targetCl.sysname)
+    const targetSysCl = this._getSysCl(targetCl.db.sysname, targetCl.sysname)
 
     let bulkOp = targetSysCl.initializeUnorderedBulkOp()
     let { tmwConfig } = this
@@ -236,20 +240,20 @@ class Document extends Base {
   }
   /**
    * 新建文档
+   *
    * @param existCl
    * @param data
    * @param schema
    */
   async create(existCl, data: any) {
-    let mongoClient = this.mongoClient
-    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+    let sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
 
     // 对象的创建人
     data.creator = this.client.id
 
     const newDoc = await sysCl.insertOne(data).then(async (r) => {
       // 记录操作日志
-      await this.dataActionLog(r.ops, '创建', existCl.db.name, existCl.name)
+      // await this.dataActionLog(r.ops, '创建', existCl.db.name, existCl.name)
       return data
     })
 
@@ -270,7 +274,7 @@ class Document extends Base {
   async createMany(tmwCl, rows: any[]) {
     const dbName = tmwCl.db.sysname
     const clName = tmwCl.sysname
-    const sysCl = this.mongoClient.db(dbName).collection(clName)
+    const sysCl = this._getSysCl(dbName, clName)
 
     // 对象的创建人
     rows.forEach((row) => (row.creator = this.client.id))
@@ -303,8 +307,7 @@ class Document extends Base {
    * @returns {boolean} 是否更新成功
    */
   async update(existCl, id: string, updated: any, removed?: any) {
-    let mongoClient = this.mongoClient
-    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+    const sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
     let ops = {}
     if (updated && typeof updated === 'object' && Object.keys(updated).length)
       ops['$set'] = updated
@@ -333,8 +336,7 @@ class Document extends Base {
    * @returns {number} 更新的文档数量
    */
   async updateMany(existCl, query, updated) {
-    let mongoClient = this.mongoClient
-    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+    let sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
     return sysCl
       .updateMany(query, { $set: updated })
       .then(({ modifiedCount }) => modifiedCount)
@@ -351,7 +353,6 @@ class Document extends Base {
    * @returns {boolean} 是否替换成功
    */
   async replace(existCl, id: string, newDoc: any) {
-    let mongoClient = this.mongoClient
     const replaceOne = async (sysCl) => {
       return sysCl
         .replaceOne({ _id: new ObjectId(id) }, newDoc)
@@ -364,7 +365,7 @@ class Document extends Base {
           return modifiedCount === 1
         })
     }
-    let sysCl = mongoClient.db(existCl.db.sysname).collection(existCl.sysname)
+    const sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
     return await replaceOne(sysCl)
   }
   /**
@@ -421,10 +422,9 @@ class Document extends Base {
       sort['_id'] = -1
     }
 
-    const client = this.mongoClient
-    let cl = client.db(existCl.db.sysname).collection(existCl.sysname)
+    const sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
 
-    const docs = await cl
+    const docs = await sysCl
       .find(query)
       .project(projection)
       .skip(skip)
@@ -435,7 +435,7 @@ class Document extends Base {
         return docs
       })
 
-    const total = await cl.countDocuments(query)
+    const total = await sysCl.countDocuments(query)
 
     return [true, { docs, total }]
   }
@@ -453,8 +453,7 @@ class Document extends Base {
     let docIds = ids.map((id) => new ObjectId(id))
     let query = { _id: { $in: docIds } }
 
-    const client = this.mongoClient
-    const cl = client.db(existCl.db.sysname).collection(existCl.sysname)
+    const cl = this._getSysCl(existCl.db.sysname, existCl.sysname)
 
     return cl
       .find(query)
@@ -471,8 +470,7 @@ class Document extends Base {
    * @returns {number} 文档数量
    */
   async count(existCl, query) {
-    const client = this.mongoClient
-    const sysCl = client.db(existCl.db.sysname).collection(existCl.sysname)
+    const sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
 
     let total = await sysCl.countDocuments(query)
 
@@ -577,8 +575,7 @@ class Document extends Base {
    * 查询文档完成情况
    */
   async getDocCompleteStatus(existCl, docs) {
-    const modelCl = new ModelColl(this.mongoClient, this.bucket, this.client)
-    const clSchemas = await modelCl.getSchemaByCollection(existCl)
+    const clSchemas = await this._modelCl.getSchemaByCollection(existCl)
     if (!clSchemas) return docs
     //
     docs.forEach((doc) => {
@@ -602,21 +599,17 @@ class Document extends Base {
   /**
    * 查询旧文档
    */
-  async getDocumentByIds(oldExistCl, ids, fields = {}) {
-    if (!oldExistCl || !ids) {
+  async getDocumentByIds(tmwCl, ids, fields = {}) {
+    if (!tmwCl || !ids) {
       return [false, '参数不完整']
     }
-    const client = this.mongoClient
-    const cl = client.db(oldExistCl.db.sysname).collection(oldExistCl.sysname)
+    const sysCl = this._getSysCl(tmwCl.db.sysname, tmwCl.sysname)
 
-    let docIds = []
-    ids.forEach((id) => {
-      docIds.push(new ObjectId(id))
-    })
+    let docIds = ids.map((id) => new ObjectId(id))
     let find = { _id: { $in: docIds } }
 
     // 获取表列
-    return cl
+    return sysCl
       .find(find)
       .project(fields)
       .toArray()
@@ -625,11 +618,11 @@ class Document extends Base {
   }
   /**
    * 检查集合中是否有去重规则
-   * @param {object} existCl - 文档所在集合
+   * @param {object} tmwCl - 文档所在集合
    *
    */
-  findUnRepeatRule(existCl) {
-    const { operateRules } = existCl
+  findUnRepeatRule(tmwCl) {
+    const { operateRules } = tmwCl
     if (
       operateRules &&
       operateRules.scope &&
@@ -660,18 +653,17 @@ class Document extends Base {
   }
   /**
    * 获得去重规则系统对象和条件
-   * @param {object} existSysCl - 删除操作文档所在集合
+   * @param {object} tmwSysCl - 删除操作文档所在集合
    * @param {object} query - 删除操作的查询条件
-   * @param {object} db - 去重规则库
-   * @param {object} cl - 去重规则表
+   * @param {string} db - 去重规则库
+   * @param {string} cl - 去重规则表
    * @param {arary} keys - 去重规则主键
    *
    */
-  async getUnRepeatSQ(existSysCl, query, db, cl, keys) {
-    let mongoClient = this.mongoClient
-    let targetSysCl = mongoClient.db(db).collection(cl)
+  async getUnRepeatSQ(tmwSysCl, query, db: string, cl: string, keys) {
+    let targetSysCl = this._getSysCl(db, cl)
 
-    const docs = await existSysCl.find(query).toArray()
+    const docs = await tmwSysCl.find(query).toArray()
     let targetQuery = {}
     keys.forEach((key) => {
       let result = []
@@ -682,6 +674,7 @@ class Document extends Base {
   }
   /**
    * 获得文档列定义
+   *
    * @param schemaId
    */
   async getDocSchema(schemaId: string) {

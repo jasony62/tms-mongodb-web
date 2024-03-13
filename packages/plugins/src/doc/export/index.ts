@@ -92,24 +92,36 @@ async function exportAsExcel(ctrl, tmwCl, docs, leafLevel): Promise<string> {
   // 集合的schema定义
   const schemaIter = await getDocSchemaIter(ctrl, schema_id)
 
-  let newDocs = []
-  docs.forEach((doc) => {
-    let middleAry = {}
-    for (let schemaProp of schemaIter) {
-      const { fullname, _path, _name } = schemaProp
-      if (!_name) continue
-      if (leafLevel > 0 && fullname.split(/\./g).length - 1 >= leafLevel)
-        continue
-      let val = _.get(doc, fullname)
-      if (!val) continue
-      if (typeof val === 'object') val = JSON.stringify(val)
-      middleAry[fullname] = val
-      if (_path && middleAry[_path]) delete middleAry[_path]
+  const titleAry = []
+  const nameAry = []
+  for (let schemaProp of schemaIter) {
+    let { fullname, _path, _name, attrs } = schemaProp
+    if (
+      !_name ||
+      fullname.replace(/\^\\/, '').indexOf('w+$') > -1 ||
+      (leafLevel > 0 && fullname.split(/\./g).length - 1 >= leafLevel)
+    )
+      continue
+
+    titleAry.push(attrs.title ?? '')
+    nameAry.push(fullname)
+    if (_path && nameAry.indexOf(_path) > -1) {
+      let pos = nameAry.indexOf(_path)
+      titleAry.splice(pos, 1)
+      nameAry.splice(pos, 1)
     }
-    newDocs.push(middleAry)
+  }
+
+  const rows = [titleAry, nameAry]
+  docs.forEach((doc) => {
+    const row = nameAry.reduce((data, name) => {
+      data.push(_.get(doc, name))
+      return data
+    }, [])
+    rows.push(row)
   })
 
-  const ws = XLSX.utils.json_to_sheet(newDocs)
+  const ws = XLSX.utils.aoa_to_sheet(rows)
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws)
   XLSX.writeFile(wb, filePath)
@@ -117,6 +129,7 @@ async function exportAsExcel(ctrl, tmwCl, docs, leafLevel): Promise<string> {
   const relativeUrl = tmsFs.pathWithPrefix(
     path.join(fileName, `${fileName}.xlsx`)
   )
+
   return relativeUrl
 }
 

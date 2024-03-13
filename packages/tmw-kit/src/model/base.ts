@@ -182,7 +182,7 @@ class Base {
    * 如果指定了schema，需要根据schema进行检查和加工
    */
   processBeforeStore(data, type: string, schema?: any, existData?: any) {
-    let current = dayjs().format('YYYY-MM-DD HH:mm:ss')
+    const current = dayjs().format('YYYY-MM-DD HH:mm:ss')
     let { tmwConfig } = this
 
     switch (type) {
@@ -217,8 +217,8 @@ class Base {
         }
         break
       case 'update':
-        if (typeof data[tmwConfig.TMW_APP_CREATETIME] !== 'undefined')
-          delete data[this.tmwConfig.TMW_APP_CREATETIME]
+        // if (typeof data[tmwConfig.TMW_APP_CREATETIME] !== 'undefined')
+        //   delete data[this.tmwConfig.TMW_APP_CREATETIME]
         data[tmwConfig.TMW_APP_UPDATETIME] = current
         /**根据schema处理数据 */
         if (schema && typeof schema === 'object' && existData) {

@@ -167,8 +167,8 @@
       </div>
     </div>
 
-    <template #footer>
-      <el-button type="primary" @click="onSubmit" :disabled="activeTab === 'acl'">提交</el-button>
+    <template #footer v-if="activeTab !== 'acl'">
+      <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button @click="onBeforeClose">取消</el-button>
     </template>
   </el-dialog>
@@ -350,6 +350,12 @@ onMounted(() => {
   apiTag.list(props.bucketName).then((tags2: any[]) => {
     tags2.forEach((t) => tags.value.push(t))
   })
+  // 访问列表
+  if (mode === 'update' && collection.aclCheck === true) {
+    apiAcl.list({ type: 'collection', id: collection._id }).then((result: any) => {
+      aclUserList.value = result
+    })
+  }
   // 去重规则
   const unrepeat = props.collection?.operateRules?.unrepeat
   if (unrepeat) {
@@ -502,14 +508,14 @@ const onSubmit = () => {
     unrepeat.database.label && delete unrepeat.database.label
     unrepeat.collection.label && delete unrepeat.collection.label
   }
-  if (mode === 'create')
+  if (mode === 'create') {
     apiCollection
       .create(bucketName, dbName, collection)
       .then((newCollection: any) => {
         emit('submit', newCollection)
         closeDialog(newCollection)
       })
-  else if (mode === 'update') {
+  } else if (mode === 'update') {
     // 解决添加的children字段的问题
     let newCl = JSON.parse(JSON.stringify(toRaw(collection)))
     delete newCl.children

@@ -53,7 +53,7 @@ class DocBase extends Base {
     let docSchema = await this.modelDoc.getDocSchema(schema_id)
     if (!docSchema)
       return new ResultFault(
-        `在集合${existCl.name}/${existCl.sysname}创建文档时，没有提供schema`
+        `在集合【${existCl.name}/${existCl.sysname}】没有schema，无法创建文档`
       )
 
     // 要新建的文档数据

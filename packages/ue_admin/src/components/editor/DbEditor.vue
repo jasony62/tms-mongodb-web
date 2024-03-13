@@ -59,8 +59,8 @@
       </div>
     </div>
 
-    <template #footer>
-      <el-button type="primary" @click="onSubmit" :disabled="activeTab === 'acl'">提交</el-button>
+    <template #footer v-if="activeTab !== 'acl'">
+      <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button @click="onBeforeClose">取消</el-button>
     </template>
   </el-dialog>

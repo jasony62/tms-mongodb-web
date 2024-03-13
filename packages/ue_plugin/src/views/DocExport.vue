@@ -4,15 +4,9 @@
       <el-form size="large" label-position="right">
         <el-form-item label="导出类型">
           <el-radio-group v-model="outType" class="ml-4">
-            <el-radio label="json">JSON</el-radio>
             <el-radio label="excel">Excel</el-radio>
+            <el-radio label="json">JSON</el-radio>
             <el-radio label="spreadsheet">自由表格</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="保存方式" v-if="outType === 'json'">
-          <el-radio-group v-model="outAmount" class="ml-4">
-            <el-radio label="one" size="large">以数组方式保存为压缩文件</el-radio>
-            <el-radio label="more" size="large">作为独立文件保存为压缩文件</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="叶子节点深度" v-if="outType === 'excel'">
@@ -20,6 +14,12 @@
             <el-input-number v-model="leafLevel" :step="1" :min="0" step-strictly @change="handleChange" />
             <div class="el-upload__tip">* 0代表导出所有深度节点</div>
           </div>
+        </el-form-item>
+        <el-form-item label="保存方式" v-if="outType === 'json'">
+          <el-radio-group v-model="outAmount" class="ml-4">
+            <el-radio label="one" size="large">以数组方式保存为压缩文件</el-radio>
+            <el-radio label="more" size="large">作为独立文件保存为压缩文件</el-radio>
+          </el-radio-group>
         </el-form-item>
         <div class="response-content flex-grow border border-gray-200 rounded-md overflow-auto" v-if="responseContent">
           <pre>{{ responseContent }}</pre>
@@ -40,7 +40,7 @@ import { ElMessage } from 'element-plus'
 
 const executed = ref(false)
 const responseContent = ref<string>('')
-const outType = ref<string>('json')
+const outType = ref<string>('excel')
 const outAmount = ref<string>('more')
 const leafLevel = ref<number>(0)
 
