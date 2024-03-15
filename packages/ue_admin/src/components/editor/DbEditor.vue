@@ -47,7 +47,7 @@
           <el-input v-model="newAclUser.id"></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="onAddAclUser(newAclUser)">添加</el-button>
+          <el-button type="primary" :disabled="!newAclUser.id" @click="onAddAclUser(newAclUser)">添加</el-button>
         </el-form-item>
       </el-form>
       <div style="height:300px">
@@ -68,7 +68,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref, h } from 'vue'
-import { ElMessageBox, ElButton } from 'element-plus'
+import { ElMessageBox, ElButton, ElSelect, ElOption } from 'element-plus'
 import apiDb from '@/apis/database'
 import apiSchema from '@/apis/schema'
 import apiAcl from '@/apis/acl'
@@ -102,9 +102,19 @@ const aclUserColumns = [{
   title: '用户',
   width: '200px'
 }, {
+  key: 'right',
+  title: '权限',
+  width: '240px',
+  cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h(ElSelect, {
+    modelValue: rowData.right, multiple: true, clearable: true, onChange: (value) => {
+      rowData.right = value
+      rowData.__modified = true
+    }
+  }, { default: () => [h(ElOption, { value: 'read', label: '数据库只读' }), h(ElOption, { value: 'readCl', label: '集合只读' })] })
+}, {
   key: 'operaations',
   title: '操作',
-  cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h(ElButton, { onClick: () => removeAclUser(rowData, rowIndex) }, { default: () => '删除' })
+  cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h('div', {}, { default: () => [h(ElButton, { onClick: () => removeAclUser(rowData, rowIndex) }, { default: () => '删除' }), h(ElButton, { disabled: !rowData.__modified, onClick: () => updateAclUser(rowData, rowIndex) }, { default: () => '保存修改' })] })
 }]
 const aclUserList = ref([] as any[])
 
@@ -155,6 +165,13 @@ const removeAclUser = (aclUser: any, index: number) => {
     aclUserList.value.splice(index, 1)
   })
 }
+const updateAclUser = (aclUser: any, index: number) => {
+  const { user, right } = aclUser
+  const target = { type: 'database', id: database._id }
+  apiAcl.update(target, { id: user.id }, { right }).then(() => {
+    aclUser.__modified = false
+  })
+}
 onMounted(() => {
   apiSchema
     .listSimple(bucketName, 'collection')
@@ -164,7 +181,8 @@ onMounted(() => {
       })
     })
   if (mode === 'update' && database.aclCheck === true) {
-    apiAcl.list({ type: 'database', id: database._id }).then((result: any) => {
+    apiAcl.list({ type: 'database', id: database._id }).then((result: any[]) => {
+      result.forEach(acl => acl.__modified = false)
       aclUserList.value = result
     })
   }

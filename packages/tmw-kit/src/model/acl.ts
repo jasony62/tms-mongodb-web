@@ -81,6 +81,47 @@ class Acl extends Base {
     return [false, '未执行删除授权操作，请检查数据是否有效']
   }
   /**
+   * 取消某个用户的授权
+   *
+   * @param target
+   * @param user
+   * @param data
+   */
+  async update(
+    target: AclTarget,
+    user: AclUser,
+    data: any
+  ): Promise<[boolean, string?]> {
+    if (!data || typeof data !== 'object')
+      return [false, '没有指定要更新的数据']
+
+    const { right } = data
+    if (!Array.isArray(right)) return [false, '没有指定要更新的权限数据']
+
+    const query = {
+      'target.id': target.id,
+      'target.type': target.type,
+      acl: { $elemMatch: { 'user.id': user.id } },
+    }
+
+    const updated = {
+      $set: {
+        'acl.$.right': right,
+      },
+    }
+
+    const result = await this.clAcl.updateOne(query, updated)
+    const { modifiedCount, matchedCount } = result
+    if (modifiedCount === 1) return [true]
+
+    if (matchedCount === 0) return [false, '没有匹配的授权列表']
+
+    /**
+     * 如果列表中没有匹配的数据，也不会执行update
+     */
+    return [false, '未执行更新授权操作，请检查数据是否有效']
+  }
+  /**
    *  检查是否有授权
    *
    * @param target

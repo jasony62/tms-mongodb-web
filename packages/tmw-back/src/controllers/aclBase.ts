@@ -36,6 +36,18 @@ class AclBase extends CtrlBase {
     return new ResultFault(cause)
   }
   /**
+   * 更新授权
+   *
+   * @returns
+   */
+  async update() {
+    const { target, user, data } = this.request.body
+    const [isOk, cause] = await this.aclHelper.update(target, user, data)
+    if (isOk) return new ResultData('ok')
+
+    return new ResultFault(cause)
+  }
+  /**
    * 检查用户授权
    *
    * @returns

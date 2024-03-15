@@ -154,7 +154,7 @@
             <el-input v-model="newAclUser.id"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="onAddAclUser(newAclUser)">添加</el-button>
+            <el-button type="primary" :disabled="!newAclUser.id" @click="onAddAclUser(newAclUser)">添加</el-button>
           </el-form-item>
         </el-form>
         <div style="height:300px">
@@ -182,7 +182,7 @@ import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
 import apiAcl from '@/apis/acl'
 import { computed, h, onMounted, reactive, ref, toRaw } from 'vue'
-import { FormRules, ElMessage, ElMessageBox, ElButton } from 'element-plus'
+import { FormRules, ElMessage, ElMessageBox, ElButton, ElSelect, ElOption } from 'element-plus'
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 import { Delete } from '@element-plus/icons-vue'
 import { DEFAULT_VALUES } from '@/global'
@@ -319,7 +319,7 @@ const docFieldConvertRules = computed({
 /**
  * 扩展schema
  */
-const newClExtSchema = ref({ id: null })
+const newClExtSchema = ref({ id: '' })
 /**
  * 访问控制列表
  */
@@ -330,9 +330,19 @@ const aclUserColumns = [{
   title: '用户',
   width: '200px'
 }, {
+  key: 'right',
+  title: '权限',
+  width: '240px',
+  cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h(ElSelect, {
+    modelValue: rowData.right, multiple: true, clearable: true, onChange: (value) => {
+      rowData.right = value
+      rowData.__modified = true
+    }
+  }, { default: () => [h(ElOption, { value: 'read', label: '集合只读' }), h(ElOption, { value: 'readDoc', label: '文档只读' })] })
+}, {
   key: 'operaations',
   title: '操作',
-  cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h(ElButton, { onClick: () => removeAclUser(rowData, rowIndex) }, { default: () => '删除' })
+  cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h('div', {}, { default: () => [h(ElButton, { onClick: () => removeAclUser(rowData, rowIndex) }, { default: () => '删除' }), h(ElButton, { disabled: !rowData.__modified, onClick: () => updateAclUser(rowData, rowIndex) }, { default: () => '保存修改' })] })
 }]
 const aclUserList = ref([] as any[])
 
@@ -352,7 +362,8 @@ onMounted(() => {
   })
   // 访问列表
   if (mode === 'update' && collection.aclCheck === true) {
-    apiAcl.list({ type: 'collection', id: collection._id }).then((result: any) => {
+    apiAcl.list({ type: 'collection', id: collection._id }).then((result: any[]) => {
+      result.forEach(acl => acl.__modified = false)
       aclUserList.value = result
     })
   }
@@ -536,7 +547,7 @@ const onAddClExtSchema = (usage = 'edit') => {
       const clExtSchema = { id, title: schema.title, usage }
       collection.ext_schemas.push(clExtSchema)
     }
-    newClExtSchema.value.id = null
+    newClExtSchema.value.id = ''
   }
 }
 const onRemoveClExtSchema = (clExtSchema: any, index: number) => {
@@ -556,6 +567,13 @@ const removeAclUser = (aclUser: any, index: number) => {
   const target = { type: 'collection', id: collection._id }
   apiAcl.remove(target, { id: user.id }).then(() => {
     aclUserList.value.splice(index, 1)
+  })
+}
+const updateAclUser = (aclUser: any, index: number) => {
+  const { user, right } = aclUser
+  const target = { type: 'collection', id: collection._id }
+  apiAcl.update(target, { id: user.id }, { right }).then(() => {
+    aclUser.__modified = false
   })
 }
 </script>

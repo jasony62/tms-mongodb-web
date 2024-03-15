@@ -39,6 +39,17 @@ class AclHelper extends CtrlHelper {
    *
    * @param target
    * @param user
+   * @param data
+   * @returns
+   */
+  async update(target, user, data): Promise<[boolean, string?]> {
+    const result = await this._modelAcl.update(target, user, data)
+    return result
+  }
+  /**
+   *
+   * @param target
+   * @param user
    * @returns
    */
   async check(target, user): Promise<string[] | null> {
