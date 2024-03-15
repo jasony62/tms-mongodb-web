@@ -26,4 +26,9 @@ export default {
       .post(`${this._baseApi}/list`, { target })
       .then((rst: ApiRst) => rst.data.result)
   },
+  check(target: any, user: any) {
+    return TmsAxios.ins('mongodb-api')
+      .post(`${this._baseApi}/check`, { target, user })
+      .then((rst: ApiRst) => rst.data.result)
+  },
 }

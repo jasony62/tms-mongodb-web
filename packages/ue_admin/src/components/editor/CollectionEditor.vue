@@ -331,7 +331,7 @@ const aclUserColumns = [{
   width: '200px'
 }, {
   key: 'right',
-  title: '权限',
+  title: '权限控制',
   width: '240px',
   cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h(ElSelect, {
     modelValue: rowData.right, multiple: true, clearable: true, onChange: (value) => {
@@ -342,7 +342,7 @@ const aclUserColumns = [{
 }, {
   key: 'operaations',
   title: '操作',
-  cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h('div', {}, { default: () => [h(ElButton, { onClick: () => removeAclUser(rowData, rowIndex) }, { default: () => '删除' }), h(ElButton, { disabled: !rowData.__modified, onClick: () => updateAclUser(rowData, rowIndex) }, { default: () => '保存修改' })] })
+  cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h('div', {}, { default: () => [h(ElButton, { onClick: () => removeAclUser(rowData, rowIndex) }, { default: () => '删除' }), h(ElButton, { type: rowData.__modified ? 'primary' : '', disabled: !rowData.__modified, onClick: () => updateAclUser(rowData, rowIndex) }, { default: () => '保存修改' })] })
 }]
 const aclUserList = ref([] as any[])
 

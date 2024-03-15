@@ -103,7 +103,7 @@ const aclUserColumns = [{
   width: '200px'
 }, {
   key: 'right',
-  title: '权限',
+  title: '权限控制',
   width: '240px',
   cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h(ElSelect, {
     modelValue: rowData.right, multiple: true, clearable: true, onChange: (value) => {

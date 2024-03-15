@@ -86,6 +86,16 @@ class Db extends Base {
     if (this.bucket) query.bucket = this.bucket.name
 
     const db = await this.clMongoObj.findOne(query)
+    if (db) {
+      if (db.aclCheck === true && db.creator !== this.client.id) {
+        const right = await this._modelAcl.check(
+          { id: db._id.toString(), type: 'database' },
+          { id: this.client.id }
+        )
+        if (!right) throw Error('没有访问权限')
+        db.right = right
+      }
+    }
 
     return db
   }

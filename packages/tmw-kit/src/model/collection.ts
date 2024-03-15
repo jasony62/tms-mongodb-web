@@ -564,6 +564,16 @@ class Collection extends Base {
     const clMongoObj = client.db(META_ADMIN_DB).collection('mongodb_object')
 
     const cl = await clMongoObj.findOne(query)
+    if (cl) {
+      if (cl.aclCheck === true && cl.creator !== this.client.id) {
+        const right = await this._modelAcl.check(
+          { id: cl._id.toString(), type: 'collection' },
+          { id: this.client.id }
+        )
+        if (!right) throw Error('没有访问权限')
+        cl.right = right
+      }
+    }
 
     return cl
   }

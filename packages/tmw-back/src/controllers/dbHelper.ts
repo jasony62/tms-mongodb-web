@@ -22,11 +22,7 @@ class DbHelper extends CtrlHelper {
    * @param {string} sysname
    */
   async dbBySysname(sysname) {
-    const query = { sysname, type: 'database' }
-
-    const db = await this.clMongoObj.findOne(query)
-
-    return db
+    return await this._modelDb.byName(sysname)
   }
   /**
    * 在bucket范围内按名称查找数据库
@@ -34,12 +30,7 @@ class DbHelper extends CtrlHelper {
    * @param {string} name
    */
   async dbByName(name) {
-    const query: any = { name, type: 'database' }
-    if (this.ctrl.bucket) query.bucket = this.ctrl.bucket.name
-
-    const db = await this.clMongoObj.findOne(query)
-
-    return db
+    return await this._modelDb.byName(name)
   }
   /**
    * 创建数据库
