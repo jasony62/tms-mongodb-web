@@ -11,7 +11,7 @@
         <el-breadcrumb-item :to="{ name: 'databases' }">{{ DbLabel }}</el-breadcrumb-item>
         <el-breadcrumb-item v-if="!clName">{{ dbName }}</el-breadcrumb-item>
         <el-breadcrumb-item v-if="clName" :to="{ name: 'database', params: { dbName } }">{{ dbName
-        }}</el-breadcrumb-item>
+          }}</el-breadcrumb-item>
         <el-breadcrumb-item v-if="clName">{{ clName }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
@@ -27,6 +27,7 @@
   </div>
   <tmw-plugin-widget></tmw-plugin-widget>
 </template>
+
 <style>
 /* 解决toolbar的padding作为宽度的问题 */
 #x-spreadsheet .x-spreadsheet-toolbar {
@@ -43,6 +44,7 @@
   height: 100%;
 }
 </style>
+
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { ArrowRight } from '@element-plus/icons-vue'
@@ -50,6 +52,7 @@ import Spreadsheet from "x-data-spreadsheet"
 //@ts-ignore
 import zhCN from 'x-data-spreadsheet/src/locale/zh-cn'
 import * as jsondiffpatch from 'jsondiffpatch'
+import apiCl from '@/apis/collection'
 import apiSS from '@/apis/spreadsheet'
 import apiPlugin from '@/apis/plugin'
 import { COMPACT_MODE, EXTRACT_MODE, FS_BASE_URL, LABEL, PushSocket } from '@/global'
@@ -66,6 +69,7 @@ const props = defineProps(['bucketName', 'dbName', 'clName'])
 const { bucketName, dbName, clName } = props
 
 const data = reactive({
+  collection: null as any,
   plugins: [] as any[],
 })
 
@@ -214,6 +218,7 @@ async function initSpreadsheet(data = []) {
   const elWrap = document.querySelector('#x-spreadsheet')
   if (!elWrap) return
   xs = new Spreadsheet('#x-spreadsheet', {
+    mode: hasDocEditRight() ? 'edit' : 'read',
     showToolbar: true, showGrid: true, showBottomBar: !clName, view: {
       height: () => elWrap!.clientHeight - (isFullscreen.value ? 0 : 40),
       width: () => elWrap!.clientWidth,
@@ -343,7 +348,21 @@ const { handlePlugin } = useTmwPlugins({
   },
 })
 
-onMounted(async () => {
+const hasDocEditRight = () => {
+  const { collection } = data
+  if (collection) {
+
+    const { right } = collection
+    if (!right || (Array.isArray(right) && right.length === 0)) return true
+
+    if (Array.isArray(right) && !right.includes('readDoc')) return true
+
+    return false
+  }
+  return true
+}
+
+const loadSpreadsheet = async () => {
   // 获得当前对象的自由表格
   const existed = await apiSS.list(bucketName, dbName, clName)
   if (Array.isArray(existed)) {
@@ -368,8 +387,12 @@ onMounted(async () => {
     // 定时保存数据，解决样式调整没有回调事件的问题
     saveTimer = setInterval(save, WaitSaveTime)
   }
+}
+onMounted(async () => {
   if (dbName) {
     if (clName) {
+      data.collection = await apiCl.byName(bucketName, dbName, clName)
+      await loadSpreadsheet()
       data.plugins = await apiPlugin.getCollectionDocPlugins(
         bucketName,
         dbName,
@@ -377,6 +400,7 @@ onMounted(async () => {
         true
       )
     } else {
+      await loadSpreadsheet()
       data.plugins = await apiPlugin.getCollectionPlugins(
         bucketName, dbName, true
       )
