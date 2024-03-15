@@ -9,7 +9,8 @@
         <div>
           <el-button @click="onSave" v-if="SupportSave">保存修改</el-button>
         </div>
-        <el-upload ref="uploadRef" :auto-upload="false" :show-file-list="false" :on-change="onImportFile">
+        <el-upload ref="uploadRef" v-if="SupportSave" :auto-upload="false" :show-file-list="false"
+          :on-change="onImportFile">
           <template #trigger>
             <el-button>导入文件</el-button>
           </template>

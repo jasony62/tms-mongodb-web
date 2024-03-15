@@ -29,19 +29,22 @@
           <el-table-column label="集合名称">
             <template #default="scope">
               <el-button type="primary" link size="small" @click="openCollection(dbName, scope.row)">{{ scope.row.name
-              }}</el-button>
+                }}</el-button>
             </template>
           </el-table-column>
           <el-table-column prop="title" label="标题" width="180"></el-table-column>
           <el-table-column v-for="(s, k, i) in database?.schema?.body.properties" :key="i" :prop="k">
+
             <template #header>
               <span>{{ s.title }}</span>
             </template>
           </el-table-column>
           <el-table-column prop="description" label="说明"></el-table-column>
           <el-table-column label="操作" width="120">
+
             <template #default="scope">
-              <el-button @click="editCollection(scope.row, scope.$index)" type="primary" link size="small">修改
+              <el-button v-if="HasClEditRight" @click="editCollection(scope.row, scope.$index)" type="primary" link
+                size="small">设置
               </el-button>
               <el-dropdown class="tmw-opt__dropdown">
                 <el-button type="primary" link size="small">更多
@@ -109,6 +112,16 @@ const totalByChecked = computed(() => data.multipleCl.length)
 
 const MiddleWidthStyleClass = computed(() => {
   return COMPACT.value ? 'full' : data.clDirs?.length ? 'w-4/6' : 'w-4/5'
+})
+
+const HasClEditRight = computed(() => {
+  const { right } = database.value
+  if (!right || (Array.isArray(right) && right.length === 0))
+    return true
+
+  if (Array.isArray(right) && !right.includes('readCl')) return true
+
+  return false
 })
 
 const database = ref()

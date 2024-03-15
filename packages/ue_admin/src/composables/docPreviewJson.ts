@@ -9,6 +9,8 @@ export type DocPreviewJsonOptions = {
 
 const opened = ref(false)
 
+const right = ref<string[]>()
+
 const previewDoc = ref<any>()
 
 const cbSave = ref<DocPreviewJsonSaveCallback | null>()

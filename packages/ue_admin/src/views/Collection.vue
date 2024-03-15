@@ -8,7 +8,9 @@
         <el-breadcrumb-item>{{ clName }}</el-breadcrumb-item>
       </el-breadcrumb>
       <el-breadcrumb :separator-icon="ArrowRight" v-else>
-        <el-breadcrumb-item :to="{ name: 'databases' }">{{ DbLabel }}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'databases' }">{{
+        DbLabel
+      }}</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'database', params: { dbName: dbName } }">{{ dbName }}</el-breadcrumb-item>
         <el-breadcrumb-item>{{ clName }}</el-breadcrumb-item>
       </el-breadcrumb>
@@ -29,6 +31,7 @@
             </template>
           </el-table-column>
           <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
+
             <template #header>
               <div @click="handleFilter(s, k)">
                 <span v-if="s.required" class="text-red-400">*</span>
@@ -36,16 +39,17 @@
                 <img :data-id="k" class="w-4 h-4 inline-block" src="../assets/imgs/icon_filter.png" />
               </div>
             </template>
+
             <template #default="scope">
               <span v-if="s.type === 'boolean'">{{
-                scope.row[k] ? '是' : '否'
-              }}</span>
+        scope.row[k] ? '是' : '否'
+      }}</span>
               <span v-else-if="s.type === 'array' && s.items && s.items.format === 'file'
-                ">
+        ">
                 <span v-for="(i, v) in scope.row[k]" :key="v">
                   <el-link type="primary" @click="downLoadFile(i)">{{
-                    i.name
-                  }}</el-link>
+        i.name
+      }}</el-link>
                   <br />
                 </span>
               </span>
@@ -53,13 +57,13 @@
                 <span v-if="s.enumGroups && s.enumGroups.length">
                   <span v-for="(g, i) in s.enumGroups" :key="i">
                     <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value
-                      ">
+        ">
                       <span v-for="(e, v) in s.enum" :key="v">
                         <span v-if="e.group === g.id &&
-                          scope.row[k] &&
-                          scope.row[k].length &&
-                          scope.row[k].includes(e.value)
-                          ">{{ e.label }}&nbsp;</span>
+        scope.row[k] &&
+        scope.row[k].length &&
+        scope.row[k].includes(e.value)
+        ">{{ e.label }}&nbsp;</span>
                       </span>
                     </span>
                   </span>
@@ -74,7 +78,7 @@
                 <span v-if="s.enumGroups && s.enumGroups.length">
                   <span v-for="(g, i) in s.enumGroups" :key="i">
                     <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value
-                      ">
+        ">
                       <span v-for="(e, v) in s.enum" :key="v">
                         <span v-if="e.group === g.id && scope.row[k] === e.value">{{ e.label }}</span>
                       </span>
@@ -91,7 +95,7 @@
                 <span v-if="s.enumGroups && s.enumGroups.length">
                   <span v-for="(g, i) in s.enumGroups" :key="i">
                     <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value
-                      ">
+        ">
                       <span v-for="(e, v) in s.oneOf" :key="v">
                         <span v-if="e.group === g.id && scope.row[k] === e.value">{{ e.label }}</span>
                       </span>
@@ -110,9 +114,10 @@
             </template>
           </el-table-column>
           <el-table-column fixed="right" label="操作" width="140" class-name="tmw-opt__column">
+
             <template #default="scope">
               <el-button type="primary" link size="small" @click.stop="previewDocument(scope.row)">查看</el-button>
-              <el-button v-if="docOperations.edit" type="primary" link size="small" @click.stop="editDocument(scope.row)"
+              <el-button v-if="HasDocEditRight" type="primary" link size="small" @click.stop="editDocument(scope.row)"
                 class="ml-0">修改</el-button>
               <el-dropdown class="tmw-opt__dropdown">
                 <el-button type="primary" link size="small">更多
@@ -124,11 +129,11 @@
                       <el-button @click="openAclEditor(scope.row)" type="primary" link size="small">访问控制</el-button>
                     </el-dropdown-item>
                     <el-dropdown-item>
-                      <el-button v-if="docOperations.copy" type="primary" link size="small"
+                      <el-button v-if="HasDocEditRight" type="primary" link size="small"
                         @click="copyDocument(scope.row)">复制</el-button>
                     </el-dropdown-item>
                     <el-dropdown-item>
-                      <el-button v-if="docOperations.remove" type="danger" link size="small"
+                      <el-button v-if="HasDocEditRight" type="danger" link size="small"
                         @click="removeDocument(scope.row)">删除</el-button>
                     </el-dropdown-item>
                   </el-dropdown-menu>
@@ -150,12 +155,12 @@
       <!--right-->
       <div class="flex flex-col items-start space-y-3" v-if="!COMPACT">
         <div>
-          <el-button v-if="docOperations.create" @click="createDocument">添加文档</el-button>
+          <el-button v-if="HasDocEditRight" @click="createDocument">添加文档</el-button>
         </div>
         <div v-for="ep in etlPlugins">
           <el-button type="success" plain @click="handleExtract(ep)">{{
-            ep.title
-          }}</el-button>
+        ep.title
+      }}</el-button>
         </div>
         <tmw-plugins :plugins="data.plugins" :total-by-all="totalByAll" :total-by-filter="totalByFilter"
           :total-by-checked="totalByChecked" :handle-plugin="handlePlugin"
@@ -192,7 +197,7 @@ import { ArrowRight, ArrowDown } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
 import * as _ from 'lodash'
 import * as Handlebars from 'handlebars'
-import apiCollection from '@/apis/collection'
+import apiCl from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiPlugin from '@/apis/plugin'
 import apiEtl from '@/apis/etl'
@@ -206,11 +211,14 @@ import {
   EXTRACT_MODE,
   MULTIPLE_MODE,
   LABEL,
-  PAGINATION_DOC_SIZE
+  PAGINATION_DOC_SIZE,
 } from '@/global'
 
 import facStore from '@/store'
-import { openDocAclEditor, openSelectConditionEditor } from '@/components/editor'
+import {
+  openDocAclEditor,
+  openSelectConditionEditor,
+} from '@/components/editor'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { ElTable } from 'element-plus'
 import { useMitt } from '@/composables/mitt'
@@ -239,8 +247,9 @@ let collection = reactive({
     body: { properties: {} },
   },
   custom: {
-    docOperations: {} as any
-  }
+    docOperations: {} as any,
+  },
+  right: [] as string[],
 })
 const docOperations = reactive({
   create: true,
@@ -252,7 +261,7 @@ const docOperations = reactive({
   import: true,
   export: true,
   copyMany: true,
-  copy: true
+  copy: true,
 })
 const props = defineProps({
   bucketName: { type: String, defalut: '' },
@@ -279,6 +288,15 @@ const totalByFilter = computed(() =>
   Object.keys(data.filter).length ? data.docBatch.total : 0
 )
 const totalByChecked = computed(() => selectedDocuments.value.length)
+
+const HasDocEditRight = computed(() => {
+  const { right } = collection
+  if (!right || (Array.isArray(right) && right.length === 0)) return true
+
+  if (Array.isArray(right) && !right.includes('readDoc')) return true
+
+  return false
+})
 
 const handleCondition = () => {
   const conditions = store.conditions
@@ -391,12 +409,12 @@ const createDocument = () => {
  * @param document
  */
 const previewDocument = (document: any) => {
-  const onSave = (newDoc: any) => {
+  const onSave = HasDocEditRight.value ? (newDoc: any) => {
     apiDoc.update(bucketName, dbName, clName, document._id, newDoc).then(() => {
       Object.assign(document, newDoc)
       ElMessage.success({ showClose: true, message: '修改成功' })
     })
-  }
+  } : undefined
   // 打开预览窗口
   const { opened } = useDocPreviewJson({ document, onSave })
   opened.value = true
@@ -552,7 +570,7 @@ function onExecute(
           nRemoved = 0
         let { inserted, modified, removed } = result
         /**
-         * 在当前文档列表中移除删除的记录 
+         * 在当前文档列表中移除删除的记录
          */
         if (Array.isArray(removed) && (nRemoved = removed.length)) {
           let documents = store.documents.filter(
@@ -561,7 +579,7 @@ function onExecute(
           store.documents = documents
         }
         /**
-         * 在当前文档列表中更新修改的记录 
+         * 在当前文档列表中更新修改的记录
          */
         if (Array.isArray(modified) && (nModified = modified.length)) {
           let map = modified.reduce((m, doc) => {
@@ -577,7 +595,7 @@ function onExecute(
           })
         }
         /**
-         * 在当前文档列表中添加插入的记录 
+         * 在当前文档列表中添加插入的记录
          */
         if (Array.isArray(inserted) && (nInserted = inserted.length)) {
           inserted.forEach((newDoc) => {
@@ -635,8 +653,7 @@ const { handlePlugin } = useTmwPlugins({
         checkedDocument = toRaw(store.documents[0])
       }
       // 处理单个文档时，将文档数据传递给插件
-      if (checkedDocument)
-        msg.document = toRaw(checkedDocument)
+      if (checkedDocument) msg.document = toRaw(checkedDocument)
     }
     // 如果插件没有指定schema，传递集合的schema
     msg.schema ??= toRaw(collection.schema.body)
@@ -710,11 +727,11 @@ const listSchemaByTag = (tags: any) => {
 const setTableColumnsFromSchema = async () => {
   let matchedSchema = {}
   let properties: any = collection.schema.body.properties
-
-  if (collection.schema_default_tags && collection.schema_default_tags.length) {
-    matchedSchema = await listSchemaByTag(collection.schema_default_tags)
-  } else if (collection.schema_tags && collection.schema_tags.length) {
-    matchedSchema = await listSchemaByTag(collection.schema_tags)
+  const { schema_default_tags, schema_tags } = collection
+  if (schema_default_tags && schema_default_tags.length) {
+    matchedSchema = await listSchemaByTag(schema_default_tags)
+  } else if (schema_tags && schema_tags.length) {
+    matchedSchema = await listSchemaByTag(schema_tags)
   } else if (properties && typeof properties === 'object') {
     /*需要去除password属性*/
     const props: any = {}
@@ -765,16 +782,16 @@ if (EXTRACT) {
 }
 
 onMounted(async () => {
-  collection = await apiCollection.byName(bucketName, dbName, clName)
+  let cl = await apiCl.byName(bucketName, dbName, clName)
   data.plugins = await apiPlugin.getCollectionDocPlugins(
     bucketName,
     dbName,
     clName
   )
   /**集合定制功能设置 */
-  const { custom } = collection
+  const { custom } = cl
   if (custom) {
-    const { docOperations: docOps } = collection.custom
+    const { docOperations: docOps } = cl.custom
     /**支持的文档操作 */
     if (docOps && typeof docOps === 'object') {
       if (docOps.create === false) docOperations.create = false
@@ -789,6 +806,7 @@ onMounted(async () => {
       if (docOps.copy === false) docOperations.copy = false
     }
   }
+  Object.assign(collection, cl)
   await setTableColumnsFromSchema()
   listDocByKw()
 })

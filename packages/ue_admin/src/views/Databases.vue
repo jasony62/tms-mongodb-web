@@ -6,14 +6,16 @@
         <el-table-column type="selection" width="40"></el-table-column>
         <el-table-column label="数据库" width="180">
           <template #default="scope">
-            <el-button type="primary" link size="small" @click="openDatabase(scope.row)">{{ scope.row.name }}</el-button>
+            <el-button type="primary" link size="small" @click="openDatabase(scope.row)">{{ scope.row.name
+              }}</el-button>
           </template>
         </el-table-column>
         <el-table-column prop="title" label="名称" width="180"></el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
         <el-table-column label="操作" width="120">
+
           <template #default="scope">
-            <el-button type="primary" link size="small" @click="editDb(scope.row, scope.$index)">修改</el-button>
+            <el-button type="primary" link size="small" @click="editDb(scope.row, scope.$index)">设置</el-button>
             <el-dropdown class="tmw-opt__dropdown">
               <el-button type="primary" link size="small">更多
                 <el-icon class="el-icon--right"><arrow-down /></el-icon>
@@ -53,6 +55,7 @@
   </div>
   <tmw-plugin-widget></tmw-plugin-widget>
 </template>
+
 <script setup lang="ts">
 import { ArrowDown } from '@element-plus/icons-vue'
 import { computed, onMounted, reactive, ref, toRaw } from 'vue'
