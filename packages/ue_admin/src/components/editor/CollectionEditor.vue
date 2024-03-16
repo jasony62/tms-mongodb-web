@@ -83,18 +83,6 @@
         </el-form>
       </div>
       <el-form :model="collection.custom" label-position="top" v-show="activeTab === 'setting'">
-        <el-form-item label="文档操作" v-if="false">
-          <el-checkbox v-model="collection.custom.docOperations.create">添加数据</el-checkbox>
-          <el-checkbox v-model="collection.custom.docOperations.edit">修改</el-checkbox>
-          <el-checkbox v-model="collection.custom.docOperations.remove">删除</el-checkbox>
-          <el-checkbox v-model="collection.custom.docOperations.copy">复制</el-checkbox>
-          <el-checkbox v-model="collection.custom.docOperations.editMany">批量修改</el-checkbox>
-          <el-checkbox v-model="collection.custom.docOperations.removeMany">批量删除</el-checkbox>
-          <el-checkbox v-model="collection.custom.docOperations.transferMany">批量迁移</el-checkbox>
-          <el-checkbox v-model="collection.custom.docOperations.import">导入数据</el-checkbox>
-          <el-checkbox v-model="collection.custom.docOperations.export">导出数据</el-checkbox>
-          <el-checkbox v-model="collection.custom.docOperations.copyMany">批量复制</el-checkbox>
-        </el-form-item>
         <el-form-item label="文档操作规则" v-if="false">
           <el-checkbox v-model="collection.operateRules.scope.unrepeat">添加/导入数据时去重</el-checkbox>
         </el-form-item>
@@ -216,18 +204,6 @@ const props = defineProps({
         docAclCheck: DEFAULT_VALUES()?.aclCheck?.doc,
         adminOnly: false,
         custom: {
-          docOperations: {
-            create: true,
-            edit: true,
-            remove: true,
-            editMany: true,
-            removeMany: true,
-            transferMany: true,
-            import: true,
-            export: true,
-            copyMany: true,
-            copy: true
-          },
           elasticsearch: {
             enabled: false
           },
@@ -252,7 +228,7 @@ const props = defineProps({
 
 // 设置默认值
 props.collection.ext_schemas ??= []
-props.collection.custom ??= { docOperations: {}, elasticsearch: { enabled: false } }
+props.collection.custom ??= { elasticsearch: { enabled: false } }
 props.collection.custom.elasticsearch ??= { enabled: false }
 props.collection.operateRules ??= {
   scope: { unrepeat: false },

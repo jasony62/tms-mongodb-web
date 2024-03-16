@@ -49,19 +49,7 @@ const CollectionTemplate: any = {
   schema_tags: [],
   schema_default_tags: [],
   tags: [],
-  custom: {
-    docOperations: {
-      create: true,
-      edit: true,
-      remove: true,
-      editMany: true,
-      removeMany: true,
-      transferMany: true,
-      import: true,
-      export: true,
-      copyMany: true,
-    },
-  },
+  custom: {},
   operateRules: {
     scope: {
       unrepeat: false,

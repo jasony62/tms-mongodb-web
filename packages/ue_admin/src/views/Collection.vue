@@ -247,21 +247,8 @@ let collection = reactive({
     body: { properties: {} },
   },
   custom: {
-    docOperations: {} as any,
   },
   right: [] as string[],
-})
-const docOperations = reactive({
-  create: true,
-  edit: true,
-  remove: true,
-  editMany: true,
-  removeMany: true,
-  transferMany: true,
-  import: true,
-  export: true,
-  copyMany: true,
-  copy: true,
 })
 const props = defineProps({
   bucketName: { type: String, defalut: '' },
@@ -788,24 +775,6 @@ onMounted(async () => {
     dbName,
     clName
   )
-  /**集合定制功能设置 */
-  const { custom } = cl
-  if (custom) {
-    const { docOperations: docOps } = cl.custom
-    /**支持的文档操作 */
-    if (docOps && typeof docOps === 'object') {
-      if (docOps.create === false) docOperations.create = false
-      if (docOps.edit === false) docOperations.edit = false
-      if (docOps.remove === false) docOperations.remove = false
-      if (docOps.editMany === false) docOperations.editMany = false
-      if (docOps.removeMany === false) docOperations.removeMany = false
-      if (docOps.transferMany === false) docOperations.transferMany = false
-      if (docOps.import === false) docOperations.import = false
-      if (docOps.export === false) docOperations.export = false
-      if (docOps.copyMany === false) docOperations.copyMany = false
-      if (docOps.copy === false) docOperations.copy = false
-    }
-  }
   Object.assign(collection, cl)
   await setTableColumnsFromSchema()
   listDocByKw()
