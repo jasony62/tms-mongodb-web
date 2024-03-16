@@ -38,7 +38,7 @@ function newEsIndex(tmwCl) {
 function esAvailable(tmwCl): boolean {
   return (
     ElasticSearchIndex.available() &&
-    tmwCl.custom?.elasticsearch?.enabled === true
+    tmwCl.extensions?.elasticsearch?.enabled === true
   )
 }
 /**文档模型类基类 */

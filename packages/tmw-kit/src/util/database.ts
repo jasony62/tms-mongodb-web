@@ -49,7 +49,6 @@ const CollectionTemplate: any = {
   schema_tags: [],
   schema_default_tags: [],
   tags: [],
-  custom: {},
   type: 'collection',
   sysname: nanoid(10),
   TMW_CREATE_TIME,
@@ -236,7 +235,7 @@ class Handler {
     if (info.bucket) tpl.bucket = info.bucket
     if (info.docFieldConvertRules)
       tpl.docFieldConvertRules = info.docFieldConvertRules
-    if (info.custom) tpl.custom = info.custom
+    if (info.extensions) tpl.extensions = info.extensions
 
     // 查询是否存在同名集合
     // let query = { name: cl_info.name, type: 'collection' }

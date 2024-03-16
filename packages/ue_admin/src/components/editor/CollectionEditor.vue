@@ -82,7 +82,7 @@
           </el-form-item>
         </el-form>
       </div>
-      <el-form :model="collection.custom" label-position="top" v-show="activeTab === 'setting'">
+      <el-form label-position="top" v-show="activeTab === 'setting'">
         <el-form-item label="集合通过访问控制列表访问">
           <el-switch v-model="collection.aclCheck"></el-switch>
           <el-alert title="集合创建成功后可设置访问控制列表。" type="info" :closable="false" v-if="!collection._id" />
@@ -94,7 +94,7 @@
           <el-switch v-model="collection.adminOnly"></el-switch>
         </el-form-item>
         <el-form-item label="集合中的文档保存到Elasticsearch">
-          <el-switch v-model="collection.custom.elasticsearch.enabled"></el-switch>
+          <el-switch v-model="collection.extensions.elasticsearch.enabled"></el-switch>
         </el-form-item>
       </el-form>
       <div v-show="activeTab === 'convert'" class="h-96">
@@ -168,7 +168,7 @@ const props = defineProps({
         aclCheck: DEFAULT_VALUES()?.aclCheck?.cl,
         docAclCheck: DEFAULT_VALUES()?.aclCheck?.doc,
         adminOnly: false,
-        custom: {
+        extensions: {
           elasticsearch: {
             enabled: false
           },
@@ -182,8 +182,8 @@ const props = defineProps({
 
 // 设置默认值
 props.collection.ext_schemas ??= []
-props.collection.custom ??= { elasticsearch: { enabled: false } }
-props.collection.custom.elasticsearch ??= { enabled: false }
+props.collection.extensions ??= { elasticsearch: { enabled: false } }
+props.collection.extensions.elasticsearch ??= { enabled: false }
 
 const dialogVisible = ref(props.dialogVisible)
 const activeTab = ref('info')

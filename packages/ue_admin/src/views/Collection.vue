@@ -246,8 +246,6 @@ let collection = reactive({
   schema: {
     body: { properties: {} },
   },
-  custom: {
-  },
   right: [] as string[],
 })
 const props = defineProps({

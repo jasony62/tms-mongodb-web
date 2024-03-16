@@ -52,7 +52,7 @@ class Collection extends Base {
       schema_tags,
       schema_default_tags,
       docFieldConvertRules,
-      custom,
+      extensions,
     } = info
     const newCl: any = {
       name,
@@ -69,7 +69,7 @@ class Collection extends Base {
       schema_tags,
       schema_default_tags,
       docFieldConvertRules,
-      custom,
+      extensions,
     }
     if (info.sysname) newCl.sysname = info.sysname
 
@@ -196,7 +196,7 @@ class Collection extends Base {
     const { schema_id } = existCl
     if (
       ElasticSearchIndex.available() &&
-      updatedInfo?.custom?.elasticsearch?.enabled === true
+      updatedInfo?.extensions?.elasticsearch?.enabled === true
     ) {
       if (schema_id && typeof schema_id === 'string') {
         const modelDoc = new Document(
