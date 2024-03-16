@@ -270,6 +270,7 @@ async function initSpreadsheet(data = []) {
  */
 const save = async () => {
   if (!xs) return
+  if (!hasDocEditRight()) return
   if (saveTimer) saveTimer = null
   // 获得修改的数据
   let editingData = xs.getData()

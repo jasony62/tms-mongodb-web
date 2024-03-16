@@ -33,7 +33,7 @@
               <span>集合</span>
             </el-menu-item>
           </el-sub-menu>
-          <el-menu-item index="/tag/">
+          <el-menu-item index="/tag/" v-if="false">
             <span>标签</span>
           </el-menu-item>
           <el-menu-item index="/files/" v-if="EXTERNALFSURL">

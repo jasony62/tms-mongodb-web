@@ -65,7 +65,7 @@
             </div>
             <el-alert title="在基础文档内容定义的基础上，合并多个文档定义，构成使用的定义。" type="info" :closable="false" />
           </el-form-item>
-          <el-form-item label="集合标签">
+          <el-form-item label="集合标签" v-if="false">
             <el-select v-model="collection.tags" clearable multiple placeholder="请选择集合标签">
               <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
             </el-select>
