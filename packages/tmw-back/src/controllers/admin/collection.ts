@@ -174,45 +174,35 @@ class Collection extends CollectionBase {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async add() {
-    const modelCl = new ModelCl(
-      this['mongoClient'],
-      this.bucketObj,
-      this['client']
-    )
+    const modelCl = new ModelCl(this.mongoClient, this.bucketObj, this.client)
 
-    const { sysname } = this['request'].query
-    const existSysCl = await modelCl.bySysname(this['reqDb'], sysname)
+    const { sysname } = this.request.query
+    const { reqDb } = this
+
+    const existSysCl = await modelCl.bySysname(reqDb, sysname)
     if (existSysCl)
       return new ResultFault(`集合[sysname=${sysname}]已经是管理对象`)
 
-    const info = this['request'].body
+    const info = this.request.body
 
     // 检查指定的集合名
     let [passed, cause] = modelCl.checkClName(info.name)
     if (passed === false) return new ResultFault(cause)
 
     // 查询是否已存在同名集合
-    let existTmwCl = await modelCl.byName(this['reqDb'], info.name)
+    let existTmwCl = await modelCl.byName(reqDb, info.name)
     if (existTmwCl)
       return new ResultFault(
-        `数据库[name=${this['reqDb'].name}]中，已存在同名集合[name=${info.name}]`
+        `数据库[name=${reqDb.name}]中，已存在同名集合[name=${info.name}]`
       )
 
     info.type = 'collection'
     info.sysname = sysname
-    info.database = this['reqDb'].name
-    info.db = { sysname: this['reqDb'].sysname, name: this['reqDb'].name }
-    if (this['bucket']) info.bucket = this.bucketObj.name
+    info.database = reqDb.name
+    info.db = { sysname: reqDb.sysname, name: reqDb.name }
+    if (this.bucket) info.bucket = this.bucketObj.name
 
-    // 检查是否指定了用途
-    let { usage } = info
-    if (usage !== undefined) {
-      if (![0, 1].includes(parseInt(usage)))
-        return new ResultFault(`指定了不支持的集合用途值[usage=${usage}]`)
-      info.usage = parseInt(usage)
-    }
-
-    return this['clMongoObj'].insertOne(info).then((result) => {
+    return this.clMongoObj.insertOne(info).then((result) => {
       info._id = result.insertedId
       return new ResultData(info)
     })
@@ -225,7 +215,7 @@ class Collection extends CollectionBase {
    *     tags:
    *       - admin
    *     summary: 修改集合属性
-   *     description: 修改集合属性，不能修改name，usage，database，bucket等字段
+   *     description: 修改集合属性，不能修改name，database，bucket等字段
    *     parameters:
    *       - $ref: '#/components/parameters/bucket'
    *       - $ref: '#/components/parameters/dbNameRequired'
@@ -318,9 +308,9 @@ class Collection extends CollectionBase {
    *
    */
   async discard() {
-    const existCl = await this['clHelper'].findRequestCl()
+    const existCl = await this.clHelper.findRequestCl()
 
-    return this['clMongoObj']
+    return this.clMongoObj
       .deleteOne({ _id: existCl._id })
       .then(() => new ResultData('ok'))
   }

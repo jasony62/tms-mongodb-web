@@ -125,23 +125,6 @@ class Document extends Base {
 
     const removeQuery = { _id: new ObjectId(id) }
 
-    // 检查删除约束条件，需要吗？
-    await this._modelCl.checkRemoveConstraint(tmwCl, removeQuery, sysCl)
-
-    // 检查数据重复条件，需要吗？为什么是把匹配数据删掉？
-    const [isRequired, result] = this.findUnRepeatRule(tmwCl)
-    if (isRequired && result.insert) {
-      const { dbSysName, clSysName, keys } = result
-      const { targetSysCl, targetQuery } = await this.getUnRepeatSQ(
-        sysCl,
-        removeQuery,
-        dbSysName,
-        clSysName,
-        keys
-      )
-      targetSysCl.deleteMany(targetQuery)
-    }
-
     let deletedCount
     if (UPDATE_AS_DELETE) {
       const current = dayjs().format('YYYY-MM-DD HH:mm:ss')
@@ -185,20 +168,6 @@ class Document extends Base {
       .toArray()
 
     if (removedDocs.length === 0) return 0
-
-    const [isRequired, result] = this.findUnRepeatRule(tmwCl)
-    if (isRequired && result.insert) {
-      const { dbSysName, clSysName, keys } = result
-      const { targetSysCl, targetQuery } = await this.getUnRepeatSQ(
-        sysCl,
-        query,
-        dbSysName,
-        clSysName,
-        keys
-      )
-      targetSysCl.deleteMany(targetQuery)
-    }
-    await this._modelCl.checkRemoveConstraint(tmwCl, query, sysCl)
 
     let deletedCount
     if (UPDATE_AS_DELETE) {
@@ -652,62 +621,6 @@ class Document extends Base {
       .toArray()
       .then((rst) => [true, rst])
       .catch((err) => [false, err.toString()])
-  }
-  /**
-   * 检查集合中是否有去重规则
-   * @param {object} tmwCl - 文档所在集合
-   *
-   */
-  findUnRepeatRule(tmwCl): [boolean, any] {
-    const { operateRules } = tmwCl
-    if (
-      operateRules &&
-      operateRules.scope &&
-      operateRules.unrepeat &&
-      operateRules.unrepeat.database &&
-      operateRules.unrepeat.database.sysname
-    ) {
-      const {
-        database: { sysname: dbSysName, name: dbName },
-        collection: { sysname: clSysName, name: clName },
-        primaryKeys: keys,
-        insert,
-      } = operateRules.unrepeat
-      return [true, { dbSysName, dbName, clSysName, clName, keys, insert }]
-    } else {
-      return [
-        false,
-        {
-          dbSysName: null,
-          dbName: null,
-          clSysName: null,
-          clName: null,
-          keys: null,
-          insert: false,
-        },
-      ]
-    }
-  }
-  /**
-   * 获得去重规则系统对象和条件
-   * @param {object} tmwSysCl - 删除操作文档所在集合
-   * @param {object} query - 删除操作的查询条件
-   * @param {string} db - 去重规则库
-   * @param {string} cl - 去重规则表
-   * @param {arary} keys - 去重规则主键
-   *
-   */
-  async getUnRepeatSQ(tmwSysCl, query, db: string, cl: string, keys) {
-    let targetSysCl = this._getSysCl(db, cl)
-
-    const docs = await tmwSysCl.find(query).toArray()
-    let targetQuery = {}
-    keys.forEach((key) => {
-      let result = []
-      docs.forEach((doc) => result.push(doc[key]))
-      targetQuery[key] = { $in: result }
-    })
-    return { targetSysCl, targetQuery }
   }
   /**
    * 获得文档列定义

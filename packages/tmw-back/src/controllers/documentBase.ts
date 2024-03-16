@@ -59,24 +59,6 @@ class DocBase extends Base {
     // 要新建的文档数据
     let docData = this.request.body
 
-    // 去重校验
-    const result = this.modelDoc.findUnRepeatRule(existCl)
-    if (result[0]) {
-      const { dbName, clName: collName, keys, insert } = result[1]
-      const curDoc = [docData]
-      const curConfig = {
-        config: {
-          columns: keys,
-          db: dbName,
-          cl: collName,
-          insert: insert,
-        },
-      }
-      const repeated = await unrepeat(this, curDoc, curConfig)
-      if (repeated.length === 0)
-        return new ResultFault('添加失败,当前数据已存在')
-    }
-
     // 加工数据
     this.modelDoc.processBeforeStore(docData, 'insert', docSchema)
 

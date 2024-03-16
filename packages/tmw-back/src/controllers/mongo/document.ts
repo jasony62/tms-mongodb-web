@@ -60,30 +60,11 @@ class Document extends DocBase {
     } catch (e) {
       return new ResultFault(e.message)
     }
-    // 去重校验
-    const { operateRules } = existCl
-    let noRepeatConfig = null
-    if (operateRules && operateRules.scope && operateRules.scope.unrepeat) {
-      const {
-        database: { name: dbName },
-        collection: { name: clName },
-        primaryKeys,
-        insert,
-      } = operateRules.unrepeat
-      noRepeatConfig = {
-        config: {
-          columns: primaryKeys,
-          db: dbName,
-          cl: clName,
-          insert: insert,
-        },
-      }
-    }
 
     let rst = await this.docHelper.importToColl(
       existCl,
       filepath,
-      noRepeatConfig,
+      null,
       reqMode
     )
 

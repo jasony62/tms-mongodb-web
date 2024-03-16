@@ -279,18 +279,6 @@ class ImportPlugin extends PluginBase {
       schema_tags: [],
       schema_default_tags: [],
       tags: [],
-      usage: 0,
-      operateRules: {
-        scope: {
-          unrepeat: false,
-        },
-        unrepeat: {
-          database: {},
-          collection: {},
-          primaryKeys: [],
-          insert: false,
-        },
-      },
     }
 
     const { clName, title, schema_id, dir_full_name, clSpreadsheet } = info

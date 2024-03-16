@@ -83,41 +83,6 @@
         </el-form>
       </div>
       <el-form :model="collection.custom" label-position="top" v-show="activeTab === 'setting'">
-        <el-form-item label="文档操作规则" v-if="false">
-          <el-checkbox v-model="collection.operateRules.scope.unrepeat">添加/导入数据时去重</el-checkbox>
-        </el-form-item>
-        <el-form-item label="设置去重规则" v-if="collection.operateRules.scope.unrepeat === true" class="tmw-formItem__flex">
-          <el-select v-model="collection.operateRules.unrepeat.database" value-key="sysname" @clear="listDbByKw"
-            @change="changeDb" placeholder="请选择数据库" clearable filterable remote :remote-method="listDbByKw"
-            :loading="criteria.databaseLoading">
-            <el-option v-for="item in criteria.databases" :key="item._id" :label="item.label" :value="item"></el-option>
-            <el-option :disabled="true" value="" v-if="criteria.dbBatch.pages > 1">
-              <el-pagination :current-page="criteria.dbBatch.page" :total="criteria.dbBatch.total"
-                :page-size="criteria.dbBatch.size" layout="prev, next" @current-change="changeDbPage">
-              </el-pagination>
-            </el-option>
-          </el-select>
-          <el-select v-model="collection.operateRules.unrepeat.collection" value-key="sysname" @clear="listClByKw"
-            @change="changeCl" placeholder="请选择集合" clearable filterable remote :remote-method="listClByKw"
-            :loading="criteria.collectionLoading">
-            <el-option v-for="item in criteria.collections" :key="item._id" :label="item.label"
-              :value="item"></el-option>
-            <el-option :disabled="true" value="" v-if="criteria.clBatch.pages > 1">
-              <el-pagination :current-page="criteria.clBatch.page" :total="criteria.clBatch.total"
-                :page-size="criteria.clBatch.size" layout="prev, next" @current-change="changeClPage">
-              </el-pagination>
-            </el-option>
-          </el-select>
-          <el-select v-model="collection.operateRules.unrepeat.primaryKeys" placeholder="请选择列" filterable multiple>
-            <el-option v-for="item in criteria.properties" :key="item.value" :label="item.label" :value="item.value">
-            </el-option>
-          </el-select>
-          <el-select v-model="collection.operateRules.unrepeat.insert" placeholder="是否插入当前表"
-            v-if="collection.operateRules.unrepeat.collection.sysname !== collection.sysname">
-            <el-option label="是" :value="true"></el-option>
-            <el-option label="否" :value="false"></el-option>
-          </el-select>
-        </el-form-item>
         <el-form-item label="集合通过访问控制列表访问">
           <el-switch v-model="collection.aclCheck"></el-switch>
           <el-alert title="集合创建成功后可设置访问控制列表。" type="info" :closable="false" v-if="!collection._id" />
@@ -208,17 +173,6 @@ const props = defineProps({
             enabled: false
           },
         },
-        operateRules: {
-          scope: {
-            unrepeat: false,
-          },
-          unrepeat: {
-            database: {},
-            collection: {},
-            primaryKeys: [],
-            insert: false,
-          },
-        },
         docFieldConvertRules: {},
       }
     },
@@ -230,16 +184,6 @@ const props = defineProps({
 props.collection.ext_schemas ??= []
 props.collection.custom ??= { elasticsearch: { enabled: false } }
 props.collection.custom.elasticsearch ??= { enabled: false }
-props.collection.operateRules ??= {
-  scope: { unrepeat: false },
-  unrepeat: {
-    database: {},
-    collection: {},
-    primaryKeys: [],
-    insert: false,
-  },
-}
-
 
 const dialogVisible = ref(props.dialogVisible)
 const activeTab = ref('info')
@@ -343,19 +287,6 @@ onMounted(() => {
       aclUserList.value = result
     })
   }
-  // 去重规则
-  const unrepeat = props.collection?.operateRules?.unrepeat
-  if (unrepeat) {
-    const dbKey = unrepeat.database.name ? unrepeat.database.name : null
-    listDbByKw(dbKey)
-    if (dbKey) {
-      const clKey = unrepeat.collection.name ? unrepeat.collection.name : null
-      listClByKw(clKey)
-      if (clKey) {
-        listProperties()
-      }
-    }
-  }
 })
 
 // 关闭对话框时执行指定的回调方法
@@ -372,101 +303,6 @@ const rules = reactive<FormRules>({
   name: [{ required: true, message: '集合名称不允许为空' }],
   schema_id: [{ required: true, message: '集合文档定义不允许为空' }]
 })
-const changeDb = () => {
-  collection.operateRules.unrepeat.collection = {}
-  criteria.clBatch = startBatch(batchCollection, [null], {
-    size: SELECT_PAGE_SIZE,
-  })
-  changeCl()
-}
-const changeCl = () => {
-  let { primaryKeys, collection } = props.collection.operateRules.unrepeat
-  primaryKeys.splice(0, primaryKeys.length)
-  if (collection && collection.sysname) {
-    listProperties()
-  }
-}
-const listProperties = () => {
-  let { database, collection } = props.collection.operateRules.unrepeat
-  apiCollection.byName(props.bucketName, database.name, collection.name).then(
-    (result: {
-      schema: {
-        body: { properties: { [s: string]: any } | ArrayLike<unknown> }
-      }
-    }) => {
-      criteria.properties = Object.entries(result.schema.body.properties).map(
-        ([key, value]) => {
-          return { value: key, label: `${value.title} (${key})` }
-        }
-      )
-    }
-  )
-}
-const listDbByKw = (keyword: string) => {
-  criteria.dbBatch = startBatch(batchDatabase, [keyword], {
-    size: SELECT_PAGE_SIZE,
-  })
-}
-const changeDbPage = (page: number) => {
-  criteria.dbBatch.goto(page)
-}
-const batchDatabase = (keyword: any, batchArg: { page: any; size: any }) => {
-  criteria.databaseLoading = true
-  return apiDb
-    .list(props.bucketName, keyword, {
-      ...batchArg,
-    })
-    .then((result: any) => {
-      criteria.databaseLoading = false
-      criteria.databases = result.databases.map(
-        (db: { name: any; sysname: any; title: any }) => {
-          return {
-            name: db.name,
-            sysname: db.sysname,
-            label: `${db.title} (${db.name})`,
-          }
-        }
-      )
-      return result
-    })
-}
-const listClByKw = (keyword: any) => {
-  criteria.clBatch = startBatch(batchCollection, [keyword], {
-    size: SELECT_PAGE_SIZE,
-  })
-}
-
-const batchCollection = (keyword: any, batchArg: { page: any; size: any }) => {
-  criteria.collectionLoading = true
-  let { database } = collection.operateRules.unrepeat
-
-  if (database.name) {
-    return apiCollection
-      .list(props.bucketName, database.name, {
-        keyword,
-        ...batchArg,
-      })
-      .then((result: any) => {
-        criteria.collections = result.collections.map((cl: any) => {
-          return {
-            name: cl.name,
-            sysname: cl.sysname,
-            label: `${cl.title} (${cl.name})`,
-          }
-        })
-        criteria.collectionLoading = false
-        return result
-      })
-  } else {
-    criteria.collections = []
-    criteria.collectionLoading = false
-    return Promise.resolve({ total: 0 })
-  }
-}
-
-const changeClPage = (page: number) => {
-  criteria.clBatch.goto(page)
-}
 
 const onSubmit = () => {
   const reg = /^[a-zA-z]/
@@ -481,20 +317,6 @@ const onSubmit = () => {
         if (collection.hasOwnProperty(item)) delete collection[item]
       })
 
-  let {
-    operateRules: { scope, unrepeat },
-  } = collection
-  if (scope.unrepeat) {
-    if (
-      !unrepeat.database.label ||
-      !unrepeat.collection.label ||
-      !unrepeat.primaryKeys.length
-    ) {
-      return ElMessage.error('请选择去重时的比对库或表或列')
-    }
-    unrepeat.database.label && delete unrepeat.database.label
-    unrepeat.collection.label && delete unrepeat.collection.label
-  }
   if (mode === 'create') {
     apiCollection
       .create(bucketName, dbName, collection)

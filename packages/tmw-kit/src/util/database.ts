@@ -50,17 +50,6 @@ const CollectionTemplate: any = {
   schema_default_tags: [],
   tags: [],
   custom: {},
-  operateRules: {
-    scope: {
-      unrepeat: false,
-    },
-    unrepeat: {
-      database: {},
-      collection: {},
-      primaryKeys: [],
-      insert: false,
-    },
-  },
   type: 'collection',
   sysname: nanoid(10),
   TMW_CREATE_TIME,
