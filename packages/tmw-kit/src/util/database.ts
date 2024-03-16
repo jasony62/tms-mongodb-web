@@ -46,8 +46,6 @@ const SchemaTemplate = {
  * 集合对象模板
  */
 const CollectionTemplate: any = {
-  schema_tags: [],
-  schema_default_tags: [],
   tags: [],
   type: 'collection',
   sysname: nanoid(10),

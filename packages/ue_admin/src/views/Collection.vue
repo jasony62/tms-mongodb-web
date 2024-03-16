@@ -239,10 +239,8 @@ const store = facStore()
 // 查找条件下拉框分页包含记录数（筛选下拉框没有分页所以设置分页值太小会导致加载不完数据）
 // const LIST_DB_PAGE_SIZE = 100
 
-let collection = reactive({
+const collection = reactive({
   docAclCheck: false,
-  schema_tags: [] as any[],
-  schema_default_tags: [] as any[],
   schema: {
     body: { properties: {} },
   },
@@ -712,12 +710,13 @@ const listSchemaByTag = (tags: any) => {
 const setTableColumnsFromSchema = async () => {
   let matchedSchema = {}
   let properties: any = collection.schema.body.properties
-  const { schema_default_tags, schema_tags } = collection
-  if (schema_default_tags && schema_default_tags.length) {
-    matchedSchema = await listSchemaByTag(schema_default_tags)
-  } else if (schema_tags && schema_tags.length) {
-    matchedSchema = await listSchemaByTag(schema_tags)
-  } else if (properties && typeof properties === 'object') {
+  // const { schema_default_tags, schema_tags } = collection
+  // if (schema_default_tags && schema_default_tags.length) {
+  //   matchedSchema = await listSchemaByTag(schema_default_tags)
+  // } else if (schema_tags && schema_tags.length) {
+  //   matchedSchema = await listSchemaByTag(schema_tags)
+  // } else 
+  if (properties && typeof properties === 'object') {
     /*需要去除password属性*/
     const props: any = {}
     for (let key in properties) {

@@ -276,8 +276,6 @@ class ImportPlugin extends PluginBase {
      */
     const clTpl: any = {
       type: 'collection',
-      schema_tags: [],
-      schema_default_tags: [],
       tags: [],
     }
 

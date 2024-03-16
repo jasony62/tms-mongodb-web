@@ -49,8 +49,6 @@ class Collection extends Base {
       docAclCheck,
       adminOnly,
       tags,
-      schema_tags,
-      schema_default_tags,
       docFieldConvertRules,
       extensions,
     } = info
@@ -66,8 +64,6 @@ class Collection extends Base {
       docAclCheck,
       adminOnly,
       tags,
-      schema_tags,
-      schema_default_tags,
       docFieldConvertRules,
       extensions,
     }

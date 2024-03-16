@@ -65,16 +65,6 @@
             </div>
             <el-alert title="在基础文档内容定义的基础上，合并多个文档定义，构成使用的定义。" type="info" :closable="false" />
           </el-form-item>
-          <el-form-item label="集合文档内容定义（定制-修改）">
-            <el-select v-model="collection.schema_tags" clearable multiple placeholder="请选择定义标签">
-              <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item label="集合文档内容定义（定制-展示）">
-            <el-select v-model="collection.schema_default_tags" clearable multiple placeholder="请选择定义标签">
-              <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
-            </el-select>
-          </el-form-item>
           <el-form-item label="集合标签">
             <el-select v-model="collection.tags" clearable multiple placeholder="请选择集合标签">
               <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
@@ -160,8 +150,6 @@ const props = defineProps({
         description: '',
         schema_id: '',
         ext_schemas: [],
-        schema_tags: [],
-        schema_default_tags: [],
         tags: [],
         dir_full_name: '',
         spreadsheet: 'no',
