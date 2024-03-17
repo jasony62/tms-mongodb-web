@@ -23,6 +23,7 @@ export abstract class PluginBase {
   dbName?: RegExp // 和数据库名称匹配的正则表达式
   clName?: RegExp // 和集合名称匹配的正则表达式
   schemaName?: RegExp // 和文档列定义名称匹配的正则表达式
+  rejectedRight?: string[] // 限制使用插件的权限
   schemaJson?: any // 账号管理指定集合schema文件
   excludeTags?: string[]
   everyTags?: string[]
@@ -130,6 +131,7 @@ export abstract class PluginBase {
       dbName,
       clName,
       schemaName,
+      rejectedRight,
       schemaJson,
       excludeTags,
       everyTags,
@@ -153,6 +155,7 @@ export abstract class PluginBase {
       dbName,
       clName,
       schemaName,
+      rejectedRight,
       schemaJson,
       excludeTags,
       everyTags,

@@ -246,7 +246,7 @@ const aclUserColumns = [{
       rowData.right = value
       rowData.__modified = true
     }
-  }, { default: () => [h(ElOption, { value: 'read', label: '集合只读' }), h(ElOption, { value: 'readDoc', label: '文档只读' })] })
+  }, { default: () => [h(ElOption, { value: 'readCl', label: '集合只读' }), h(ElOption, { value: 'readDoc', label: '文档只读' })] })
 }, {
   key: 'operaations',
   title: '操作',

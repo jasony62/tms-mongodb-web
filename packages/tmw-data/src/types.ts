@@ -95,7 +95,11 @@ export interface PluginProfile {
    */
   schemaName?: RegExp
   /**
-   * 账号管理指定集合schema文件
+   * 排除插件的权限列表
+   */
+  rejectedRight?: string[]
+  /**
+   * 指定集合schema文件
    */
   schemaJson?: any
   /**

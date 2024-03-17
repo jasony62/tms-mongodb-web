@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-2">
+  <div id="collection" class="flex flex-col gap-2 w-full">
     <!--header-->
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight" v-if="EXTRACT === true">
@@ -22,18 +22,20 @@
         <el-table id="tables" ref="tableRef" :cell-class-name="'tmw-table__cell'" :data="store.documents"
           highlight-current-row stripe @selection-change="handleSelectionChange" @current-change="handleCurrentChange"
           @row-click="handleRowClick">
+
           <el-table-column type="selection" width="40" v-if="MULTIPLE !== false" />
           <el-table-column type="expand" width="40">
+
             <template #default="props">
               <div class="ml-20">
                 <div v-html="renderDocManual(props.row)"></div>
               </div>
             </template>
           </el-table-column>
-          <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k">
+          <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k" :width="s.width ?? 120">
 
             <template #header>
-              <div @click="handleFilter(s, k)">
+              <div @click="handleFilter(s, k)" class="flex flex-row items-center">
                 <span v-if="s.required" class="text-red-400">*</span>
                 <span>{{ s.title }}</span>
                 <img :data-id="k" class="w-4 h-4 inline-block" src="../assets/imgs/icon_filter.png" />
@@ -41,76 +43,7 @@
             </template>
 
             <template #default="scope">
-              <span v-if="s.type === 'boolean'">{{
-        scope.row[k] ? '是' : '否'
-      }}</span>
-              <span v-else-if="s.type === 'array' && s.items && s.items.format === 'file'
-        ">
-                <span v-for="(i, v) in scope.row[k]" :key="v">
-                  <el-link type="primary" @click="downLoadFile(i)">{{
-        i.name
-      }}</el-link>
-                  <br />
-                </span>
-              </span>
-              <span v-else-if="s.type === 'array' && s.enum && s.enum.length">
-                <span v-if="s.enumGroups && s.enumGroups.length">
-                  <span v-for="(g, i) in s.enumGroups" :key="i">
-                    <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value
-        ">
-                      <span v-for="(e, v) in s.enum" :key="v">
-                        <span v-if="e.group === g.id &&
-        scope.row[k] &&
-        scope.row[k].length &&
-        scope.row[k].includes(e.value)
-        ">{{ e.label }}&nbsp;</span>
-                      </span>
-                    </span>
-                  </span>
-                </span>
-                <span v-else>
-                  <span v-for="(i, v) in s.enum" :key="v">
-                    <span v-if="scope.row[k] && scope.row[k].includes(i.value)">{{ i.label }}&nbsp;</span>
-                  </span>
-                </span>
-              </span>
-              <span v-else-if="s.type === 'string' && s.enum && s.enum.length">
-                <span v-if="s.enumGroups && s.enumGroups.length">
-                  <span v-for="(g, i) in s.enumGroups" :key="i">
-                    <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value
-        ">
-                      <span v-for="(e, v) in s.enum" :key="v">
-                        <span v-if="e.group === g.id && scope.row[k] === e.value">{{ e.label }}</span>
-                      </span>
-                    </span>
-                  </span>
-                </span>
-                <span v-else>
-                  <span v-for="(i, v) in s.enum" :key="v">
-                    <span v-if="scope.row[k] === i.value">{{ i.label }}</span>
-                  </span>
-                </span>
-              </span>
-              <span v-else-if="s.type === 'string' && s.oneOf && s.oneOf.length">
-                <span v-if="s.enumGroups && s.enumGroups.length">
-                  <span v-for="(g, i) in s.enumGroups" :key="i">
-                    <span v-if="scope.row[g.assocEnum.property] === g.assocEnum.value
-        ">
-                      <span v-for="(e, v) in s.oneOf" :key="v">
-                        <span v-if="e.group === g.id && scope.row[k] === e.value">{{ e.label }}</span>
-                      </span>
-                    </span>
-                  </span>
-                </span>
-                <span v-else>
-                  <span v-for="(i, v) in s.oneOf" :key="v">
-                    <span v-if="scope.row[k] === i.value">{{ i.label }}</span>
-                  </span>
-                </span>
-              </span>
-              <div class="max-h-16 overflow-y-auto" v-else>
-                {{ scope.row[k] }}
-              </div>
+              <doc-cell :s="s" :row="scope.row" :k="k" :download-file="downLoadFile"></doc-cell>
             </template>
           </el-table-column>
           <el-table-column fixed="right" label="操作" width="140" class-name="tmw-opt__column">
@@ -119,22 +52,20 @@
               <el-button type="primary" link size="small" @click.stop="previewDocument(scope.row)">查看</el-button>
               <el-button v-if="HasDocEditRight" type="primary" link size="small" @click.stop="editDocument(scope.row)"
                 class="ml-0">修改</el-button>
-              <el-dropdown class="tmw-opt__dropdown">
+              <el-dropdown class="tmw-opt__dropdown" v-if="HasDocEditRight">
                 <el-button type="primary" link size="small">更多
                   <el-icon class="el-icon--right"><arrow-down /></el-icon>
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item v-if="collection.docAclCheck">
+                    <el-dropdown-item v-if="Collection.docAclCheck">
                       <el-button @click="openAclEditor(scope.row)" type="primary" link size="small">访问控制</el-button>
                     </el-dropdown-item>
                     <el-dropdown-item>
-                      <el-button v-if="HasDocEditRight" type="primary" link size="small"
-                        @click="copyDocument(scope.row)">复制</el-button>
+                      <el-button type="primary" link size="small" @click="copyDocument(scope.row)">复制</el-button>
                     </el-dropdown-item>
                     <el-dropdown-item>
-                      <el-button v-if="HasDocEditRight" type="danger" link size="small"
-                        @click="removeDocument(scope.row)">删除</el-button>
+                      <el-button type="danger" link size="small" @click="removeDocument(scope.row)">删除</el-button>
                     </el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
@@ -144,7 +75,7 @@
         </el-table>
         <div class="flex flex-row gap-4 p-2 items-center justify-between">
           <span class="tmw-pagination__text">已选中 {{ selectedDocuments.length }} 条数据</span>
-          <div class="flex flex-row gap-4">
+          <div class="flex flex-row gap-4" v-if="data.docBatch.total > data.docBatch.size">
             <el-pagination layout="total, sizes, prev, pager, next" background :total="data.docBatch.total"
               :page-sizes="[10, 25, 50, 100]" :current-page="data.docBatch.page" :page-size="data.docBatch.size"
               @current-change="changeDocPage" @size-change="changeDocSize"></el-pagination>
@@ -223,6 +154,7 @@ import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { ElTable } from 'element-plus'
 import { useMitt } from '@/composables/mitt'
 import { useAssistant } from '@/composables/assistant'
+import DocCell from '@/components/DocCell.vue'
 import DocPreviewJson from '@/components/DocPreviewJson.vue'
 import { useDocPreviewJson } from '@/composables/docPreviewJson'
 import TmwPlugins from '@/components/PluginList.vue'
@@ -239,7 +171,7 @@ const store = facStore()
 // 查找条件下拉框分页包含记录数（筛选下拉框没有分页所以设置分页值太小会导致加载不完数据）
 // const LIST_DB_PAGE_SIZE = 100
 
-const collection = reactive({
+const Collection = reactive({
   docAclCheck: false,
   schema: {
     body: { properties: {} },
@@ -273,7 +205,7 @@ const totalByFilter = computed(() =>
 const totalByChecked = computed(() => selectedDocuments.value.length)
 
 const HasDocEditRight = computed(() => {
-  const { right } = collection
+  const { right } = Collection
   if (!right || (Array.isArray(right) && right.length === 0)) return true
 
   if (Array.isArray(right) && !right.includes('readDoc')) return true
@@ -283,7 +215,7 @@ const HasDocEditRight = computed(() => {
 
 const handleCondition = () => {
   const conditions = store.conditions
-  let criterais = {
+  const criterais = {
     filter: {} as any,
     orderBy: {} as any,
   }
@@ -639,7 +571,7 @@ const { handlePlugin } = useTmwPlugins({
       if (checkedDocument) msg.document = toRaw(checkedDocument)
     }
     // 如果插件没有指定schema，传递集合的schema
-    msg.schema ??= toRaw(collection.schema.body)
+    msg.schema ??= toRaw(Collection.schema.body)
   },
   onClose: () => {
     listDocByKw()
@@ -709,7 +641,7 @@ const listSchemaByTag = (tags: any) => {
  */
 const setTableColumnsFromSchema = async () => {
   let matchedSchema = {}
-  let properties: any = collection.schema.body.properties
+  let properties: any = Collection.schema.body.properties
   // const { schema_default_tags, schema_tags } = collection
   // if (schema_default_tags && schema_default_tags.length) {
   //   matchedSchema = await listSchemaByTag(schema_default_tags)
@@ -772,7 +704,7 @@ onMounted(async () => {
     dbName,
     clName
   )
-  Object.assign(collection, cl)
+  Object.assign(Collection, cl)
   await setTableColumnsFromSchema()
   listDocByKw()
 })

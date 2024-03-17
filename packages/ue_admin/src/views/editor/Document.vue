@@ -19,7 +19,7 @@
     </div>
     <div class="flex flex-row gap-4 h-full overflow-auto pb-4" v-if="collection._id && (!docId || document._id)">
       <div class="w-1/3 h-full flex-grow-none overflow-auto">
-        <tms-json-doc ref="elJdeDoc" :schema="collection.editSchema.body || collection.schema.body" :value="document"
+        <tms-json-doc ref="elJdeDoc" :schema="collection.editSchema?.body || collection.schema.body" :value="document"
           :enable-paste="true" :on-paste="onJdocPaste" :on-lookup="onJdocLookup" :on-file-select="onFileSelect"
           :on-file-download="onFileDownload" :show-field-fullname="showFieldFullname" :hide-root-title="true"
           :hide-root-description="true" @jdoc-focus="onJdocFocus"></tms-json-doc>

@@ -53,7 +53,7 @@
         </div>
       </div>
       <!--content-->
-      <div class="flex-grow flex flex-col gap-2 mt-4 mx-4 h-full">
+      <div class="flex-grow flex flex-col gap-2 mt-4 mx-4 h-full overflow-x-auto">
         <router-view :key="route.path"></router-view>
       </div>
       <assistant></assistant>

@@ -78,11 +78,11 @@ class Plugin extends CtrlBase {
         : ins.dbPlugins
 
     /**检查标签是否匹配 */
-    let objTags, existCl, clSchema
+    let objTags, tmwCl, clSchema
     if (scope === 'document') {
-      existCl = await this.pluginHelper.findRequestCl()
-      clSchema = await this.getClSchema(existCl.schema_id)
-      objTags = Array.isArray(existCl.tags) ? existCl.tags : []
+      tmwCl = await this.pluginHelper.findRequestCl()
+      clSchema = await this.getClSchema(tmwCl.schema_id)
+      objTags = Array.isArray(tmwCl.tags) ? tmwCl.tags : []
     } else {
       objTags = []
     }
@@ -93,6 +93,7 @@ class Plugin extends CtrlBase {
         bucketName,
         dbName,
         clName,
+        rejectedRight,
         schemaName,
         excludeTags,
         everyTags,
@@ -130,6 +131,15 @@ class Plugin extends CtrlBase {
 
       if (clName && clName instanceof RegExp) {
         if (clName.test(cl) === false) return false
+      }
+      /**
+       * 检查权限
+       */
+      if (Array.isArray(rejectedRight) && rejectedRight.length) {
+        if (Array.isArray(tmwCl.right) && tmwCl.right.length) {
+          const result = _.intersection(tmwCl.right, rejectedRight)
+          if (result.length) return false
+        }
       }
       if (schemaName && schemaName instanceof RegExp) {
         if (!clSchema?.name) return false
