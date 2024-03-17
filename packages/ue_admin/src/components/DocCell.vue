@@ -26,6 +26,7 @@ const renderCellText = () => {
   switch (s.type) {
     case 'boolean':
       return val ? '是' : '否'
+    case 'number':
     case 'string':
       if (s.enum?.length) {
         if (s.enumGroups?.length) {
@@ -62,6 +63,16 @@ const renderCellText = () => {
           return options.map((o: any) => o.label).join(' ')
         } else {
           const options = s.enum.filter((o: any) => val.includes(o.value))
+          return options.map((o: any) => o.label).join(' ')
+        }
+      } else if (s.anyOf?.length) {
+        if (s.enumGroups?.length) {
+          const group = s.enumGroups.find((g: any) => g.assocEnum.value === row[g.assocEnum.property])
+          if (!group) return ''
+          const options = s.anyOf.filter((o: any) => o.group === group.id && val.includes(o.value))
+          return options.map((o: any) => o.label).join(' ')
+        } else {
+          const options = s.anyOf.filter((o: any) => val.includes(o.value))
           return options.map((o: any) => o.label).join(' ')
         }
       }

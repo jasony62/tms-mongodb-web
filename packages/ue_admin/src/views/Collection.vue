@@ -43,7 +43,7 @@
             </template>
 
             <template #default="scope">
-              <doc-cell :s="s" :row="scope.row" :k="k" :download-file="downLoadFile"></doc-cell>
+              <doc-cell :s="s" :row="scope.row" :k="String(k)" :download-file="downLoadFile"></doc-cell>
             </template>
           </el-table-column>
           <el-table-column fixed="right" label="操作" width="140" class-name="tmw-opt__column">
@@ -161,6 +161,9 @@ import TmwPlugins from '@/components/PluginList.vue'
 import TmwPluginWidget from '@/components/PluginWidget.vue'
 import { useTmwPlugins } from '@/composables/plugins'
 
+type FieldProp = {
+  [k: string]: Record<string, any>
+}
 const COMPACT = computed(() => COMPACT_MODE())
 const EXTRACT = computed(() => EXTRACT_MODE())
 const MULTIPLE = computed(() => MULTIPLE_MODE())
@@ -174,7 +177,7 @@ const store = facStore()
 const Collection = reactive({
   docAclCheck: false,
   schema: {
-    body: { properties: {} },
+    body: { properties: {} as any },
   },
   right: [] as string[],
 })
@@ -188,7 +191,7 @@ const { bucketName, dbName, clName } = props
 
 const data = reactive({
   docBatch: new Batch(() => { }),
-  properties: {} as any,
+  properties: {} as FieldProp,
   plugins: [] as any[],
   filter: reactive({}),
 })
