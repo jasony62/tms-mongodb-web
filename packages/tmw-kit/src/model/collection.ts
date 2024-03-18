@@ -559,13 +559,18 @@ class Collection extends Base {
 
     const cl = await clMongoObj.findOne(query)
     if (cl) {
-      if (cl.aclCheck === true && cl.creator !== this.client.id) {
-        const right = await this._modelAcl.check(
-          { id: cl._id.toString(), type: 'collection' },
-          { id: this.client.id }
-        )
-        if (!right) throw Error('没有访问权限')
-        cl.right = right
+      if (this.client.isAdmin !== true) {
+        /**
+         * 检查访问控制权限
+         */
+        if (cl.aclCheck === true && cl.creator !== this.client.id) {
+          const right = await this._modelAcl.check(
+            { id: cl._id.toString(), type: 'collection' },
+            { id: this.client.id }
+          )
+          if (!right) throw Error('没有访问权限')
+          cl.right = right
+        }
       }
     }
 

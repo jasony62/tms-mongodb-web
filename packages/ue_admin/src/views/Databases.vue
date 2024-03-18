@@ -39,9 +39,10 @@
       </el-table>
       <div class="flex flex-row gap-4 p-2 items-center justify-between">
         <span class="tmw-pagination__text">已选中 {{ criteria.multipleDb.length }} 条数据</span>
-        <el-pagination layout="total, sizes, prev, pager, next" background :total="criteria.dbBatch.total"
-          :page-sizes="[10, 25, 50, 100]" :current-page="criteria.dbBatch.page" :page-size="criteria.dbBatch.size"
-          @current-change="changeDbPage" @size-change="changeDbSize"></el-pagination>
+        <el-pagination v-if="criteria.dbBatch.total > criteria.dbBatch.size" layout="total, sizes, prev, pager, next"
+          background :total="criteria.dbBatch.total" :page-sizes="[10, 25, 50, 100]"
+          :current-page="criteria.dbBatch.page" :page-size="criteria.dbBatch.size" @current-change="changeDbPage"
+          @size-change="changeDbSize"></el-pagination>
       </div>
     </div>
     <!--right-->

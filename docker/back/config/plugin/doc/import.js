@@ -28,7 +28,7 @@ export default {
   schemaBlacklist: SchemaBlacklist,
   widgetUrl,
   name: Name ? Name : 'doc-import',
-  title: Title ? Title : '从文件导入数据',
+  title: Title ? Title : '导入数据',
   bucket: Bucket,
   db: Db,
   cl: Cl,

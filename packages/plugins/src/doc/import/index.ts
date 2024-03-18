@@ -33,7 +33,7 @@ class ImportPlugin extends PluginBase {
   constructor(file: string) {
     super(file)
     this.name = 'doc-import'
-    this.title = '从文件导入数据'
+    this.title = '导入数据'
     this.description = '导入excel、json文件格式的数据，并导入集合中。'
     this.scope = PluginProfileScope.document // 查看集合文档时可见
     this.amount = PluginProfileAmount.zero

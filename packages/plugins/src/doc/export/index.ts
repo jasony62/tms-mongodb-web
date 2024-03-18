@@ -8,7 +8,7 @@ import {
 } from 'tmw-kit'
 import { PluginBase } from 'tmw-kit/dist/plugin/index.js'
 import { LocalFS } from 'tms-koa/dist/model/fs/local.js'
-import path, { relative } from 'path'
+import path from 'path'
 import _ from 'lodash'
 import fs from 'fs'
 
@@ -199,8 +199,8 @@ class ExportPlugin extends PluginBase {
   constructor(file: string) {
     super(file)
     this.name = 'doc-export'
-    this.title = '导出文档'
-    this.description = '在集合中，将文档按JSON或者EXCEL格式导出。'
+    this.title = '导出数据'
+    this.description = '将集合中的文档按JSON或者EXCEL格式导出。'
     this.scope = PluginProfileScope.document
     this.amount = PluginProfileAmount.many
     this.beforeWidget = { name: 'external', url: '', size: '60%' }

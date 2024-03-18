@@ -27,7 +27,7 @@ export default {
   schemaBlacklist: SchemaBlacklist,
   widgetUrl,
   name: Name ? Name : 'doc-export',
-  title: Title ? Title : '导出文档',
+  title: Title ? Title : '导出数据',
   bucket: Bucket,
   db: Db,
   cl: Cl,

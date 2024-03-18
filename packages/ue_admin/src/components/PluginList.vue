@@ -4,8 +4,8 @@
     </el-button>
     <div v-else-if="p.amount === 'one'">
       <el-button :disabled="!(totalByChecked === 1 || docslen === 1)" type="success" plain @click="handlePlugin(p)">{{
-        p.title
-      }}</el-button>
+    p.title
+  }}</el-button>
     </div>
     <el-dropdown v-else>
       <el-button type="success" plain>{{ p.title }}
@@ -37,15 +37,15 @@
 import { PropType } from 'vue';
 import { ArrowDown } from '@element-plus/icons-vue'
 
-const props = defineProps(
-  {
-    plugins: { type: Array as PropType<Array<any>> },
-    totalByAll: { type: Number },
-    totalByFilter: { type: Number },
-    totalByChecked: { type: Number },
-    handlePlugin: { type: Function },
-    docslen: { type: Number }
-  })
+const props = defineProps({
+  plugins: { type: Array as PropType<Array<any>> },
+  totalByAll: { type: Number },
+  totalByFilter: { type: Number },
+  totalByChecked: { type: Number },
+  handlePlugin: { type: Function },
+  docslen: { type: Number }
+})
+
 const handlePlugin = (plugin: any, scope = '') => {
   if (props.handlePlugin)
     props.handlePlugin(plugin, scope)
