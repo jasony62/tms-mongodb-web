@@ -315,6 +315,9 @@ function onExecute(
   }
   // 执行插件方法
   return apiPlugin.execute(queryParams, postBody).then((result: any) => {
+    if (widgetHandleResponse && widgetDefaultHandleResponseRequired === false)
+      return result
+
     if (typeof result.url === 'string') {
       /**下载文件*/
       let url = FS_BASE_URL() + result.url
@@ -331,6 +334,8 @@ function onExecute(
       message: `插件[${plugin.title}]执行完毕。`,
       showClose: true,
     })
+
+    if (widgetHandleResponse === true) return result
 
     return 'ok'
   })

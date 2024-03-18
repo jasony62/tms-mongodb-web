@@ -74,12 +74,14 @@ class Spreadsheet extends Base {
     if (properties && typeof properties === 'object') {
       const rows = Object.entries(properties).reduce(
         (rows: any, [key, prop]: [string, any], index) => {
-          rows['0'].cells[index] = { text: key, editable: false, style: 0 }
-          rows['1'].cells[index] = {
+          // 第1行是列标题（中文）
+          rows['0'].cells[index] = {
             text: prop.title,
             editable: false,
             style: 0,
           }
+          // 第2行是列名称（英文）
+          rows['1'].cells[index] = { text: key, editable: false, style: 0 }
           return rows
         },
         { '0': { cells: {} }, '1': { cells: {} } }

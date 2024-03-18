@@ -284,10 +284,10 @@ class SpreadsheetExportPlugin extends PluginBase {
     let relativeUrl
     switch (outType) {
       case 'excel':
-        relativeUrl = exportAsExcel(ctrl, tmwCl, sheets)
+        relativeUrl = await exportAsExcel(ctrl, tmwCl, sheets)
         break
       case 'json':
-        relativeUrl = exportAsJson(ctrl, tmwCl, sheets)
+        relativeUrl = await exportAsJson(ctrl, tmwCl, sheets)
         break
       case 'docs':
         await exportAsDocs(ctrl, tmwCl, sheets, { startRow })

@@ -34,17 +34,15 @@
         </el-form-item>
       </el-tab-pane>
       <el-tab-pane label="下载excel模板文件">
-        <el-form>
-          <el-form-item label="叶子节点数">
-            <div>
-              <el-input-number v-model="leafLevel" :step="1" :min="0" step-strictly @change="setLevel" />
-              <div class="el-upload__tip">* 0代表导出所有节点</div>
-            </div>
-          </el-form-item>
-          <el-form-item>
-            <el-button slot="trigger" type="primary" @click="onExecute('download')">执行</el-button>
-          </el-form-item>
-        </el-form>
+        <el-form-item label="叶子节点数">
+          <div>
+            <el-input-number v-model="leafLevel" :step="1" :min="0" step-strictly @change="setLevel" />
+            <div class="el-upload__tip">* 0代表导出所有节点</div>
+          </div>
+        </el-form-item>
+        <el-form-item>
+          <el-button slot="trigger" type="primary" @click="onExecute('download')">执行</el-button>
+        </el-form-item>
       </el-tab-pane>
     </el-tabs>
     <div class="response-content flex-grow border border-gray-200 rounded-md overflow-auto" v-if="responseContent">
@@ -237,22 +235,21 @@ function handleUpload(req: any) {
 }
 
 function onExecute(action: string) {
+  if (!Caller) return
   if (action === 'upload') {
     if (doSubmit) doSubmit()
   } else if (action === 'download') {
-    if (Caller) {
-      const message: PluginWidgetResult = {
-        action: PluginWidgetAction.Execute,
-        result: { action: 'download', leafLevel: leafLevel.value },
-        handleResponse: true
-      };
-      try {
-        // 给调用方发送数据
-        Caller.postMessage(message, "*");
-        executed.value = true;
-      } catch (e) {
-        console.log("未知错误", e);
-      }
+    const message: PluginWidgetResult = {
+      action: PluginWidgetAction.Execute,
+      result: { action: 'download', leafLevel: leafLevel.value },
+      handleResponse: true
+    }
+    try {
+      // 给调用方发送数据
+      Caller.postMessage(message, "*");
+      executed.value = true;
+    } catch (e) {
+      console.log("未知错误", e);
     }
   } else {
     console.log('不识别的操作指令');

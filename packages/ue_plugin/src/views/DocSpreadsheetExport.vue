@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-4 h-full w-full">
     <div>
-      <el-form size="large" label-position="right">
+      <el-form label-position="right">
         <el-form-item label="导出类型">
           <el-radio-group v-model="outType" class="ml-4">
             <el-radio label="excel">Excel</el-radio>
@@ -9,7 +9,7 @@
             <el-radio label="docs">集合文档</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="数据起始行号">
+        <el-form-item label="数据起始行号" v-if="outType === 'docs'">
           <el-input-number v-model="startRow" :step="1" :min="0" step-strictly />
         </el-form-item>
         <div class="response-content flex-grow border border-gray-200 rounded-md overflow-auto" v-if="responseContent">
@@ -51,8 +51,11 @@ interface Result {
   outType: string
   startRow: number
 }
+/**
+ * 标准情况下，第1行是标题行，第2行是名称行，之后是数据行
+ */
 // 数据起始行号
-const startRow = ref(1)
+const startRow = ref(3)
 
 // 调用插件的页面
 const Caller = window.parent

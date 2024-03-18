@@ -108,7 +108,7 @@ interface PluginWidgetResult {
 const sheetNames = ref([] as string[])
 const selectedSheetName = ref('')
 // 数据起始行号
-const startRow = ref(2)
+const startRow = ref(3)
 // 数据写入位置的最小值，覆盖写入时为1，插入写入时为0
 const minStartIndex = computed(() => (writeOptions.overwrite ? 1 : 0))
 /**
@@ -222,6 +222,7 @@ function handleUpload(req: any) {
       let content // 要提交的内容
       if (contentType === 'aoa' && wb) {
         const sh = wb.Sheets[selectedSheetName.value]
+        // header=1时返回的是包含所有行的aoa
         content = XLSX.utils.sheet_to_json(sh, { header: 1 })
         if (Array.isArray(content) && content.length) {
           const deleteCount = startRow.value - 1

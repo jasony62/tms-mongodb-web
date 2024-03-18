@@ -90,15 +90,16 @@ function publicPath(ctrl, fullpath: string) {
  * @returns
  */
 async function createXlsxTemplate(ctrl, tmwCl, leafLevel) {
-  const properties = getSchemaFields(ctrl, tmwCl)
+  const properties = await getSchemaFields(ctrl, tmwCl)
   const schemaIter = new SchemaIter({ type: 'object', properties })
 
   const XLSX = await import('xlsx')
 
-  let fieldAry = []
+  const titleAry = [] // 标题行
+  const nameAry = [] // 名称行
   leafLevel = leafLevel ? leafLevel : 0
   for (let schemaProp of schemaIter) {
-    let { fullname, _path, _name } = schemaProp
+    let { fullname, _path, _name, attrs } = schemaProp
     if (
       !_name ||
       fullname.replace(/\^\\/, '').indexOf('w+$') > -1 ||
@@ -106,20 +107,21 @@ async function createXlsxTemplate(ctrl, tmwCl, leafLevel) {
     )
       continue
 
-    fieldAry.push(fullname)
-    if (_path && fieldAry.indexOf(_path) > -1)
-      fieldAry.splice(fieldAry.indexOf(_path), 1)
+    titleAry.push(attrs.title ?? '')
+    nameAry.push(fullname)
+    if (_path && nameAry.indexOf(_path) > -1)
+      nameAry.splice(nameAry.indexOf(_path), 1)
   }
 
   const filePath = path.join(createDir(ctrl), `${tmwCl.name}.xlsx`)
-  const ws = XLSX.utils.aoa_to_sheet([fieldAry])
+  const ws = XLSX.utils.aoa_to_sheet([titleAry, nameAry])
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws)
   XLSX.writeFile(wb, filePath)
 
   const publicpath = publicPath(ctrl, filePath)
 
-  return { filePath: this.DownloadHost + publicpath }
+  return publicpath
 }
 /**
  * 数据写入自由表格
@@ -347,8 +349,8 @@ class SpreadsheetImportPlugin extends PluginBase {
     if (widget.action === 'download') {
       if (!this.DownloadHost)
         return { code: 10001, msg: '未配置文件下载服务地址' }
-      const result = await createXlsxTemplate(ctrl, tmwCl, widget.leafLevel)
-      return { code: 0, msg: result }
+      const publicpath = await createXlsxTemplate(ctrl, tmwCl, widget.leafLevel)
+      return { code: 0, msg: { filePath: this.DownloadHost + publicpath } }
     } else {
       const [isOk, msg] = await fillSpreadsheet(ctrl, tmwCl, widget)
       return { code: isOk ? 0 : 10001, msg }

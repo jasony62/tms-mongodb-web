@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-4 h-full w-full">
     <div>
-      <el-form size="large" label-position="right">
+      <el-form label-position="right">
         <el-form-item label="导出类型">
           <el-radio-group v-model="outType" class="ml-4">
             <el-radio label="excel">Excel</el-radio>
