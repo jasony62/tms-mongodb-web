@@ -13,6 +13,8 @@ import { Frame, Flex, Login, LoginResponse, JsonSchema } from 'tms-vue3-ui'
 import router from './router'
 import App from './App.vue'
 import ElementPlus, { ElMessage } from 'element-plus'
+import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
+
 import {
   init as initGlobalSettings,
   getLocalToken,
@@ -114,7 +116,7 @@ function afterLoadSettings() {
     .use(Frame)
     .use(Flex)
     .use(JsonSchema.install)
-    .use(ElementPlus)
+    .use(ElementPlus, { locale: zhCn })
     .use(dialogPlugin)
     .use({
       /**

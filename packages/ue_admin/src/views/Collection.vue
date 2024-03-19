@@ -75,7 +75,7 @@
         </el-table>
         <div class="flex flex-row gap-4 p-2 items-center justify-between">
           <span class="tmw-pagination__text">已选中 {{ selectedDocuments.length }} 条数据</span>
-          <div class="flex flex-row gap-4" v-if="data.docBatch.total > data.docBatch.size">
+          <div class="flex flex-row gap-4" :hide-on-single-page="true">
             <el-pagination layout="total, sizes, prev, pager, next" background :total="data.docBatch.total"
               :page-sizes="[10, 25, 50, 100]" :current-page="data.docBatch.page" :page-size="data.docBatch.size"
               @current-change="changeDocPage" @size-change="changeDocSize"></el-pagination>

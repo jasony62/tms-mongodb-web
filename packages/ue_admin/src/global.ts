@@ -343,10 +343,10 @@ export function parseLocation(url: string): any | null {
 }
 
 export const PAGINATION_DB_SIZE = () =>
-  _globalsettings.pagination?.database?.size || 100
+  _globalsettings.pagination?.database?.size || 25
 
 export const PAGINATION_COL_SIZE = () =>
-  _globalsettings.pagination?.collection?.size || 100
+  _globalsettings.pagination?.collection?.size || 25
 
 export const PAGINATION_DOC_SIZE = () =>
-  _globalsettings.pagination?.document?.size || 100
+  _globalsettings.pagination?.document?.size || 25

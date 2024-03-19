@@ -46,22 +46,22 @@ class ImportPlugin extends PluginBase {
     this.description = '在数据库下通过导入excel，新建schema，collection和文档。'
     this.scope = PluginProfileScope.collection
     this.amount = PluginProfileAmount.zero
-    this.beforeWidget = { name: 'external', url: '', size: '40%' }
+    this.beforeWidget = { name: 'external', url: '', size: '60%' }
   }
 
   async execute(ctrl: any) {
     let {
-      file,
+      data, // 对象数组的字符串
+      names, // 列名称，字符串数组
+      titles, // 列标题，字符串数组
       fileName,
       clName,
       dir_full_name, // 集合所属分类目录，字符串
       clSpreadsheet, // 字符串 no/yes
-      headers: headersName, // 字符串数组
-      headersTitle,
     } = ctrl.request.body.widget
     const dbName = ctrl.request.query.db
 
-    if (!file) return { code: 10001, msg: '文件上传失败' }
+    if (!data) return { code: 10001, msg: '文件上传失败' }
 
     if (!fileName) return { code: 10001, msg: '解析上传的文件名称失败' }
     fileName = fileName.substr(0, fileName.lastIndexOf('.'))
@@ -73,7 +73,7 @@ class ImportPlugin extends PluginBase {
         msg: '集合名必须以英文字母开头，仅限英文字母或_或数字组合，且最长64位',
       }
 
-    for (const name of headersName) {
+    for (const name of names) {
       if (new RegExp('[\u4E00-\u9FA5]+').test(name) == true)
         return { code: 10001, msg: '指定的列定义名称不能包含中文' }
     }
@@ -91,7 +91,7 @@ class ImportPlugin extends PluginBase {
     )
     if (!existFlag) return { code: 10001, msg: existResult }
 
-    let rowsJson = JSON.parse(file)
+    let rowsJson = JSON.parse(data)
     if (!Array.isArray(rowsJson) || rowsJson.length === 0)
       return { code: 10001, msg: '上传的文件数据为空或格式错误' }
 
@@ -101,8 +101,8 @@ class ImportPlugin extends PluginBase {
     const [schemaFlag, schemaRst] = await this.createDocSchema(ctrl, existDb, {
       clName,
       clTitle: fileName,
-      headersName,
-      headersTitle,
+      headersName: names,
+      headersTitle: titles,
     })
     if (!schemaFlag) return { code: 10001, msg: schemaRst }
     debug(`创建了文档列定义[id=${schemaRst}]`)
@@ -132,7 +132,7 @@ class ImportPlugin extends PluginBase {
         ctrl,
         existDb,
         newCl,
-        headersName,
+        names,
         rowsJson
       )
     } else {
