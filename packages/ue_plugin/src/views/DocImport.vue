@@ -4,6 +4,7 @@
       <el-button @click="onCancel" v-if="!executed">取消</el-button>
       <el-button @click="onClose" v-if="executed">关闭</el-button>
     </div>
+    <el-alert v-if='help' :title="help" type="info" effect="dark" show-icon />
     <el-tabs type="border-card">
       <el-tab-pane label="上传文件">
         <el-form-item>
@@ -24,15 +25,22 @@
             </el-select>
           </el-form-item>
           <el-form-item :label="`共${rowTotal}行`" />
+        </el-form>
+        <el-form :inline="true" v-if="rowTotal">
           <el-form-item label="数据名称行">
             <el-input-number v-model="nameRow" :step="1" :min="1" step-strictly />
           </el-form-item>
+        </el-form>
+        <el-form :inline="true" v-if="rowTotal">
           <el-form-item label="数据起始行">
-            <el-input-number v-model="startRow" :step="1" :min="1" step-strictly />
+            <el-input-number v-model="dataStartRow" :step="1" :min="1" step-strictly />
+          </el-form-item>
+          <el-form-item label="数据起始行">
+            <el-input-number v-model="dataEndRow" :step="1" :min="0" step-strictly />
           </el-form-item>
         </el-form>
         <el-form-item>
-          <el-button type="primary" @click="onExecute('upload')" :disabled="canSubmit">执行</el-button>
+          <el-button type="primary" @click="onExecute('upload')" :disabled="!canSubmit">执行</el-button>
         </el-form-item>
       </el-tab-pane>
       <el-tab-pane label="下载excel模板文件">
@@ -43,7 +51,7 @@
           </div>
         </el-form-item>
         <el-form-item>
-          <el-button slot="trigger" type="primary" @click="onExecute('download')">执行</el-button>
+          <el-button type="primary" @click="onExecute('download')">执行</el-button>
         </el-form-item>
       </el-tab-pane>
     </el-tabs>
@@ -54,28 +62,32 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, toRaw } from 'vue'
 import * as XLSX from 'xlsx'
 import { ElMessage } from 'element-plus'
 
 const executed = ref(false)
 const responseContent = ref<string>('')
 const fileList = ref([])
-const upload = ref<any>(null)
-const noUploadFile = ref(true)
+const upload = ref<any>(null) // 文件上传组件
 const leafLevel = ref<number>(0)
+const isFileUploaded = ref(false)
 const isUploadExcel = ref(false)
 
+const dataRaw = ref<any[] | null>(null) // 表格页数据
 // excel文件sheet页名称
 const sheetNames = ref([] as string[])
 const selectedSheetName = ref('')
 /**
- * 数据起始行号
+ * 行号
  * 标准模板，第1行是中文标题行，第2行是列名称行
  */
-const startRow = ref(3)
 const nameRow = ref(2)
-const rowTotal = ref(0)
+const dataStartRow = ref(3)
+const dataEndRow = ref(0)
+const rowTotal = ref(0) // 表格页中的数据条数
+
+const help = ref('') // 帮助信息
 
 enum PluginWidgetAction {
   Created = 'Created',
@@ -102,7 +114,6 @@ window.addEventListener('message', (event) => {
   const { data } = event
   const { response } = data
   if (response) {
-    noUploadFile.value = false
     if (typeof response === 'string') {
       responseContent.value = response
     } else if (typeof response === 'object') {
@@ -116,7 +127,6 @@ window.addEventListener('message', (event) => {
 })
 
 function handleChange(file: any, files: any) {
-  if (files.length) noUploadFile.value = false
 }
 
 function setLevel(value: number) {
@@ -127,16 +137,24 @@ function setLevel(value: number) {
  * 检查是否满足提交条件
  */
 const canSubmit = computed(() => {
-  if (noUploadFile.value === false) {
-    if (isUploadExcel.value === true) {
-      if (selectedSheetName.value) {
-        return true
-      }
-    } else {
-      return true
+  if (isFileUploaded.value === false) {
+    help.value = '上传文件，并选择包含数据表格页'
+    return false
+  }
+  if (isUploadExcel.value === true) {
+    if (!selectedSheetName.value) {
+      help.value = '没有指定表格页'
+      return false
     }
   }
-  return false
+  if (!Array.isArray(dataRaw.value) || dataRaw.value?.length === 0) {
+    help.value = '上传文件中没有包含数据'
+    return false
+  }
+
+  help.value = ''
+
+  return true
 })
 
 // 选择导入的excel文件中的sheet
@@ -163,8 +181,6 @@ const execUploadData = (rowsJson: any[]) => {
   }
 }
 function handleUpload(req: any) {
-  noUploadFile.value = true
-
   const reader = new FileReader()
 
   //将文件以二进制形式读入页面
@@ -188,38 +204,41 @@ function handleUpload(req: any) {
 
     if (fileType === 'application/json') {
       // 将导入文件转换json数组发给服务端
-      const rowsJson = JSON.parse(fileData)
+      dataRaw.value = JSON.parse(fileData)
       isUploadExcel.value = false
       doSubmit = () => {
-        execUploadData(rowsJson)
+        if (dataRaw.value)
+          execUploadData(toRaw(dataRaw.value))
       }
     } else {
       const wb = XLSX.read(fileData, { type: 'binary' })
+      isUploadExcel.value = true
       /**
        * 选择sheet页后，要解析内容，设置导入相关参数
        */
       onChangeSheet = () => {
         const sh = wb.Sheets[selectedSheetName.value]
-        isUploadExcel.value = true
         // header=1时，获得的是aoa数组
-        const content = XLSX.utils.sheet_to_json(sh, { header: 1 })
-        rowTotal.value = content.length
+        dataRaw.value = XLSX.utils.sheet_to_json(sh, { header: 1 })
+        const rowsRaw = dataRaw.value
+        rowTotal.value = rowsRaw.length
         // 准备提交方法
-        if (content.length) {
+        if (rowsRaw.length) {
           doSubmit = () => {
-            if (startRow.value <= content.length) {
-              const rowsJson = []
-              let names = content[nameRow.value - 1] as string[]
-              for (let i = startRow.value - 1; i < content.length; i++) {
-                let row = content[i] as any[]
-                let data = row.reduce((data, cell, index) => {
+            if (dataStartRow.value <= rowsRaw.length) {
+              const docs = []
+              let names = rowsRaw[nameRow.value - 1] as string[]
+              const lastRow = (dataEndRow.value <= 0 || dataEndRow.value > rowsRaw.length) ? rowsRaw.length : dataEndRow.value
+              for (let i = dataStartRow.value - 1; i < lastRow; i++) {
+                let row = rowsRaw[i] as any[]
+                let doc = row.reduce((data, cell, index) => {
                   data[names[index]] = cell
                   return data
                 }, {})
                 // 清除全空的行
-                if (Object.keys(data).length) rowsJson.push(data)
+                if (Object.keys(doc).length) docs.push(doc)
               }
-              execUploadData(rowsJson)
+              execUploadData(docs)
             }
           }
         } else {
@@ -235,6 +254,8 @@ function handleUpload(req: any) {
         onChangeSheet()
       }
     }
+
+    isFileUploaded.value = true
   }
 }
 

@@ -97,7 +97,6 @@ const executed = ref(false)
 const responseContent = ref<string>('')
 const fileList = ref([])
 const upload = ref<any>(null)
-const noUpload = ref(true)
 const isFileUploaded = ref(false)
 // excel文件sheet页名称
 const sheetNames = ref([] as string[])
@@ -260,7 +259,6 @@ window.addEventListener('message', (event) => {
     assignedClDir.value = clDir
   }
   if (response) {
-    noUpload.value = false
     if (typeof response === 'string') {
       responseContent.value = response
     }
@@ -268,12 +266,9 @@ window.addEventListener('message', (event) => {
 })
 
 function handleChange(file: any, files: any) {
-  if (files.length) noUpload.value = false
 }
 
 function handleUpload(req: any) {
-  noUpload.value = true
-
   const reader = new FileReader()
 
   //将文件以二进制形式读入页面

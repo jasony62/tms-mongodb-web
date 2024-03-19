@@ -15,47 +15,49 @@
         </el-form-item>
       </el-form>
     </div>
-    <div v-if="operation === 'excel' || operation === 'json'">
-      <el-form label-width="120px">
-        <el-form-item>
-          <el-upload ref="upload" :action="''" :http-request="handleUpload" :file-list="fileList" :auto-upload="true"
-            :limit="1" :on-change="handleChange">
-            <el-button slot="trigger" type="primary">选取文件</el-button>
-          </el-upload>
-        </el-form-item>
-        <el-form-item label="选择页" v-if="isUploadExcel">
-          <el-select v-model="selectedSheetName" placeholder="选择">
+    <div v-if="operation === 'excel' || operation === 'json'" class="flex flex-col gap-2">
+      <el-form-item>
+        <el-upload ref="upload" :action="''" :http-request="handleUpload" :file-list="fileList" :auto-upload="true"
+          :limit="1" :on-change="handleChange" style="width:360px;">
+          <el-button slot="trigger" type="primary">选取文件</el-button>
+        </el-upload>
+      </el-form-item>
+      <el-form :inline="true" v-if="isUploadExcel">
+        <el-form-item label="选择页">
+          <el-select v-model="selectedSheetName" placeholder="选择" @change="onChangeSheet" style="width:180px;">
             <el-option v-for="name in sheetNames" :key="name" :label="name" :value="name" />
           </el-select>
         </el-form-item>
-        <el-form-item label="数据起始行">
-          <el-input-number v-model="startRow" :step="1" :min="1" step-strictly />
-        </el-form-item>
-        <el-divider />
+        <el-form-item :label="`共${rowTotal}行`" />
+      </el-form>
+      <div v-if="rowTotal">
+        <el-form :inline="true">
+          <el-form-item label="数据起始行">
+            <el-input-number v-model="dataStartRow" :step="1" :min="1" step-strictly />
+          </el-form-item>
+          <el-form-item label="数据结束行">
+            <el-input-number v-model="dataEndRow" :step="1" :min="0" step-strictly />
+          </el-form-item>
+        </el-form>
+        <el-alert title="数据结束行指定为0时，读取数据到结尾" type="info" :closable="false" />
+      </div>
+      <el-form :inline="true" v-if="rowTotal">
         <el-form-item label="重建表格">
           <el-switch v-model="writeOptions.rebuild"></el-switch>
         </el-form-item>
         <el-form-item label="覆盖数据" v-if="writeOptions.rebuild === false">
-          <div>
-            <el-switch v-model="writeOptions.overwrite"></el-switch>
-            <div class="mt-2">
-              <el-alert title="覆盖或插入" type="info" :closable="false" />
-            </div>
-          </div>
-        </el-form-item>
-        <el-form-item label="写入位置" v-if="writeOptions.rebuild === false">
-          <div>
-            <el-input-number v-model="writeOptions.startIndex" :step="1" :min="minStartIndex" step-strictly />
-            <div class="mt-2">
-              <el-alert title="插入写入时，指定为0，从结尾开始写入" type="info" :closable="false" />
-            </div>
-          </div>
-        </el-form-item>
-        <el-divider />
-        <el-form-item>
-          <el-button type="primary" @click="onExecute('upload')" :disabled="!canSubmit">执行</el-button>
+          <el-switch v-model="writeOptions.overwrite"></el-switch>
         </el-form-item>
       </el-form>
+      <div v-if="rowTotal">
+        <el-form-item label="写入位置" v-if="writeOptions.rebuild === false">
+          <el-input-number v-model="writeOptions.startIndex" :step="1" :min="minStartIndex" step-strictly />
+        </el-form-item>
+        <el-alert title="插入写入时，写入位置指定为0，从结尾开始写入" type="info" :closable="false" />
+      </div>
+      <el-form-item>
+        <el-button type="primary" @click="onExecute('upload')" :disabled="!canSubmit">执行</el-button>
+      </el-form-item>
     </div>
     <div v-if="operation === 'template'">
       <el-form label-width="120px">
@@ -88,7 +90,11 @@ const fileList = ref([])
 const upload = ref<any>(null)
 const noUploadFile = ref(true)
 const isUploadExcel = ref(false)
+const rowTotal = ref(0) // 表格页中的数据条数
 const leafLevel = ref<number>(0)
+
+// 选择导入的excel文件中的sheet
+let onChangeSheet: () => void
 
 enum PluginWidgetAction {
   Created = 'Created',
@@ -108,7 +114,8 @@ interface PluginWidgetResult {
 const sheetNames = ref([] as string[])
 const selectedSheetName = ref('')
 // 数据起始行号
-const startRow = ref(3)
+const dataStartRow = ref(3)
+const dataEndRow = ref(0)
 // 数据写入位置的最小值，覆盖写入时为1，插入写入时为0
 const minStartIndex = computed(() => (writeOptions.overwrite ? 1 : 0))
 /**
@@ -208,9 +215,19 @@ function handleUpload(req: any) {
         isUploadExcel.value = false
       } else {
         wb = XLSX.read(fileData, { type: 'binary' })
-        sheetNames.value.push(...wb.SheetNames)
-        contentType = 'aoa'
         isUploadExcel.value = true
+        const wb2 = wb
+        onChangeSheet = () => {
+          const sh = wb2.Sheets[selectedSheetName.value]
+          const rowsRaw = XLSX.utils.sheet_to_json(sh, { header: 1 })
+          rowTotal.value = rowsRaw.length
+        }
+        sheetNames.value.push(...wb.SheetNames)
+        if (sheetNames.value.length === 1) {
+          selectedSheetName.value = sheetNames.value[0]
+          onChangeSheet()
+        }
+        contentType = 'aoa'
       }
       return { contentType, rowsJson, wb }
     })()
@@ -219,25 +236,24 @@ function handleUpload(req: any) {
      */
     doSubmit = () => {
       if (!Caller) return
-      let content // 要提交的内容
+      let rowsRaw // 要提交的内容
       if (contentType === 'aoa' && wb) {
         const sh = wb.Sheets[selectedSheetName.value]
         // header=1时返回的是包含所有行的aoa
-        content = XLSX.utils.sheet_to_json(sh, { header: 1 })
-        if (Array.isArray(content) && content.length) {
-          const deleteCount = startRow.value - 1
-          if (deleteCount > 0 && deleteCount <= content.length) {
-            content.splice(0, deleteCount)
-          }
+        rowsRaw = XLSX.utils.sheet_to_json(sh, { header: 1 })
+        if (Array.isArray(rowsRaw) && rowsRaw.length) {
+          const startIndex = dataStartRow.value - 1
+          const endIndex = dataEndRow.value > 0 ? dataEndRow.value : rowsRaw.length
+          rowsRaw = rowsRaw.slice(startIndex, endIndex)
         }
       } else if (contentType === 'json' && rowsJson) {
-        content = rowsJson
+        rowsRaw = rowsJson
       }
-      if (contentType && content && typeof content === 'object') {
+      if (contentType && rowsRaw && typeof rowsRaw === 'object') {
         const message: PluginWidgetResult = {
           action: PluginWidgetAction.Execute,
           result: {
-            content: JSON.stringify(content),
+            content: JSON.stringify(rowsRaw),
             contentType,
             writeOptions: toRaw(writeOptions),
           },
