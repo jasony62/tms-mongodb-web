@@ -54,8 +54,8 @@ class ImportPlugin extends PluginBase {
       data, // 对象数组的字符串
       names, // 列名称，字符串数组
       titles, // 列标题，字符串数组
-      fileName,
-      clName,
+      clTitle, // 集合标题
+      clName, // 集合名称
       dir_full_name, // 集合所属分类目录，字符串
       clSpreadsheet, // 字符串 no/yes
     } = ctrl.request.body.widget
@@ -63,9 +63,8 @@ class ImportPlugin extends PluginBase {
 
     if (!data) return { code: 10001, msg: '文件上传失败' }
 
-    if (!fileName) return { code: 10001, msg: '解析上传的文件名称失败' }
-    fileName = fileName.substr(0, fileName.lastIndexOf('.'))
-    debug(`默认以文件名【${fileName}】做为文档列定义和集合的标题`)
+    if (!clTitle) return { code: 10001, msg: '解析上传的文件名称失败' }
+    debug(`默认以文件名【${clTitle}】做为文档列定义和集合的标题`)
 
     if (new RegExp('^[a-zA-Z]+[0-9a-zA-Z_]{0,63}$').test(clName) !== true)
       return {
@@ -100,7 +99,7 @@ class ImportPlugin extends PluginBase {
     // 创建文档列定义
     const [schemaFlag, schemaRst] = await this.createDocSchema(ctrl, existDb, {
       clName,
-      clTitle: fileName,
+      clTitle,
       headersName: names,
       headersTitle: titles,
     })
@@ -111,7 +110,7 @@ class ImportPlugin extends PluginBase {
     const clInfo: any = {
       clName,
       dir_full_name,
-      title: fileName,
+      title: clTitle,
       schema_id: schemaRst,
       clSpreadsheet,
     }

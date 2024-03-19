@@ -38,10 +38,13 @@
     </el-form>
     <el-form :inline="true" v-if="isFileUploaded && rowTotal">
       <el-form-item label="集合名称">
-        <el-input v-model="clName"></el-input>
+        <el-input v-model="clName" placeholder="英文名称"></el-input>
+      </el-form-item>
+      <el-form-item label="集合标题">
+        <el-input v-model="clTitle" placeholder="中文名称"></el-input>
       </el-form-item>
       <el-form-item label="自由表格">
-        <el-select v-model="clSpreadsheet" placeholder="请选择">
+        <el-select v-model="clSpreadsheet" placeholder="请选择" style="width:80px;">
           <el-option label="否" value="no"></el-option>
           <el-option label="是" value="yes"></el-option>
         </el-select>
@@ -95,7 +98,6 @@ const responseContent = ref<string>('')
 const fileList = ref([])
 const upload = ref<any>(null)
 const noUpload = ref(true)
-const uploadFilename = ref('')
 const isFileUploaded = ref(false)
 // excel文件sheet页名称
 const sheetNames = ref([] as string[])
@@ -107,6 +109,7 @@ const dataStartRow = ref(3) // 数据起始行
 const dataEndRow = ref(0) // 数据起始行
 const dataRaw = ref<any[] | null>(null) // 表格页数据
 const clName = ref('')
+const clTitle = ref('')
 const clSpreadsheet = ref('no')
 // 指定的集合所属目录
 const assignedClDir = ref()
@@ -160,22 +163,21 @@ const doSubmit = () => {
   }
 
   const titles = toRaw(colTitles.value)
-  const filename = toRaw(uploadFilename.value)
-  execUploadData(names, titles, docs, filename)
+  execUploadData(names, titles, docs)
 }
 /**
  * 执行上传数据
  */
-const execUploadData = (names: string[] | null, titles: string[] | null, docs: any[], fileName: string) => {
+const execUploadData = (names: string[] | null, titles: string[] | null, docs: any[]) => {
   if (Caller && typeof docs === 'object') {
     const message: PluginWidgetResult = {
       action: PluginWidgetAction.Execute,
       result: {
         data: JSON.stringify(docs),
-        fileName,
+        clName: clName.value,
+        clTitle: clTitle.value,
         names,
         titles,
-        clName: clName.value,
         dir_full_name: assignedClDir.value?.full_name,
         clSpreadsheet: clSpreadsheet.value,
       },
@@ -285,7 +287,7 @@ function handleUpload(req: any) {
     ElMessage.error('不支持的文件格式')
     return
   }
-  uploadFilename.value = req.file.name
+  clTitle.value = req.file.name
 
   reader.onload = function (event: any) {
     const fileData = event.target.result

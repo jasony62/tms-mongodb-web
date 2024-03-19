@@ -6,7 +6,7 @@
       <el-tab-pane label="设置" name="setting"></el-tab-pane>
       <el-tab-pane label="访问控制列表" name="acl" v-if="database._id && database.aclCheck"></el-tab-pane>
     </el-tabs>
-    <el-form ref="form" :model="database" label-position="top" v-show="activeTab === 'info'">
+    <el-form :model="database" label-position="top" v-show="activeTab === 'info'">
       <el-form-item label="数据库名称（系统）">
         <el-input v-model="database.sysname" :disabled="mode === 'update'"></el-input>
       </el-form-item>
@@ -26,7 +26,7 @@
         </el-select>
       </el-form-item>
     </el-form>
-    <el-form ref="form2" :model="database" label-position="top" v-show="activeTab === 'setting'">
+    <el-form :model="database" label-position="top" v-show="activeTab === 'setting'">
       <el-form-item label="集合扩展属性定义" prop="cl_schema_id">
         <el-select v-model="database.cl_schema_id" clearable placeholder="请选择定义名称">
           <el-option v-for="schema in schemas" :key="schema._id" :label="schema.title" :value="schema._id" />
