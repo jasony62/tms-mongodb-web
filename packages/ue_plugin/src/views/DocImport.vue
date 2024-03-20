@@ -168,7 +168,7 @@ const execUploadData = (rowsJson: any[]) => {
   if (Caller && Array.isArray(rowsJson) && rowsJson.length) {
     const message: PluginWidgetResult = {
       action: PluginWidgetAction.Execute,
-      result: { file: JSON.stringify(rowsJson) },
+      result: { data: JSON.stringify(rowsJson) },
       applyAccessTokenField: 'url',
     }
     try {

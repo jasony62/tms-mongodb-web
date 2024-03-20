@@ -8,7 +8,7 @@
     </span>
   </span>
   <div v-else class="max-h-16 overflow-y-auto">
-    {{ renderCellText() }}
+    {{ readableValue() }}
   </div>
 </template>
 
@@ -20,7 +20,7 @@ const Props = defineProps({
   downloadFile: { type: Function, default: (i: number) => { } }
 })
 
-const renderCellText = () => {
+const readableValue = () => {
   const { s, row, k } = Props
   const val = row[k]
   switch (s.type) {

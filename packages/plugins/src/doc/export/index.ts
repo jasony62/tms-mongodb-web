@@ -51,6 +51,7 @@ function getExportFileInfo(ctrl, tmwCl): ExportFileInfoResult {
   return { filePath, fileName, domain, tmsFs }
 }
 /**
+ * 获得文档列定义的迭代器
  *
  * @param ctrl
  * @param schema_id
@@ -70,6 +71,91 @@ async function getDocSchemaIter(ctrl: any, schema_id: string) {
   return schemaIter
 }
 /**
+ * 根据文档列定义，转换值的表示
+ *
+ * @param attrs
+ * @param val
+ * @param doc
+ */
+function readableValue(attrs, val, doc?) {
+  switch (attrs.type) {
+    case 'boolean':
+      return val ? '是' : '否'
+    case 'number':
+    case 'string':
+      if (attrs.enum?.length) {
+        if (attrs.enumGroups?.length) {
+          const group = attrs.enumGroups.find(
+            (g: any) => g.assocEnum.value === doc[g.assocEnum.property]
+          )
+          if (!group) return ''
+          const option = attrs.enum.find(
+            (o: any) => o.group === group.id && o.value === val
+          )
+          if (!option) return ''
+          return option.label
+        } else {
+          const option = attrs.enum.find((o: any) => o.value === val)
+          if (!option) return ''
+          return option.label
+        }
+      } else if (attrs.oneOf?.length) {
+        if (attrs.enumGroups?.length) {
+          const group = attrs.enumGroups.find(
+            (g: any) => g.assocEnum.value === doc[g.assocEnum.property]
+          )
+          if (!group) return ''
+          const option = attrs.oneOf.find(
+            (o: any) => o.group === group.id && o.value === val
+          )
+          if (!option) return ''
+          return option.label
+        } else {
+          const option = attrs.oneOf.find((o: any) => o.value === val)
+          if (option) return option.label
+        }
+      }
+      break
+    case 'array':
+      if (!Array.isArray(val) || val.length === 0) return ''
+      if (attrs.enum?.length) {
+        if (attrs.enumGroups?.length) {
+          const group = attrs.enumGroups.find(
+            (g: any) => g.assocEnum.value === doc[g.assocEnum.property]
+          )
+          if (!group) return ''
+          const options = attrs.enum.filter(
+            (o: any) => o.group === group.id && val.includes(o.value)
+          )
+          return options.map((o: any) => o.label).join(' ')
+        } else {
+          const options = attrs.enum.filter((o: any) => val.includes(o.value))
+          return options.map((o: any) => o.label).join(' ')
+        }
+      } else if (attrs.anyOf?.length) {
+        if (attrs.enumGroups?.length) {
+          const group = attrs.enumGroups.find(
+            (g: any) => g.assocEnum.value === doc[g.assocEnum.property]
+          )
+          if (!group) return ''
+          const options = attrs.anyOf.filter(
+            (o: any) => o.group === group.id && val.includes(o.value)
+          )
+          return options.map((o: any) => o.label).join(' ')
+        } else {
+          const options = attrs.anyOf.filter((o: any) => val.includes(o.value))
+          return options.map((o: any) => o.label).join(' ')
+        }
+      }
+      break
+  }
+
+  return val
+}
+/**
+ * 导出为excel文件
+ *
+ * 第1行是标题行，第2行是名称行
  *
  * @param ctrl
  * @param tmwCl
@@ -86,14 +172,16 @@ async function exportAsExcel(ctrl, tmwCl, docs, leafLevel): Promise<string> {
 
   let { filePath, fileName, tmsFs } = getExportFileInfo(ctrl, tmwCl)
 
-  leafLevel = leafLevel ? leafLevel : 0
   filePath = path.join(filePath, `${fileName}.xlsx`)
 
   // 集合的schema定义
   const schemaIter = await getDocSchemaIter(ctrl, schema_id)
 
-  const titleAry = []
-  const nameAry = []
+  leafLevel = leafLevel ? leafLevel : 0
+
+  const titleAry = [] // 标题行
+  const nameAry = [] // 名称行
+  const propAry = []
   for (let schemaProp of schemaIter) {
     let { fullname, _path, _name, attrs } = schemaProp
     if (
@@ -105,17 +193,22 @@ async function exportAsExcel(ctrl, tmwCl, docs, leafLevel): Promise<string> {
 
     titleAry.push(attrs.title ?? '')
     nameAry.push(fullname)
+    propAry.push(schemaProp)
     if (_path && nameAry.indexOf(_path) > -1) {
       let pos = nameAry.indexOf(_path)
       titleAry.splice(pos, 1)
       nameAry.splice(pos, 1)
+      propAry.splice(pos, 1)
     }
   }
 
   const rows = [titleAry, nameAry]
   docs.forEach((doc) => {
-    const row = nameAry.reduce((data, name) => {
-      data.push(_.get(doc, name))
+    const row = nameAry.reduce((data, name, index) => {
+      const prop = propAry[index]
+      const valRaw = _.get(doc, name)
+      const text = readableValue(prop.attrs, valRaw, doc)
+      data.push(text)
       return data
     }, [])
     rows.push(row)
@@ -134,6 +227,7 @@ async function exportAsExcel(ctrl, tmwCl, docs, leafLevel): Promise<string> {
 }
 
 /**
+ * 导出为json文件
  *
  * @param ctrl
  * @param tmwCl

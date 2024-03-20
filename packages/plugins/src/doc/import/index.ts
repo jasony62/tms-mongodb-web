@@ -3,6 +3,7 @@ import {
   loadConfig,
   ModelSchema,
   ModelDoc,
+  SchemaProp,
   SchemaIter,
   createDocWebhook,
 } from 'tmw-kit'
@@ -23,7 +24,65 @@ const ConfigDir = path.resolve(
 // 插件配置文件地址
 const ConfigFile =
   process.env.TMW_PLUGIN_DOC_IMPORT_CONFIG_NAME || './plugin/doc/import'
+/**
+ *
+ * @param attrs
+ * @param valRaw
+ * @param doc
+ * @returns
+ */
+function storedValue(attrs, valRaw, doc?: any) {
+  let valRet = valRaw // 返回的值
+  const { type } = attrs
 
+  // 填充默认值
+  if (valRaw === null || valRaw === undefined) {
+    if (type === 'string' && attrs.enum?.length && attrs.default?.length) {
+      valRet = attrs.enum.find((ele) => ele.value === attrs.default).label
+    } else if (
+      type === 'array' &&
+      attrs.enum?.length &&
+      attrs.default?.length
+    ) {
+      const target = attrs.enum.map((ele) => {
+        if (attrs.default.includes(ele.value)) {
+          return ele.label
+        }
+      })
+      valRet = target.join(',')
+    } else {
+      //存在默认值
+      valRet = attrs.default || null
+    }
+    return valRet
+  }
+  // 枚举值
+  if (type === 'array') {
+    // 原始数据是空格分隔的字符串
+    valRaw = valRaw.split(' ')
+    if (Array.isArray(valRaw) && valRaw.length) {
+      if (Array.isArray(attrs.enum) && attrs.enum.length) {
+        valRet = attrs.enum.reduce((vals, o) => {
+          if (valRaw.includes(o.label)) vals.push(o.value)
+          return vals
+        }, [])
+      } else if (Array.isArray(attrs.anyOf) && attrs.anyOf.length) {
+        valRet = attrs.anyOf.reduce((vals, o) => {
+          if (valRaw.includes(o.label)) vals.push(o.value)
+          return vals
+        }, [])
+      }
+    }
+  } else if (Array.isArray(attrs.enum) && attrs.enum.length) {
+    const option = attrs.enum.find((o: any) => o.label === valRaw)
+    if (option) valRet = option.value
+  } else if (Array.isArray(attrs.oneOf) && attrs.oneOf.length) {
+    const option = attrs.oneOf.find((o: any) => o.label === valRaw)
+    if (option) valRet = option.value
+  }
+
+  return valRet
+}
 /**
  * 导入数据到集合中
  */
@@ -55,15 +114,17 @@ class ImportPlugin extends PluginBase {
       ctrl.client
     )
     // 集合的schema定义
-    let columns
-    if (schema_id && typeof schema_id === 'string')
-      columns = await modelSchema.bySchemaId(schema_id)
+    const props =
+      schema_id && typeof schema_id === 'string'
+        ? await modelSchema.bySchemaId(schema_id)
+        : {}
+
+    const schemaIter = new SchemaIter({ type: 'object', properties: props })
 
     if (widget.action === 'download') {
       if (!this.DownloadHost)
         return { code: 10001, msg: '未配置文件下载服务地址' }
 
-      const schemaIter = new SchemaIter({ type: 'object', properties: columns })
       const processRst = await this.processExcelTemplate(
         ctrl,
         clName,
@@ -74,101 +135,59 @@ class ImportPlugin extends PluginBase {
       return { code: 0, msg: { filePath: this.DownloadHost + publicpath } }
     }
 
-    const file = widget.file
-    if (!file) {
-      return { code: 10001, msg: '文件上传失败' }
-    }
+    const { data } = widget
+    if (!data) return { code: 10001, msg: '文件上传失败' }
 
-    let rowsJson = JSON.parse(file)
+    const rowsJson = JSON.parse(data)
     if (!Array.isArray(rowsJson) || rowsJson.length === 0)
       return { code: 10001, msg: '上传的文件数据为空或格式错误' }
-
-    let schemaStr = ''
-    if (columns) {
-      for (const k in columns) {
-        schemaStr += k + ','
-      }
-    }
-    debug(`schemaStr[${schemaStr}]`)
 
     const modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
     const docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK)
 
     // 将没有schema定义的数据保存在指定的属性中
-    let extra = process.env.TMW_PLUGIN_DOC_IMPORT_EXTRA_KEY_NAME || 'extra'
-    let importedRows = rowsJson.map((row) => {
-      let newRow: any = {}
-      if (columns) {
-        for (const k in columns) {
-          let column = columns[k]
-          let rDByTitle = row[column.title]
-          if (typeof rDByTitle === 'number') {
-            newRow[k] = String(rDByTitle)
-          } else if (typeof rDByTitle === 'undefined') {
-            // 单选
-            if (
-              column.type === 'string' &&
-              column.enum &&
-              column.enum.length &&
-              column.default &&
-              column.default.length
-            ) {
-              newRow[k] = column.enum.find(
-                (ele) => ele.value === column.default
-              ).label
-            } else if (
-              column.type === 'array' &&
-              column.enum &&
-              column.enum.length &&
-              column.default &&
-              column.default.length
-            ) {
-              const target = column.enum.map((ele) => {
-                if (column.default.includes(ele.value)) {
-                  return ele.label
-                }
-              })
-              newRow[k] = target.join(',')
-            } else {
-              //存在默认值
-              newRow[k] = column.default || null
-            }
-          } else {
-            newRow[k] = rDByTitle
-          }
+    const extra = process.env.TMW_PLUGIN_DOC_IMPORT_EXTRA_KEY_NAME || 'extra'
+    // 要新建的文档
+    let docs = rowsJson.map((row) => {
+      const row2 = JSON.parse(JSON.stringify(row))
+      const newDoc: any = {}
+      // 处理文档列定义对应的数据
+      for (let schemaProp of schemaIter) {
+        const { fullname, attrs } = schemaProp
+        const { title } = attrs
+        let val
+        if (row2[title]) {
+          val = row2[title]
+          delete row2[title]
+        } else if (row2[fullname]) {
+          val = row2[fullname]
+          delete row2[fullname]
         }
+
+        const docVal = storedValue(attrs, val, newDoc)
+        // 需要考虑fullname多级的情况
+        _.set(newDoc, fullname, docVal)
       }
 
-      for (let k in row) {
-        let oneRow = _.get(row, k)
-
-        if (typeof oneRow === 'number') oneRow = String(oneRow)
-
-        if (schemaStr.indexOf(k) > -1) {
-          if (newRow[k] === null) _.set(newRow, k, oneRow)
-        } else if (k.indexOf('.') > -1) {
-          const objKey = k.replace(/\./g, '.properties.')
-          if (typeof _.get(columns, objKey) === 'object')
-            _.set(newRow, k.split('.'), oneRow)
-        } else {
-          // 检查是否包含中文
-          if (/[\u4E00-\u9FA5]+/g.test(k)) {
-            k = pinyin(k, { toneType: 'none' })
-            k = k.replace(/ +/g, '_')
-          }
-          _.set(newRow, [extra, k], oneRow)
+      // 不在文档列定义中，额外的数据
+      Object.entries<any>(row2).forEach(([pName, val]) => {
+        // 如果是中文，转换为拼音
+        if (/[\u4E00-\u9FA5]+/g.test(pName)) {
+          pName = pinyin(pName, { toneType: 'none' })
+          // pName = pName.replace(/ +/g, '_')
         }
-      }
+        _.set(newDoc, [extra, pName], val)
+      })
 
       // 加工数据
-      modelDoc.processBeforeStore(newRow, 'insert', columns)
+      modelDoc.processBeforeStore(newDoc, 'insert', props)
 
-      return newRow
+      return newDoc
     })
 
     try {
       // 通过webhook处理数据
-      let beforeRst: any = await docWebhook.beforeCreate(importedRows, tmwCl)
+      let beforeRst: any = await docWebhook.beforeCreate(docs, tmwCl)
 
       if (beforeRst.passed !== true)
         return {
@@ -177,10 +196,10 @@ class ImportPlugin extends PluginBase {
         }
 
       if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
-        importedRows = beforeRst.rewrited
+        docs = beforeRst.rewrited
 
       // 数据存储到集合中
-      const rst = await modelDoc.createMany(tmwCl, importedRows)
+      const rst = await modelDoc.createMany(tmwCl, docs)
       debug(`导入的数据已存储到[db=${tmwCl.db.sysname}][cl=${clName}]`)
 
       // 通过webhook处理数据
