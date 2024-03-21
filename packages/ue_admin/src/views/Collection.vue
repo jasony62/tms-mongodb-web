@@ -33,13 +33,14 @@
             </template>
           </el-table-column>
           <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k" :width="s.width ?? 120">
-
             <template #header>
-              <div @click="handleFilter(s, k)" class="flex flex-row items-center">
-                <span v-if="s.required" class="text-red-400">*</span>
-                <span>{{ s.title }}</span>
-                <img :data-id="k" class="w-4 h-4 inline-block" src="../assets/imgs/icon_filter.png" />
-              </div>
+              <el-tooltip class="box-item" effect="light" :content="s.description || s.title" placement="top">
+                <div @click="handleFilter(s, k)" class="flex flex-row items-center">
+                  <span v-if="s.required" class="text-red-400">*</span>
+                  <span>{{ s.title }}</span>
+                  <img :data-id="k" class="w-4 h-4 inline-block" src="../assets/imgs/icon_filter.png" />
+                </div>
+              </el-tooltip>
             </template>
 
             <template #default="scope">
@@ -123,7 +124,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref, computed, toRaw } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElTooltip } from 'element-plus'
 import { ArrowRight, ArrowDown } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
 import * as _ from 'lodash'
