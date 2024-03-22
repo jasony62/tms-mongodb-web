@@ -13,7 +13,7 @@
       </el-dropdown>
     </div>
     <!--content-->
-    <div class="flex-grow flex flex-row gap-2 h-full">
+    <div class="flex-grow flex flex-row gap-2 overflow-y-auto">
       <div class="w-36 flex-none h-full flex flex-col">
         <!--left-->
         <el-menu v-if="EXTRACT !== true" class="overflow-auto flex-none" default-active="/database/" router>
@@ -53,7 +53,7 @@
         </div>
       </div>
       <!--content-->
-      <div class="flex-grow flex flex-col gap-2 mt-4 mx-4 h-full overflow-x-auto">
+      <div class="flex-grow flex flex-col gap-2 h-full overflow-x-auto">
         <router-view :key="route.path"></router-view>
       </div>
       <assistant></assistant>

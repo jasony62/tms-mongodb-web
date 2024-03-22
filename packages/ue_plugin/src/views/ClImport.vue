@@ -119,7 +119,7 @@ const help = ref('')
 const colTitles = computed(() => {
   if (!Array.isArray(dataRaw.value) || dataRaw.value.length === 0) return []
   if (titleRow.value > 0 && titleRow.value < dataRaw.value.length) {
-    return dataRaw.value[titleRow.value - 1]
+    return dataRaw.value[titleRow.value - 1].map((t: string) => t.trim())
   }
   return []
 })
@@ -293,7 +293,7 @@ function handleUpload(req: any) {
      */
     onChangeSheet = () => {
       const sh = wb.Sheets[selectedSheetName.value]
-      const rowsAoa = XLSX.utils.sheet_to_json<string[]>(sh, { header: 1 })
+      const rowsAoa = XLSX.utils.sheet_to_json<string[]>(sh, { header: 1, raw: false })
       dataRaw.value = rowsAoa
       rowTotal.value = rowsAoa.length
     }

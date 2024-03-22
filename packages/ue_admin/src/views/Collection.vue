@@ -1,5 +1,5 @@
 <template>
-  <div id="collection" class="flex flex-col gap-2 w-full">
+  <div id="collection" class="flex flex-col gap-2 h-full w-full">
     <!--header-->
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight" v-if="EXTRACT === true">
@@ -16,64 +16,15 @@
       </el-breadcrumb>
     </div>
     <!--content-->
-    <div class="flex flex-row gap-2">
+    <div class="flex-grow flex flex-row gap-2 overflow-y-auto">
       <!--left-->
       <div class="flex flex-col gap-4" :class="COMPACT ? 'w-full' : 'w-4/5'">
-        <el-table id="tables" ref="tableRef" :cell-class-name="'tmw-table__cell'" :data="store.documents"
-          highlight-current-row stripe @selection-change="handleSelectionChange" @current-change="handleCurrentChange"
-          @row-click="handleRowClick">
-
-          <el-table-column type="selection" width="40" v-if="MULTIPLE !== false" />
-          <el-table-column type="expand" width="40">
-
-            <template #default="props">
-              <div class="ml-20">
-                <div v-html="renderDocManual(props.row)"></div>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column v-for="(s, k, i) in data.properties" :key="i" :prop="k" :width="s.width ?? 120">
-            <template #header>
-              <el-tooltip class="box-item" effect="light" :content="s.description || s.title" placement="top">
-                <div @click="handleFilter(s, k)" class="flex flex-row items-center">
-                  <span v-if="s.required" class="text-red-400">*</span>
-                  <span>{{ s.title }}</span>
-                  <img :data-id="k" class="w-4 h-4 inline-block" src="../assets/imgs/icon_filter.png" />
-                </div>
-              </el-tooltip>
-            </template>
-
-            <template #default="scope">
-              <doc-cell :s="s" :row="scope.row" :k="String(k)" :download-file="downLoadFile"></doc-cell>
-            </template>
-          </el-table-column>
-          <el-table-column fixed="right" label="操作" width="140" class-name="tmw-opt__column">
-
-            <template #default="scope">
-              <el-button type="primary" link size="small" @click.stop="previewDocument(scope.row)">查看</el-button>
-              <el-button v-if="HasDocEditRight" type="primary" link size="small" @click.stop="editDocument(scope.row)"
-                class="ml-0">修改</el-button>
-              <el-dropdown class="tmw-opt__dropdown" v-if="HasDocEditRight">
-                <el-button type="primary" link size="small">更多
-                  <el-icon class="el-icon--right"><arrow-down /></el-icon>
-                </el-button>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item v-if="Collection.docAclCheck">
-                      <el-button @click="openAclEditor(scope.row)" type="primary" link size="small">访问控制</el-button>
-                    </el-dropdown-item>
-                    <el-dropdown-item>
-                      <el-button type="primary" link size="small" @click="copyDocument(scope.row)">复制</el-button>
-                    </el-dropdown-item>
-                    <el-dropdown-item>
-                      <el-button type="danger" link size="small" @click="removeDocument(scope.row)">删除</el-button>
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </template>
-          </el-table-column>
-        </el-table>
+        <el-auto-resizer class="flex-grow overflow-x-auto">
+          <template #default="{ height, width }">
+            <el-table-v2 id="table" :data="store.documents" :columns="tableColumns" :width="width" :height="height"
+              fixed :row-event-handlers="RowEventHandlers" :row-class="rowClass" />
+          </template>
+        </el-auto-resizer>
         <div class="flex flex-row gap-4 p-2 items-center justify-between">
           <span class="tmw-pagination__text">已选中 {{ selectedDocuments.length }} 条数据</span>
           <div class="flex flex-row gap-4" :hide-on-single-page="true">
@@ -105,27 +56,25 @@
 </template>
 
 <style scoped lang="scss">
-#tables :deep(tr.current-row > td.tmw-table__cell) {
+#table :deep(.el-table-v2__row.current-row) {
   @apply text-red-400;
 }
 </style>
 
-<style lang="scss">
-.tmw-opt__column {
-  .cell {
-    @apply flex flex-row justify-between;
-
-    .el-button+.el-button {
-      margin-left: 0;
-    }
-  }
-}
-</style>
-
 <script setup lang="ts">
-import { onMounted, reactive, ref, computed, toRaw } from 'vue'
-import { ElMessage, ElMessageBox, ElTooltip } from 'element-plus'
-import { ArrowRight, ArrowDown } from '@element-plus/icons-vue'
+import { onMounted, reactive, ref, computed, toRaw, h } from 'vue'
+import {
+  ElMessage,
+  ElMessageBox,
+  ElTooltip,
+  ElCheckbox,
+  TableV2FixedDir,
+  CheckboxValueType,
+  ElTableV2,
+  RowEventHandlerParams,
+  RowClassNameGetter
+} from 'element-plus'
+import { ArrowRight } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
 import * as _ from 'lodash'
 import * as Handlebars from 'handlebars'
@@ -152,7 +101,6 @@ import {
   openSelectConditionEditor,
 } from '@/components/editor'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
-import { ElTable } from 'element-plus'
 import { useMitt } from '@/composables/mitt'
 import { useAssistant } from '@/composables/assistant'
 import DocCell from '@/components/DocCell.vue'
@@ -161,6 +109,7 @@ import { useDocPreviewJson } from '@/composables/docPreviewJson'
 import TmwPlugins from '@/components/PluginList.vue'
 import TmwPluginWidget from '@/components/PluginWidget.vue'
 import { useTmwPlugins } from '@/composables/plugins'
+import CollectionDocOps from './CollectionDocOps.vue'
 
 type FieldProp = {
   [k: string]: Record<string, any>
@@ -190,14 +139,19 @@ const props = defineProps({
 })
 const { bucketName, dbName, clName } = props
 
+const CurrentRow = ref()
+const CheckedRow = reactive<any>({})
+const router = useRouter()
+
+// 文档列
+const tableColumns = ref<any>([])
+
 const data = reactive({
   docBatch: new Batch(() => { }),
   properties: {} as FieldProp,
   plugins: [] as any[],
   filter: reactive({}),
 })
-
-const tableRef = ref<InstanceType<typeof ElTable>>()
 
 const selectedDocuments = ref<any[]>([])
 const totalByAll = computed(() =>
@@ -216,6 +170,20 @@ const HasDocEditRight = computed(() => {
 
   return false
 })
+// 设置表格行的样式
+const rowClass = ({ rowData }: Parameters<RowClassNameGetter<any>>[0]) => {
+  if (MULTIPLE.value === false) {
+    // 单选时，通过样式标记选中的行
+    if (CurrentRow.value === rowData) return 'current-row'
+  }
+  return ''
+}
+// 表格事件
+const RowEventHandlers = {
+  onClick: (params: RowEventHandlerParams) => {
+    CurrentRow.value = params.rowData
+  }
+}
 
 const handleCondition = () => {
   const conditions = store.conditions
@@ -303,23 +271,6 @@ const handleFilter = (schema: any, name: any) => {
   })
 }
 
-const handleSelectionChange = (rows: any) => {
-  selectedDocuments.value = rows
-}
-
-const currentRow = ref()
-
-const handleCurrentChange = (row: any) => {
-  currentRow.value = row
-}
-
-const handleRowClick = (row: any) => {
-  //@ts-ignore
-  tableRef.value!.toggleRowSelection(row)
-}
-
-const router = useRouter()
-
 const createDocument = () => {
   router.push({ name: 'docEditor', params: { dbName, clName } })
 }
@@ -328,12 +279,16 @@ const createDocument = () => {
  * @param document
  */
 const previewDocument = (document: any) => {
-  const onSave = HasDocEditRight.value ? (newDoc: any) => {
-    apiDoc.update(bucketName, dbName, clName, document._id, newDoc).then(() => {
-      Object.assign(document, newDoc)
-      ElMessage.success({ showClose: true, message: '修改成功' })
-    })
-  } : undefined
+  const onSave = HasDocEditRight.value
+    ? (newDoc: any) => {
+      apiDoc
+        .update(bucketName, dbName, clName, document._id, newDoc)
+        .then(() => {
+          Object.assign(document, newDoc)
+          ElMessage.success({ showClose: true, message: '修改成功' })
+        })
+    }
+    : undefined
   // 打开预览窗口
   const { opened } = useDocPreviewJson({ document, onSave })
   opened.value = true
@@ -643,7 +598,7 @@ const listSchemaByTag = (tags: any) => {
 /**
  * 获得集合文档定义的顶层属性，作为表格的列
  */
-const setTableColumnsFromSchema = async () => {
+const createTableColumns = async () => {
   let matchedSchema = {}
   let properties: any = Collection.schema.body.properties
   // const { schema_default_tags, schema_tags } = collection
@@ -651,7 +606,7 @@ const setTableColumnsFromSchema = async () => {
   //   matchedSchema = await listSchemaByTag(schema_default_tags)
   // } else if (schema_tags && schema_tags.length) {
   //   matchedSchema = await listSchemaByTag(schema_tags)
-  // } else 
+  // } else
   if (properties && typeof properties === 'object') {
     /*需要去除password属性*/
     const props: any = {}
@@ -662,8 +617,75 @@ const setTableColumnsFromSchema = async () => {
     }
     Object.assign(matchedSchema, props)
   }
-
   data.properties = Object.freeze(matchedSchema)
+  // 选择列
+  if (MULTIPLE.value !== false) {
+    tableColumns.value.push({
+      key: 'selection',
+      width: 40,
+      cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => {
+        const onChange = (checked: CheckboxValueType) => {
+          if (checked) selectedDocuments.value.push(rowData)
+          else selectedDocuments.value.splice(selectedDocuments.value.indexOf(rowData), 1)
+          CheckedRow[rowIndex] = checked
+        }
+        return h(ElCheckbox, { modelValue: CheckedRow[rowIndex], onChange })
+      },
+      headerCellRenderer: () => {
+        const onChange = (checked: CheckboxValueType) => {
+          if (checked) {
+            for (let i = 0; i < store.documents.length; i++) CheckedRow[i] = true
+            selectedDocuments.value.push(...store.documents)
+          } else {
+            Object.keys(CheckedRow).forEach((k) => CheckedRow[k] = false)
+            selectedDocuments.value.splice(0, selectedDocuments.value.length)
+          }
+        }
+        return h(ElCheckbox, { onChange })
+      }
+    })
+  }
+  // 数据列
+  Object.entries<any>(data.properties).forEach(([propName, propAttrs]) => {
+    tableColumns.value.push({
+      key: propName,
+      dataKey: propName,
+      title: propAttrs.title,
+      width: 120,
+      cellRenderer: ({ rowData }: { rowData: any }) => {
+        return h(DocCell, {
+          propAttrs,
+          propName,
+          doc: rowData,
+          downloadFile: downLoadFile,
+        })
+      },
+      headerCellRenderer: () => {
+        return h(ElTooltip,
+          { content: propAttrs.description || propAttrs.title, placement: 'top', effect: 'light' },
+          { default: () => [h('div', propAttrs.title)] })
+      }
+    })
+  })
+  // 操作列
+  tableColumns.value.push({
+    key: 'operations',
+    title: '操作',
+    width: 140,
+    align: 'center',
+    fixed: TableV2FixedDir.RIGHT,
+    cellRenderer: ({ rowData }: { rowData: any }) => {
+      return h(CollectionDocOps, {
+        Collection,
+        doc: rowData,
+        onPreview: previewDocument,
+        onEdit: editDocument,
+        onCopy: copyDocument,
+        onRemove: removeDocument,
+        onAcl: openAclEditor
+      })
+    },
+  })
 }
 
 const listDocByKw = () => {
@@ -692,7 +714,7 @@ if (EXTRACT) {
       emitter.emit('extract.confirm.result', {
         dbName,
         clName,
-        doc: toRaw(currentRow.value),
+        doc: toRaw(CurrentRow.value),
       })
     } else {
       let docs = selectedDocuments.value.map((d) => toRaw(d))
@@ -709,7 +731,7 @@ onMounted(async () => {
     clName
   )
   Object.assign(Collection, cl)
-  await setTableColumnsFromSchema()
+  await createTableColumns()
   listDocByKw()
 })
 onBeforeRouteLeave((to, from) => {

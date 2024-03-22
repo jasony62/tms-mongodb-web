@@ -111,7 +111,7 @@ const totalByFilter = computed(() => 0)
 const totalByChecked = computed(() => data.multipleCl.length)
 
 const MiddleWidthStyleClass = computed(() => {
-  return COMPACT.value ? 'full' : data.clDirs?.length ? 'w-4/6' : 'w-4/5'
+  return COMPACT.value ? 'w-full h-full' : data.clDirs?.length ? 'w-4/6' : 'w-4/5'
 })
 
 const HasClEditRight = computed(() => {

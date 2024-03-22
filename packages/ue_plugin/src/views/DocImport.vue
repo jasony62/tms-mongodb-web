@@ -211,7 +211,7 @@ function handleUpload(req: any) {
           execUploadData(toRaw(dataRaw.value))
       }
     } else {
-      const wb = XLSX.read(fileData, { type: 'binary' })
+      const wb = XLSX.read(fileData, { type: 'binary', cellDates: true })
       isUploadExcel.value = true
       /**
        * 选择sheet页后，要解析内容，设置导入相关参数
@@ -219,7 +219,7 @@ function handleUpload(req: any) {
       onChangeSheet = () => {
         const sh = wb.Sheets[selectedSheetName.value]
         // header=1时，获得的是aoa数组
-        dataRaw.value = XLSX.utils.sheet_to_json(sh, { header: 1 })
+        dataRaw.value = XLSX.utils.sheet_to_json(sh, { header: 1, raw: false })
         const rowsRaw = dataRaw.value
         rowTotal.value = rowsRaw.length
         // 准备提交方法
@@ -227,12 +227,17 @@ function handleUpload(req: any) {
           doSubmit = () => {
             if (dataStartRow.value <= rowsRaw.length) {
               const docs = []
-              let names = rowsRaw[nameRow.value - 1] as string[]
+              let names = (rowsRaw[nameRow.value - 1] as string[]).map((n: string) => n.trim())
               const lastRow = (dataEndRow.value <= 0 || dataEndRow.value > rowsRaw.length) ? rowsRaw.length : dataEndRow.value
               for (let i = dataStartRow.value - 1; i < lastRow; i++) {
                 let row = rowsRaw[i] as any[]
                 let doc = row.reduce((data, cell, index) => {
-                  data[names[index]] = cell
+                  let val // 填入文档的值
+                  if (cell instanceof Date) {
+                    // excel的时间差43秒
+                    val = (new Date(cell.getTime() + 43000)).toLocaleString()
+                  } else val = cell
+                  data[names[index]] = val
                   return data
                 }, {})
                 // 清除全空的行
