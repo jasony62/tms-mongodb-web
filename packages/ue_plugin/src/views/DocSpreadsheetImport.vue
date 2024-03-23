@@ -219,7 +219,7 @@ function handleUpload(req: any) {
         const wb2 = wb
         onChangeSheet = () => {
           const sh = wb2.Sheets[selectedSheetName.value]
-          const rowsRaw = XLSX.utils.sheet_to_json(sh, { header: 1 })
+          const rowsRaw = XLSX.utils.sheet_to_json(sh, { header: 1, raw: false })
           rowTotal.value = rowsRaw.length
         }
         sheetNames.value.push(...wb.SheetNames)
