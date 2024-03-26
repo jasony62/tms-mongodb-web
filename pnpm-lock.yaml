@@ -112,6 +112,9 @@ importers:
       rimraf:
         specifier: ^5.0.1
         version: 5.0.1
+      typescript:
+        specifier: 5.5.0-dev.20240326
+        version: 5.5.0-dev.20240326
 
   packages/tmw-data:
     devDependencies:
@@ -7332,6 +7335,12 @@ packages:
     resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
     engines: {node: '>=14.17'}
     hasBin: true
+
+  /typescript@5.5.0-dev.20240326:
+    resolution: {integrity: sha512-SxtRpcyojeAqYONbjjN85fZh06WkdLhJiBwsfn6Ud2BUMYFIdjKMOeDyBXPKCmBArP3Ax+PZ0hq1Y2vli76zHg==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+    dev: true
 
   /uglify-js@3.17.0:
     resolution: {integrity: sha512-aTeNPVmgIMPpm1cxXr2Q/nEbvkmV8yq66F3om7X3P/cvOXQ0TMQ64Wk63iyT1gPlmdmGzjGpyLh1f3y8MZWXGg==}

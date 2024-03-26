@@ -26,7 +26,15 @@ function zipByArchive(space) {
 
   return true
 }
-
+/**
+ *
+ * @param Context
+ * @param domain
+ * @param data
+ * @param fileName
+ * @param options
+ * @returns
+ */
 export function exportJSON(Context, domain, data, fileName, options) {
   const tmsFs = new LocalFS(Context, domain)
   const uploadObj = new Upload(tmsFs)
@@ -45,15 +53,20 @@ export function exportJSON(Context, domain, data, fileName, options) {
     if (fs.existsSync(filePath)) throw Error(`文件【${filePath}】已经存在`)
   }
 
+  // 删除已经存在的打包文件
+  if (fs.existsSync(filePath)) fs.rmSync(filePath)
+  // 删除用于存放多个文件的目录
   const space = filePath.replace('.zip', '')
-  if (fs.existsSync(space)) {
-    fs.rmSync(space, { recursive: true })
-  }
-  fs.mkdirSync(space, { recursive: true })
+  if (fs.existsSync(space)) fs.rmSync(space, { recursive: true })
 
+  // 创建保存要压缩的文件的目录
+  fs.mkdirSync(space, { recursive: true })
   // 数据写入文件
   if (outAmount === 'one') {
-    fs.writeFileSync(PATH.join(space, `${fileName}.json`), JSON.stringify(data))
+    fs.writeFileSync(
+      PATH.join(space, `${fileName.replace('zip', 'json')}`),
+      JSON.stringify(data)
+    )
   } else if (outAmount === 'more') {
     data.forEach((d) => {
       fs.writeFileSync(PATH.join(space, `${d._id}.json`), JSON.stringify(d))

@@ -41,12 +41,9 @@ function getExportFileInfo(ctrl, tmwCl): ExportFileInfoResult {
   const tmsFs = new LocalFS(ctrl.tmsContext, domain.name)
 
   const { name: fileName } = tmwCl
-  let filePath = tmsFs.pathWithRoot(fileName)
+  const filePath = tmsFs.pathWithRoot(fileName)
 
-  if (fs.existsSync(filePath)) {
-    fs.rmSync(filePath, { recursive: true })
-  }
-  fs.mkdirSync(filePath, { recursive: true })
+  if (fs.existsSync(filePath)) fs.rmSync(filePath, { recursive: true })
 
   return { filePath, fileName, domain, tmsFs }
 }
