@@ -651,7 +651,7 @@ const createTableColumns = async () => {
       key: propName,
       dataKey: propName,
       title: propAttrs.title,
-      width: 120,
+      width: propAttrs.width ?? 120,
       cellRenderer: ({ rowData }: { rowData: any }) => {
         return h(DocCell, {
           propAttrs,
