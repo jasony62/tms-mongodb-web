@@ -258,8 +258,8 @@ importers:
         specifier: ^0.0.6
         version: 0.0.6(debug@4.3.4)
       tms-vue3-ui:
-        specifier: ^0.0.88
-        version: 0.0.88
+        specifier: ^0.0.89
+        version: 0.0.89
       vue:
         specifier: 3.3.4
         version: 3.3.4
@@ -331,8 +331,8 @@ importers:
         specifier: ^3.16.4
         version: 3.16.4
       tms-vue3-ui:
-        specifier: ^0.0.88
-        version: 0.0.88
+        specifier: ^0.0.89
+        version: 0.0.89
       vue:
         specifier: 3.3.4
         version: 3.3.4
@@ -7220,8 +7220,8 @@ packages:
       - supports-color
     dev: false
 
-  /tms-vue3-ui@0.0.88:
-    resolution: {integrity: sha512-a6mQywlqT8WOV5izP9Ny2HjCvdmDMW4+3yGzxbxC0lfDsbkWYO9cMvzaEFSfpUc6iDJgJguWYFhrP52eFXhYRA==}
+  /tms-vue3-ui@0.0.89:
+    resolution: {integrity: sha512-FVoxz3UYMXAV/468miyyqkxhQcbr+0DLb4wSuva9w5cxG8XL9aoSK+TQX5k2bXzec2Hhoc22XYp+4Qujx1wxFA==}
     dependencies:
       debug: 4.3.4
       lodash: 4.17.21

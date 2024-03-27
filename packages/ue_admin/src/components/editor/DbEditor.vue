@@ -46,6 +46,9 @@
         <el-form-item label="用户">
           <el-input v-model="newAclUser.id"></el-input>
         </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="newAclUser.remark"></el-input>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" :disabled="!newAclUser.id" @click="onAddAclUser(newAclUser)">添加</el-button>
         </el-form-item>
@@ -68,7 +71,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref, h } from 'vue'
-import { ElMessageBox, ElButton, ElSelect, ElOption } from 'element-plus'
+import { ElMessageBox, ElButton, ElInput, ElSelect, ElOption } from 'element-plus'
 import apiDb from '@/apis/database'
 import apiSchema from '@/apis/schema'
 import apiAcl from '@/apis/acl'
@@ -102,10 +105,21 @@ const aclUserColumns = [{
   title: '用户',
   width: '200px'
 }, {
+  key: 'remark',
+  dataKey: 'user.remark',
+  title: '备注',
+  width: '200px',
+  cellRenderer: ({ rowData }: { rowData: any }) => h(ElInput, {
+    modelValue: rowData.user.remark, onInput: (value) => {
+      rowData.user.remark = value
+      rowData.__modified = true
+    }
+  })
+}, {
   key: 'right',
   title: '权限控制',
-  width: '240px',
-  cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h(ElSelect, {
+  width: '200px',
+  cellRenderer: ({ rowData }: { rowData: any }) => h(ElSelect, {
     modelValue: rowData.right, multiple: true, clearable: true, onChange: (value) => {
       rowData.right = value
       rowData.__modified = true
@@ -150,12 +164,13 @@ const onSubmit = () => {
   }
 }
 const onAddAclUser = (newUser: any) => {
-  const { id } = newUser
+  const { id, remark } = newUser
   const target = { type: 'database', id: database._id }
-  const user = { id }
-  apiAcl.add(target, user).then((data: any) => {
-    aclUserList.value.splice(0, 0, { user: { id } })
+  const user = { id, remark }
+  apiAcl.add(target, user).then(() => {
+    aclUserList.value.splice(0, 0, { user: { id, remark } })
     newAclUser.id = ''
+    newAclUser.remark = ''
   })
 }
 const removeAclUser = (aclUser: any, index: number) => {
@@ -168,7 +183,7 @@ const removeAclUser = (aclUser: any, index: number) => {
 const updateAclUser = (aclUser: any, index: number) => {
   const { user, right } = aclUser
   const target = { type: 'database', id: database._id }
-  apiAcl.update(target, { id: user.id }, { right }).then(() => {
+  apiAcl.update(target, { id: user.id, remark: user.remark }, { right }).then(() => {
     aclUser.__modified = false
   })
 }

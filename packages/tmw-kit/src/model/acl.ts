@@ -6,6 +6,7 @@ interface AclTarget {
 }
 interface AclUser {
   id: string
+  remark?: string
 }
 type AclRight = string[]
 /**
@@ -32,6 +33,7 @@ class Acl extends Base {
     }
     const validUser = {
       id: user.id,
+      remark: user.remark,
     }
     const update = {
       $push: {
@@ -61,16 +63,14 @@ class Acl extends Base {
       'target.id': target.id,
       'target.type': target.type,
     }
-    const validUser = {
-      id: user.id,
-    }
     const update = {
       $pull: {
-        acl: { user: validUser },
+        acl: { 'user.id': user.id },
       },
     }
     const result = await this.clAcl.updateOne(query, update)
     const { modifiedCount, matchedCount } = result
+
     if (modifiedCount === 1) return [true]
 
     if (matchedCount === 0) return [false, '没有匹配的授权列表']
@@ -96,7 +96,7 @@ class Acl extends Base {
       return [false, '没有指定要更新的数据']
 
     const { right } = data
-    if (!Array.isArray(right)) return [false, '没有指定要更新的权限数据']
+    // if (!Array.isArray(right)) return [false, '没有指定要更新的权限数据']
 
     const query = {
       'target.id': target.id,
@@ -106,6 +106,7 @@ class Acl extends Base {
 
     const updated = {
       $set: {
+        'acl.$.user.remark': user.remark,
         'acl.$.right': right,
       },
     }

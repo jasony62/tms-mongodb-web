@@ -6,6 +6,9 @@
         <el-form-item label="用户">
           <el-input v-model="newAclUser.id"></el-input>
         </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="newAclUser.remark"></el-input>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="onAddAclUser(newAclUser)">添加</el-button>
         </el-form-item>
@@ -25,7 +28,7 @@
 </template>
 <script setup lang="ts">
 import { onMounted, reactive, ref, h } from 'vue'
-import { ElButton } from 'element-plus'
+import { ElButton, ElInput } from 'element-plus'
 import apiAcl from '@/apis/acl'
 
 const emit = defineEmits(['submit'])
@@ -54,9 +57,18 @@ const aclUserColumns = [{
   title: '用户',
   width: '200px'
 }, {
+  key: 'remark',
+  dataKey: 'user.remark',
+  title: '备注',
+  width: '200px',
+},
+{
   key: 'operaations',
   title: '操作',
-  cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h(ElButton, { onClick: () => removeAclUser(rowData, rowIndex) }, { default: () => '删除' })
+  cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) =>
+    [
+      h(ElButton, { onClick: () => removeAclUser(rowData, rowIndex) }, { default: () => '删除' }),
+    ]
 }]
 const aclUserList = ref([] as any[])
 
@@ -71,12 +83,13 @@ const onBeforeClose = () => {
 }
 
 const onAddAclUser = (newUser: any) => {
-  const { id } = newUser
+  const { id, remark } = newUser
   const target = { type: 'document', id: doc._id }
-  const user = { id }
+  const user = { id, remark }
   apiAcl.add(target, user).then((data: any) => {
-    aclUserList.value.splice(0, 0, { user: { id } })
+    aclUserList.value.splice(0, 0, { user: { id, remark } })
     newAclUser.id = ''
+    newAclUser.remark = ''
   })
 }
 const removeAclUser = (aclUser: any, index: number) => {
@@ -84,6 +97,13 @@ const removeAclUser = (aclUser: any, index: number) => {
   const target = { type: 'document', id: doc._id }
   apiAcl.remove(target, { id: user.id }).then(() => {
     aclUserList.value.splice(index, 1)
+  })
+}
+const updateAclUser = (aclUser: any, index: number) => {
+  const { user, right } = aclUser
+  const target = { type: 'database', id: doc._id }
+  apiAcl.update(target, { id: user.id, remark: user.remark }, { right }).then(() => {
+    aclUser.__modified = false
   })
 }
 onMounted(() => {
