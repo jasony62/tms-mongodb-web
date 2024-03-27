@@ -14,7 +14,7 @@
     "jsoneditor": "10.0.1",
     "pinia": "2.1.6",
     "pinyin-pro": "^3.16.4",
-    "tms-vue3-ui": "^0.0.88",
+    "tms-vue3-ui": "^0.0.89",
     "vue": "3.3.4",
     "vue-router": "4.2.4",
     "xlsx": "^0.18.5"

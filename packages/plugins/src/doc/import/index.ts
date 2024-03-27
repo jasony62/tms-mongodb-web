@@ -3,7 +3,6 @@ import {
   loadConfig,
   ModelSchema,
   ModelDoc,
-  SchemaProp,
   SchemaIter,
   createDocWebhook,
 } from 'tmw-kit'
