@@ -19,7 +19,7 @@ export default defineStore('mongodb', {
       collections: [] as any[],
       tags: [] as any[],
       documents: [] as any[],
-      conditions: [] as any[],
+      conditions: [] as any[], // 保存每一列的筛选条件
       collCache: new Map<string, any>(),
     }
   },
@@ -301,15 +301,6 @@ export default defineStore('mongodb', {
       }
       this.conditions.push(condition)
     },
-    conditionDelBtn(payload: { columnName: any }) {
-      const { columnName } = payload
-      this.conditions.forEach((ele: any) => {
-        if (ele.columnName !== columnName) {
-          ele.rule.orderBy = {}
-          ele.bySort = ''
-        }
-      })
-    },
     conditionDelColumn(payload: { condition: any }) {
       const { condition } = payload
       const index = this.conditions.findIndex(
@@ -318,6 +309,15 @@ export default defineStore('mongodb', {
       if (index !== -1) {
         this.conditions.splice(index, 1)
       }
+    },
+    conditionCleanSort(payload: { columnName: any }) {
+      const { columnName } = payload
+      this.conditions.forEach((ele: any) => {
+        if (ele.columnName !== columnName) {
+          ele.rule.orderBy = {}
+          ele.bySort = ''
+        }
+      })
     },
     conditionReset() {
       this.conditions = []

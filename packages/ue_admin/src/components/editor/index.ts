@@ -179,7 +179,9 @@ export function openTagEditor(options: TagEditorOptions) {
   })
   app.use(ElementPlus).mount(root)
 }
-/***/
+/**
+ * 集合中文档列表筛选条件
+ */
 export function openSelectConditionEditor(options: SelectConditionOptions) {
   const root = document.createElement('div')
   document.body.appendChild(root)

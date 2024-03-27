@@ -59,6 +59,10 @@
 #table :deep(.el-table-v2__row.current-row) {
   @apply text-red-400;
 }
+
+#table :deep(.column-filter-active) {
+  @apply rounded-md border bg-blue-400 text-white;
+}
 </style>
 
 <script setup lang="ts">
@@ -72,9 +76,10 @@ import {
   CheckboxValueType,
   ElTableV2,
   RowEventHandlerParams,
-  RowClassNameGetter
+  RowClassNameGetter,
+  ElIcon,
 } from 'element-plus'
-import { ArrowRight } from '@element-plus/icons-vue'
+import { ArrowRight, Filter, SortUp, SortDown } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
 import * as _ from 'lodash'
 import * as Handlebars from 'handlebars'
@@ -201,7 +206,17 @@ const handleCondition = () => {
   data.filter = criterais.filter
   return criterais
 }
-
+/**
+ * 给处于过滤状态的列添加类
+ */
+const IsColumnFiltered = reactive<{ [n: string]: boolean }>({})
+/**
+ * 排序列
+ */
+const SortColumn = reactive<{ [n: string]: string }>({})
+/**
+ * 设置筛选条件
+ */
 const handleFilter = (schema: any, name: any) => {
   openSelectConditionEditor({
     bucket: bucketName,
@@ -211,61 +226,24 @@ const handleFilter = (schema: any, name: any) => {
     schema: schema,
     conditions: store.conditions,
     onBeforeClose: (result?: any) => {
-      const { condition, isClear, isCheckBtn } = result
+      const { condition, isClear, isSort } = result
       store.conditionAddColumn({ condition })
-      // 获取界面所有元素
-      const elementImgs: any = document.querySelectorAll('#tables thead img')
-      let currentEle: any = Array.from(elementImgs).find(
-        (ele: any) => ele.getAttribute('data-id') === name
-      )
       if (isClear) {
         store.conditionDelColumn({ condition })
-        currentEle.src = new URL(
-          '../assets/imgs/icon_filter.png',
-          import.meta.url
-        ).href
-      } else if (isCheckBtn) {
-        store.conditionDelBtn({ columnName: name })
-        const filename =
-          '../assets/imgs/icon_' + condition.rule.orderBy[name] + '_active.png'
-        currentEle.src = new URL(filename, import.meta.url).href
-      } else {
-        currentEle.src = new URL(
-          '../assets/imgs/icon_filter_active.png',
-          import.meta.url
-        ).href
+        Object.keys(SortColumn).forEach((k) => delete SortColumn[k])
+      } else if (isSort) {
+        store.conditionCleanSort({ columnName: name })
+        Object.keys(SortColumn).forEach((k) => delete SortColumn[k])
       }
       // 如果选择升降序规则，则需重置其他图标
-      if (isCheckBtn) {
-        store.conditions.forEach((conEle: any) => {
-          const name = conEle.columnName
-          let currentEle: any = Array.from(elementImgs).find(
-            (ele: any) => ele.getAttribute('data-id') === name
-          )
-          if (
-            conEle.rule &&
-            conEle.rule.filter &&
-            conEle.rule.filter[name] &&
-            conEle.rule.filter[name].keyword
-          ) {
-            currentEle.src = new URL(
-              '../assets/imgs/icon_filter_active.png',
-              import.meta.url
-            ).href
-          } else if (conEle.bySort) {
-            const filename =
-              '../assets/imgs/icon_' +
-              condition.rule.orderBy[name] +
-              '_active.png'
-            currentEle.src = new URL(filename, import.meta.url).href
-          } else {
-            currentEle.src = new URL(
-              '../assets/imgs/icon_filter.png',
-              import.meta.url
-            ).href
-          }
-        })
-      }
+      if (isSort) SortColumn[name] = result.condition.bySort
+      /**
+       * 设置列状态
+       */
+      Object.keys(IsColumnFiltered).forEach(k => delete IsColumnFiltered[k])
+      store.conditions.forEach((c: any) => {
+        if (c.byKeyword) IsColumnFiltered[c.columnName] = true
+      })
       listDocByKw()
     },
   })
@@ -557,9 +535,10 @@ const handleExtract = (etl: any) => {
     }
   }
   window.addEventListener('message', resultListener)
+  //@TODO 为什么是写死的？
   const { opened } = useAssistant({
     extract: true,
-    dbName: 'e2e5gmx_addrbook',
+    dbName: 'tms_addrbook',
     clName: 'account',
   })
   opened.value = true
@@ -661,9 +640,24 @@ const createTableColumns = async () => {
         })
       },
       headerCellRenderer: () => {
+        const content = [
+          h('div', propAttrs.title),
+          h(ElIcon, { size: '1rem', class: { 'column-filter-active': IsColumnFiltered[propName] } }, { default: () => h(Filter) }),
+        ]
+        if (SortColumn[propName] === 'asc') {
+          content.push(h(ElIcon, { size: '1rem' }, { default: () => h(SortUp) }))
+        } if (SortColumn[propName] === 'desc') {
+          content.push(h(ElIcon, { size: '1rem' }, { default: () => h(SortDown) }))
+        }
         return h(ElTooltip,
           { content: propAttrs.description || propAttrs.title, placement: 'top', effect: 'light' },
-          { default: () => [h('div', propAttrs.title)] })
+          {
+            default: () => h(
+              'div',
+              { class: 'flex flex-row gap-1 items-center', onClick: (evt: any) => { handleFilter(propAttrs, propName) } },
+              content
+            )
+          })
       }
     })
   })
@@ -734,6 +728,7 @@ onMounted(async () => {
   await createTableColumns()
   listDocByKw()
 })
+
 onBeforeRouteLeave((to, from) => {
   /**
    * 离开页面时，清空store中的文档列表数据
