@@ -19,6 +19,8 @@ import {
   init as initGlobalSettings,
   getLocalToken,
   setLocalToken,
+  EXTERNAL_LOGIN_URL,
+  externalLogin,
 } from './global'
 import './index.css'
 import 'element-plus/dist/index.css'
@@ -36,18 +38,22 @@ const { fnCaptcha, fnLogin } = apiAuth
 const LoginPromise = (function () {
   let ins = new TmsLockPromise(function () {
     return new Promise((resolve) => {
-      const fnSuccessLogin = function (response: LoginResponse) {
-        const token = response.result.access_token
-        setLocalToken(token)
-        resolve(`Bearer ${token}`)
+      if (EXTERNAL_LOGIN_URL()) {
+        externalLogin()
+      } else {
+        const fnSuccessLogin = function (response: LoginResponse) {
+          const token = response.result.access_token
+          setLocalToken(token)
+          resolve(`Bearer ${token}`)
+        }
+        Login.open({
+          schema: schema(),
+          fnCaptcha,
+          fnLogin,
+          onSuccess: fnSuccessLogin,
+          closeAfterSuccess: true,
+        })
       }
-      Login.open({
-        schema: schema(),
-        fnCaptcha,
-        fnLogin,
-        onSuccess: fnSuccessLogin,
-        closeAfterSuccess: true,
-      })
     })
   })
   return ins

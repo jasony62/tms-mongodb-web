@@ -19,7 +19,12 @@ import Smscode from '../views/Smscode.vue'
 import Invite from '../views/Invite.vue'
 import DocEditor from '../views/editor/Document.vue'
 import SchemaEditor from '../views/editor/Schema.vue'
-import { EXTERNAL_LOGIN_URL, getLocalToken, removeLocalToken } from '../global'
+import {
+  EXTERNAL_LOGIN_URL,
+  externalLogin,
+  getLocalToken,
+  removeLocalToken,
+} from '../global'
 import apiAuth from '@/apis/auth'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
@@ -160,23 +165,7 @@ const router = createRouter({
   history: createWebHistory(BASE_URL),
   routes,
 })
-/**
- * 跳转到外部登录页
- *
- * 1. 提供回调地址。回调地址处理好token
- */
-function externalLogin() {
-  let appurl = location.toString()
-  if (/login/.test(appurl)) {
-    // 跳转到应用首页
-    appurl = appurl.replace(/login.*/, 'database')
-  }
-  // 保存要返回应用页
-  sessionStorage.setItem('oauth_passed_appurl', appurl)
 
-  const url = EXTERNAL_LOGIN_URL()
-  location.href = url
-}
 /**
  * 客户端登出
  */

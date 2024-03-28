@@ -324,6 +324,23 @@ export function removeLocalToken() {
     sessionStorage.removeItem('access_token')
   }
 }
+/**
+ * 跳转到外部登录页
+ *
+ * 1. 提供回调地址。回调地址处理好token
+ */
+export function externalLogin() {
+  let appurl = location.toString()
+  if (/login/.test(appurl)) {
+    // 跳转到应用首页
+    appurl = appurl.replace(/login.*/, 'database')
+  }
+  // 保存要返回应用页
+  sessionStorage.setItem('oauth_passed_appurl', appurl)
+
+  const url = EXTERNAL_LOGIN_URL()
+  location.href = url
+}
 
 export function parseLocation(url: string): any | null {
   if (!url) return null
