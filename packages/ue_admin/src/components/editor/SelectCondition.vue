@@ -53,10 +53,9 @@
     <template #footer>
       <el-form :inline="true">
         <el-form-item style="float:left;">
-          <el-button type="warning" @click="onClear">重制</el-button>
-          <el-button type="default" @click="onBeforeClose">取消</el-button>
+          <el-button type="primary" @click="onSubmit">筛选</el-button>
         </el-form-item>
-        <el-form-item>
+        <el-form-item style="float:left;">
           <el-radio-group v-model="Condition.bySort" @change="handleSort">
             <el-radio-button label="asc">升序</el-radio-button>
             <el-radio-button label="desc">降序</el-radio-button>
@@ -64,7 +63,8 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="onSubmit">筛选</el-button>
+          <el-button type="warning" @click="onClear">重制</el-button>
+          <el-button type="default" @click="onBeforeClose">取消</el-button>
         </el-form-item>
       </el-form>
     </template>
