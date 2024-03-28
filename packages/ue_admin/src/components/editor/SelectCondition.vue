@@ -14,7 +14,7 @@
     </el-form>
     <el-form v-if="IsEnumerableField" :inline="true">
       <el-checkbox-group v-model="SelectedFieldValueOptions">
-        <el-checkbox v-for="op in FieldValueOptions" :label="op.value" :value="op.value"></el-checkbox>
+        <el-checkbox v-for="op in FieldValueOptions" :label="op.label" :value="op.value"></el-checkbox>
       </el-checkbox-group>
     </el-form>
     <el-form v-if="IsBooleanField" :inline="true">
