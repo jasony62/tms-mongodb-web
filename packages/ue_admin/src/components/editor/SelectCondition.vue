@@ -1,7 +1,7 @@
 <template>
   <el-dialog :title="'筛选-' + schema.title" v-model="dialogVisible" :destroy-on-close="false"
     :close-on-click-modal="false">
-    <el-form :model="Condition" label-width="60px">
+    <el-form :model="Condition" label-width="60px" v-if="!IsEnumerableField && !IsBooleanField">
       <el-form-item label="按条件">
         <el-select v-model="Condition.byRule" placeholder="请选择筛选规则" @change="handleSelectChange">
           <el-option v-for="op in ByRuleOptions" :label="op.label" :value="op.value">
@@ -11,6 +11,18 @@
       <el-form-item label="关键字">
         <el-input placeholder="请输入内容,多个关键字以英文逗号间隔" v-model="Condition.byKeyword" @input="handleInputChange"></el-input>
       </el-form-item>
+    </el-form>
+    <el-form v-if="IsEnumerableField" :inline="true">
+      <el-checkbox-group v-model="SelectedFieldValueOptions">
+        <el-checkbox v-for="op in FieldValueOptions" :label="op.value" :value="op.value"></el-checkbox>
+      </el-checkbox-group>
+    </el-form>
+    <el-form v-if="IsBooleanField" :inline="true">
+      <el-radio-group v-model="FieldValueBoolean">
+        <el-radio label="empty">空</el-radio>
+        <el-radio label="yes">是</el-radio>
+        <el-radio label="no">否</el-radio>
+      </el-radio-group>
     </el-form>
     <div v-if="schema.groupable === true">
       <el-table id="tables" ref="multipleTableRef" :data="groups" tooltip-effect="dark" :border="true" height="270"
@@ -41,7 +53,7 @@
     <template #footer>
       <el-form :inline="true">
         <el-form-item>
-          <el-button type="primary" @click="onSubmit">筛选</el-button>
+          <el-button type="warning" @click="onClear">重制</el-button>
         </el-form-item>
         <el-form-item>
           <el-radio-group v-model="Condition.bySort" @change="handleSort">
@@ -51,7 +63,7 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item>
-          <el-button type="warning" @click="onClear">重制</el-button>
+          <el-button type="primary" @click="onSubmit">筛选</el-button>
           <el-button type="default" @click="onBeforeClose">取消</el-button>
         </el-form-item>
       </el-form>
@@ -61,7 +73,7 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
 import type { ElTable } from 'element-plus'
-import { computed, onMounted, reactive, ref, nextTick, toRaw } from 'vue';
+import { computed, onMounted, reactive, ref, nextTick, toRaw } from 'vue'
 import apiDoc from '@/apis/document'
 
 interface Group {
@@ -70,6 +82,7 @@ interface Group {
 }
 
 const emit = defineEmits(['submit'])
+
 const props = defineProps({
   onClose: { type: Function, default: (newData: any) => { } },
   dialogVisible: { default: true },
@@ -81,9 +94,11 @@ const props = defineProps({
     type: Object,
     default: () => {
       return {
+        title: '',
         type: '',
         groupable: false,
-        enum: []
+        enum: [],
+        enumGroups: []
       }
     }
   },
@@ -95,6 +110,35 @@ const props = defineProps({
 const dialogVisible = ref(props.dialogVisible)
 
 const multipleTableRef = ref<InstanceType<typeof ElTable>>()
+/**
+ * 编辑的查询条件
+ */
+const Condition = reactive({
+  byRule: 'include',
+  byKeyword: '',
+  bySort: '',
+  columnName: props.columnName,
+  rule: {
+    filter: { [props.columnName]: {} } as { [k: string]: any },
+    orderBy: {} as { [k: string]: any }
+  },
+  multipleSelection: [] as any[],
+})
+/**
+ * 字段是否提供选项
+ */
+const IsEnumerableField = Array.isArray(props.schema.enum) || Array.isArray(props.schema.oneOf)
+/**
+ * 字段的可选值
+ */
+const FieldValueOptions = props.schema.enum || props.schema.oneOf
+/**
+ * 选择的字段可选值
+ */
+const SelectedFieldValueOptions = ref<any>([])
+/**
+ * 关键字匹配规则
+ */
 const ByRuleOptions = [
   {
     value: 'include',
@@ -117,17 +161,15 @@ const ByRuleOptions = [
     label: '结尾不是'
   }
 ]
-const Condition = reactive({
-  byRule: 'include',
-  byKeyword: '',
-  bySort: '',
-  columnName: props.columnName,
-  rule: {
-    filter: { [props.columnName]: {} } as { [k: string]: any },
-    orderBy: {} as { [k: string]: any }
-  },
-  multipleSelection: [] as any[],
-})
+/**
+ * 字段是否为boolean类型
+ */
+const IsBooleanField = props.schema.type === 'boolean'
+/**
+ * boolean类型字段筛选条件
+ */
+const FieldValueBoolean = ref('empty')
+
 let timer: any = null
 let page = reactive({
   at: 1,
@@ -298,6 +340,17 @@ const onSubmit = () => {
   //   ].keyword = Condition.multipleSelection.map((ele: { title: any; }) => ele.title)
   //   Condition.rule.filter[props.columnName].feature = 'in'
   // }
+  if (IsEnumerableField) {
+    Condition.rule.filter[props.columnName] = {
+      keyword: toRaw(SelectedFieldValueOptions.value),
+      feature: 'in'
+    }
+  } else if (IsBooleanField) {
+    const val = toRaw(FieldValueBoolean.value)
+    Condition.rule.filter[props.columnName] = {
+      keyword: val === 'yes' ? true : val === 'no' ? false : null,
+    }
+  }
   const result = { condition: toRaw(Condition) }
   emit('submit', result)
   closeDialog(result)
@@ -312,27 +365,33 @@ onMounted(async () => {
       Object.assign(criterias.orderBy, ele.rule.orderBy)
     })
     // 查找是否有当前列的筛选条件
-    let result: any = conditions.find(
-      (ele: any) => ele.columnName === props.columnName
+    const result: any = conditions.find(
+      (item: any) => item.columnName === props.columnName
     )
     if (result) {
       Condition.byRule = result.byRule
       Condition.byKeyword = result.byKeyword
       Condition.bySort = result.bySort
       Condition.rule = result.rule
+      if (Array.isArray(Condition.rule?.filter[props.columnName]?.keyword)) {
+        SelectedFieldValueOptions.value.push(...Condition.rule.filter[props.columnName].keyword)
+      } else if (IsBooleanField) {
+        const kw = Condition.rule?.filter[props.columnName]?.keyword
+        FieldValueBoolean.value = kw === true ? 'yes' : kw === false ? 'no' : 'empty'
+      }
     }
   }
-  if (props.schema.groupable === true) updateByColumn(false)
-  nextTick(() => {
-    // const $wrap = multipleTableRef.value!.$refs.scrollBarRef.wrap$
-    // $wrap.addEventListener('scroll', () => {
-    //   const scrollDistance =
-    //     $wrap.scrollHeight - $wrap.scrollTop - $wrap.clientHeight
-    //   if (scrollDistance <= 0) {
-    //     console.log($wrap.scrollHeight, $wrap.scrollTop, $wrap.clientHeight)
-    //     loadMore()
-    //   }
-    // })
-  })
+  // if (props.schema.groupable === true) updateByColumn(false)
+  // nextTick(() => {
+  // const $wrap = multipleTableRef.value!.$refs.scrollBarRef.wrap$
+  // $wrap.addEventListener('scroll', () => {
+  //   const scrollDistance =
+  //     $wrap.scrollHeight - $wrap.scrollTop - $wrap.clientHeight
+  //   if (scrollDistance <= 0) {
+  //     console.log($wrap.scrollHeight, $wrap.scrollTop, $wrap.clientHeight)
+  //     loadMore()
+  //   }
+  // })
+  // })
 })
 </script>

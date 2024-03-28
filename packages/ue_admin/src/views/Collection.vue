@@ -207,6 +207,113 @@ const handleCondition = () => {
   return criterais
 }
 /**
+ * 获得集合文档定义的顶层属性，作为表格的列
+ */
+const createTableColumns = async () => {
+  let matchedSchema = {}
+  let properties: any = Collection.schema.body.properties
+  // const { schema_default_tags, schema_tags } = collection
+  // if (schema_default_tags && schema_default_tags.length) {
+  //   matchedSchema = await listSchemaByTag(schema_default_tags)
+  // } else if (schema_tags && schema_tags.length) {
+  //   matchedSchema = await listSchemaByTag(schema_tags)
+  // } else
+  if (properties && typeof properties === 'object') {
+    /*需要去除password属性*/
+    const props: any = {}
+    for (let key in properties) {
+      if (properties[key].format !== 'password') {
+        props[key] = properties[key]
+      }
+    }
+    Object.assign(matchedSchema, props)
+  }
+  data.properties = Object.freeze(matchedSchema)
+  // 选择列
+  if (MULTIPLE.value !== false) {
+    tableColumns.value.push({
+      key: 'selection',
+      width: 40,
+      cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => {
+        const onChange = (checked: CheckboxValueType) => {
+          if (checked) selectedDocuments.value.push(rowData)
+          else selectedDocuments.value.splice(selectedDocuments.value.indexOf(rowData), 1)
+          CheckedRow[rowIndex] = checked
+        }
+        return h(ElCheckbox, { modelValue: CheckedRow[rowIndex], onChange })
+      },
+      headerCellRenderer: () => {
+        const onChange = (checked: CheckboxValueType) => {
+          if (checked) {
+            for (let i = 0; i < store.documents.length; i++) CheckedRow[i] = true
+            selectedDocuments.value.push(...store.documents)
+          } else {
+            Object.keys(CheckedRow).forEach((k) => CheckedRow[k] = false)
+            selectedDocuments.value.splice(0, selectedDocuments.value.length)
+          }
+        }
+        return h(ElCheckbox, { onChange })
+      }
+    })
+  }
+  // 数据列
+  Object.entries<any>(data.properties).forEach(([propName, propAttrs]) => {
+    tableColumns.value.push({
+      key: propName,
+      dataKey: propName,
+      title: propAttrs.title,
+      width: propAttrs.width ?? 120,
+      cellRenderer: ({ rowData }: { rowData: any }) => {
+        return h(DocCell, {
+          propAttrs,
+          propName,
+          doc: rowData,
+          downloadFile: downLoadFile,
+        })
+      },
+      headerCellRenderer: () => {
+        const content = [
+          h('div', propAttrs.title),
+          h(ElIcon, { size: '1rem', class: { 'column-filter-active': IsColumnFiltered[propName] } }, { default: () => h(Filter) }),
+        ]
+        if (SortColumn[propName] === 'asc') {
+          content.push(h(ElIcon, { size: '1rem' }, { default: () => h(SortUp) }))
+        } if (SortColumn[propName] === 'desc') {
+          content.push(h(ElIcon, { size: '1rem' }, { default: () => h(SortDown) }))
+        }
+        return h(ElTooltip,
+          { content: propAttrs.description || propAttrs.title, placement: 'top', effect: 'light' },
+          {
+            default: () => h(
+              'div',
+              { class: 'flex flex-row gap-1 items-center', onClick: (evt: any) => { handleFilter(propAttrs, propName) } },
+              content
+            )
+          })
+      }
+    })
+  })
+  // 操作列
+  tableColumns.value.push({
+    key: 'operations',
+    title: '操作',
+    width: 140,
+    align: 'center',
+    fixed: TableV2FixedDir.RIGHT,
+    cellRenderer: ({ rowData }: { rowData: any }) => {
+      return h(CollectionDocOps, {
+        Collection,
+        doc: rowData,
+        onPreview: previewDocument,
+        onEdit: editDocument,
+        onCopy: copyDocument,
+        onRemove: removeDocument,
+        onAcl: openAclEditor
+      })
+    },
+  })
+}
+/**
  * 给处于过滤状态的列添加类
  */
 const IsColumnFiltered = reactive<{ [n: string]: boolean }>({})
@@ -223,7 +330,7 @@ const handleFilter = (schema: any, name: any) => {
     db: dbName,
     cl: clName,
     columnName: name,
-    schema: schema,
+    schema: toRaw(schema),
     conditions: store.conditions,
     onBeforeClose: (result?: any) => {
       const { condition, isClear, isSort } = result
@@ -242,7 +349,10 @@ const handleFilter = (schema: any, name: any) => {
        */
       Object.keys(IsColumnFiltered).forEach(k => delete IsColumnFiltered[k])
       store.conditions.forEach((c: any) => {
-        if (c.byKeyword) IsColumnFiltered[c.columnName] = true
+        if (c.byKeyword
+          || Array.isArray(c.rule?.filter[c.columnName]?.keyword)
+          || (schema.type === 'boolean' && [true, false, null].indexOf(c.rule?.filter[c.columnName]?.keyword)) !== -1)
+          IsColumnFiltered[c.columnName] = true
       })
       listDocByKw()
     },
@@ -573,113 +683,6 @@ const listSchemaByTag = (tags: any) => {
     .catch((err: any) => {
       throw new Error(err)
     })
-}
-/**
- * 获得集合文档定义的顶层属性，作为表格的列
- */
-const createTableColumns = async () => {
-  let matchedSchema = {}
-  let properties: any = Collection.schema.body.properties
-  // const { schema_default_tags, schema_tags } = collection
-  // if (schema_default_tags && schema_default_tags.length) {
-  //   matchedSchema = await listSchemaByTag(schema_default_tags)
-  // } else if (schema_tags && schema_tags.length) {
-  //   matchedSchema = await listSchemaByTag(schema_tags)
-  // } else
-  if (properties && typeof properties === 'object') {
-    /*需要去除password属性*/
-    const props: any = {}
-    for (let key in properties) {
-      if (properties[key].format !== 'password') {
-        props[key] = properties[key]
-      }
-    }
-    Object.assign(matchedSchema, props)
-  }
-  data.properties = Object.freeze(matchedSchema)
-  // 选择列
-  if (MULTIPLE.value !== false) {
-    tableColumns.value.push({
-      key: 'selection',
-      width: 40,
-      cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => {
-        const onChange = (checked: CheckboxValueType) => {
-          if (checked) selectedDocuments.value.push(rowData)
-          else selectedDocuments.value.splice(selectedDocuments.value.indexOf(rowData), 1)
-          CheckedRow[rowIndex] = checked
-        }
-        return h(ElCheckbox, { modelValue: CheckedRow[rowIndex], onChange })
-      },
-      headerCellRenderer: () => {
-        const onChange = (checked: CheckboxValueType) => {
-          if (checked) {
-            for (let i = 0; i < store.documents.length; i++) CheckedRow[i] = true
-            selectedDocuments.value.push(...store.documents)
-          } else {
-            Object.keys(CheckedRow).forEach((k) => CheckedRow[k] = false)
-            selectedDocuments.value.splice(0, selectedDocuments.value.length)
-          }
-        }
-        return h(ElCheckbox, { onChange })
-      }
-    })
-  }
-  // 数据列
-  Object.entries<any>(data.properties).forEach(([propName, propAttrs]) => {
-    tableColumns.value.push({
-      key: propName,
-      dataKey: propName,
-      title: propAttrs.title,
-      width: propAttrs.width ?? 120,
-      cellRenderer: ({ rowData }: { rowData: any }) => {
-        return h(DocCell, {
-          propAttrs,
-          propName,
-          doc: rowData,
-          downloadFile: downLoadFile,
-        })
-      },
-      headerCellRenderer: () => {
-        const content = [
-          h('div', propAttrs.title),
-          h(ElIcon, { size: '1rem', class: { 'column-filter-active': IsColumnFiltered[propName] } }, { default: () => h(Filter) }),
-        ]
-        if (SortColumn[propName] === 'asc') {
-          content.push(h(ElIcon, { size: '1rem' }, { default: () => h(SortUp) }))
-        } if (SortColumn[propName] === 'desc') {
-          content.push(h(ElIcon, { size: '1rem' }, { default: () => h(SortDown) }))
-        }
-        return h(ElTooltip,
-          { content: propAttrs.description || propAttrs.title, placement: 'top', effect: 'light' },
-          {
-            default: () => h(
-              'div',
-              { class: 'flex flex-row gap-1 items-center', onClick: (evt: any) => { handleFilter(propAttrs, propName) } },
-              content
-            )
-          })
-      }
-    })
-  })
-  // 操作列
-  tableColumns.value.push({
-    key: 'operations',
-    title: '操作',
-    width: 140,
-    align: 'center',
-    fixed: TableV2FixedDir.RIGHT,
-    cellRenderer: ({ rowData }: { rowData: any }) => {
-      return h(CollectionDocOps, {
-        Collection,
-        doc: rowData,
-        onPreview: previewDocument,
-        onEdit: editDocument,
-        onCopy: copyDocument,
-        onRemove: removeDocument,
-        onAcl: openAclEditor
-      })
-    },
-  })
 }
 
 const listDocByKw = () => {
