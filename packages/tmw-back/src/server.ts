@@ -3,10 +3,9 @@ import path from 'path'
 import fs from 'fs'
 import { nanoid } from 'nanoid'
 
-let cnfpath = path.resolve(process.cwd() + '/config/log.js')
+const cnfpath = path.resolve(process.cwd() + '/config/log4js.js')
 if (fs.existsSync(cnfpath)) {
-  const log4jsConfig = (await import(process.cwd() + '/config/log4js.js'))
-    .default
+  const log4jsConfig = (await import(cnfpath)).default
   log4js.configure(log4jsConfig)
 } else {
   log4js.configure({
@@ -16,7 +15,7 @@ if (fs.existsSync(cnfpath)) {
     categories: {
       default: {
         appenders: ['consoleout'],
-        level: 'debug',
+        level: process.env.TMW_APP_LOG4JS_LEVEL || 'debug',
       },
     },
   })

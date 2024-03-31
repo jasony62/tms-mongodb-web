@@ -198,7 +198,7 @@ const CL_NAME_RE = /^[a-zA-Z]+[0-9a-zA-Z_-]{0,63}$/
 const canSubmit = computed(() => {
   // 表格数据
   if (!Array.isArray(dataRaw.value) || dataRaw.value?.length === 0) {
-    help.value = '上传文件，并选择包含数据表格页'
+    help.value = '上传文件，选择包含数据的表格页'
     return false
   }
   // 列名称
