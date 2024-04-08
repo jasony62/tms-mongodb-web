@@ -80,9 +80,11 @@ class ImportPlugin extends PluginBase {
         msg: '集合名必须以英文字母开头，仅限英文字母或_或数字组合，且最长64位',
       }
 
-    for (const name of names) {
-      if (new RegExp('[\u4E00-\u9FA5]+').test(name) == true)
-        return { code: 10001, msg: '指定的列定义名称不能包含中文' }
+    if (!clSchemaId) {
+      for (const name of names) {
+        if (new RegExp('[\u4E00-\u9FA5]+').test(name) == true)
+          return { code: 10001, msg: '指定的列定义名称不能包含中文' }
+      }
     }
 
     const modelDb = new ModelDb(ctrl.mongoClient, ctrl.bucket, ctrl.client)
@@ -100,8 +102,6 @@ class ImportPlugin extends PluginBase {
     let rowsJson = JSON.parse(data)
     if (!Array.isArray(rowsJson) || rowsJson.length === 0)
       return { code: 10001, msg: '上传的文件数据为空或格式错误' }
-
-    // if (headersTitle) delete rowsJson[0]
 
     let schema_id
     if (clSchemaId) {
@@ -162,6 +162,17 @@ class ImportPlugin extends PluginBase {
     return result
   }
   /**
+   * 获得指定的schema
+   *
+   * @param ctrl
+   */
+  async executeGetSchema(ctrl: any) {
+    const { schemaId } = ctrl.request.body.widget
+    const modelSch = new ModelSchema(ctrl.mongoClient, ctrl.bucket, ctrl.client)
+    const schema = await modelSch.bySchemaId(schemaId)
+    return { code: 0, msg: { schema } }
+  }
+  /**
    * 获得可用字段定义
    *
    * @param ctrl
@@ -180,8 +191,10 @@ class ImportPlugin extends PluginBase {
    */
   async execute(ctrl: any) {
     const { method } = ctrl.request.body.widget
-    if (method === 'schemas') {
+    if (method === 'ListSchemas') {
       return this.executeSchemas(ctrl)
+    } else if (method === 'GetSchema') {
+      return this.executeGetSchema(ctrl)
     }
     return this.executeUpload(ctrl)
   }

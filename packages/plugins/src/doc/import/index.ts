@@ -24,6 +24,7 @@ const ConfigDir = path.resolve(
 const ConfigFile =
   process.env.TMW_PLUGIN_DOC_IMPORT_CONFIG_NAME || './plugin/doc/import'
 /**
+ * 将字符串值转换为schema定义的存储值
  *
  * @param attrs
  * @param valRaw

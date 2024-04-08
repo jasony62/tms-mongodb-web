@@ -52,11 +52,15 @@
     </el-form>
     <el-form :inline="true" v-if="isFileUploaded && rowTotal">
       <el-form-item label="集合文档字段定义" prop="schema_id">
-        <el-select v-model="clSchemaId" clearable placeholder="选择已有的定义，或者自动创建" style="width: 240px;">
+        <el-select v-model="clSchemaId" clearable placeholder="选择已有的定义，或者自动创建" style="width: 240px;"
+          @change="onChangeClSchema">
           <el-option-group v-for="schema in schemas" :key="schema.label" :label="schema.label">
             <el-option v-for="item in schema.options" :key="item._id" :label="item.title" :value="item._id" />
           </el-option-group>
         </el-select>
+      </el-form-item>
+      <el-form-item label="去除未在字段定义中列">
+        <el-switch v-model="excludeSpare"></el-switch>
       </el-form-item>
     </el-form>
     <el-form label-position="top">
@@ -120,6 +124,7 @@ const clName = ref('')
 const clTitle = ref('')
 const clSchemaId = ref('')
 const clSpreadsheet = ref('no')
+const excludeSpare = ref(false)
 const schemas = reactive([
   {
     label: '数据库',
@@ -130,6 +135,7 @@ const schemas = reactive([
     options: [] as any[],
   },
 ])
+let selectedSchema: any = null
 // 指定的集合所属目录
 const assignedClDir = ref()
 // 帮助
@@ -157,11 +163,11 @@ const colNames = computed(() => {
 /**
  * 执行获取可用的字段定义
  */
-const execSchemas = () => {
+const execListSchemas = () => {
   const message: PluginWidgetResult = {
     action: PluginWidgetAction.Execute,
     result: {
-      method: 'schemas',
+      method: 'ListSchemas',
     },
     handleResponse: true,
   }
@@ -173,10 +179,66 @@ const execSchemas = () => {
     console.log('未知错误', e)
   }
 }
+/**
+ * 获得用户选择的schema
+ * @param schemaId 
+ */
+const execGetSchema = (schemaId: string) => {
+  const message: PluginWidgetResult = {
+    action: PluginWidgetAction.Execute,
+    result: {
+      schemaId,
+      method: 'GetSchema',
+    },
+    handleResponse: true,
+  }
+  try {
+    // 给调用方发送数据
+    Caller.postMessage(message, '*')
+    executed.value = true
+  } catch (e) {
+    console.log('未知错误', e)
+  }
+}
+// 用户选择schema
+const onChangeClSchema = () => {
+  selectedSchema = null
+  if (clSchemaId.value) {
+    execGetSchema(clSchemaId.value)
+  }
+}
 
 // 选择导入的excel文件中的sheet
 let onChangeSheet: (() => void) | null
 
+// 获得字段定义
+const calcFields = () => {
+  let fields: any
+  if (selectedSchema && typeof selectedSchema === 'object') {
+    const titles = toRaw(colTitles.value)
+    const names = toRaw(colNames.value)
+    if (Array.isArray(titles) && titles.length) {
+      fields = titles.map((title: string, index) => {
+        let s = Object.entries(selectedSchema).find(([name, props]: [string, any]) => props.title === title)
+        if (s) return { name: s[0] }
+        return { name: names[index], spare: true }
+      })
+    } else if (Array.isArray(names) && names.length) {
+      fields = names.map((colName: string, index) => {
+        let s = Object.entries(selectedSchema).find(([name, props]: [string, any]) => name === colName)
+        if (s) return { name: colName }
+        return { name: colName, spare: true }
+      })
+    } else {
+      fields = Object.keys(selectedSchema)
+    }
+  } else {
+    const names = toRaw(colNames.value)
+
+    fields = names.map((name: string) => { return { name } })
+  }
+  return fields
+}
 /**
  * 导入数据提交方法
  * 
@@ -191,18 +253,20 @@ let onChangeSheet: (() => void) | null
 const doSubmit = () => {
   if (!Array.isArray(dataRaw.value) || dataRaw.value.length === 0) return
 
-  const names = toRaw(colNames.value)
+  const fields = calcFields()
   const rowsAoa = dataRaw.value
   const docs = [] // 文档列表
   const lastRow = (dataEndRow.value <= 0 || dataEndRow.value > rowsAoa.length) ? rowsAoa.length : dataEndRow.value
   for (let i = dataStartRow.value - 1; i < lastRow; i++) {
-    let doc = names?.reduce((doc: any, name: string, index: number) => {
+    let doc = fields?.reduce((doc: any, field: any, index: number) => {
+      // 跳过多余的列
+      if (field.spare === true && excludeSpare.value === true) return doc
       let val: any = rowsAoa[i][index]
       if (val instanceof Date) {
         // excel的时间差43秒
         val = (new Date(val.getTime() + 43000)).toLocaleString()
       }
-      if (val) doc[name] = val
+      if (val) doc[field.name] = val
       return doc
     }, {})
     // 忽略空对象
@@ -210,6 +274,7 @@ const doSubmit = () => {
   }
 
   const titles = toRaw(colTitles.value)
+  const names = fields.map((f: any) => f.name)
   execUploadData(names, titles, docs)
 }
 /**
@@ -217,19 +282,23 @@ const doSubmit = () => {
  */
 const execUploadData = (names: string[] | null, titles: string[] | null, docs: any[]) => {
   if (Caller && typeof docs === 'object') {
+    const result: any = {
+      method: 'UploadDocs',
+      data: JSON.stringify(docs),
+      clName: clName.value,
+      clTitle: clTitle.value,
+      dir_full_name: assignedClDir.value?.full_name,
+      clSpreadsheet: clSpreadsheet.value,
+    }
+    if (clSchemaId.value) {
+      result.clSchemaId = clSchemaId.value
+    } else {
+      result.names = names
+      result.titles = titles
+    }
     const message: PluginWidgetResult = {
       action: PluginWidgetAction.Execute,
-      result: {
-        method: 'upload',
-        data: JSON.stringify(docs),
-        clName: clName.value,
-        clTitle: clTitle.value,
-        clSchemaId: clSchemaId.value,
-        names,
-        titles,
-        dir_full_name: assignedClDir.value?.full_name,
-        clSpreadsheet: clSpreadsheet.value,
-      },
+      result
     }
     try {
       // 给调用方发送数据
@@ -316,6 +385,8 @@ window.addEventListener('message', (event) => {
         response.schemas.forEach((s: any) => {
           s.db ? schemas[0].options.push(s) : schemas[1].options.push(s)
         })
+      } else if (response.schema && typeof response.schema === 'object') {
+        selectedSchema = response.schema
       }
     }
   }
@@ -396,7 +467,7 @@ function onClose() {
 
 onMounted(() => {
   // 获取可用的字段定义
-  execSchemas()
+  execListSchemas()
 })
 
 </script>
