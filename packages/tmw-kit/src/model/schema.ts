@@ -91,6 +91,38 @@ class Schema extends Base {
 
     return this.clMongoObj.deleteOne(query).then(() => [true])
   }
+  /**
+   * 简单信息列表，不包含schema定义
+   */
+  async listSimple(dbName: string, scope = 'document') {
+    let query: any
+    if (dbName) {
+      query = {
+        $and: [
+          { type: 'schema', scope: { $in: scope.split(',') } },
+          {
+            $or: [{ 'db.name': dbName }, { db: null }],
+          },
+        ],
+      }
+      if (this.bucket?.name) query['$and'].push({ bucket: this.bucket.name })
+    } else {
+      query = {
+        type: 'schema',
+        scope: { $in: scope.split(',') },
+      }
+      if (this.bucket?.name) query.bucket = this.bucket.name
+    }
+
+    const schemas = await this.clMongoObj
+      .find(query, {
+        projection: { _id: 1, title: 1, description: 1, scope: 1, db: 1 },
+      })
+      .sort('order', 1)
+      .toArray()
+
+    return schemas
+  }
 }
 
 export default Schema

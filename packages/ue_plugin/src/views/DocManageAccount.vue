@@ -6,7 +6,7 @@
         <el-button v-if="executed" @click="onClose">关闭</el-button>
       </el-form-item>
     </el-form>
-    <div v-if="document.forbidden == true">当前账号已注销</div>
+    <div v-if="document.forbidden === true">当前账号已注销</div>
     <div v-else>
       <tms-json-doc v-if="loading === false" ref="$jde" :schema="schema" :value="document" :enable-paste="false"
         :hide-root-title="true" :hide-root-description="true"></tms-json-doc>

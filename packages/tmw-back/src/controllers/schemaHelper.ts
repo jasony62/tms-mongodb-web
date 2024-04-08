@@ -81,6 +81,14 @@ class SchemaHelper extends Helper {
   async removeById(id: string): Promise<[boolean, string | null]> {
     return this._modelSchema.removeById(id)
   }
+  /**
+   * 基本信息列表
+   *
+   * @param id
+   */
+  async listSimple(dbName: string, scope = 'document'): Promise<[any]> {
+    return await this._modelSchema.listSimple(dbName, scope)
+  }
 }
 
 export default SchemaHelper

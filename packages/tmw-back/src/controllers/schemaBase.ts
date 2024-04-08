@@ -54,36 +54,11 @@ class SchemaBase extends Base {
    * 简单信息列表，不包含schema定义
    */
   async listSimple() {
-    let { scope, db: database } = this.request.query
-    scope = scope ? { $in: scope.split(',') } : 'document'
+    let { scope, db } = this.request.query
 
-    let query: any = {}
+    const schemas = await this.schemaHelper.listSimple(db, scope)
 
-    if (database) {
-      query = {
-        $and: [
-          { type: 'schema', scope },
-          {
-            $or: [{ 'db.name': database }, { db: null }],
-          },
-        ],
-      }
-      if (this.bucketObj) query['$and'].push({ bucket: this.bucketObj.name })
-    } else {
-      query = {
-        type: 'schema',
-        scope: scope,
-      }
-      if (this.bucketObj) query.bucket = this.bucketObj.name
-    }
-
-    return this.clMongoObj
-      .find(query, {
-        projection: { _id: 1, title: 1, description: 1, scope: 1, db: 1 },
-      })
-      .sort('order', 1)
-      .toArray()
-      .then((schemas) => new ResultData(schemas))
+    return new ResultData(schemas)
   }
   /**
    * 根据标签查找信息列表

@@ -4,6 +4,7 @@ import {
   ModelDb,
   ModelCl,
   ModelDoc,
+  ModelSchema,
   ModelSpreadsheet,
   createDocWebhook,
 } from 'tmw-kit'
@@ -48,17 +49,24 @@ class ImportPlugin extends PluginBase {
     this.amount = PluginProfileAmount.zero
     this.beforeWidget = { name: 'external', url: '', size: '60%' }
   }
-
-  async execute(ctrl: any) {
+  /**
+   * 上传数据
+   *
+   * @param ctrl
+   * @returns
+   */
+  async executeUpload(ctrl: any) {
     let {
       data, // 对象数组的字符串
       names, // 列名称，字符串数组
       titles, // 列标题，字符串数组
       clTitle, // 集合标题
       clName, // 集合名称
+      clSchemaId, // 字段定义id
       dir_full_name, // 集合所属分类目录，字符串
       clSpreadsheet, // 字符串 no/yes
     } = ctrl.request.body.widget
+
     const dbName = ctrl.request.query.db
 
     if (!data) return { code: 10001, msg: '文件上传失败' }
@@ -80,7 +88,6 @@ class ImportPlugin extends PluginBase {
     const modelDb = new ModelDb(ctrl.mongoClient, ctrl.bucket, ctrl.client)
     const existDb = await modelDb.byName(dbName)
     if (!existDb) return { code: 10001, msg: `数据库【${dbName}】不存在` }
-    debug(`db info: ${JSON.stringify(existDb)}`)
 
     // 查询是否存在同名文档列定义
     const [existFlag, existResult] = await this.schemaByName(
@@ -96,22 +103,33 @@ class ImportPlugin extends PluginBase {
 
     // if (headersTitle) delete rowsJson[0]
 
-    // 创建文档列定义
-    const [schemaFlag, schemaRst] = await this.createDocSchema(ctrl, existDb, {
-      clName,
-      clTitle,
-      headersName: names,
-      headersTitle: titles,
-    })
-    if (!schemaFlag) return { code: 10001, msg: schemaRst }
-    debug(`创建了文档列定义[id=${schemaRst}]`)
+    let schema_id
+    if (clSchemaId) {
+      // 使用指定文档字段定义
+      schema_id = clSchemaId
+    } else {
+      // 创建文档字段定义
+      const [schemaFlag, schemaRst] = await this.createDocSchema(
+        ctrl,
+        existDb,
+        {
+          clName,
+          clTitle,
+          headersName: names,
+          headersTitle: titles,
+        }
+      )
+      if (!schemaFlag) return { code: 10001, msg: schemaRst }
+      debug(`创建了文档列定义[id=${schemaRst}]`)
+      schema_id = schemaRst
+    }
 
     // 创建集合
     const clInfo: any = {
       clName,
       dir_full_name,
       title: clTitle,
-      schema_id: schemaRst,
+      schema_id,
       clSpreadsheet,
     }
     const [clFlag, clRst] = await this.createCl(ctrl, existDb, clInfo)
@@ -142,6 +160,30 @@ class ImportPlugin extends PluginBase {
     }
 
     return result
+  }
+  /**
+   * 获得可用字段定义
+   *
+   * @param ctrl
+   * @returns
+   */
+  async executeSchemas(ctrl: any) {
+    const dbName = ctrl.request.query.db
+    const modelSch = new ModelSchema(ctrl.mongoClient, ctrl.bucket, ctrl.client)
+    const schemas = await modelSch.listSimple(dbName)
+    return { code: 0, msg: { schemas } }
+  }
+  /**
+   *
+   * @param ctrl
+   * @returns
+   */
+  async execute(ctrl: any) {
+    const { method } = ctrl.request.body.widget
+    if (method === 'schemas') {
+      return this.executeSchemas(ctrl)
+    }
+    return this.executeUpload(ctrl)
   }
   /**
    * 存储管理对象的集合

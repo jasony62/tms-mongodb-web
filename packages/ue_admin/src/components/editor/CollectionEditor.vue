@@ -22,7 +22,7 @@
         <el-form-item label="集合显示名（中文）" prop="title">
           <el-input v-model="collection.title"></el-input>
         </el-form-item>
-        <el-form-item label="集合文档内容定义（基础）" prop="schema_id">
+        <el-form-item label="集合文档字段定义" prop="schema_id">
           <el-select v-model="collection.schema_id" clearable placeholder="请选择定义名称">
             <el-option-group v-for="schema in schemas" :key="schema.label" :label="schema.label">
               <el-option v-for="item in schema.options" :key="item._id" :label="item.title" :value="item._id" />
