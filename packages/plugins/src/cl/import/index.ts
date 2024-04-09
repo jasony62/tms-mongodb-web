@@ -96,7 +96,7 @@ class ImportPlugin extends PluginBase {
           // excel的时间差43秒
           val = new Date(val.getTime() + 43000).toLocaleString()
         }
-        if (val) doc[field.name] = val
+        if (val !== null && val !== undefined) doc[field.name] = val
         return doc
       }, {})
       // 忽略空对象
@@ -229,7 +229,7 @@ class ImportPlugin extends PluginBase {
    */
   async executeGetSchema(ctrl: any) {
     const { schemaId } = ctrl.request.body.widget
-    const schema = this.schemaById(ctrl, schemaId)
+    const schema = await this.schemaById(ctrl, schemaId)
     return { code: 0, msg: { schema } }
   }
   /**

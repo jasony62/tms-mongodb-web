@@ -110,6 +110,101 @@ function strToPinYin(str: string): string {
   return pinyinResStr.endsWith('_') ? pinyinResStr.slice(0, -1) : pinyinResStr;
 }
 
+/**
+ * 将字符串值转换为schema定义的存储值
+ *
+ * @param attrs
+ * @param valRaw
+ * @param doc
+ * @returns
+ */
+function storedValue(attrs: any, valRaw: any) {
+  let valRet = valRaw // 返回的值
+  const { type } = attrs
+
+  // 填充默认值
+  if (valRaw === null || valRaw === undefined) {
+    if (type === 'string' && attrs.enum?.length && attrs.default?.length) {
+      valRet = attrs.enum.find((ele: any) => ele.value === attrs.default).label
+    } else if (
+      type === 'array' &&
+      attrs.enum?.length &&
+      attrs.default?.length
+    ) {
+      const target = attrs.enum.map((ele: any) => {
+        if (attrs.default.includes(ele.value)) {
+          return ele.label
+        }
+      })
+      valRet = target.join(',')
+    } else {
+      //存在默认值
+      valRet = attrs.default || null
+    }
+    return valRet
+  }
+  if (type === 'boolean') {
+    return ['是', 'yes'].includes(valRaw)
+  }
+  // 枚举值
+  else if (type === 'array') {
+    // 原始数据是空格分隔的字符串
+    valRaw = valRaw.split(' ')
+    if (Array.isArray(valRaw) && valRaw.length) {
+      if (Array.isArray(attrs.enum) && attrs.enum.length) {
+        valRet = attrs.enum.reduce((vals: any, o: any) => {
+          if (valRaw.includes(o.label)) vals.push(o.value)
+          return vals
+        }, [])
+      } else if (Array.isArray(attrs.anyOf) && attrs.anyOf.length) {
+        valRet = attrs.anyOf.reduce((vals: any, o: any) => {
+          if (valRaw.includes(o.label)) vals.push(o.value)
+          return vals
+        }, [])
+      }
+    }
+  } else if (Array.isArray(attrs.enum) && attrs.enum.length) {
+    const option = attrs.enum.find((o: any) => o.label === valRaw)
+    if (option) valRet = option.value
+  } else if (Array.isArray(attrs.oneOf) && attrs.oneOf.length) {
+    const option = attrs.oneOf.find((o: any) => o.label === valRaw)
+    if (option) valRet = option.value
+  }
+
+  return valRet
+}
+/**
+ * 返回与列对应的字段定义数组
+ */
+function alignFieldAndColumn(schema: any, titles: string[], names: string[]): any[] {
+  if (schema && typeof schema === 'object') {
+    let fields: any[]
+    if (Array.isArray(titles) && titles.length) {
+      fields = titles.map((title: string, index) => {
+        let s = Object.entries(schema).find(
+          ([name, attrs]: [string, any]) => attrs.title === title
+        )
+        if (s) return { name: s[0], attrs: s[1] }
+        return { name: names[index], spare: true }
+      })
+    } else if (Array.isArray(names) && names.length) {
+      fields = names.map((colName: string, index) => {
+        let s = Object.entries(schema).find(
+          ([name]: [string, any]) => name === colName
+        )
+        if (s) return { name: colName, attrs: s[1] }
+        return { name: colName, spare: true }
+      })
+    } else {
+      fields = Object.keys(schema)
+    }
+
+    return fields
+  }
+
+  return []
+}
+
 const executed = ref(false)
 const responseContent = ref<string>('')
 const fileList = ref([])
@@ -238,7 +333,26 @@ const doSubmit = () => {
 
   const titles = toRaw(colTitles.value)
   const names = toRaw(colNames.value)
-  execUploadData(names, titles, slicedRowsAoa)
+
+  // 处理文档字段定义包含的数据
+  if (selectedSchema) {
+    const fields = alignFieldAndColumn(selectedSchema, titles, names)
+    const newRowsAoa = slicedRowsAoa.map((row: any[]) => {
+      return row.reduce((newRow, cell, index) => {
+        const field = fields[index]
+        if (field.spare === true) {
+          newRow.push(excludeSpare.value ? null : cell)
+        } else {
+          const val = storedValue(field.attrs, cell)
+          newRow.push(val)
+        }
+        return newRow
+      }, [])
+    })
+    execUploadData(names, titles, newRowsAoa)
+  } else {
+    execUploadData(names, titles, slicedRowsAoa)
+  }
 }
 /**
  * 执行上传数据
