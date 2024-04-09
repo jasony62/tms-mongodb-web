@@ -82,7 +82,11 @@ import * as XLSX from 'xlsx'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { pinyin } from 'pinyin-pro'
 
-const pinYinHandler = (str: string): string => {
+/**
+ * 将中文字符串转换为拼音
+ * 中文字转换为拼音，用下划线分割
+ */
+function strToPinYin(str: string): string {
   let flag = 1;
   let pinYinRes: any[] = [];
   let pinYinArr = pinyin(str, { type: 'all', toneType: 'none', v: true });
@@ -156,7 +160,7 @@ const colNames = computed(() => {
   if (nameRow.value > 0 && nameRow.value < dataRaw.value.length) {
     return dataRaw.value[nameRow.value - 1]
   } else if (colTitles.value.length) {
-    return colTitles.value.map((x: string) => pinYinHandler(x))
+    return colTitles.value.map((x: string) => strToPinYin(x))
   }
   return []
 })
@@ -211,34 +215,6 @@ const onChangeClSchema = () => {
 // 选择导入的excel文件中的sheet
 let onChangeSheet: (() => void) | null
 
-// 获得字段定义
-const calcFields = () => {
-  let fields: any
-  if (selectedSchema && typeof selectedSchema === 'object') {
-    const titles = toRaw(colTitles.value)
-    const names = toRaw(colNames.value)
-    if (Array.isArray(titles) && titles.length) {
-      fields = titles.map((title: string, index) => {
-        let s = Object.entries(selectedSchema).find(([name, props]: [string, any]) => props.title === title)
-        if (s) return { name: s[0] }
-        return { name: names[index], spare: true }
-      })
-    } else if (Array.isArray(names) && names.length) {
-      fields = names.map((colName: string, index) => {
-        let s = Object.entries(selectedSchema).find(([name, props]: [string, any]) => name === colName)
-        if (s) return { name: colName }
-        return { name: colName, spare: true }
-      })
-    } else {
-      fields = Object.keys(selectedSchema)
-    }
-  } else {
-    const names = toRaw(colNames.value)
-
-    fields = names.map((name: string) => { return { name } })
-  }
-  return fields
-}
 /**
  * 导入数据提交方法
  * 
@@ -253,49 +229,34 @@ const calcFields = () => {
 const doSubmit = () => {
   if (!Array.isArray(dataRaw.value) || dataRaw.value.length === 0) return
 
-  const fields = calcFields()
   const rowsAoa = dataRaw.value
-  const docs = [] // 文档列表
+
   const lastRow = (dataEndRow.value <= 0 || dataEndRow.value > rowsAoa.length) ? rowsAoa.length : dataEndRow.value
-  for (let i = dataStartRow.value - 1; i < lastRow; i++) {
-    let doc = fields?.reduce((doc: any, field: any, index: number) => {
-      // 跳过多余的列
-      if (field.spare === true && excludeSpare.value === true) return doc
-      let val: any = rowsAoa[i][index]
-      if (val instanceof Date) {
-        // excel的时间差43秒
-        val = (new Date(val.getTime() + 43000)).toLocaleString()
-      }
-      if (val) doc[field.name] = val
-      return doc
-    }, {})
-    // 忽略空对象
-    if (Object.keys(doc).length) docs.push(doc)
-  }
+  const slicedRowsAoa = toRaw(dataRaw.value).slice(dataStartRow.value - 1, lastRow)
 
   const titles = toRaw(colTitles.value)
-  const names = fields.map((f: any) => f.name)
-  execUploadData(names, titles, docs)
+  const names = toRaw(colNames.value)
+  execUploadData(names, titles, slicedRowsAoa)
 }
 /**
  * 执行上传数据
  */
-const execUploadData = (names: string[] | null, titles: string[] | null, docs: any[]) => {
-  if (Caller && typeof docs === 'object') {
+const execUploadData = (names: string[] | null, titles: string[] | null, rowsAoa: any[]) => {
+  if (Caller && Array.isArray(rowsAoa)) {
     const result: any = {
       method: 'UploadDocs',
-      data: JSON.stringify(docs),
+      data: JSON.stringify(rowsAoa),
       clName: clName.value,
       clTitle: clTitle.value,
       dir_full_name: assignedClDir.value?.full_name,
       clSpreadsheet: clSpreadsheet.value,
+      excludeSpare: excludeSpare.value,
+      titles,
+      names
     }
-    if (clSchemaId.value) {
+    if (clSchemaId.value)
       result.clSchemaId = clSchemaId.value
-    } else {
-      result.names = names
-      result.titles = titles
-    }
+
     const message: PluginWidgetResult = {
       action: PluginWidgetAction.Execute,
       result

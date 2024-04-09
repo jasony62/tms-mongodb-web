@@ -50,6 +50,62 @@ class ImportPlugin extends PluginBase {
     this.beforeWidget = { name: 'external', url: '', size: '60%' }
   }
   /**
+   *
+   * @returns
+   */
+  calcFields(schema: any, titles: string[], names: string[]) {
+    let fields: any
+    if (schema && typeof schema === 'object') {
+      if (Array.isArray(titles) && titles.length) {
+        fields = titles.map((title: string, index) => {
+          let s = Object.entries(schema).find(
+            ([name, props]: [string, any]) => props.title === title
+          )
+          if (s) return { name: s[0] }
+          return { name: names[index], spare: true }
+        })
+      } else if (Array.isArray(names) && names.length) {
+        fields = names.map((colName: string, index) => {
+          let s = Object.entries(schema).find(
+            ([name, props]: [string, any]) => name === colName
+          )
+          if (s) return { name: colName }
+          return { name: colName, spare: true }
+        })
+      } else {
+        fields = Object.keys(schema)
+      }
+    } else {
+      fields = names.map((name: string) => {
+        return { name }
+      })
+    }
+    return fields
+  }
+  /**
+   * 将数组数据转换为文档数据
+   */
+  aoaToDocs(fields, rowsAoa, excludeSpare = false) {
+    const docs: any[] = []
+    for (let i = 0; i < rowsAoa.length; i++) {
+      let doc = fields?.reduce((doc: any, field: any, index: number) => {
+        // 跳过多余的列
+        if (field.spare === true && excludeSpare === true) return doc
+        let val: any = rowsAoa[i][index]
+        if (val instanceof Date) {
+          // excel的时间差43秒
+          val = new Date(val.getTime() + 43000).toLocaleString()
+        }
+        if (val) doc[field.name] = val
+        return doc
+      }, {})
+      // 忽略空对象
+      if (Object.keys(doc).length) docs.push(doc)
+    }
+
+    return docs
+  }
+  /**
    * 上传数据
    *
    * @param ctrl
@@ -65,6 +121,7 @@ class ImportPlugin extends PluginBase {
       clSchemaId, // 字段定义id
       dir_full_name, // 集合所属分类目录，字符串
       clSpreadsheet, // 字符串 no/yes
+      excludeSpare, // 排除多余数据
     } = ctrl.request.body.widget
 
     const dbName = ctrl.request.query.db
@@ -87,20 +144,23 @@ class ImportPlugin extends PluginBase {
       }
     }
 
+    // 获得集合所属的数据
     const modelDb = new ModelDb(ctrl.mongoClient, ctrl.bucket, ctrl.client)
     const existDb = await modelDb.byName(dbName)
     if (!existDb) return { code: 10001, msg: `数据库【${dbName}】不存在` }
 
-    // 查询是否存在同名文档列定义
-    const [existFlag, existResult] = await this.schemaByName(
-      ctrl,
-      existDb,
-      clName
-    )
-    if (!existFlag) return { code: 10001, msg: existResult }
+    // 如果需要创建schema，查询是否存在同名文档字段定义
+    if (!clSchemaId) {
+      const [existFlag, existResult] = await this.schemaByName(
+        ctrl,
+        existDb,
+        clName
+      )
+      if (!existFlag) return { code: 10001, msg: existResult }
+    }
 
-    let rowsJson = JSON.parse(data)
-    if (!Array.isArray(rowsJson) || rowsJson.length === 0)
+    let rowsAoa = JSON.parse(data)
+    if (!Array.isArray(rowsAoa) || rowsAoa.length === 0)
       return { code: 10001, msg: '上传的文件数据为空或格式错误' }
 
     let schema_id
@@ -138,6 +198,13 @@ class ImportPlugin extends PluginBase {
       `创建集合对象[db.name=${existDb.name}][db.sysname=${existDb.sysname}][name=${clName}][sysname=${clName}]`
     )
 
+    /**
+     * 将数组格式数据转换成json文档
+     */
+    const schema = await this.schemaById(ctrl, clSchemaId)
+    const fields = this.calcFields(schema, titles, names)
+    const docs = this.aoaToDocs(fields, rowsAoa, excludeSpare)
+
     let result: any
     if (clSpreadsheet === 'yes') {
       /**
@@ -145,18 +212,12 @@ class ImportPlugin extends PluginBase {
        */
       const modelCl = new ModelCl(ctrl.mongoClient, ctrl.bucket, ctrl.client)
       const newCl = await modelCl.byName(existDb, clName)
-      result = await this.createSpreadsheet(
-        ctrl,
-        existDb,
-        newCl,
-        names,
-        rowsJson
-      )
+      result = await this.createSpreadsheet(ctrl, existDb, newCl, names, docs)
     } else {
       /**
        * 表格数据添加到集合中
        */
-      result = await this.createDocuments(ctrl, existDb, clName, rowsJson)
+      result = await this.createDocuments(ctrl, existDb, clName, docs)
     }
 
     return result
@@ -168,8 +229,7 @@ class ImportPlugin extends PluginBase {
    */
   async executeGetSchema(ctrl: any) {
     const { schemaId } = ctrl.request.body.widget
-    const modelSch = new ModelSchema(ctrl.mongoClient, ctrl.bucket, ctrl.client)
-    const schema = await modelSch.bySchemaId(schemaId)
+    const schema = this.schemaById(ctrl, schemaId)
     return { code: 0, msg: { schema } }
   }
   /**
@@ -215,7 +275,19 @@ class ImportPlugin extends PluginBase {
     return sysCl
   }
   /**
-   * 按名称查找文档列定义
+   * 按id查找文档字段定义
+   *
+   * @param ctrl
+   * @param schemaId
+   * @returns
+   */
+  async schemaById(ctrl: any, schemaId: string) {
+    const modelSch = new ModelSchema(ctrl.mongoClient, ctrl.bucket, ctrl.client)
+    const schema = await modelSch.bySchemaId(schemaId)
+    return schema
+  }
+  /**
+   * 按名称查找文档字段定义
    */
   async schemaByName(ctrl, existDb, clName) {
     const find: any = {
@@ -349,24 +421,24 @@ class ImportPlugin extends PluginBase {
    * @param ctrl
    * @param existDb
    * @param clName
-   * @param rowsJson
+   * @param docs
    * @returns
    */
-  async createDocuments(ctrl, existDb, clName, rowsJson) {
+  async createDocuments(ctrl, existDb, clName, docs) {
     const modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
     const docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK)
 
-    let finishRows = rowsJson.map((row) => {
-      let newRow: any = {}
-      for (let k in row) {
-        let oneRow = _.get(row, k)
+    let finishRows = docs.map((doc) => {
+      let newDoc: any = {}
+      for (let k in doc) {
+        let oneRow = _.get(doc, k)
         if (typeof oneRow === 'number') oneRow = String(oneRow)
-        _.set(newRow, k.split('.'), oneRow)
+        _.set(newDoc, k.split('.'), oneRow)
       }
       // 加工数据
-      modelDoc.processBeforeStore(newRow, 'insert')
+      modelDoc.processBeforeStore(newDoc, 'insert')
 
-      return newRow
+      return newDoc
     })
 
     try {
@@ -412,20 +484,20 @@ class ImportPlugin extends PluginBase {
    * @param tmwDb
    * @param tmwCl
    * @param headersName
-   * @param rowsJson
+   * @param docs
    * @returns
    */
-  async createSpreadsheet(ctrl, tmwDb, tmwCl, headersName, rowsJson) {
+  async createSpreadsheet(ctrl, tmwDb, tmwCl, headersName, docs) {
     const modelSS = new ModelSpreadsheet(
       ctrl.mongoClient,
       ctrl.bucket,
       ctrl.client
     )
 
-    const rows = rowsJson.reduce((rows, rowJson, index) => {
+    const rows = docs.reduce((rows, doc, index) => {
       const cells = {}
       headersName.forEach((name, index) => {
-        if (rowJson[name]) cells['' + index] = { text: rowJson[name] }
+        if (doc[name]) cells['' + index] = { text: doc[name] }
       })
       rows['' + index] = { cells }
       return rows
