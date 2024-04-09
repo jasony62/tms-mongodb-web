@@ -60,7 +60,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="去除未在字段定义中列">
-        <el-switch v-model="excludeSpare"></el-switch>
+        <el-switch v-model="excludeSpare" :disabled="!clSchemaId"></el-switch>
       </el-form-item>
     </el-form>
     <el-form label-position="top">
@@ -209,6 +209,8 @@ const onChangeClSchema = () => {
   selectedSchema = null
   if (clSchemaId.value) {
     execGetSchema(clSchemaId.value)
+  } else {
+    excludeSpare.value = false
   }
 }
 
