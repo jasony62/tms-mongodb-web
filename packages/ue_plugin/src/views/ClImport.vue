@@ -337,19 +337,46 @@ const doSubmit = () => {
   // 处理文档字段定义包含的数据
   if (selectedSchema) {
     const fields = alignFieldAndColumn(selectedSchema, titles, names)
-    const newRowsAoa = slicedRowsAoa.map((row: any[]) => {
-      return row.reduce((newRow, cell, index) => {
-        const field = fields[index]
-        if (field.spare === true) {
-          newRow.push(excludeSpare.value ? null : cell)
-        } else {
-          const val = storedValue(field.attrs, cell)
-          newRow.push(val)
+    if (excludeSpare.value === true) {
+      /**
+       * 去除未在schema中定义的数据
+       */
+      const newRowsAoa = slicedRowsAoa.map((row: any[]) => {
+        return row.reduce((newRow, cell, index) => {
+          const field = fields[index]
+          if (field.spare !== true) {
+            const val = storedValue(field.attrs, cell)
+            newRow.push(val)
+          }
+          return newRow
+        }, [])
+      })
+      const colHeaders = fields.reduce((headers, field) => {
+        if (field.spare !== true) {
+          headers.names.push(field.name)
+          headers.titles.push(field.attrs.title)
         }
-        return newRow
-      }, [])
-    })
-    execUploadData(names, titles, newRowsAoa)
+        return headers
+      }, { names: [], titles: [] })
+      execUploadData(colHeaders.names, colHeaders.titles, newRowsAoa)
+    } else {
+      /**
+       * 表格中包含的全部数据
+       */
+      const newRowsAoa = slicedRowsAoa.map((row: any[]) => {
+        return row.reduce((newRow, cell, index) => {
+          const field = fields[index]
+          if (field.spare === true) {
+            newRow.push(cell)
+          } else {
+            const val = storedValue(field.attrs, cell)
+            newRow.push(val)
+          }
+          return newRow
+        }, [])
+      })
+      execUploadData(names, titles, newRowsAoa)
+    }
   } else {
     execUploadData(names, titles, slicedRowsAoa)
   }
@@ -366,7 +393,6 @@ const execUploadData = (names: string[] | null, titles: string[] | null, rowsAoa
       clTitle: clTitle.value,
       dir_full_name: assignedClDir.value?.full_name,
       clSpreadsheet: clSpreadsheet.value,
-      excludeSpare: excludeSpare.value,
       titles,
       names
     }
@@ -463,6 +489,7 @@ window.addEventListener('message', (event) => {
           s.db ? schemas[0].options.push(s) : schemas[1].options.push(s)
         })
       } else if (response.schema && typeof response.schema === 'object') {
+        // 获取选择的文档字段定义
         selectedSchema = response.schema
       }
     }
@@ -500,6 +527,8 @@ function handleUpload(req: any) {
       const rowsAoa = XLSX.utils.sheet_to_json<string[]>(sh, { header: 1, raw: false })
       dataRaw.value = rowsAoa
       rowTotal.value = rowsAoa.length
+      if (!/^Sheet(\d*)$/.test(selectedSheetName.value))
+        clTitle.value = selectedSheetName.value
     }
     /**
      * excel中的sheet
