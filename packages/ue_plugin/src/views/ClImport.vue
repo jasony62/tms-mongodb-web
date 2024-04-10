@@ -44,6 +44,9 @@
       <el-form-item label="集合标题">
         <el-input v-model="clTitle" placeholder="中文名称"></el-input>
       </el-form-item>
+      <el-form-item label="按表格顺序排序">
+        <el-switch v-model="clIdOrderBy" active-value="asc" inactive-value="desc"></el-switch>
+      </el-form-item>
       <el-form-item label="自由表格">
         <el-select v-model="clSpreadsheet" placeholder="请选择" style="width:80px;">
           <el-option label="否" value="no"></el-option>
@@ -224,6 +227,7 @@ const dataRaw = ref<any[] | null>(null) // 表格页数据
 const clName = ref('')
 const clTitle = ref('')
 const clSchemaId = ref('')
+const clIdOrderBy = ref('asc') // 集合默认排序
 const clSpreadsheet = ref('no')
 const excludeSpare = ref(false)
 const schemas = reactive([
@@ -403,6 +407,7 @@ const execUploadData = (names: string[] | null, titles: string[] | null, rowsAoa
       clName: clName.value,
       clTitle: clTitle.value,
       dir_full_name: assignedClDir.value?.full_name,
+      clIdOrderBy: clIdOrderBy.value,
       clSpreadsheet: clSpreadsheet.value,
       titles,
       names

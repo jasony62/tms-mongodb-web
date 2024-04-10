@@ -120,6 +120,7 @@ class ImportPlugin extends PluginBase {
       clName, // 集合名称
       clSchemaId, // 字段定义id
       dir_full_name, // 集合所属分类目录，字符串
+      clIdOrderBy, // 集合文档默认排序
       clSpreadsheet, // 字符串 no/yes
       excludeSpare, // 排除多余数据
     } = ctrl.request.body.widget
@@ -191,6 +192,7 @@ class ImportPlugin extends PluginBase {
       title: clTitle,
       schema_id,
       clSpreadsheet,
+      orderBy: { _id: clIdOrderBy ?? 'desc' },
     }
     const [clFlag, clRst] = await this.createCl(ctrl, existDb, clInfo)
     if (!clFlag) return { code: 10001, msg: clRst }
@@ -405,13 +407,15 @@ class ImportPlugin extends PluginBase {
       tags: [],
     }
 
-    const { clName, title, schema_id, dir_full_name, clSpreadsheet } = info
+    const { clName, title, schema_id, dir_full_name, clSpreadsheet, orderBy } =
+      info
     clTpl.name = clName
     clTpl.sysname = clName
     clTpl.title = title
     clTpl.schema_id = schema_id
     if (dir_full_name) clTpl.dir_full_name = dir_full_name
     if (clSpreadsheet === 'yes') clTpl.spreadsheet = 'yes'
+    clTpl.orderBy = orderBy
 
     return await modelCl.create(existDb, clTpl)
   }
