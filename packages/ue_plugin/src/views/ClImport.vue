@@ -2,8 +2,9 @@
   <div class="flex flex-col gap-4 h-full w-full">
     <el-alert v-if='help' :title="help" type="info" effect="dark" show-icon />
     <el-form-item>
-      <el-upload ref="upload" :action="''" :http-request="handleUpload" :file-list="fileList" :auto-upload="true"
-        :limit="1" :on-change="handleChange">
+      <el-upload ref="upload" v-loading="fileUploading" element-loading-text="上传文件..." :action="''"
+        :http-request="handleFileUpload" :file-list="fileList" :auto-upload="true" :limit="1"
+        :before-upload="onBeforeFileUpload">
         <el-button slot="trigger" type="primary">选取文件</el-button>
         <template #tip>
           <div class="el-upload__tip">
@@ -208,7 +209,8 @@ function alignFieldAndColumn(schema: any, titles: string[], names: string[]): an
 const executed = ref(false)
 const responseContent = ref<string>('')
 const fileList = ref([])
-const upload = ref<any>(null)
+const upload = ref<any>(null) // 文件上传组件
+const fileUploading = ref(false) // 正在执行文件上传
 const isFileUploaded = ref(false)
 // excel文件sheet页名称
 const sheetNames = ref([] as string[])
@@ -240,11 +242,18 @@ const assignedClDir = ref()
 // 帮助
 const help = ref('')
 
+/**
+ * 执行上传文件前的操作
+ */
+const onBeforeFileUpload = () => {
+  fileUploading.value = true
+  return true
+}
 // 列标题
 const colTitles = computed(() => {
   if (!Array.isArray(dataRaw.value) || dataRaw.value.length === 0) return []
   if (titleRow.value > 0 && titleRow.value < dataRaw.value.length) {
-    return dataRaw.value[titleRow.value - 1].map((t: string) => t.trim())
+    return dataRaw.value[titleRow.value - 1].map((t: string) => t.trim().replaceAll(/\s/g, ''))
   }
   return []
 })
@@ -364,7 +373,9 @@ const doSubmit = () => {
        * 表格中包含的全部数据
        */
       const newRowsAoa = slicedRowsAoa.map((row: any[]) => {
-        return row.reduce((newRow, cell, index) => {
+        const newRow = []
+        for (let index = 0; index < row.length; index++) {
+          const cell = row[index]
           const field = fields[index]
           if (field.spare === true) {
             newRow.push(cell)
@@ -372,8 +383,8 @@ const doSubmit = () => {
             const val = storedValue(field.attrs, cell)
             newRow.push(val)
           }
-          return newRow
-        }, [])
+        }
+        return newRow
       })
       execUploadData(names, titles, newRowsAoa)
     }
@@ -496,10 +507,12 @@ window.addEventListener('message', (event) => {
   }
 })
 
-function handleChange(file: any, files: any) {
-}
-
-function handleUpload(req: any) {
+/**
+ * 处理文件上传
+ * 读取文件内容进行处理
+ * @param req 
+ */
+function handleFileUpload(req: any) {
   const reader = new FileReader()
 
   //将文件以二进制形式读入页面
@@ -538,6 +551,8 @@ function handleUpload(req: any) {
       selectedSheetName.value = wb.SheetNames[0]
       onChangeSheet()
     }
+    // 结束上传文件
+    fileUploading.value = false
     // 修改状态
     isFileUploaded.value = true
   }
