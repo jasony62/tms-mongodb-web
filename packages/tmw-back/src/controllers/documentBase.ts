@@ -269,6 +269,11 @@ class DocBase extends Base {
     const { page, size, tags, includeDeleted } = this.request.query
     let { filter, orderBy } = this.request.body
 
+    // 排序规则
+    if (tmwCl.orderBy && typeof tmwCl.orderBy === 'object') {
+      orderBy = Object.assign(tmwCl.orderBy, orderBy)
+    }
+
     // 包含全部标签
     if (tags) filter = makeTagsFilter(tags, filter)
 

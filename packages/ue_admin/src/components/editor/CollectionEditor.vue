@@ -86,6 +86,9 @@
         <el-form-item label="集合中的文档保存到Elasticsearch">
           <el-switch v-model="collection.extensions.elasticsearch.enabled"></el-switch>
         </el-form-item>
+        <el-form-item label="按文档创建先后升序排序（默认降序）">
+          <el-switch v-model="collection.orderBy._id" active-value="asc" inactive-value="desc"></el-switch>
+        </el-form-item>
       </el-form>
       <div v-show="activeTab === 'convert'" class="h-96">
         <textarea ref="elConvEditor" class="h-full w-full border border-gray-200 p-2"
@@ -164,6 +167,9 @@ const props = defineProps({
             enabled: false
           },
         },
+        orderBy: {
+          TMW_CREATE_TIME: 'desc'
+        },
         docFieldConvertRules: {},
       }
     },
@@ -175,6 +181,7 @@ const props = defineProps({
 props.collection.ext_schemas ??= []
 props.collection.extensions ??= { elasticsearch: { enabled: false } }
 props.collection.extensions.elasticsearch ??= { enabled: false }
+props.collection.orderBy ??= {}
 
 const dialogVisible = ref(props.dialogVisible)
 const activeTab = ref('info')
@@ -262,7 +269,7 @@ const aclUserColumns = [{
     }
   }, { default: () => [h(ElOption, { value: 'readCl', label: '集合只读' }), h(ElOption, { value: 'readDoc', label: '文档只读' })] })
 }, {
-  key: 'operaations',
+  key: 'operations',
   title: '操作',
   cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h('div', {}, { default: () => [h(ElButton, { onClick: () => removeAclUser(rowData, rowIndex) }, { default: () => '删除' }), h(ElButton, { type: rowData.__modified ? 'primary' : '', disabled: !rowData.__modified, onClick: () => updateAclUser(rowData, rowIndex) }, { default: () => '保存修改' })] })
 }]
