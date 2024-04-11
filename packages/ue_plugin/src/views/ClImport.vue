@@ -276,7 +276,11 @@ const FileHandler = {
        */
       onChangeSheet = () => {
         const sh = wb.Sheets[selectedSheetName.value]
-        const rowsAoa = XLSX.utils.sheet_to_json<string[]>(sh, { header: 1, raw: false })
+        const rowsAoaBase = XLSX.utils.sheet_to_json<string[]>(sh, { header: 1, raw: false })
+        const rowsAoa = rowsAoaBase.map(val => {
+          val.length = rowsAoaBase[0].length
+          return Array.from(val).map(x => x || '')
+        })
         dataRaw.value = rowsAoa
         rowTotal.value = rowsAoa.length
         if (!/^Sheet(\d*)$/.test(selectedSheetName.value))
