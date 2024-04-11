@@ -28,7 +28,7 @@
     "tms-koa-captcha": "^0.2.5",
     "tmw-data": "workspace:*",
     "tmw-kit": "workspace:*",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.182",

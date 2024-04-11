@@ -19,7 +19,7 @@
     "pinyin-pro": "^3.16.4",
     "tmw-data": "workspace:*",
     "tmw-kit": "workspace:*",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz"
   },
   "devDependencies": {
     "@types/node": "^20.5.9",
