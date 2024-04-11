@@ -10,6 +10,7 @@ import PickFileEditor from './PickFile.vue'
 
 import { createApp } from 'vue'
 import ElementPlus from 'element-plus'
+import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 
 type DbEditorOptions = {
   mode: any
@@ -139,7 +140,7 @@ export function openCollectionEditor(options: CollectionEditorOptions) {
       document.body.removeChild(root)
     },
   })
-  app.use(ElementPlus).mount(root)
+  app.use(ElementPlus, { locale: zhCn }).mount(root)
 }
 /**
  * 编辑文档访问控制列表

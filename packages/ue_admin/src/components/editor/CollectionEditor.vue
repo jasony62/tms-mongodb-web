@@ -10,8 +10,9 @@
         <el-tab-pane label="访问控制列表" name="acl" v-if="collection._id && collection.aclCheck"></el-tab-pane>
       </el-tabs>
       <el-form :model="collection" label-position="top" v-show="activeTab === 'info'" :rules="rules">
-        <el-form-item label="所属分类目录" prop="title" v-if="clDir?.full_title">
-          <div>{{ clDir.full_title }}</div>
+        <el-form-item label="所属分类目录">
+          <el-tree-select v-model="newClDirFullName" clearable check-strictly :data="clDirs"
+            :render-after-expand="false" node-key="full_name" :props="ClDirTreeProps" />
         </el-form-item>
         <el-form-item label="集合名称（系统）" prop="sysname">
           <el-input v-model="collection.sysname" :disabled="mode === 'update'"></el-input>
@@ -130,11 +131,15 @@ import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
 import apiAcl from '@/apis/acl'
-import { computed, h, onMounted, reactive, ref, toRaw } from 'vue'
+import { computed, h, onMounted, reactive, ref, toRaw, watch } from 'vue'
 import { FormRules, ElMessageBox, ElButton, ElInput, ElSelect, ElOption } from 'element-plus'
+
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 import { Delete } from '@element-plus/icons-vue'
 import { DEFAULT_VALUES } from '@/global'
+import facStore from '@/store'
+
+const store = facStore()
 
 // 查找条件下拉框分页包含记录数
 const SELECT_PAGE_SIZE = 7
@@ -234,6 +239,19 @@ const docFieldConvertRules = computed({
     }
   },
 })
+// 集合所属分类目录
+const newClDirFullName = ref(collection.dir_full_name)
+const clDirs = ref<any>(null)
+const ClDirTreeProps = {
+  children: 'children',
+  label: 'title',
+}
+const listClDir = (async () => {
+  clDirs.value = await store.listCollectionDir({
+    bucket: bucketName,
+    db: dbName,
+  })
+})
 /**
  * 扩展schema
  */
@@ -286,6 +304,7 @@ onMounted(() => {
         s.db ? schemas[0].options.push(s) : schemas[1].options.push(s)
       })
     })
+  listClDir()
   apiTag.list(props.bucketName).then((tags2: any[]) => {
     tags2.forEach((t) => tags.value.push(t))
   })
@@ -325,6 +344,9 @@ const onSubmit = () => {
       ;['schema_name', 'schema_order', 'schema_parentName', 'children'].forEach(item => {
         if (collection.hasOwnProperty(item)) delete collection[item]
       })
+
+  // 所属分类目录
+  collection.dir_full_name = toRaw(newClDirFullName.value)
 
   if (mode === 'create') {
     apiCollection
