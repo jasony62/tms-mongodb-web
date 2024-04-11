@@ -10,6 +10,7 @@ import PickFileEditor from './PickFile.vue'
 
 import { createApp } from 'vue'
 import ElementPlus from 'element-plus'
+//@ts-ignore
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 
 type DbEditorOptions = {
@@ -93,7 +94,7 @@ export function openDbEditor(options: DbEditorOptions) {
       document.body.removeChild(root)
     },
   })
-  app.use(ElementPlus).mount(root)
+  app.use(ElementPlus, { locale: zhCn }).mount(root)
 }
 /***/
 export function openDirEditor(options: DirEditorOptions) {
@@ -112,7 +113,7 @@ export function openDirEditor(options: DirEditorOptions) {
       document.body.removeChild(root)
     },
   })
-  app.use(ElementPlus).mount(root)
+  app.use(ElementPlus, { locale: zhCn }).mount(root)
 }
 /***/
 export function openCollectionEditor(options: CollectionEditorOptions) {
@@ -161,7 +162,7 @@ export function openDocAclEditor(options: any) {
       document.body.removeChild(root)
     },
   })
-  app.use(ElementPlus).mount(root)
+  app.use(ElementPlus, { locale: zhCn }).mount(root)
 }
 /***/
 export function openTagEditor(options: TagEditorOptions) {
@@ -178,7 +179,7 @@ export function openTagEditor(options: TagEditorOptions) {
       document.body.removeChild(root)
     },
   })
-  app.use(ElementPlus).mount(root)
+  app.use(ElementPlus, { locale: zhCn }).mount(root)
 }
 /**
  * 集合中文档列表筛选条件
@@ -201,7 +202,7 @@ export function openSelectConditionEditor(options: SelectConditionOptions) {
       document.body.removeChild(root)
     },
   })
-  app.use(ElementPlus).mount(root)
+  app.use(ElementPlus, { locale: zhCn }).mount(root)
 }
 
 import { JsonSchema } from 'tms-vue3-ui'
@@ -222,7 +223,7 @@ export function openSchemaEditor(options: SchemaEditorOptions) {
     },
   })
   // @ts-ignore
-  app.use(ElementPlus).use(JsonSchema).mount(root)
+  app.use(ElementPlus, { locale: zhCn }).use(JsonSchema).mount(root)
 }
 /***/
 export function openBucketEditor(options: BucketEditorOptions) {
@@ -238,7 +239,7 @@ export function openBucketEditor(options: BucketEditorOptions) {
       document.body.removeChild(root)
     },
   })
-  app.use(ElementPlus).mount(root)
+  app.use(ElementPlus, { locale: zhCn }).mount(root)
 }
 export function openPickFileEditor(options: PickFileEditorOptions) {
   const root = document.createElement('div')
@@ -253,5 +254,5 @@ export function openPickFileEditor(options: PickFileEditorOptions) {
       if (document.body.contains(root)) document.body.removeChild(root)
     },
   })
-  app.use(ElementPlus).mount(root)
+  app.use(ElementPlus, { locale: zhCn }).mount(root)
 }
