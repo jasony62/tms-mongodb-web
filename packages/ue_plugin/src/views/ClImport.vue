@@ -68,7 +68,7 @@
     </el-form>
     <el-form label-position="top">
       <el-form-item>
-        <el-button type="primary" @click="onExecute" :disabled="!canSubmit">执行并关闭</el-button>
+        <el-button type="primary" @click="onExecute" :disabled="!canSubmit">执行后关闭</el-button>
         <el-button type="primary" @click="onExecute(true)" :disabled="!canSubmit">执行</el-button>
         <el-button @click="onCancel" v-if="!executed">取消</el-button>
         <el-button @click="onClose" v-if="executed">关闭</el-button>
