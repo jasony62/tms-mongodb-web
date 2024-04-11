@@ -3,13 +3,12 @@
     <el-alert v-if='help' :title="help" type="info" effect="dark" show-icon />
     <el-form-item>
       <el-upload ref="upload" v-loading="fileUploading" element-loading-text="上传文件..." :action="''"
-        :http-request="handleFileUpload" :file-list="fileList" :auto-upload="true" :limit="1"
-        :before-upload="onBeforeFileUpload">
+        :http-request="FileHandler.upload" :file-list="fileList" :auto-upload="true" :limit="1"
+        :before-upload="FileHandler.onBeforeUpload" :before-remove="FileHandler.onBeforeRemove"
+        :on-exceed="FileHandler.onExceed">
         <el-button slot="trigger" type="primary">选取文件</el-button>
         <template #tip>
-          <div class="el-upload__tip">
-            需上传.xls、.xlsx类型的文件，且不超过10MB
-          </div>
+          <div class="el-upload__tip">需上传.xls、.xlsx类型的文件</div>
         </template>
       </el-upload>
     </el-form-item>
@@ -69,14 +68,12 @@
     </el-form>
     <el-form label-position="top">
       <el-form-item>
-        <el-button type="primary" @click="onExecute" :disabled="!canSubmit">执行</el-button>
+        <el-button type="primary" @click="onExecute" :disabled="!canSubmit">执行并关闭</el-button>
+        <el-button type="primary" @click="onExecute(true)" :disabled="!canSubmit">执行</el-button>
         <el-button @click="onCancel" v-if="!executed">取消</el-button>
         <el-button @click="onClose" v-if="executed">关闭</el-button>
       </el-form-item>
     </el-form>
-    <div class="response-content flex-grow border border-gray-200 rounded-md overflow-auto" v-if="responseContent">
-      <pre>{{ responseContent }}</pre>
-    </div>
   </div>
 </template>
 
@@ -210,7 +207,6 @@ function alignFieldAndColumn(schema: any, titles: string[], names: string[]): an
 }
 
 const executed = ref(false)
-const responseContent = ref<string>('')
 const fileList = ref([])
 const upload = ref<any>(null) // 文件上传组件
 const fileUploading = ref(false) // 正在执行文件上传
@@ -247,11 +243,83 @@ const assignedClDir = ref()
 const help = ref('')
 
 /**
+ * 处理文件上传相关事件
+ */
+const FileHandler = {
+  /**
+   * 处理文件上传
+   * 读取文件内容进行处理
+   * @param req 
+  */
+  upload(req: any) {
+    const reader = new FileReader()
+
+    //将文件以二进制形式读入页面
+    const fileType = req.file.type
+    if (
+      fileType ===
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ) {
+      reader.readAsArrayBuffer(req.file)
+    } else {
+      ElMessage.error('不支持的文件格式')
+      return
+    }
+    clTitle.value = req.file.name
+
+    reader.onload = function (event: any) {
+      const fileData = event.target.result
+
+      const wb = XLSX.read(fileData, { type: 'binary', cellDates: true })
+      /**
+       * 选择sheet页后，要解析内容，设置导入相关参数
+       */
+      onChangeSheet = () => {
+        const sh = wb.Sheets[selectedSheetName.value]
+        const rowsAoa = XLSX.utils.sheet_to_json<string[]>(sh, { header: 1, raw: false })
+        dataRaw.value = rowsAoa
+        rowTotal.value = rowsAoa.length
+        if (!/^Sheet(\d*)$/.test(selectedSheetName.value))
+          clTitle.value = selectedSheetName.value
+      }
+      /**
+       * excel中的sheet
+       */
+      sheetNames.value.push(...wb.SheetNames)
+      if (wb.SheetNames.length === 1) {
+        selectedSheetName.value = wb.SheetNames[0]
+        onChangeSheet()
+      }
+      // 结束上传文件
+      fileUploading.value = false
+      // 修改状态
+      isFileUploaded.value = true
+    }
+  },
+  /**
  * 执行上传文件前的操作
  */
-const onBeforeFileUpload = () => {
-  fileUploading.value = true
-  return true
+  onBeforeUpload() {
+    fileUploading.value = true
+    return true
+  },
+  /**
+   * 
+   */
+  onBeforeRemove() {
+    sheetNames.value.splice(0, sheetNames.value.length)
+    isFileUploaded.value = false
+    return true
+  },
+  /**
+   * 替换已经上传的文件
+   */
+  onExceed(files: any) {
+    upload.value!.clearFiles()
+    const file = files[0]
+    upload.value!.handleStart(file)
+    upload.value!.submit()
+  }
 }
 // 列标题
 const colTitles = computed(() => {
@@ -336,7 +404,7 @@ let onChangeSheet: (() => void) | null
  * 
  * 用户决定是否去除未在schema中定义的数据
  */
-const doSubmit = () => {
+const doSubmit = (notClose = false) => {
   if (!Array.isArray(dataRaw.value) || dataRaw.value.length === 0) return
 
   const rowsAoa = dataRaw.value
@@ -371,7 +439,7 @@ const doSubmit = () => {
         }
         return headers
       }, { names: [], titles: [] })
-      execUploadData(colHeaders.names, colHeaders.titles, newRowsAoa)
+      execUploadData(colHeaders.names, colHeaders.titles, newRowsAoa, notClose)
     } else {
       /**
        * 表格中包含的全部数据
@@ -390,16 +458,16 @@ const doSubmit = () => {
         }
         return newRow
       })
-      execUploadData(names, titles, newRowsAoa)
+      execUploadData(names, titles, newRowsAoa, notClose)
     }
   } else {
-    execUploadData(names, titles, slicedRowsAoa)
+    execUploadData(names, titles, slicedRowsAoa, notClose)
   }
 }
 /**
  * 执行上传数据
  */
-const execUploadData = (names: string[] | null, titles: string[] | null, rowsAoa: any[]) => {
+const execUploadData = (names: string[] | null, titles: string[] | null, rowsAoa: any[], notClose = false) => {
   if (Caller && Array.isArray(rowsAoa)) {
     const result: any = {
       method: 'UploadDocs',
@@ -417,8 +485,10 @@ const execUploadData = (names: string[] | null, titles: string[] | null, rowsAoa
 
     const message: PluginWidgetResult = {
       action: PluginWidgetAction.Execute,
-      result
+      result,
     }
+    if (notClose === true) message.handleResponse = true
+
     try {
       // 给调用方发送数据
       Caller.postMessage(message, '*')
@@ -497,7 +567,7 @@ window.addEventListener('message', (event) => {
   }
   if (response) {
     if (typeof response === 'string') {
-      responseContent.value = response
+      help.value = response
     } else if (typeof response === 'object') {
       if (Array.isArray(response.schemas) && response.schemas.length) {
         // 获得了可用的字段定义列表
@@ -512,58 +582,7 @@ window.addEventListener('message', (event) => {
   }
 })
 
-/**
- * 处理文件上传
- * 读取文件内容进行处理
- * @param req 
- */
-function handleFileUpload(req: any) {
-  const reader = new FileReader()
-
-  //将文件以二进制形式读入页面
-  const fileType = req.file.type
-  if (
-    fileType ===
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  ) {
-    reader.readAsArrayBuffer(req.file)
-  } else {
-    ElMessage.error('不支持的文件格式')
-    return
-  }
-  clTitle.value = req.file.name
-
-  reader.onload = function (event: any) {
-    const fileData = event.target.result
-
-    const wb = XLSX.read(fileData, { type: 'binary', cellDates: true })
-    /**
-     * 选择sheet页后，要解析内容，设置导入相关参数
-     */
-    onChangeSheet = () => {
-      const sh = wb.Sheets[selectedSheetName.value]
-      const rowsAoa = XLSX.utils.sheet_to_json<string[]>(sh, { header: 1, raw: false })
-      dataRaw.value = rowsAoa
-      rowTotal.value = rowsAoa.length
-      if (!/^Sheet(\d*)$/.test(selectedSheetName.value))
-        clTitle.value = selectedSheetName.value
-    }
-    /**
-     * excel中的sheet
-     */
-    sheetNames.value.push(...wb.SheetNames)
-    if (wb.SheetNames.length === 1) {
-      selectedSheetName.value = wb.SheetNames[0]
-      onChangeSheet()
-    }
-    // 结束上传文件
-    fileUploading.value = false
-    // 修改状态
-    isFileUploaded.value = true
-  }
-}
-
-function onExecute() {
+function onExecute(notClose = false) {
   const reg = /^[a-zA-z]/
   if (!reg.test(clName.value)) {
     return ElMessageBox.alert('请输入以英文字母开头的集合名称')
@@ -571,7 +590,7 @@ function onExecute() {
   if (!nameRow.value && !titleRow.value) {
     return ElMessageBox.alert('英文行和中文行必须最少存在一个')
   }
-  if (doSubmit) doSubmit()
+  if (doSubmit) doSubmit(notClose)
 }
 
 function onCancel() {
