@@ -1,7 +1,7 @@
 <template>
   <el-dialog title="数据库" v-model="dialogVisible" :destroy-on-close="true" :close-on-click-modal="false"
     :before-close="onBeforeClose">
-    <el-tabs v-model="activeTab" type="card">
+    <el-tabs v-model="activeTab">
       <el-tab-pane label="基本信息" name="info"></el-tab-pane>
       <el-tab-pane label="设置" name="setting"></el-tab-pane>
     </el-tabs>

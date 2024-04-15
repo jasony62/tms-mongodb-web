@@ -2,7 +2,7 @@
   <el-dialog :title="title" v-model="dialogVisible" :fullscreen="true" :destroy-on-close="true"
     :close-on-click-modal="false" :before-close="onBeforeClose">
     <div class="h-full flex flex-col">
-      <el-tabs v-model="activeTab" type="card">
+      <el-tabs v-model="activeTab">
         <el-tab-pane label="基本信息" name="first"></el-tab-pane>
         <el-tab-pane label="列定义" name="second"></el-tab-pane>
       </el-tabs>

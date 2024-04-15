@@ -2,7 +2,7 @@
   <el-dialog title="集合" v-model="dialogVisible" :destroy-on-close="true" :close-on-click-modal="false"
     :before-close="onBeforeClose">
     <div class="el-dialog-div">
-      <el-tabs v-model="activeTab" type="card">
+      <el-tabs v-model="activeTab">
         <el-tab-pane label="基本信息" name="info"></el-tab-pane>
         <el-tab-pane label="扩展信息" name="extra"></el-tab-pane>
         <el-tab-pane label="设置" name="setting"></el-tab-pane>
