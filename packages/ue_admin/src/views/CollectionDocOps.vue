@@ -14,7 +14,7 @@
         <el-dropdown-item>
           <el-button type="primary" link size="small" @click="handle('copy')">复制</el-button>
         </el-dropdown-item>
-        <el-dropdown-item>
+        <el-dropdown-item divided>
           <el-button type="danger" link size="small" @click="handle('remove')">删除</el-button>
         </el-dropdown-item>
       </el-dropdown-menu>

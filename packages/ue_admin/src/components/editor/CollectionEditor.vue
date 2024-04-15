@@ -7,7 +7,6 @@
         <el-tab-pane label="扩展信息" name="extra"></el-tab-pane>
         <el-tab-pane label="设置" name="setting"></el-tab-pane>
         <el-tab-pane label="文档编辑转换规则" name="convert" v-if="false"></el-tab-pane>
-        <el-tab-pane label="访问控制列表" name="acl" v-if="collection._id && collection.aclCheck"></el-tab-pane>
       </el-tabs>
       <el-form :model="collection" label-position="top" v-show="activeTab === 'info'" :rules="rules">
         <el-form-item label="所属分类目录" v-if="clDirs?.length">
@@ -95,26 +94,6 @@
         <textarea ref="elConvEditor" class="h-full w-full border border-gray-200 p-2"
           v-model="docFieldConvertRules"></textarea>
       </div>
-      <div v-show="activeTab === 'acl'">
-        <el-form :inline="true" :model="newAclUser" label-position="left">
-          <el-form-item label="用户">
-            <el-input v-model="newAclUser.id"></el-input>
-          </el-form-item>
-          <el-form-item label="备注">
-            <el-input v-model="newAclUser.remark"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" :disabled="!newAclUser.id" @click="onAddAclUser(newAclUser)">添加</el-button>
-          </el-form-item>
-        </el-form>
-        <div style="height:300px">
-          <el-auto-resizer>
-            <template #default="{ height, width }">
-              <el-table-v2 :data="aclUserList" :columns="aclUserColumns" :width="width" :height="height" />
-            </template>
-          </el-auto-resizer>
-        </div>
-      </div>
     </div>
 
     <template #footer v-if="activeTab !== 'acl'">
@@ -131,7 +110,7 @@ import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
 import apiAcl from '@/apis/acl'
-import { computed, h, onMounted, reactive, ref, toRaw, watch } from 'vue'
+import { computed, h, onMounted, reactive, ref, toRaw } from 'vue'
 import { FormRules, ElMessageBox, ElButton, ElInput, ElSelect, ElOption } from 'element-plus'
 
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
@@ -256,42 +235,6 @@ const listClDir = (async () => {
  * 扩展schema
  */
 const newClExtSchema = ref({ id: '' })
-/**
- * 访问控制列表
- */
-const newAclUser = reactive({} as any)
-const aclUserColumns = [{
-  key: 'id',
-  dataKey: 'user.id',
-  title: '用户',
-  width: '200px'
-}, {
-  key: 'remark',
-  dataKey: 'user.remark',
-  title: '备注',
-  width: '200px',
-  cellRenderer: ({ rowData }: { rowData: any }) => h(ElInput, {
-    modelValue: rowData.user.remark, onInput: (value) => {
-      rowData.user.remark = value
-      rowData.__modified = true
-    }
-  })
-}, {
-  key: 'right',
-  title: '权限控制',
-  width: '200px',
-  cellRenderer: ({ rowData }: { rowData: any }) => h(ElSelect, {
-    modelValue: rowData.right, multiple: true, clearable: true, onChange: (value) => {
-      rowData.right = value
-      rowData.__modified = true
-    }
-  }, { default: () => [h(ElOption, { value: 'readCl', label: '集合只读' }), h(ElOption, { value: 'readDoc', label: '文档只读' })] })
-}, {
-  key: 'operations',
-  title: '操作',
-  cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h('div', {}, { default: () => [h(ElButton, { onClick: () => removeAclUser(rowData, rowIndex) }, { default: () => '删除' }), h(ElButton, { type: rowData.__modified ? 'primary' : '', disabled: !rowData.__modified, onClick: () => updateAclUser(rowData, rowIndex) }, { default: () => '保存修改' })] })
-}]
-const aclUserList = ref([] as any[])
 
 onMounted(() => {
   apiSchema
@@ -308,13 +251,6 @@ onMounted(() => {
   apiTag.list(props.bucketName).then((tags2: any[]) => {
     tags2.forEach((t) => tags.value.push(t))
   })
-  // 访问列表
-  if (mode === 'update' && collection.aclCheck === true) {
-    apiAcl.list({ type: 'collection', id: collection._id }).then((result: any[]) => {
-      result.forEach(acl => acl.__modified = false)
-      aclUserList.value = result
-    })
-  }
 })
 
 // 关闭对话框时执行指定的回调方法
@@ -381,28 +317,5 @@ const onAddClExtSchema = (usage = 'edit') => {
 }
 const onRemoveClExtSchema = (clExtSchema: any, index: number) => {
   collection.ext_schemas.splice(index, 1)
-}
-const onAddAclUser = (newUser: any) => {
-  const { id, remark } = newUser
-  const target = { type: 'collection', id: collection._id }
-  const user = { id, remark }
-  apiAcl.add(target, user).then(() => {
-    aclUserList.value.splice(0, 0, { user: { id, remark } })
-    newAclUser.id = ''
-  })
-}
-const removeAclUser = (aclUser: any, index: number) => {
-  const { user } = aclUser
-  const target = { type: 'collection', id: collection._id }
-  apiAcl.remove(target, { id: user.id }).then(() => {
-    aclUserList.value.splice(index, 1)
-  })
-}
-const updateAclUser = (aclUser: any, index: number) => {
-  const { user, right } = aclUser
-  const target = { type: 'collection', id: collection._id }
-  apiAcl.update(target, { id: user.id, remark: user.remark }, { right }).then(() => {
-    aclUser.__modified = false
-  })
 }
 </script>

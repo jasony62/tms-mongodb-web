@@ -7,6 +7,7 @@ import Bucket from '../views/Bucket.vue'
 import Databases from '../views/Databases.vue'
 import DocSchemas from '../views/DocSchemas.vue'
 import Dir from '../views/Dir.vue'
+import Acl from '../views/Acl.vue'
 import DbSchemas from '../views/DbSchemas.vue'
 import ClSchemas from '../views/ClSchemas.vue'
 import Tag from '../views/Tag.vue'
@@ -100,9 +101,21 @@ const routes: RouteRecordRaw[] = [
         props: true,
       },
       {
+        path: `${BucketPart}/database/:dbName/acl`,
+        name: 'databaseAcl',
+        component: Acl,
+        props: true,
+      },
+      {
         path: `${BucketPart}/collection/:dbName/:clName`,
         name: 'collection',
         component: Collection,
+        props: true,
+      },
+      {
+        path: `${BucketPart}/collection/:dbName/:clName/acl`,
+        name: 'collectionAcl',
+        component: Acl,
         props: true,
       },
       {
@@ -115,6 +128,12 @@ const routes: RouteRecordRaw[] = [
         path: `${BucketPart}/document/:dbName/:clName/:docId?`,
         name: 'docEditor',
         component: DocEditor,
+        props: true,
+      },
+      {
+        path: `${BucketPart}/document/:dbName/:clName/:docId/acl`,
+        name: 'docAcl',
+        component: Acl,
         props: true,
       },
       {

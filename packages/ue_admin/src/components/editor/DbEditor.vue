@@ -4,7 +4,6 @@
     <el-tabs v-model="activeTab" type="card">
       <el-tab-pane label="基本信息" name="info"></el-tab-pane>
       <el-tab-pane label="设置" name="setting"></el-tab-pane>
-      <el-tab-pane label="访问控制列表" name="acl" v-if="database._id && database.aclCheck"></el-tab-pane>
     </el-tabs>
     <el-form :model="database" label-position="top" v-show="activeTab === 'info'">
       <el-form-item label="数据库名称（系统）">
@@ -44,27 +43,6 @@
         <el-switch v-model="database.adminOnly"></el-switch>
       </el-form-item>
     </el-form>
-    <div v-show="activeTab === 'acl'">
-      <el-form :inline="true" :model="newAclUser" label-position="left">
-        <el-form-item label="用户">
-          <el-input v-model="newAclUser.id"></el-input>
-        </el-form-item>
-        <el-form-item label="备注">
-          <el-input v-model="newAclUser.remark"></el-input>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" :disabled="!newAclUser.id" @click="onAddAclUser(newAclUser)">添加</el-button>
-        </el-form-item>
-      </el-form>
-      <div style="height:300px">
-        <el-auto-resizer>
-          <template #default="{ height, width }">
-            <el-table-v2 :data="aclUserList" :columns="aclUserColumns" :width="width" :height="height" />
-          </template>
-        </el-auto-resizer>
-      </div>
-    </div>
-
     <template #footer v-if="activeTab !== 'acl'">
       <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button @click="onBeforeClose">取消</el-button>
@@ -73,11 +51,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, h } from 'vue'
-import { ElMessageBox, ElButton, ElInput, ElSelect, ElOption } from 'element-plus'
+import { onMounted, reactive, ref } from 'vue'
+import { ElMessageBox } from 'element-plus'
 import apiDb from '@/apis/database'
 import apiSchema from '@/apis/schema'
-import apiAcl from '@/apis/acl'
 import { DEFAULT_VALUES } from '@/global'
 
 const emit = defineEmits(['submit'])
@@ -101,39 +78,6 @@ const dialogVisible = ref(props.dialogVisible)
 const database = reactive(props.database)
 const activeTab = ref('info')
 const schemas = reactive([] as any[])
-const newAclUser = reactive({} as any)
-const aclUserColumns = [{
-  key: 'id',
-  dataKey: 'user.id',
-  title: '用户',
-  width: '200px'
-}, {
-  key: 'remark',
-  dataKey: 'user.remark',
-  title: '备注',
-  width: '200px',
-  cellRenderer: ({ rowData }: { rowData: any }) => h(ElInput, {
-    modelValue: rowData.user.remark, onInput: (value) => {
-      rowData.user.remark = value
-      rowData.__modified = true
-    }
-  })
-}, {
-  key: 'right',
-  title: '权限控制',
-  width: '200px',
-  cellRenderer: ({ rowData }: { rowData: any }) => h(ElSelect, {
-    modelValue: rowData.right, multiple: true, clearable: true, onChange: (value) => {
-      rowData.right = value
-      rowData.__modified = true
-    }
-  }, { default: () => [h(ElOption, { value: 'read', label: '数据库只读' }), h(ElOption, { value: 'readCl', label: '集合只读' })] })
-}, {
-  key: 'operaations',
-  title: '操作',
-  cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => h('div', {}, { default: () => [h(ElButton, { onClick: () => removeAclUser(rowData, rowIndex) }, { default: () => '删除' }), h(ElButton, { disabled: !rowData.__modified, onClick: () => updateAclUser(rowData, rowIndex) }, { default: () => '保存修改' })] })
-}]
-const aclUserList = ref([] as any[])
 
 // 关闭对话框时执行指定的回调方法
 const closeDialog = (newDb?: any) => {
@@ -166,30 +110,7 @@ const onSubmit = () => {
       })
   }
 }
-const onAddAclUser = (newUser: any) => {
-  const { id, remark } = newUser
-  const target = { type: 'database', id: database._id }
-  const user = { id, remark }
-  apiAcl.add(target, user).then(() => {
-    aclUserList.value.splice(0, 0, { user: { id, remark } })
-    newAclUser.id = ''
-    newAclUser.remark = ''
-  })
-}
-const removeAclUser = (aclUser: any, index: number) => {
-  const { user } = aclUser
-  const target = { type: 'database', id: database._id }
-  apiAcl.remove(target, { id: user.id }).then(() => {
-    aclUserList.value.splice(index, 1)
-  })
-}
-const updateAclUser = (aclUser: any, index: number) => {
-  const { user, right } = aclUser
-  const target = { type: 'database', id: database._id }
-  apiAcl.update(target, { id: user.id, remark: user.remark }, { right }).then(() => {
-    aclUser.__modified = false
-  })
-}
+
 onMounted(() => {
   apiSchema
     .listSimple(bucketName, 'collection')
@@ -198,11 +119,5 @@ onMounted(() => {
         schemas.push(s)
       })
     })
-  if (mode === 'update' && database.aclCheck === true) {
-    apiAcl.list({ type: 'database', id: database._id }).then((result: any[]) => {
-      result.forEach(acl => acl.__modified = false)
-      aclUserList.value = result
-    })
-  }
 })
 </script>

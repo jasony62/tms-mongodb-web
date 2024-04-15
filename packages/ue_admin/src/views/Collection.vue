@@ -101,10 +101,7 @@ import {
 } from '@/global'
 
 import facStore from '@/store'
-import {
-  openDocAclEditor,
-  openSelectConditionEditor,
-} from '@/components/editor'
+import { openSelectConditionEditor } from '@/components/editor'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { useMitt } from '@/composables/mitt'
 import { useAssistant } from '@/composables/assistant'
@@ -308,7 +305,7 @@ const createTableColumns = async () => {
         onEdit: editDocument,
         onCopy: copyDocument,
         onRemove: removeDocument,
-        onAcl: openAclEditor
+        onAcl: gotoAcl
       })
     },
   })
@@ -399,7 +396,7 @@ const removeDocument = (document: any) => {
           bucket: bucketName,
           db: dbName,
           cl: clName,
-          document: document,
+          document,
         })
         .then(() => {
           ElMessage({ message: '删除成功', type: 'success' })
@@ -419,8 +416,8 @@ const copyDocument = (document: any) => {
 /**
  * 打开文档acl编辑对话框
  */
-const openAclEditor = (doc: any) => {
-  openDocAclEditor({ doc })
+const gotoAcl = (doc: any) => {
+  router.push({ name: 'docAcl', params: { bucketName, dbName, clName, docId: doc._id } })
 }
 /**
  * 文档对象的说明

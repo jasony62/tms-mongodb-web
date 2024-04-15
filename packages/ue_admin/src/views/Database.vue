@@ -53,6 +53,9 @@
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item>
+                      <el-button type="primary" link size="small" @click="gotoAcl(scope.row)">进入访问控制</el-button>
+                    </el-dropdown-item>
+                    <el-dropdown-item divided>
                       <el-button type="danger" link size="small" @click="removeCollection(scope.row)">删除集合</el-button>
                     </el-dropdown-item>
                     <el-dropdown-item>
@@ -240,6 +243,9 @@ const emptyCollection = ((collection: any) => {
       })
     }).catch(() => { })
 })
+const gotoAcl = (cl: any) => {
+  router.push({ name: 'collectionAcl', params: { bucketName: props.bucketName, dbName: props.dbName, clName: cl.name } })
+}
 const changeClSelect = (value: any[]) => {
   data.multipleCl = value
 }
