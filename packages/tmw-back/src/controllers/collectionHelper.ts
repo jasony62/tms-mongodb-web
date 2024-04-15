@@ -55,21 +55,20 @@ class CollectionHelper extends Helper {
   /**
    * 获取数据库下的集合列表
    *
-   * @param dbSysname
    * @param dirFullName
    * @param keyword
    * @param skip
    * @param limit
    */
   async list(
-    dbSysname: string,
     dirFullName: string,
     keyword: string,
     skip: number,
     limit: number
   ) {
-    let result = await this._modelCl.list(
-      dbSysname,
+    const { reqDb } = this.ctrl
+    const result = await this._modelCl.list(
+      reqDb.sysname,
       dirFullName,
       keyword,
       skip,

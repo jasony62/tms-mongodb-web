@@ -10,7 +10,7 @@
         <el-tab-pane label="访问控制列表" name="acl" v-if="collection._id && collection.aclCheck"></el-tab-pane>
       </el-tabs>
       <el-form :model="collection" label-position="top" v-show="activeTab === 'info'" :rules="rules">
-        <el-form-item label="所属分类目录">
+        <el-form-item label="所属分类目录" v-if="clDirs?.length">
           <el-tree-select v-model="newClDirFullName" clearable check-strictly :data="clDirs"
             :render-after-expand="false" node-key="full_name" :props="ClDirTreeProps" />
         </el-form-item>

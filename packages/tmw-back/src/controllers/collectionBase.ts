@@ -83,13 +83,7 @@ class CollectionBase extends Base {
     const { dirFullName, keyword } = this.request.query
     let { skip, limit } = this.clHelper.requestPage()
 
-    const result = await this.clHelper.list(
-      this.reqDb.sysname,
-      dirFullName,
-      keyword,
-      skip,
-      limit
-    )
+    const result = await this.clHelper.list(dirFullName, keyword, skip, limit)
 
     return new ResultData(result)
   }

@@ -37,6 +37,9 @@
         <el-switch v-model="database.aclCheck"></el-switch>
         <el-alert title="数据库创建成功后可设置访问控制列表。" type="info" :closable="false" v-if="!database._id" />
       </el-form-item>
+      <el-form-item label="访问控制列表用于数据库下的集合">
+        <el-switch v-model="database.asClAcl"></el-switch>
+      </el-form-item>
       <el-form-item label="仅系统管理员可见">
         <el-switch v-model="database.adminOnly"></el-switch>
       </el-form-item>

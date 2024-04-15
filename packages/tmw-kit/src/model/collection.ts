@@ -1,12 +1,12 @@
 import mongodb from 'mongodb'
 import { nanoid } from 'nanoid'
 import Base from './base.js'
-import unescape from 'mongo-escape'
 import { ElasticSearchIndex } from '../elasticsearch/index.js'
 import { SchemaIter } from '../schema.js'
 import ModelSpreadsheet from './spreadsheet.js'
 import ModelSchema from './schema.js'
 import ModelAcl from './acl.js'
+import ModelDb from './db.js'
 import Document from './document.js'
 import Debug from 'debug'
 
@@ -28,6 +28,10 @@ class Collection extends Base {
   }
   get _modelAcl() {
     const model = new ModelAcl(this.mongoClient, this.bucket, this.client)
+    return model
+  }
+  get _modelDb() {
+    const model = new ModelDb(this.mongoClient, this.bucket, this.client)
     return model
   }
   /**
@@ -359,6 +363,8 @@ class Collection extends Base {
     skip: number,
     limit: number
   ) {
+    const tmwDb = await this._modelDb.bySysname(dbSysname)
+
     const query: any = {
       type: 'collection',
       'db.sysname': dbSysname,
@@ -368,7 +374,7 @@ class Collection extends Base {
     let queryAclCheck: any[]
 
     // 当前用户不是管理员，仅管理员可见的集合不允许访问
-    if (this.client.isAdmin !== true) {
+    if (this.client.isAdmin !== true && tmwDb.asClAcl !== true) {
       // 不能是仅管理员访问
       query.adminOnly = { $ne: true }
       // 检查授权访问列表
