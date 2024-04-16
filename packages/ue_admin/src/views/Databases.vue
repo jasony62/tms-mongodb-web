@@ -13,7 +13,6 @@
         <el-table-column prop="title" label="名称" width="180"></el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
         <el-table-column label="操作" width="120">
-
           <template #default="scope">
             <el-button type="primary" link size="small" @click="editDb(scope.row, scope.$index)">设置</el-button>
             <el-dropdown class="tmw-opt__dropdown">
@@ -26,10 +25,10 @@
                     <el-button type="primary" link @click="gotoDocSchemas(scope.row)">进入文档定义</el-button>
                   </el-dropdown-item>
                   <el-dropdown-item>
-                    <el-button type="primary" link @click="gotoDir(scope.row)">进入分类目录</el-button>
+                    <el-button type="primary" link @click="gotoDir(scope.row)">设置分类目录</el-button>
                   </el-dropdown-item>
                   <el-dropdown-item>
-                    <el-button type="primary" link @click="gotoAcl(scope.row)">进入访问控制</el-button>
+                    <el-button type="primary" link @click="gotoAcl(scope.row)">设置访问控制</el-button>
                   </el-dropdown-item>
                   <el-dropdown-item divided>
                     <el-button type="danger" link @click="removeDb(scope.row)">删除数据库</el-button>

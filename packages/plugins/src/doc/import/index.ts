@@ -244,6 +244,7 @@ class ImportPlugin extends PluginBase {
     const filePath = path.join(this.createDir(ctrl), `${clName}.xlsx`)
 
     const XLSX = await import('xlsx')
+    XLSX.set_fs(fs)
     const ws = XLSX.utils.aoa_to_sheet([titleAry, nameAry])
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws)

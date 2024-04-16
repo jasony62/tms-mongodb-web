@@ -141,6 +141,7 @@ async function exportAsJson(ctrl, tmwCl, sheets) {
  */
 async function exportAsExcel(ctrl, tmwCl, sheets): Promise<string> {
   const XLSX = await import('xlsx')
+  XLSX.set_fs(fs)
 
   let { filePath, fileName, tmsFs } = getExportFileInfo(ctrl, tmwCl)
 

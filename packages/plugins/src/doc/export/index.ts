@@ -166,6 +166,7 @@ async function exportAsExcel(ctrl, tmwCl, docs, leafLevel): Promise<string> {
     throw Error('集合没有提供schema，无法执行自由表格导出到集合文档')
 
   const XLSX = await import('xlsx')
+  XLSX.set_fs(fs)
 
   let { filePath, fileName, tmsFs } = getExportFileInfo(ctrl, tmwCl)
 

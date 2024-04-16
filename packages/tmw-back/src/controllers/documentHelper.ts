@@ -83,6 +83,7 @@ class DocumentHelper extends CtrlHelper {
     if (!rowsJson.length) {
       if (!fs.existsSync(filename)) return [false, '指定的文件不存在']
       const xlsx = await import('xlsx')
+      xlsx.set_fs(fs)
       const wb = xlsx.readFile(filename)
       const firstSheetName = wb.SheetNames[0]
       const sh = wb.Sheets[firstSheetName]

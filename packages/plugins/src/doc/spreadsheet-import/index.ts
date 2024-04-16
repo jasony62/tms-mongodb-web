@@ -94,6 +94,7 @@ async function createXlsxTemplate(ctrl, tmwCl, leafLevel) {
   const schemaIter = new SchemaIter({ type: 'object', properties })
 
   const XLSX = await import('xlsx')
+  XLSX.set_fs(fs)
 
   const titleAry = [] // 标题行
   const nameAry = [] // 名称行

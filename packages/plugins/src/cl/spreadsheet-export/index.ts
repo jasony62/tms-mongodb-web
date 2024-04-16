@@ -80,6 +80,7 @@ class DbSpreadsheetExportPlugin extends PluginBase {
     let relativeUrl, url
     if (outType === 'excel') {
       const XLSX = await import('xlsx')
+      XLSX.set_fs(fs)
 
       filePath = path.join(filePath, `${dbName}.xlsx`)
 
