@@ -2,9 +2,10 @@
   <div class="flex flex-col gap-2">
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight">
-        <el-breadcrumb-item>{{ TargetTypeTitle }}</el-breadcrumb-item>
-        <el-breadcrumb-item>{{ dbName }}</el-breadcrumb-item>
-        <el-breadcrumb-item v-if="clName">{{ clName }}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'databases' }">{{ DbLabel }}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'database', params: { dbName: dbName } }">{{ dbName }}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'collection', params: { clName: clName } }" v-if="clName">{{ clName
+          }}</el-breadcrumb-item>
         <el-breadcrumb-item v-if="docId">{{ docId }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
@@ -31,10 +32,13 @@
 <script setup lang="ts">
 import { ElButton, ElInput, ElSelect, ElOption, ElMessageBox } from 'element-plus'
 import { ArrowRight } from '@element-plus/icons-vue'
-import { h, onMounted, reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref } from 'vue'
 import apiDb from '@/apis/database'
 import apiCl from '@/apis/collection'
 import apiAcl from '@/apis/acl'
+import { LABEL } from '@/global'
+
+const DbLabel = computed(() => LABEL('database', '数据库'))
 
 const props = defineProps({
   bucketName: String,
@@ -43,7 +47,6 @@ const props = defineProps({
   docId: { type: String, default: '' },
 })
 const { bucketName, dbName, clName, docId } = props
-const TargetTypeTitle = docId ? '文档' : clName ? '集合' : '数据库'
 const TargetType = docId ? 'document' : clName ? 'collection' : 'database'
 const TargetRights = docId ? [{ value: 'readDoc', label: '文档只读' }] : clName ? [{ value: 'readCl', label: '集合只读' }, { value: 'readDoc', label: '文档只读' }] : [{ value: 'read', label: '数据库只读' }, { value: 'readCl', label: '集合只读' }]
 

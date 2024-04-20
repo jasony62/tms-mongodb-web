@@ -22,13 +22,13 @@
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item>
-                    <el-button type="primary" link @click="gotoDocSchemas(scope.row)">进入文档定义</el-button>
+                    <el-button type="primary" link @click="gotoDocSchemas(scope.row)">文档定义</el-button>
                   </el-dropdown-item>
                   <el-dropdown-item>
-                    <el-button type="primary" link @click="gotoDir(scope.row)">设置分类目录</el-button>
+                    <el-button type="primary" link @click="gotoDir(scope.row)">分类目录</el-button>
                   </el-dropdown-item>
                   <el-dropdown-item>
-                    <el-button type="primary" link @click="gotoAcl(scope.row)">设置访问控制</el-button>
+                    <el-button type="primary" link @click="gotoAcl(scope.row)">访问控制</el-button>
                   </el-dropdown-item>
                   <el-dropdown-item divided>
                     <el-button type="danger" link @click="removeDb(scope.row)">删除数据库</el-button>

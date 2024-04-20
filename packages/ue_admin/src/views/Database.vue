@@ -53,7 +53,7 @@
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item>
-                      <el-button type="primary" link size="small" @click="gotoAcl(scope.row)">设置访问控制</el-button>
+                      <el-button type="primary" link size="small" @click="gotoAcl(scope.row)">访问控制</el-button>
                     </el-dropdown-item>
                     <el-dropdown-item divided>
                       <el-button type="danger" link size="small" @click="removeCollection(scope.row)">删除集合</el-button>

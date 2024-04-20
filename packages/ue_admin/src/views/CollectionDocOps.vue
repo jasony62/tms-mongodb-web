@@ -11,11 +11,11 @@
         <el-dropdown-item v-if="Collection.docAclCheck">
           <el-button @click="handle('acl')" type="primary" link size="small">访问控制</el-button>
         </el-dropdown-item>
-        <el-dropdown-item>
-          <el-button type="primary" link size="small" @click="handle('copy')">复制</el-button>
+        <el-dropdown-item :divided="Collection.docAclCheck">
+          <el-button type="primary" link size="small" @click="handle('copy')">复制文档</el-button>
         </el-dropdown-item>
         <el-dropdown-item divided>
-          <el-button type="danger" link size="small" @click="handle('remove')">删除</el-button>
+          <el-button type="danger" link size="small" @click="handle('remove')">删除文档</el-button>
         </el-dropdown-item>
       </el-dropdown-menu>
     </template>
