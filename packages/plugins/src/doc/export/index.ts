@@ -11,6 +11,9 @@ import { LocalFS } from 'tms-koa/dist/model/fs/local.js'
 import path from 'path'
 import _ from 'lodash'
 import fs from 'fs'
+import XLSX from 'xlsx'
+
+XLSX.set_fs(fs)
 
 /**配置文件存放位置*/
 const ConfigDir = path.resolve(
@@ -41,9 +44,8 @@ function getExportFileInfo(ctrl, tmwCl): ExportFileInfoResult {
   const tmsFs = new LocalFS(ctrl.tmsContext, domain.name)
 
   const { name: fileName } = tmwCl
+  // 目录
   const filePath = tmsFs.pathWithRoot(fileName)
-
-  if (fs.existsSync(filePath)) fs.rmSync(filePath, { recursive: true })
 
   return { filePath, fileName, domain, tmsFs }
 }
@@ -165,12 +167,10 @@ async function exportAsExcel(ctrl, tmwCl, docs, leafLevel): Promise<string> {
   if (!schema_id || typeof schema_id !== 'string')
     throw Error('集合没有提供schema，无法执行自由表格导出到集合文档')
 
-  const XLSX = await import('xlsx')
-  XLSX.set_fs(fs)
-
   let { filePath, fileName, tmsFs } = getExportFileInfo(ctrl, tmwCl)
 
   filePath = path.join(filePath, `${fileName}.xlsx`)
+  if (fs.existsSync(filePath)) fs.rmSync(filePath)
 
   // 集合的schema定义
   const schemaIter = await getDocSchemaIter(ctrl, schema_id)
