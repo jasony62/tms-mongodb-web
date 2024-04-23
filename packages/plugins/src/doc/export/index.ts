@@ -147,6 +147,10 @@ function readableValue(attrs, val, doc?) {
         }
       }
       break
+    case 'object':
+      return JSON.stringify(val)
+    case 'json':
+      return JSON.stringify(val)
   }
 
   return val
@@ -169,8 +173,13 @@ async function exportAsExcel(ctrl, tmwCl, docs, leafLevel): Promise<string> {
 
   let { filePath, fileName, tmsFs } = getExportFileInfo(ctrl, tmwCl)
 
-  filePath = path.join(filePath, `${fileName}.xlsx`)
-  if (fs.existsSync(filePath)) fs.rmSync(filePath)
+  if (fs.existsSync(filePath)) {
+    filePath = path.join(filePath, `${fileName}.xlsx`)
+    if (fs.existsSync(filePath)) fs.rmSync(filePath)
+  } else {
+    fs.mkdirSync(filePath)
+    filePath = path.join(filePath, `${fileName}.xlsx`)
+  }
 
   // 集合的schema定义
   const schemaIter = await getDocSchemaIter(ctrl, schema_id)
@@ -184,8 +193,8 @@ async function exportAsExcel(ctrl, tmwCl, docs, leafLevel): Promise<string> {
     let { fullname, _path, _name, attrs } = schemaProp
     if (
       !_name ||
-      fullname.replace(/\^\\/, '').indexOf('w+$') > -1 ||
-      (leafLevel > 0 && fullname.split(/\./g).length - 1 >= leafLevel)
+      fullname.replace(/\^\\/, '').indexOf('w+$') !== -1 ||
+      (leafLevel > 0 && fullname.split(/\./g).length > leafLevel)
     )
       continue
 

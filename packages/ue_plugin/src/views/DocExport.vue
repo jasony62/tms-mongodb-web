@@ -42,7 +42,7 @@ const executed = ref(false)
 const responseContent = ref<string>('')
 const outType = ref<string>('excel')
 const outAmount = ref<string>('more')
-const leafLevel = ref<number>(0)
+const leafLevel = ref<number>(1)
 
 enum PluginWidgetAction {
   Created = 'Created',
