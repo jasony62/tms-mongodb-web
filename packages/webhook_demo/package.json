@@ -12,9 +12,9 @@
   "author": "jasony62",
   "license": "MIT",
   "dependencies": {
-    "tms-koa": "^0.2.9"
+    "tms-koa": "^0.2.10"
   },
   "devDependencies": {
-    "rimraf": "^3.0.2"
+    "rimraf": "^5.0.1"
   }
 }
