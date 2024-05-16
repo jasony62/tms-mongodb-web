@@ -30,17 +30,22 @@ class SchemaBase extends Base {
    * 完成信息列表
    */
   async list() {
-    let { scope, db: dbName } = this.request.query
+    const { scope, db: dbName } = this.request.query
+    if (!scope) return new ResultFault('参数不完整')
 
-    let find: any = { type: 'schema' }
+    const find: any = { type: 'schema' }
 
-    let existDb
-    if (dbName) existDb = await this.schemaHelper.findRequestDb()
-    if (existDb) find['db.sysname'] = existDb.sysname
+    if (dbName) {
+      //会检查db的权限，若不通过报异常
+      let existDb = await this.schemaHelper.findRequestDb()
+      if (!existDb) return new ResultFault('参数错误，指定的数据库不存在')
+      find['db.sysname'] = existDb.sysname
+    } else {
+      if (scope === 'document') find.db = null
+    }
 
-    find.scope = scope ? { $in: scope.split(',') } : 'document'
-
-    if (!dbName && scope === 'document') find.db = null
+    // 适用范围
+    find.scope = { $in: scope.split(',') }
 
     if (this.bucketObj) find.bucket = this.bucketObj.name
 
@@ -54,9 +59,14 @@ class SchemaBase extends Base {
    * 简单信息列表，不包含schema定义
    */
   async listSimple() {
-    let { scope, db } = this.request.query
+    let { scope, db: dbName } = this.request.query
+    if (dbName) {
+      //会检查db的权限，若不通过报异常
+      let existDb = await this.schemaHelper.findRequestDb()
+      if (!existDb) return new ResultFault('参数错误，指定的数据库不存在')
+    }
 
-    const schemas = await this.schemaHelper.listSimple(db, scope)
+    const schemas = await this.schemaHelper.listSimple(dbName, scope)
 
     return new ResultData(schemas)
   }
@@ -81,13 +91,10 @@ class SchemaBase extends Base {
   async get() {
     const { id } = this.request.query
     if (!id) return new ResultFault('参数不完整')
+    // 会进行权限检查
+    const schema = await this.schemaHelper.schemaById(id)
 
-    const query: any = { _id: new ObjectId(id), type: 'schema' }
-    if (this.bucketObj) query.bucket = this.bucketObj.name
-
-    return this.clMongoObj
-      .findOne(query)
-      .then((schema) => new ResultData(schema))
+    return new ResultData(schema)
   }
   /**
    * 指定数据库下新建文档列定义
@@ -108,9 +115,7 @@ class SchemaBase extends Base {
 
     let [flag, result] = await this.schemaHelper.createDocSchema(existDb, info)
 
-    if (!flag) {
-      return new ResultFault(result)
-    }
+    if (!flag) return new ResultFault(result)
 
     info._id = result.insertedId
 
@@ -121,6 +126,13 @@ class SchemaBase extends Base {
    */
   async update() {
     const { id } = this.request.query
+
+    if (!id) return new ResultFault('参数不完整')
+
+    // 会进行数据库访问权限检查
+    const schema = await this.schemaHelper.schemaById(id)
+    if (schema) return new ResultFault('参数错误')
+
     let info = this.request.body
     const { scope } = info
     info = _.omit(info, ['_id', 'scope', 'bucket'])

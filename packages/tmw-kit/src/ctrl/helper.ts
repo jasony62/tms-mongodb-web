@@ -1,4 +1,4 @@
-import { ModelCl } from '../model/index.js'
+import { ModelDb, ModelCl } from '../model/index.js'
 /**
  * 保存元数据的数据库
  */
@@ -67,10 +67,17 @@ class Helper {
    */
   async findRequestDb(bThrowNotFound = true, dbName = null) {
     if (!dbName) dbName = this.ctrl.request.query.db
-    const query: any = { name: dbName, type: 'database' }
-    if (this.ctrl.bucket) query.bucket = this.ctrl.bucket.name
+    // const query: any = { name: dbName, type: 'database' }
+    // if (this.ctrl.bucket) query.bucket = this.ctrl.bucket.name
 
-    const db = await this.clMongoObj.findOne(query)
+    // const db = await this.clMongoObj.findOne(query)
+
+    const modelDb = new ModelDb(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
+    const db = await modelDb.byName(dbName)
 
     if (bThrowNotFound && !db) throw Error(`指定的数据库[db=${dbName}]不可访问`)
 

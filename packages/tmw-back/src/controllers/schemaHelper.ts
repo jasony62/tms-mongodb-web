@@ -41,16 +41,11 @@ class SchemaHelper extends Helper {
    */
   async schemaByName(info, scope = null, id = null) {
     const { name, db } = info
-    const find: any = {
-      name: name,
-      scope: scope,
-      type: 'schema',
-    }
-    if (db) find['db.sysname'] = info.db.sysname
-    if (this.bucketObj) find.bucket = this.bucketObj.name
 
-    let existSchema = await this.clMongoObj.findOne(find, {
-      projection: { _id: 1 },
+    const existSchema = await this._modelSchema.byName(name, {
+      onlyProperties: false,
+      dbName: db,
+      scope,
     })
 
     if (existSchema && existSchema._id.toString() !== id)
@@ -62,16 +57,7 @@ class SchemaHelper extends Helper {
    * 根据id查找文档列定义
    */
   async schemaById(schema_id) {
-    const query: any = { _id: schema_id, type: 'schema' }
-    if (this.bucketObj) query.bucket = this.bucketObj.name
-
-    return this.clMongoObj
-      .findOne(query, {
-        projection: { name: 1, parentName: 1, order: 1 },
-      })
-      .then((schema) => {
-        return schema
-      })
+    return this._modelSchema.bySchemaId(schema_id, { onlyProperties: false })
   }
   /**
    * 删除定义

@@ -261,8 +261,8 @@ importers:
         specifier: ^0.0.6
         version: 0.0.6(debug@4.3.4)
       tms-vue3-ui:
-        specifier: ^0.0.89
-        version: 0.0.89
+        specifier: ^0.0.90
+        version: 0.0.90
       vue:
         specifier: 3.3.4
         version: 3.3.4
@@ -337,8 +337,8 @@ importers:
         specifier: ^3.16.4
         version: 3.16.4
       tms-vue3-ui:
-        specifier: ^0.0.89
-        version: 0.0.89
+        specifier: ^0.0.90
+        version: 0.0.90
       vue:
         specifier: 3.3.4
         version: 3.3.4
@@ -7167,6 +7167,17 @@ packages:
     resolution: {integrity: sha512-3f0uOEAQwIqGuWW2MVzYg8fV/QNnc/IpuJNG837rLuczAaLVHslWHZQj4IGiEl5Hs3kkbhwL9Ab7Hrsmuj+Smw==}
     dev: true
 
+  /tms-data-aid@0.0.90:
+    resolution: {integrity: sha512-CeBz86akPBPE506q1TUhC8sV/o6XbgQ4oSlOoMub5Aj3lzarVavIoo93w9Bnlvr2Zwz4Jso4rS5PssW0XkxsQg==}
+    dependencies:
+      debug: 4.3.4
+      lodash: 4.17.21
+      lodash.set: 4.3.2
+      randexp: 0.5.3
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
+
   /tms-koa-account@0.2.9(neo4j-driver@4.4.10)(openapi-types@12.1.0)(redis@4.6.10):
     resolution: {integrity: sha512-wqltzafAlA2/szFsR7Xp9qdKeWgEQJgeajtj8J8l3Gr5Vu3hkjd0kkZgYVcmbndDaZ16GaupIHnGtPTcp1Zp+A==}
     peerDependencies:
@@ -7391,13 +7402,14 @@ packages:
       - supports-color
     dev: false
 
-  /tms-vue3-ui@0.0.89:
-    resolution: {integrity: sha512-FVoxz3UYMXAV/468miyyqkxhQcbr+0DLb4wSuva9w5cxG8XL9aoSK+TQX5k2bXzec2Hhoc22XYp+4Qujx1wxFA==}
+  /tms-vue3-ui@0.0.90:
+    resolution: {integrity: sha512-BOtJ0O2jd2kisi318Ntq2DZkQaUuituaEm7iUc7o0hSBNknYwazsyr6OYccR2LnuzC/jXCffxvrriK8PabU9Rg==}
     dependencies:
       debug: 4.3.4
       lodash: 4.17.21
       lodash.set: 4.3.2
       randexp: 0.5.3
+      tms-data-aid: 0.0.90
       tms-vue3: 0.0.5(debug@4.3.4)
     transitivePeerDependencies:
       - supports-color

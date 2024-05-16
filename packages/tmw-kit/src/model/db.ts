@@ -1,7 +1,10 @@
 import { Double, ObjectId } from 'mongodb'
 import { nanoid } from 'nanoid'
+import Debug from 'debug'
 import Base from './base.js'
 import ModelAcl from './acl.js'
+
+const debug = Debug('tmw-kit:model:db')
 
 // 数据库名正则表达式
 const DB_NAME_RE = '^[a-zA-Z]+[0-9a-zA-Z_-]{0,63}$'
@@ -75,6 +78,38 @@ class Db extends Base {
       .catch((err) => [false, err.message])
   }
   /**
+   * 检查数据库的访问权限
+   *
+   * 0、管理员不没有访问限制
+   * 1、如果有访问权限，返回权限设置
+   * 2、如果没有访问权钱，抛出异常
+   * 3、如果没有设置访问控制，返回null
+   *
+   * @param db
+   * @returns
+   */
+  async checkAcl(db) {
+    if (this.client.isAdmin === true) return null
+    if (db.aclCheck !== true) return null
+    if (db.creator === this.client.id) return null
+
+    // 数据库要求进行访问控制，当前用户不是数据库的创建人
+    const right = await this._modelAcl.check(
+      { id: db._id.toString(), type: 'database' },
+      { id: this.client.id }
+    )
+    // 给当前用户设置的权限
+    if (right) return right
+
+    debug(
+      `数据库【${db.name}】要进行访问控制检查失败，数据创建人【${
+        db.creator ?? ''
+      }】，当前用户【${this.client.id}】`
+    )
+
+    throw Error(`没有访问权限`)
+  }
+  /**
    * 获得用户指定的数据库信息
    *
    * @param {string} dbName - 用户指定数据库名称
@@ -87,14 +122,8 @@ class Db extends Base {
 
     const db = await this.clMongoObj.findOne(query)
     if (db) {
-      if (db.aclCheck === true && db.creator !== this.client.id) {
-        const right = await this._modelAcl.check(
-          { id: db._id.toString(), type: 'database' },
-          { id: this.client.id }
-        )
-        if (!right) throw Error('没有访问权限')
-        db.right = right
-      }
+      const right = await this.checkAcl(db)
+      if (null !== right) db.right = right
     }
 
     return db
@@ -108,6 +137,10 @@ class Db extends Base {
     const query = { sysname, type: 'database' }
 
     const db = await this.clMongoObj.findOne(query)
+    if (db) {
+      const right = await this.checkAcl(db)
+      if (null !== right) db.right = right
+    }
 
     return db
   }

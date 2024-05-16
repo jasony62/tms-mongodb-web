@@ -1,8 +1,14 @@
 import mongodb from 'mongodb'
 import Base from './base.js'
+import ModelDb from './db.js'
+
 const ObjectId = mongodb.ObjectId
 
 class Schema extends Base {
+  get _modelDb() {
+    const model = new ModelDb(this.mongoClient, this.bucket, this.client)
+    return model
+  }
   /**
    * 根据ID获得字段定义
    */
@@ -11,14 +17,20 @@ class Schema extends Base {
       _id: new ObjectId(id),
       type: 'schema',
     }
+    const schema = await this.clMongoObj.findOne(query)
+    if (!schema) return false
 
-    return this.clMongoObj.findOne(query).then((schema) => {
-      if (onlyProperties === true) {
-        if (!schema) return false
-        return schema.body.properties
-      }
-      return schema
-    })
+    //检查访问db的权限
+    if (schema.db?.name) {
+      const db = await this._modelDb.byName(schema.db.name)
+      if (!db) throw Error('数据错误，文档定义所属数据库不存在')
+      // 如果没有通过，会抛出异常
+      await this._modelDb.checkAcl(db)
+    }
+
+    if (onlyProperties === true) return schema.body.properties
+
+    return schema
   }
   /**
    * 根据ID获得字段定义
@@ -59,13 +71,14 @@ class Schema extends Base {
       if (this.bucket) query.bucket = this.bucket.name
     }
 
-    return this.clMongoObj.findOne(query).then((schema) => {
-      if (onlyProperties === true) {
-        if (!schema) return false
-        return schema.body.properties
-      }
-      return schema
-    })
+    const schema = await this.clMongoObj.findOne(query)
+    if (!schema) return false
+
+    //@TODO 应该检查db的权限
+
+    if (onlyProperties === true) return schema.body.properties
+
+    return schema
   }
   /**
    * 删除文档列定义
