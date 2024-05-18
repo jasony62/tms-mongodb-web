@@ -131,7 +131,7 @@ class SchemaBase extends Base {
 
     // 会进行数据库访问权限检查
     const schema = await this.schemaHelper.schemaById(id)
-    if (schema) return new ResultFault('参数错误')
+    if (!schema) return new ResultFault('参数错误')
 
     let info = this.request.body
     const { scope } = info
