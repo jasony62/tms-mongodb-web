@@ -9,7 +9,7 @@
       <el-tab-pane label="上传文件">
         <el-form-item>
           <el-upload ref="upload" :action="''" :http-request="handleUpload" :file-list="fileList" :auto-upload="true"
-            :limit="1" :on-change="handleChange">
+            :limit="1" :accept="UploadFileAccept" :on-change="handleChange">
             <el-button slot="trigger" type="primary">选取文件</el-button>
             <template #tip>
               <div class="el-upload__tip">
@@ -66,6 +66,7 @@ import { computed, ref, toRaw } from 'vue'
 import * as XLSX from 'xlsx'
 import { ElMessage } from 'element-plus'
 
+const UploadFileAccept = '.xlsx,.xls,.json'
 const executed = ref(false)
 const responseContent = ref<string>('')
 const fileList = ref([])

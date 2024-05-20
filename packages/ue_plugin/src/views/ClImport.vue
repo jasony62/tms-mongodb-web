@@ -3,8 +3,8 @@
     <el-alert v-if='help' :title="help" type="info" effect="dark" show-icon />
     <el-form-item>
       <el-upload ref="upload" v-loading="fileUploading" element-loading-text="上传文件..." :action="''"
-        :http-request="FileHandler.upload" :file-list="fileList" :auto-upload="true" :limit="1"
-        :before-upload="FileHandler.onBeforeUpload" :before-remove="FileHandler.onBeforeRemove"
+        :accept="UploadFileAccept" :http-request="FileHandler.upload" :file-list="fileList" :auto-upload="true"
+        :limit="1" :before-upload="FileHandler.onBeforeUpload" :before-remove="FileHandler.onBeforeRemove"
         :on-exceed="FileHandler.onExceed">
         <el-button slot="trigger" type="primary">选取文件</el-button>
         <template #tip>
@@ -205,7 +205,7 @@ function alignFieldAndColumn(schema: any, titles: string[], names: string[]): an
 
   return []
 }
-
+const UploadFileAccept = '.xlsx,.xls'
 const executed = ref(false)
 const fileList = ref([])
 const upload = ref<any>(null) // 文件上传组件
