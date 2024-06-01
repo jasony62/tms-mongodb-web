@@ -145,8 +145,9 @@ function readableValue(attrs, val, doc?) {
           const options = attrs.anyOf.filter((o: any) => val.includes(o.value))
           return options.map((o: any) => o.label).join(' ')
         }
+      } else {
+        return JSON.stringify(val)
       }
-      break
     case 'object':
       return JSON.stringify(val)
     case 'json':
@@ -215,7 +216,9 @@ async function exportAsExcel(ctrl, tmwCl, docs, leafLevel): Promise<string> {
       const prop = propAry[index]
       const valRaw = _.get(doc, name)
       const text = readableValue(prop.attrs, valRaw, doc)
-      data.push(text)
+      // xlsx对文本的长度有限制
+      if (text.length <= 32767) data.push(text)
+      else data.push(text.substr(0, 32767))
       return data
     }, [])
     rows.push(row)

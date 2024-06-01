@@ -26,12 +26,13 @@ const ConfigFile =
 /**
  * 将字符串值转换为schema定义的存储值
  *
- * @param attrs
+ * @param schemaProp
  * @param valRaw
  * @param doc
  * @returns
  */
-function storedValue(attrs, valRaw, doc?: any) {
+function storedValue(schemaProp, valRaw, doc?: any) {
+  const { attrs, items } = schemaProp
   let valRet = valRaw // 返回的值
   const { type } = attrs
 
@@ -58,19 +59,25 @@ function storedValue(attrs, valRaw, doc?: any) {
   }
   // 枚举值
   if (type === 'array') {
-    // 原始数据是空格分隔的字符串
-    valRaw = valRaw.split(' ')
-    if (Array.isArray(valRaw) && valRaw.length) {
-      if (Array.isArray(attrs.enum) && attrs.enum.length) {
-        valRet = attrs.enum.reduce((vals, o) => {
-          if (valRaw.includes(o.label)) vals.push(o.value)
-          return vals
-        }, [])
-      } else if (Array.isArray(attrs.anyOf) && attrs.anyOf.length) {
-        valRet = attrs.anyOf.reduce((vals, o) => {
-          if (valRaw.includes(o.label)) vals.push(o.value)
-          return vals
-        }, [])
+    if (items?.type === 'json' || items?.type === 'object') {
+      try {
+        valRet = JSON.parse(valRaw)
+      } catch (e) {}
+    } else {
+      // 原始数据是空格分隔的字符串
+      valRaw = valRaw.split(' ')
+      if (Array.isArray(valRaw) && valRaw.length) {
+        if (Array.isArray(attrs.enum) && attrs.enum.length) {
+          valRet = attrs.enum.reduce((vals, o) => {
+            if (valRaw.includes(o.label)) vals.push(o.value)
+            return vals
+          }, [])
+        } else if (Array.isArray(attrs.anyOf) && attrs.anyOf.length) {
+          valRet = attrs.anyOf.reduce((vals, o) => {
+            if (valRaw.includes(o.label)) vals.push(o.value)
+            return vals
+          }, [])
+        }
       }
     }
   } else if (Array.isArray(attrs.enum) && attrs.enum.length) {
@@ -154,6 +161,7 @@ class ImportPlugin extends PluginBase {
       // 处理文档列定义对应的数据
       for (let schemaProp of schemaIter) {
         const { fullname, attrs } = schemaProp
+        if (!fullname) continue
         const { title } = attrs
         let val
         if (row2[title]) {
@@ -164,7 +172,7 @@ class ImportPlugin extends PluginBase {
           delete row2[fullname]
         }
 
-        const docVal = storedValue(attrs, val, newDoc)
+        const docVal = storedValue(schemaProp, val, newDoc)
         // 需要考虑fullname多级的情况
         _.set(newDoc, fullname, docVal)
       }
