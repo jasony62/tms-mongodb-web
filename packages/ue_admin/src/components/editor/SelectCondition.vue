@@ -281,9 +281,9 @@ const setKeyword = (keyword: string) => {
     propFilter.feature = 'in'
   } else {
     if (Condition.byRule === 'in' || Condition.byRule === 'nin') {
-      propFilter.keyword = keyword.split(',')
+      propFilter.keyword = IsNumberField ? keyword.split(',').map(k => parseFloat(k)) : keyword.split(',')
     } else {
-      propFilter.keyword = keyword
+      propFilter.keyword = IsNumberField ? parseFloat(keyword) : keyword
     }
     if (!propFilter.feature)
       propFilter.feature = Condition.byRule
