@@ -2,14 +2,20 @@
   <el-dialog :title="'筛选-' + schema.title" v-model="dialogVisible" :destroy-on-close="false"
     :close-on-click-modal="false">
     <el-form :model="Condition" label-width="60px" v-if="!IsEnumerableField && !IsBooleanField">
-      <el-form-item label="按条件">
+      <el-form-item label="按条件" v-if="IsNumberField">
+        <el-select v-model="Condition.byRule" placeholder="请选择筛选规则" @change="handleSelectChange">
+          <el-option v-for="op in ByRuleOptions2" :label="op.label" :value="op.value">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="按条件" v-else>
         <el-select v-model="Condition.byRule" placeholder="请选择筛选规则" @change="handleSelectChange">
           <el-option v-for="op in ByRuleOptions" :label="op.label" :value="op.value">
           </el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="关键字">
-        <el-input placeholder="请输入内容,多个关键字以英文逗号间隔" v-model="Condition.byKeyword" @input="handleInputChange"></el-input>
+      <el-form-item label="条件值">
+        <el-input placeholder="请输入内容,多个条件值以英文逗号间隔" v-model="Condition.byKeyword" @input="handleInputChange"></el-input>
       </el-form-item>
     </el-form>
     <el-form v-if="IsEnumerableField" :inline="true">
@@ -53,9 +59,10 @@
     <template #footer>
       <el-form :inline="true">
         <el-form-item style="float:left;">
-          <el-button type="primary" @click="onSubmit">筛选</el-button>
+          <el-button type="warning" @click="onClear">重制</el-button>
+          <el-button type="default" @click="onBeforeClose">取消</el-button>
         </el-form-item>
-        <el-form-item style="float:left;">
+        <el-form-item>
           <el-radio-group v-model="Condition.bySort" @change="handleSort">
             <el-radio-button label="asc">升序</el-radio-button>
             <el-radio-button label="desc">降序</el-radio-button>
@@ -63,8 +70,7 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item>
-          <el-button type="warning" @click="onClear">重制</el-button>
-          <el-button type="default" @click="onBeforeClose">取消</el-button>
+          <el-button type="primary" @click="onSubmit">筛选</el-button>
         </el-form-item>
       </el-form>
     </template>
@@ -111,10 +117,14 @@ const dialogVisible = ref(props.dialogVisible)
 
 const multipleTableRef = ref<InstanceType<typeof ElTable>>()
 /**
+* 字段是否提供选项
+*/
+const IsNumberField = props.schema.type === 'number' || props.schema.type === 'integer'
+/**
  * 编辑的查询条件
  */
 const Condition = reactive({
-  byRule: 'include',
+  byRule: IsNumberField ? 'eq' : 'include',
   byKeyword: '',
   bySort: '',
   columnName: props.columnName,
@@ -160,6 +170,43 @@ const ByRuleOptions = [
     value: 'notEnd',
     label: '结尾不是'
   }
+]
+/**
+ * 数值型
+ */
+const ByRuleOptions2 = [
+  {
+    value: 'eq',
+    label: '等于'
+  },
+  {
+    value: 'gt',
+    label: '大于'
+  },
+  {
+    value: 'gte',
+    label: '大于等于'
+  },
+  {
+    value: 'lt',
+    label: '小于'
+  },
+  {
+    value: 'lte',
+    label: '小于等于'
+  },
+  {
+    value: 'ne',
+    label: '不等于'
+  },
+  {
+    value: 'in',
+    label: '包含'
+  },
+  {
+    value: 'nin',
+    label: '不包含'
+  },
 ]
 /**
  * 字段是否为boolean类型
@@ -214,13 +261,14 @@ const handleInputChange = (val: any) => {
     updateByColumn(false)
   }, 500)
 }
+
 const setKeyword = (keyword: string) => {
-  let kws
+  const propFilter = Condition.rule.filter[props.columnName]
   if (
     ['array', 'string'].includes(props.schema.type) &&
     props.schema.enum
   ) {
-    kws = keyword
+    let kws = keyword
       .split(',')
       .map((item: any) =>
         props.schema.enum
@@ -229,11 +277,17 @@ const setKeyword = (keyword: string) => {
       )
       .join()
       .split(',')
-    Condition.rule.filter[props.columnName].feature = 'in'
+    propFilter.keyword = kws
+    propFilter.feature = 'in'
   } else {
-    kws = keyword
+    if (Condition.byRule === 'in' || Condition.byRule === 'nin') {
+      propFilter.keyword = keyword.split(',')
+    } else {
+      propFilter.keyword = keyword
+    }
+    if (!propFilter.feature)
+      propFilter.feature = Condition.byRule
   }
-  Condition.rule.filter[props.columnName].keyword = kws
 }
 const handleSelectChange = (val: any) => {
   Condition.rule.filter[props.columnName].feature = val

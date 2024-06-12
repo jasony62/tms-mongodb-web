@@ -121,6 +121,18 @@ class Base {
       case 'ne':
         subQuery = { $ne: keyword }
         break
+      case 'gt':
+        subQuery = { $gt: keyword }
+        break
+      case 'gte':
+        subQuery = { $gte: keyword }
+        break
+      case 'lt':
+        subQuery = { $lt: keyword }
+        break
+      case 'lte':
+        subQuery = { $lte: keyword }
+        break
       case 'exists':
         if ([true, false].includes(keyword)) subQuery = { $exists: keyword }
         break

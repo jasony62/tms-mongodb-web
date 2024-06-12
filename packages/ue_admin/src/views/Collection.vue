@@ -193,9 +193,9 @@ const handleCondition = () => {
     filter: {} as any,
     orderBy: {} as any,
   }
-  if (!conditions.length) {
+  if (!conditions.length)
     return criterais
-  }
+
   conditions.forEach((ele: any) => {
     Object.assign(criterais.filter, ele.rule.filter)
     Object.assign(criterais.orderBy, ele.rule.orderBy)
