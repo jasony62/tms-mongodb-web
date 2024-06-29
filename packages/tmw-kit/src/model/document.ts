@@ -248,7 +248,9 @@ class Document extends Base {
     let sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
 
     // 对象的创建人
-    data.creator = this.client.id
+    if (this.client) {
+      data.creator = this.client.id
+    }
 
     const newDoc = await sysCl.insertOne(data).then(async (r) => {
       // 记录操作日志
@@ -307,11 +309,13 @@ class Document extends Base {
    */
   async update(existCl, id: string, updated: any, removed?: any) {
     const sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
-    let ops = {}
+
+    const ops = {}
     if (updated && typeof updated === 'object' && Object.keys(updated).length)
       ops['$set'] = updated
     if (removed && typeof removed === 'object' && Object.keys(removed).length)
       ops['$unset'] = removed
+
     return sysCl
       .updateOne({ _id: new ObjectId(id) }, ops)
       .then(async ({ modifiedCount }) => {
@@ -549,14 +553,12 @@ class Document extends Base {
       data.operate_type = operate_type
       /*本地客户端时读取用户信息*/
       if (this.client && this.client.data) {
-        data.operate_account =
-          this.client.data.account || this.client.data['cust_id']
+        data.operate_account = this.client.data.account
         data.operate_nickname = this.client.data.nickname
       }
       /*第三方调用时读取用户信息*/
       if (client_info) {
-        data.operate_account =
-          client_info.operate_account || client_info['cust_id']
+        data.operate_account = client_info.operate_account
         data.operate_nickname = client_info.operate_nickname
       }
       // 旧数据
