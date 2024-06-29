@@ -562,16 +562,19 @@ class Collection extends Base {
 
     if (this.bucket) query.bucket = this.bucket.name
 
-    const client = this.mongoClient
-    const clMongoObj = client.db(META_ADMIN_DB).collection('mongodb_object')
+    const mgClient = this.mongoClient
+    const clMongoObj = mgClient.db(META_ADMIN_DB).collection('mongodb_object')
 
     const cl = await clMongoObj.findOne(query)
-    if (cl) {
+    /**
+     * 检查访问控制权限
+     */
+    if (cl?.aclCheck === true) {
+      // 没有指定用户身份
+      if (!this.client) throw Error('没有指定用户身份，无法访问')
+      // 不是管理员，需要检查权限
       if (this.client.isAdmin !== true) {
-        /**
-         * 检查访问控制权限
-         */
-        if (cl.aclCheck === true && cl.creator !== this.client.id) {
+        if (cl.creator !== this.client.id) {
           const right = await this._modelAcl.check(
             { id: cl._id.toString(), type: 'collection' },
             { id: this.client.id }

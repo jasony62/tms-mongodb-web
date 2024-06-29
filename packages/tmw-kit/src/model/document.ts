@@ -398,9 +398,10 @@ class Document extends Base {
     }
 
     // 数据权限，管理员不受限制
-    if (this.client.isAdmin !== true) {
+    if (tmwCl.docAclCheck === true) {
       // 集合中的文档要通过acl控制访问权限
-      if (tmwCl.docAclCheck === true) {
+      if (!this.client) throw Error('没有指定用户身份，无法访问')
+      if (this.client.isAdmin !== true) {
         let queryAclCheck: any = [
           { creator: { $eq: this.client.id } }, // 创建人允许访问
         ]

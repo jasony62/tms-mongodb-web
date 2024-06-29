@@ -89,8 +89,10 @@ class Db extends Base {
    * @returns
    */
   async checkAcl(db) {
-    if (this.client.isAdmin === true) return null
     if (db.aclCheck !== true) return null
+
+    if (!this.client) throw Error('没有指定用户身份，无法访问')
+    if (this.client.isAdmin === true) return null
     if (db.creator === this.client.id) return null
 
     // 数据库要求进行访问控制，当前用户不是数据库的创建人
