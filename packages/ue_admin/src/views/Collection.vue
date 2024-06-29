@@ -716,7 +716,9 @@ if (EXTRACT) {
     }
   })
 }
-
+/**
+ * 页面加载时
+ */
 onMounted(async () => {
   let cl = await apiCl.byName(bucketName, dbName, clName)
   data.plugins = await apiPlugin.getCollectionDocPlugins(
@@ -728,11 +730,17 @@ onMounted(async () => {
   await createTableColumns()
   listDocByKw()
 })
-
+/**
+ * 离开页面前
+ */
 onBeforeRouteLeave((to, from) => {
   /**
    * 离开页面时，清空store中的文档列表数据
    */
   store.documents.splice(0, store.documents.length)
+  /**
+   * 清空筛选条件
+   */
+  store.conditionReset()
 })
 </script>

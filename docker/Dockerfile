@@ -106,6 +106,7 @@ RUN chmod +x /usr/local/bin/start_nginx.sh
 COPY --from=builder /usr/src/tmw/back/node_modules /usr/app/tmw/node_modules
 COPY --from=builder /usr/src/tmw/back/dist /usr/app/tmw/dist
 COPY --from=builder /usr/src/tmw/back/package.json /usr/app/tmw/package.json
+RUN sed -i 's/"tmw-data": "file:\.\.\/data"/"tmw-data": "\*"/g' /usr/app/tmw/package.json
 RUN sed -i 's/"tmw-kit": "file:\.\.\/kit"/"tmw-kit": "\*"/g' /usr/app/tmw/package.json
 COPY ./docker/back/start_back.sh /usr/app/tmw/start_back.sh
 RUN chmod +x /usr/app/tmw/start_back.sh

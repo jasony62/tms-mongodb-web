@@ -90,6 +90,9 @@ class Base {
     let subQuery
 
     switch (feature) {
+      case 'include':
+        subQuery = { $regex: `${fnKwRe(keyword)}` }
+        break
       case 'start':
         subQuery = { $regex: `^${fnKwRe(keyword)}` }
         break

@@ -73,7 +73,12 @@
       </div>
       <!--right-->
       <div class="flex flex-col items-start space-y-3" v-if="!COMPACT">
-        <el-button @click="createCollection">添加集合</el-button>
+        <div>
+          <el-button @click="gotoDbDocSchemas">字段定义</el-button>
+        </div>
+        <div>
+          <el-button @click="createCollection">添加集合</el-button>
+        </div>
         <tmw-plugins :plugins="plugins" :total-by-all="totalByAll" :total-by-filter="totalByFilter"
           :total-by-checked="totalByChecked" :handle-plugin="handlePlugin"></tmw-plugins>
       </div>
@@ -161,6 +166,10 @@ onBeforeRouteLeave((to, from) => {
   store.collections.splice(0, store.collections.length)
 })
 
+const gotoDbDocSchemas = () => {
+  router.push({ name: 'databaseDocSchemas', params: { bucketName: props.bucketName, dbName: props.dbName } })
+}
+
 const openCollection = (dbName: string, collection: any) => {
   if (!collection.schema_id) return ElMessageBox.alert('需给集合补充文档内容定义的配置，方便管理文档')
   if (collection.spreadsheet === 'yes') {
@@ -169,6 +178,7 @@ const openCollection = (dbName: string, collection: any) => {
     router.push({ name: 'collection', params: { dbName, clName: collection.name } })
   }
 }
+
 const createCollection = (() => {
   const clDir = toRaw(currentClDir.value)
   openCollectionEditor({

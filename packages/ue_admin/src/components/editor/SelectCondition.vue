@@ -151,6 +151,14 @@ const SelectedFieldValueOptions = ref<any>([])
  */
 const ByRuleOptions = [
   {
+    value: 'eq',
+    label: '相等'
+  },
+  {
+    value: 'ne',
+    label: '不相等'
+  },
+  {
     value: 'include',
     label: '包含'
   },

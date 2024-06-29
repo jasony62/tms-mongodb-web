@@ -3,7 +3,8 @@
     <div class="h-12 py-4 px-2" v-if="dbName">
       <el-breadcrumb :separator-icon="ArrowRight">
         <el-breadcrumb-item :to="{ name: 'databases' }">{{ DbLabel }}</el-breadcrumb-item>
-        <el-breadcrumb-item>{{ dbName }}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'database', params: { dbName } }">{{ dbName }}</el-breadcrumb-item>
+        <el-breadcrumb-item>文档字段定义</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
     <div class="flex-grow flex flex-row gap-2">
@@ -15,8 +16,8 @@
                 <router-link
                   :to="{ name: 'schemaEditor', params: { bucketName, scope: 'document', schemaId: scope.row._id } }">
                   {{
-                    scope.row.name
-                  }}
+      scope.row.name
+    }}
                 </router-link>
               </template>
             </el-table-column>
