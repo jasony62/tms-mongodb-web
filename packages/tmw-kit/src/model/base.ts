@@ -3,6 +3,7 @@ import _ from 'lodash'
 import { SchemaIter } from '../schema.js'
 import { AES } from '../crypto.js'
 import { loadTmwConfig } from '../util/index.js'
+import { ObjectId } from 'mongodb'
 /**
  * 定义过滤条件
  */
@@ -164,13 +165,27 @@ class Base {
     let columns = Object.keys(filter) // 指定的查询列
     if (like === true) {
       for (let column of columns) {
-        let cond: FilterLike = filter[column]
-        let subQuery = this.assembleLikeQuery(cond)
-        if (subQuery !== undefined) query[column] = subQuery
+        if (column === '_id') {
+          const { keyword } = filter[column]
+          if (keyword && typeof keyword === 'string' && keyword.length == 24) {
+            query[column] = new ObjectId(keyword)
+          }
+        } else {
+          let cond: FilterLike = filter[column]
+          let subQuery = this.assembleLikeQuery(cond)
+          if (subQuery !== undefined) query[column] = subQuery
+        }
       }
     } else {
       for (let column of columns) {
-        query[column] = filter[column]
+        if (column === '_id') {
+          const val = filter[column]
+          if (val && typeof val === 'string' && val.length == 24) {
+            query[column] = new ObjectId(filter[column])
+          }
+        } else {
+          query[column] = filter[column]
+        }
       }
     }
 
