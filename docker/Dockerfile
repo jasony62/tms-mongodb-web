@@ -93,6 +93,9 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
   && cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 RUN apk add nginx gettext
 
+# 修改npm源
+RUN npm config set registry https://registry.npmmirror.com
+
 # ue_plugin
 COPY --from=builder /usr/src/tmw/ue_plugin/dist /usr/share/nginx/html
 

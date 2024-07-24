@@ -87,6 +87,60 @@ class DocBase extends Base {
     return new ResultData(docData)
   }
   /**
+   * 指定数据库指定集合下批量新建文档
+   */
+  async createMany() {
+    const existCl = await this.docHelper.findRequestCl()
+
+    const { schema_id } = existCl
+
+    // 集合的文档字段定义
+    let docSchema = await this.modelDoc.getDocSchema(schema_id)
+    if (!docSchema)
+      return new ResultFault(
+        `在集合【${existCl.name}/${existCl.sysname}】没有schema，无法创建文档`
+      )
+
+    // 要新建的文档数据
+    const docsData = this.request.body
+
+    const newDocs = []
+
+    if (Array.isArray(docsData) && docsData.length > 0) {
+      for (let docData of docsData) {
+        // 加工数据
+        this.modelDoc.processBeforeStore(docData, 'insert', docSchema)
+
+        // 通过webhook处理数据
+        let beforeRst = await this.docWebhook.beforeCreate(docData, existCl)
+
+        if (beforeRst.passed !== true)
+          return new ResultFault(
+            beforeRst.reason || '操作被Webhook.beforeCreate阻止'
+          )
+
+        if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
+          docData = beforeRst.rewrited
+
+        const newDoc = await this.modelDoc.create(existCl, docData, docSchema)
+
+        // 通过webhook处理数据
+        let afterRst = await this.docWebhook.afterCreate(newDoc, existCl)
+        if (afterRst.passed !== true)
+          return new ResultFault(
+            afterRst.reason || '操作被Webhook.afterCreate阻止'
+          )
+
+        if (afterRst.rewrited && typeof afterRst.rewrited === 'object')
+          docData = afterRst.rewrited
+
+        newDocs.push(newDoc)
+      }
+    }
+    // 返回结果
+    return new ResultData(newDocs)
+  }
+  /**
    * 删除文档
    */
   async remove() {
