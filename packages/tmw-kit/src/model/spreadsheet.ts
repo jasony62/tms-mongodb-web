@@ -83,19 +83,43 @@ class Spreadsheet extends Base {
     const modelSc = new ModelSchema(this.mongoClient, this.bucket, this.client)
     const properties = await modelSc.bySchemaId(cl.schema_id)
     if (properties && typeof properties === 'object') {
+      const styleIndex = mergedStyles.length - 1
       const rows = Object.entries(properties).reduce(
-        (rows: any, [key, prop]: [string, any], index) => {
+        (rows: any, [key, prop]: [string, any], cIndex) => {
           // 第1行是列标题（中文）
-          rows['0'].cells[index] = {
+          rows['0'].cells[cIndex + 1] = {
             text: prop.title,
             editable: false,
-            style: mergedStyles.length - 1,
+            style: styleIndex,
           }
           // 第2行是列名称（英文）
-          rows['1'].cells[index] = { text: key, editable: false, style: 0 }
+          rows['1'].cells[cIndex + 1] = {
+            text: key,
+            editable: false,
+            style: styleIndex,
+          }
           return rows
         },
-        { '0': { cells: {} }, '1': { cells: {} } }
+        {
+          '0': {
+            cells: {
+              0: {
+                text: '数据库ID',
+                editable: false,
+                style: styleIndex,
+              },
+            },
+          },
+          '1': {
+            cells: {
+              0: {
+                text: '_id',
+                editable: false,
+                style: styleIndex,
+              },
+            },
+          },
+        }
       )
       return {
         name: cl.title,

@@ -224,13 +224,18 @@ async function exportAsDocs(ctrl, tmwCl, sheets, options = { startRow: 1 }) {
    */
   const docs = [] // 将表格的json数据转换为二维数组
   const { rows } = sheets.data[0]
+  if (rows.len >= options.startRow && rows.len > 2) {
+    if (rows[1].cells[0].text === '_id') {
+      fieldNames.splice(0, 0, '_id')
+    }
+  }
   Object.entries(rows).forEach(([key, row]: [string, any]) => {
     // rows中有len字段
     if (!row || typeof row !== 'object') return
     let rIndex = parseInt(key)
     if (rIndex + 1 < options.startRow) return
     // 生成文档
-    let doc = {}
+    let doc: any = {}
     let { cells } = row
     Object.entries(cells).forEach(([key, cell]: [string, any]) => {
       let cIndex = parseInt(key)

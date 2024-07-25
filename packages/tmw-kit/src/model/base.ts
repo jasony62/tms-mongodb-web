@@ -211,7 +211,7 @@ class Base {
    * 对插入到表中的数据进行加工
    * 如果指定了schema，需要根据schema进行检查和加工
    */
-  processBeforeStore(data, type: string, schema?: any, existData?: any) {
+  processBeforeStore(data: any, type: string, schema?: any, existData?: any) {
     const current = dayjs().format('YYYY-MM-DD HH:mm:ss')
     let { tmwConfig } = this
 
@@ -219,6 +219,10 @@ class Base {
       case 'insert':
         if (typeof data[tmwConfig.TMW_APP_UPDATETIME] !== 'undefined')
           delete data[tmwConfig.TMW_APP_UPDATETIME]
+        // _id字段
+        if (data._id && typeof data._id === 'string') {
+          data._id = new ObjectId(data._id)
+        }
         // 对象的创建人
         data.creator = this.client.id
         // 对象创建时间

@@ -265,6 +265,9 @@ async function exportAsJson(ctrl, tmwCl, docs, outAmount): Promise<string> {
 /**
  * 文档数据导出到自由表格
  *
+ * 复制数据
+ * 设置样式
+ *
  * @param ctrl
  * @param tmwCl
  * @param docs
@@ -282,38 +285,38 @@ async function exportAsSpreadsheet(
   const ColumnsWidth = ClStyle.columnsWidth ?? {}
 
   // 集合的schema定义
-  const cols = { len: 0 }
+  const cols = { 0: { hide: [true] }, len: 1 }
   const schemaIter = await getDocSchemaIter(ctrl, tmwCl.schema_id)
   const headers: { name: string; attrs: Record<string, any> }[] = []
-  let colIndex = 0
   for (let schemaProp of schemaIter) {
     const { _name, attrs = {} } = schemaProp
     if (!_name) continue
+
     headers.push({ name: _name, attrs })
 
     let cw = ColumnsWidth[_name] ?? parseInt(attrs?.width ?? 0)
-    if (cw > 0) cols[colIndex] = { width: cw }
-    colIndex++
+    if (cw > 0) cols[cols.len] = { width: cw }
+    cols.len++
   }
-  cols.len = colIndex
 
   /**
    * 生成自由表格数据部分
    */
   const rows = docs.reduce((rows, rowJson, index) => {
-    const cells = {}
-    headers.forEach((hd, index) => {
+    const cells = { '0': { text: rowJson._id.toString(), editable: false } }
+    headers.forEach((hd, hdIndex) => {
       if (rowJson[hd.name]) {
-        cells['' + index] = { text: rowJson[hd.name] }
+        const colIndex = '' + (hdIndex + 1)
+        cells[colIndex] = { text: rowJson[hd.name] }
         // 长文本默认换行
         if (hd.attrs.format === 'longtext') {
-          cells['' + index].style = 0
+          cells[colIndex].style = 0
         }
       }
     })
-
-    rows['' + index] = { cells }
-    if (RowHeight > 0) rows['' + index]['height'] = RowHeight
+    const rIndex = '' + index
+    rows[rIndex] = { cells }
+    if (RowHeight > 0) rows[rIndex].height = RowHeight
 
     return rows
   }, {})
