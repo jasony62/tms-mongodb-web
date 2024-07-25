@@ -105,7 +105,7 @@ class Spreadsheet extends Base {
     return { name: cl.title, rows: {} }
   }
   /**
-   * 清理数据
+   * 清洁数据
    *
    * @param delta
    * @returns
@@ -114,7 +114,8 @@ class Spreadsheet extends Base {
     return delta
   }
   /**
-   *
+   * 自由表格集合
+   * 每个数据库中有一个的集合用来保存自由表格数据
    */
   spreadsheetCl(dbSysname: string) {
     const client = this.mongoClient
@@ -123,7 +124,7 @@ class Spreadsheet extends Base {
     return cl
   }
   /**
-   *
+   * 自由表格修改日志集合
    */
   spreadsheetLogCl(dbSysname: string) {
     const client = this.mongoClient
@@ -132,6 +133,7 @@ class Spreadsheet extends Base {
     return cl
   }
   /**
+   * 根据自由表格的id自由表格
    *
    * @param dbSysname
    * @param id
@@ -143,6 +145,13 @@ class Spreadsheet extends Base {
 
     return [true, ss]
   }
+  /**
+   * 获得固定结合对应的自由表格
+   *
+   * @param dbSysname
+   * @param clSysname
+   * @returns
+   */
   async byCl(dbSysname: string, clSysname: string): Promise<[boolean, any]> {
     const query: any = { 'cl.sysname': clSysname }
     const ss = await this.spreadsheetCl(dbSysname).findOne(query)

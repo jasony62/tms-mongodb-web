@@ -1,14 +1,21 @@
 <template>
-  <span v-if="propAttrs.type === 'array' && propAttrs.items?.format === 'file'">
-    <span v-for="(i, v) in doc[propName]" :key="v">
-      <el-link type="primary" @click="downLoadFile(i)">{{
+  <div class="h-full py-2" @click="onCellClick">
+    <span v-if="propAttrs.type === 'array' && propAttrs.items?.format === 'file'">
+      <span v-for="(i, v) in doc[propName]" :key="v">
+        <el-link type="primary" @click="downLoadFile(i)">{{
     i.name
   }}</el-link>
-      <br />
+        <br />
+      </span>
     </span>
-  </span>
-  <div v-else class="max-h-16 overflow-y-auto">
-    {{ readableValue() }}
+    <div v-else-if="propAttrs.type === 'string' && propAttrs.format === 'longtext'">
+      <el-tooltip :content="longtextTip()" raw-content placement="right" effect="light">
+        <div>{{ readableValue() }}</div>
+      </el-tooltip>
+    </div>
+    <div v-else>
+      {{ readableValue() }}
+    </div>
   </div>
 </template>
 
@@ -21,6 +28,14 @@ const Props = defineProps({
   downloadFile: { type: Function, default: (i: number) => { } }
 })
 
+const emit = defineEmits(['docCellClick'])
+
+const onCellClick = () => {
+  const { propName } = Props
+  emit('docCellClick', propName)
+}
+
+// 转换为可读内容
 const readableValue = () => {
   const { propAttrs: s, propName, doc } = Props
   const val = doc[propName]
@@ -81,6 +96,13 @@ const readableValue = () => {
   }
 
   return val
+}
+
+// 长文本提示
+const longtextTip = () => {
+  const { propName, doc } = Props
+  const val = doc[propName]
+  return `<div style="width:200px;">${val}</div>`
 }
 
 const downLoadFile = (i: number) => {

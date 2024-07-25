@@ -56,6 +56,7 @@ class Collection extends Base {
       tags,
       docFieldConvertRules,
       extensions,
+      style = {},
     } = info
     const newCl: any = {
       name,
@@ -72,6 +73,7 @@ class Collection extends Base {
       tags,
       docFieldConvertRules,
       extensions,
+      style,
     }
     if (info.sysname) newCl.sysname = info.sysname
 

@@ -3,7 +3,7 @@ import { BACK_API_URL } from '@/global'
 import { ApiRst } from './types'
 
 export default {
-  byName(bucket: any, dbName?: string, clName?: string) {
+  byName(bucket: string | undefined, dbName?: string, clName?: string) {
     const base = BACK_API_URL() + '/admin/collection'
     const params = { bucket, db: dbName, cl: clName }
     return TmsAxios.ins('mongodb-api')
@@ -32,7 +32,12 @@ export default {
       .post(`${base}/create`, proto, { params })
       .then((rst: ApiRst) => rst.data.result)
   },
-  update(bucket: string, dbName: string, clName: string, proto?: any) {
+  update(
+    bucket: string | undefined,
+    dbName: string,
+    clName: string,
+    proto?: any
+  ) {
     const base = BACK_API_URL() + '/admin/collection'
     const params = { bucket, db: dbName, cl: clName }
     return TmsAxios.ins('mongodb-api')

@@ -21,6 +21,13 @@
             <el-radio label="more" size="large">作为独立文件保存为压缩文件</el-radio>
           </el-radio-group>
         </el-form-item>
+        <el-form-item label="注意：将删除自由表格中已有数据！" v-if="outType === 'spreadsheet'" />
+        <el-form-item label="集合改为自由表格模式" v-if="outType === 'spreadsheet'">
+          <el-select v-model="clToSpreadsheetMode" placeholder="请选择" style="width:80px;">
+            <el-option label="是" value="yes"></el-option>
+            <el-option label="否" value="no"></el-option>
+          </el-select>
+        </el-form-item>
         <div class="response-content flex-grow border border-gray-200 rounded-md overflow-auto" v-if="responseContent">
           <pre>{{ responseContent }}</pre>
         </div>
@@ -43,6 +50,7 @@ const responseContent = ref<string>('')
 const outType = ref<string>('excel')
 const outAmount = ref<string>('more')
 const leafLevel = ref<number>(1)
+const clToSpreadsheetMode = ref<string>('yes')
 
 enum PluginWidgetAction {
   Created = 'Created',
@@ -59,10 +67,12 @@ interface PluginWidgetResult {
   reloadOnClose?: boolean // 关闭部件后是否要刷新数据
 }
 
+// 结果
 interface Result {
   outType: string
   outAmount?: string
   leafLevel?: number
+  clToSpreadsheetMode?: string
 }
 
 // 调用插件的页面
@@ -99,6 +109,9 @@ function onExecute() {
     result.outAmount = outAmount.value
   } else {
     result.leafLevel = leafLevel.value
+  }
+  if (outType.value === 'spreadsheet') {
+    result.clToSpreadsheetMode = clToSpreadsheetMode.value
   }
   if (Caller && outType.value) {
     const message: PluginWidgetResult = {

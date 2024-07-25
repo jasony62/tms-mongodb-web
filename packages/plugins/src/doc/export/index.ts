@@ -4,6 +4,7 @@ import {
   ModelSchema,
   SchemaIter,
   ModelSpreadsheet,
+  ModelCl,
   exportJSON,
 } from 'tmw-kit'
 import { PluginBase } from 'tmw-kit/dist/plugin/index.js'
@@ -267,8 +268,14 @@ async function exportAsJson(ctrl, tmwCl, docs, outAmount): Promise<string> {
  * @param ctrl
  * @param tmwCl
  * @param docs
+ * @param clToSpreadsheetMode
  */
-async function exportAsSpreadsheet(ctrl, tmwCl, docs) {
+async function exportAsSpreadsheet(
+  ctrl,
+  tmwCl,
+  docs,
+  clToSpreadsheetMode = 'no'
+) {
   // 集合的schema定义
   const schemaIter = await getDocSchemaIter(ctrl, tmwCl.schema_id)
   const headersName: string[] = []
@@ -299,6 +306,11 @@ async function exportAsSpreadsheet(ctrl, tmwCl, docs) {
   await modelSS.removeByCl(tmwCl.db.sysname, tmwCl.sysname)
   // 创建自由表格
   await modelSS.create(ctrl.client, tmwCl.db.sysname, tmwCl, proto)
+  // 将集合改为自由表格模式
+  if (clToSpreadsheetMode === 'yes') {
+    const modelCl = new ModelCl(ctrl.mongoClient, ctrl.bucket, ctrl.client)
+    await modelCl.update(tmwCl.db, tmwCl, { spreadsheet: 'yes' })
+  }
 }
 /**
  * 将集合中的文档数据导出为json或者excel文件
@@ -319,7 +331,9 @@ class ExportPlugin extends PluginBase {
 
     if (ok === false) return { code: 10001, msg: docsOrCause }
 
-    let { outType, outAmount, leafLevel } = ctrl.request.body.widget
+    const { outType, outAmount, leafLevel, clToSpreadsheetMode } =
+      ctrl.request.body.widget
+
     let relativeUrl, url
     switch (outType) {
       case 'excel':
@@ -329,7 +343,7 @@ class ExportPlugin extends PluginBase {
         relativeUrl = await exportAsJson(ctrl, tmwCl, docsOrCause, outAmount)
         break
       case 'spreadsheet':
-        await exportAsSpreadsheet(ctrl, tmwCl, docsOrCause)
+        await exportAsSpreadsheet(ctrl, tmwCl, docsOrCause, clToSpreadsheetMode)
         break
       default:
         return { code: 10001, msg: `不支持的导出类型【${outType}】` }

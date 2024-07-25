@@ -189,6 +189,18 @@ async function exportAsDocs(ctrl, tmwCl, sheets, options = { startRow: 1 }) {
   if (!schema_id || typeof schema_id !== 'string')
     throw Error('集合没有提供schema，无法执行自由表格导出到集合文档')
 
+  /**
+   * 保存到数据库
+   */
+  const modelDb = new ModelDb(ctrl.mongoClient, ctrl.bucket, ctrl.client)
+  const existDb = await modelDb.byName(tmwCl.db.name)
+  if (!existDb) throw Error(`数据库【${tmwCl.db.name}】不存在`)
+  /**
+   * 删除集合中已有的文档
+   */
+  const modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
+  await modelDoc.removeMany(tmwCl, {})
+
   // 集合的schema定义
   const modelSchema = new ModelSchema(
     ctrl.mongoClient,
@@ -227,12 +239,6 @@ async function exportAsDocs(ctrl, tmwCl, sheets, options = { startRow: 1 }) {
     })
     docs.push(doc)
   })
-  /**
-   * 保存到数据库
-   */
-  const modelDb = new ModelDb(ctrl.mongoClient, ctrl.bucket, ctrl.client)
-  const existDb = await modelDb.byName(tmwCl.db.name)
-  if (!existDb) throw Error(`数据库【${tmwCl.db.name}】不存在`)
 
   await createDocuments(ctrl, existDb, tmwCl.name, docs)
 }

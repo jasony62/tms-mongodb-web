@@ -12,6 +12,7 @@
         <el-form-item label="数据起始行号" v-if="outType === 'docs'">
           <el-input-number v-model="startRow" :step="1" :min="0" step-strictly />
         </el-form-item>
+        <el-form-item label="注意：将删除集合中已有数据！" v-if="outType === 'docs'" />
         <div class="response-content flex-grow border border-gray-200 rounded-md overflow-auto" v-if="responseContent">
           <pre>{{ responseContent }}</pre>
         </div>

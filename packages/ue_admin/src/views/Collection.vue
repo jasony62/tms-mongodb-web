@@ -21,15 +21,16 @@
       <div class="flex flex-col gap-4" :class="COMPACT ? 'w-full' : 'w-4/5'">
         <el-auto-resizer class="flex-grow overflow-x-auto">
           <template #default="{ height, width }">
-            <el-table-v2 id="table" :data="store.documents" :columns="tableColumns" :width="width" :height="height"
-              fixed :row-event-handlers="RowEventHandlers" :row-class="rowClass" />
+            <el-table-v2 id="table" :data="store.documents" :columns="tableColumns" :row-height="rowHeight"
+              :width="width" :height="height" fixed :row-event-handlers="RowEventHandlers" :row-class="rowClass"
+              :on-doc-cell-click="onDocCellClick" />
           </template>
         </el-auto-resizer>
         <div class="flex flex-row gap-4 p-2 items-center justify-between">
           <span class="tmw-pagination__text">已选中 {{ selectedDocuments.length }} 条数据</span>
           <div class="flex flex-row gap-4" :hide-on-single-page="true">
-            <el-pagination layout="total, sizes, prev, pager, next" background :total="data.docBatch.total"
-              :page-sizes="[10, 25, 50, 100]" :current-page="data.docBatch.page" :page-size="data.docBatch.size"
+            <el-pagination layout="total, sizes, prev, pager, next" background :total="CompData.docBatch.total"
+              :page-sizes="[10, 25, 50, 100]" :current-page="CompData.docBatch.page" :page-size="CompData.docBatch.size"
               @current-change="changeDocPage" @size-change="changeDocSize"></el-pagination>
             <el-button @click="listDocByKw">刷新</el-button>
           </div>
@@ -38,6 +39,16 @@
       <!--right-->
       <div class="flex flex-col items-start space-y-3" v-if="!COMPACT">
         <div>
+          <el-form :label-position="'top'">
+            <el-form-item label="表格行高度">
+              <el-input-number v-model="rowHeight" :step="50" />
+            </el-form-item>
+            <el-form-item :label="(CurrentColumn.title ? `【${CurrentColumn.title}】` : '') + '列宽度'">
+              <el-input-number v-model="colWidth" :min="0" :step="50" :disabled="!CurrentColumn.name" />
+            </el-form-item>
+          </el-form>
+        </div>
+        <div>
           <el-button v-if="HasDocEditRight" @click="createDocument">添加文档</el-button>
         </div>
         <div v-for="ep in etlPlugins">
@@ -45,7 +56,7 @@
         ep.title
       }}</el-button>
         </div>
-        <tmw-plugins :plugins="data.plugins" :total-by-all="totalByAll" :total-by-filter="totalByFilter"
+        <tmw-plugins :plugins="CompData.plugins" :total-by-all="totalByAll" :total-by-filter="totalByFilter"
           :total-by-checked="totalByChecked" :handle-plugin="handlePlugin"
           :docslen="store.documents.length"></tmw-plugins>
       </div>
@@ -66,7 +77,7 @@
 </style>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, computed, toRaw, h } from 'vue'
+import { onMounted, reactive, ref, computed, toRaw, h, watch } from 'vue'
 import {
   ElMessage,
   ElMessageBox,
@@ -143,12 +154,18 @@ const { bucketName, dbName, clName } = props
 
 const CurrentRow = ref()
 const CheckedRow = reactive<any>({})
+const rowHeight = ref<number>(50)
+const colWidth = ref<number>(0)
+const CurrentColumn = reactive<any>({ title: '', name: '', width: 0 })
+const ClStyle: Record<string, any> = {}
+
 const router = useRouter()
 
 // 文档列
 const tableColumns = ref<any>([])
 
-const data = reactive({
+// 组件级数据
+const CompData = reactive({
   docBatch: new Batch(() => { }),
   properties: {} as FieldProp,
   plugins: [] as any[],
@@ -157,10 +174,10 @@ const data = reactive({
 
 const selectedDocuments = ref<any[]>([])
 const totalByAll = computed(() =>
-  Object.keys(data.filter).length ? 0 : data.docBatch.total
+  Object.keys(CompData.filter).length ? 0 : CompData.docBatch.total
 )
 const totalByFilter = computed(() =>
-  Object.keys(data.filter).length ? data.docBatch.total : 0
+  Object.keys(CompData.filter).length ? CompData.docBatch.total : 0
 )
 const totalByChecked = computed(() => selectedDocuments.value.length)
 
@@ -183,7 +200,8 @@ const rowClass = ({ rowData }: Parameters<RowClassNameGetter<any>>[0]) => {
 // 表格事件
 const RowEventHandlers = {
   onClick: (params: RowEventHandlerParams) => {
-    CurrentRow.value = params.rowData
+    const { rowData } = params
+    CurrentRow.value = rowData
   }
 }
 
@@ -200,13 +218,14 @@ const handleCondition = () => {
     Object.assign(criterais.filter, ele.rule.filter)
     Object.assign(criterais.orderBy, ele.rule.orderBy)
   })
-  data.filter = criterais.filter
+  CompData.filter = criterais.filter
   return criterais
 }
 /**
  * 获得集合文档定义的顶层属性，作为表格的列
  */
 const createTableColumns = async () => {
+  tableColumns.value.splice(0, tableColumns.value.length)
   let matchedSchema = {}
   let properties: any = Collection.schema.body.properties
   // const { schema_default_tags, schema_tags } = collection
@@ -225,7 +244,7 @@ const createTableColumns = async () => {
     }
     Object.assign(matchedSchema, props)
   }
-  data.properties = Object.freeze(matchedSchema)
+  CompData.properties = Object.freeze(matchedSchema)
   // 选择列
   if (MULTIPLE.value !== false) {
     tableColumns.value.push({
@@ -254,18 +273,22 @@ const createTableColumns = async () => {
     })
   }
   // 数据列
-  Object.entries<any>(data.properties).forEach(([propName, propAttrs]) => {
+  const columnsWidth = ClStyle.columnsWidth ?? {}
+  Object.entries<any>(CompData.properties).forEach(([propName, propAttrs]) => {
     tableColumns.value.push({
       key: propName,
       dataKey: propName,
       title: propAttrs.title,
-      width: propAttrs.width ?? 120,
-      cellRenderer: ({ rowData }: { rowData: any }) => {
+      width: columnsWidth[propName] ?? propAttrs.width ?? 120,
+      cellRenderer: ({ rowData, rowIndex, columnIndex }: { rowData: any, rowIndex: number, columnIndex: number }) => {
         return h(DocCell, {
           propAttrs,
           propName,
           doc: rowData,
           downloadFile: downLoadFile,
+          onDocCellClick: () => {
+            onDocCellClick(rowData, rowIndex, propName, columnIndex)
+          }
         })
       },
       headerCellRenderer: () => {
@@ -310,6 +333,20 @@ const createTableColumns = async () => {
     },
   })
 }
+// 设置表格行高度
+watch(rowHeight, async (val) => {
+  ClStyle.rowHeight = val
+  await apiCl.update(bucketName, dbName, clName, { style: ClStyle })
+})
+// 设置表格列宽度
+watch(colWidth, async (val: number) => {
+  if (val !== CurrentColumn.width) {
+    ClStyle.columnsWidth ??= {}
+    ClStyle.columnsWidth[CurrentColumn.name] = val
+    apiCl.update(bucketName, dbName, clName, { style: ClStyle })
+    await createTableColumns()
+  }
+})
 /**
  * 给处于过滤状态的列添加类
  */
@@ -354,6 +391,16 @@ const handleFilter = (schema: any, name: any) => {
       listDocByKw()
     },
   })
+}
+
+// 点击单元格
+const onDocCellClick = async (rowData: any, rowIndex: number, propName: string, columnIndex: number) => {
+  const prop = Collection.schema.body.properties[propName]
+  CurrentColumn.title = prop.title
+  CurrentColumn.name = propName
+  CurrentColumn.width = colWidth.value = parseInt(prop.width ?? 0)
+
+  await createTableColumns()
 }
 
 const createDocument = () => {
@@ -452,6 +499,7 @@ const setPluginDocParam = (docScope: string) => {
 }
 /**
  * 执行插件操作
+ * 
  * @param plugin 指定的插件
  * @param docScope 操作的文档范围类型
  * @param widgetResult 插件部件收集的数据
@@ -652,12 +700,12 @@ const handleExtract = (etl: any) => {
 }
 
 const changeDocPage = (page: number) => {
-  data.docBatch.goto(page)
+  CompData.docBatch.goto(page)
 }
 
 const changeDocSize = (size: number) => {
-  data.docBatch.size = size
-  data.docBatch.goto(1)
+  CompData.docBatch.size = size
+  CompData.docBatch.goto(1)
 }
 /**
  * 根据标签获得匹配的schema
@@ -684,7 +732,7 @@ const listSchemaByTag = (tags: any) => {
 
 const listDocByKw = () => {
   const criterais = handleCondition()
-  data.docBatch = store.listDocument({
+  CompData.docBatch = store.listDocument({
     bucket: bucketName,
     db: dbName,
     cl: clName,
@@ -692,7 +740,6 @@ const listDocByKw = () => {
     criterais,
   })
 }
-
 /**
  * etl插件
  */
@@ -721,12 +768,14 @@ if (EXTRACT) {
  */
 onMounted(async () => {
   let cl = await apiCl.byName(bucketName, dbName, clName)
-  data.plugins = await apiPlugin.getCollectionDocPlugins(
+  CompData.plugins = await apiPlugin.getCollectionDocPlugins(
     bucketName,
     dbName,
     clName
   )
   Object.assign(Collection, cl)
+  Object.assign(ClStyle, cl.style ?? {})
+  rowHeight.value = ClStyle.rowHeight ?? 50
   await createTableColumns()
   listDocByKw()
 })
