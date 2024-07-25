@@ -398,7 +398,8 @@ const onDocCellClick = async (rowData: any, rowIndex: number, propName: string, 
   const prop = Collection.schema.body.properties[propName]
   CurrentColumn.title = prop.title
   CurrentColumn.name = propName
-  CurrentColumn.width = colWidth.value = parseInt(prop.width ?? 0)
+  const oldWidth = ClStyle.columnsWidth?.[propName] ?? prop.width ?? 0
+  CurrentColumn.width = colWidth.value = parseInt(oldWidth)
 
   await createTableColumns()
 }

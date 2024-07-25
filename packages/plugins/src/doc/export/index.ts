@@ -276,27 +276,49 @@ async function exportAsSpreadsheet(
   docs,
   clToSpreadsheetMode = 'no'
 ) {
+  // 集合上设置的样式
+  const ClStyle = tmwCl.style ?? {}
+  const RowHeight = parseInt(ClStyle.rowHeight ?? 0)
+  const ColumnsWidth = ClStyle.columnsWidth ?? {}
+
   // 集合的schema定义
+  const cols = { len: 0 }
   const schemaIter = await getDocSchemaIter(ctrl, tmwCl.schema_id)
-  const headersName: string[] = []
+  const headers: { name: string; attrs: Record<string, any> }[] = []
+  let colIndex = 0
   for (let schemaProp of schemaIter) {
-    const { _name } = schemaProp
+    const { _name, attrs = {} } = schemaProp
     if (!_name) continue
-    headersName.push(_name)
+    headers.push({ name: _name, attrs })
+
+    let cw = ColumnsWidth[_name] ?? parseInt(attrs?.width ?? 0)
+    if (cw > 0) cols[colIndex] = { width: cw }
+    colIndex++
   }
+  cols.len = colIndex
+
   /**
    * 生成自由表格数据部分
    */
   const rows = docs.reduce((rows, rowJson, index) => {
     const cells = {}
-    headersName.forEach((name, index) => {
-      if (rowJson[name]) cells['' + index] = { text: rowJson[name] }
+    headers.forEach((hd, index) => {
+      if (rowJson[hd.name]) {
+        cells['' + index] = { text: rowJson[hd.name] }
+        // 长文本默认换行
+        if (hd.attrs.format === 'longtext') {
+          cells['' + index].style = 0
+        }
+      }
     })
+
     rows['' + index] = { cells }
+    if (RowHeight > 0) rows['' + index]['height'] = RowHeight
+
     return rows
   }, {})
 
-  const proto: any = { rows }
+  const proto: any = { cols, rows, styles: [{ textwrap: true }] }
   const modelSS = new ModelSpreadsheet(
     ctrl.mongoClient,
     ctrl.bucket,

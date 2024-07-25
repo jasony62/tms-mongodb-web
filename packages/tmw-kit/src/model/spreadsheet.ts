@@ -65,10 +65,21 @@ class Spreadsheet extends Base {
    * 根据集合创建表格
    *
    * @param cl
+   * @param styles
    * @returns
    */
-  async _createClSpreadsheet(cl) {
+  async _createClSpreadsheet(cl, styles?) {
     if (!cl?.schema_id) return { name: cl.title, rows: {} }
+    const defaultStyles = [
+      {
+        bgcolor: '#e7e5e6',
+        align: 'center',
+      },
+    ]
+    const mergedStyles = Array.isArray(styles)
+      ? styles.concat(defaultStyles)
+      : defaultStyles
+
     const modelSc = new ModelSchema(this.mongoClient, this.bucket, this.client)
     const properties = await modelSc.bySchemaId(cl.schema_id)
     if (properties && typeof properties === 'object') {
@@ -78,7 +89,7 @@ class Spreadsheet extends Base {
           rows['0'].cells[index] = {
             text: prop.title,
             editable: false,
-            style: 0,
+            style: mergedStyles.length - 1,
           }
           // 第2行是列名称（英文）
           rows['1'].cells[index] = { text: key, editable: false, style: 0 }
@@ -93,12 +104,7 @@ class Spreadsheet extends Base {
         cols: {
           len: Object.keys(rows['0'].cells).length,
         },
-        styles: [
-          {
-            bgcolor: '#e7e5e6',
-            align: 'center',
-          },
-        ],
+        styles: mergedStyles,
       }
     }
 
@@ -207,10 +213,11 @@ class Spreadsheet extends Base {
     cl?: any,
     proto?: any
   ): Promise<[boolean, any]> {
+    // 必须先处理样式
     const newSS: any = { ver: 1 }
     if (cl) {
       newSS.cl = { sysname: cl.sysname }
-      let clProto = await this._createClSpreadsheet(cl)
+      let clProto = await this._createClSpreadsheet(cl, proto?.styles)
       newSS.data = [clProto]
     } else {
       newSS.data = [{ name: '表格1', rows: {} }]
@@ -221,6 +228,7 @@ class Spreadsheet extends Base {
     if (proto && typeof proto === 'object') {
       const protoRows = proto.rows
       if (protoRows) delete proto.rows
+      delete proto.styles
       Object.assign(newSS.data[0], proto)
       if (protoRows && newSS.data[0].rows) {
         const offset = 2
