@@ -1,7 +1,7 @@
 <template>
   <div id="collection" class="flex flex-col gap-2 h-full w-full">
     <!--header-->
-    <div class="h-12 py-4 px-2">
+    <div class="h-12 py-4">
       <el-breadcrumb :separator-icon="ArrowRight" v-if="EXTRACT === true">
         <el-breadcrumb-item>数据库</el-breadcrumb-item>
         <el-breadcrumb-item>{{ dbName }}</el-breadcrumb-item>
@@ -44,7 +44,7 @@
               <el-input-number v-model="rowHeight" :step="50" />
             </el-form-item>
             <el-form-item :label="(CurrentColumn.title ? `【${CurrentColumn.title}】` : '') + '列宽度'">
-              <el-input-number v-model="colWidth" :min="0" :step="50" :disabled="!CurrentColumn.name" />
+              <el-input-number v-model="colWidth" :min="0" :step="40" :disabled="!CurrentColumn.name" />
             </el-form-item>
           </el-form>
         </div>
@@ -109,6 +109,7 @@ import {
   MULTIPLE_MODE,
   LABEL,
   PAGINATION_DOC_SIZE,
+  TIP_SHOW_AFTER,
 } from '@/global'
 
 import facStore from '@/store'
@@ -131,6 +132,7 @@ const COMPACT = computed(() => COMPACT_MODE())
 const EXTRACT = computed(() => EXTRACT_MODE())
 const MULTIPLE = computed(() => MULTIPLE_MODE())
 const DbLabel = computed(() => LABEL('database', '数据库'))
+const TipShowAfter = TIP_SHOW_AFTER()
 
 const store = facStore()
 
@@ -155,7 +157,7 @@ const { bucketName, dbName, clName } = props
 const CurrentRow = ref()
 const CheckedRow = reactive<any>({})
 const rowHeight = ref<number>(50)
-const colWidth = ref<number>(0)
+const colWidth = ref<number>(120)
 const CurrentColumn = reactive<any>({ title: '', name: '', width: 0 })
 const ClStyle: Record<string, any> = {}
 
@@ -293,7 +295,7 @@ const createTableColumns = async () => {
       },
       headerCellRenderer: () => {
         const content = [
-          h('div', propAttrs.title),
+          h('div', { class: 'px-1' }, propAttrs.title),
           h(ElIcon, { size: '1rem', class: { 'column-filter-active': IsColumnFiltered[propName] } }, { default: () => h(Filter) }),
         ]
         if (SortColumn[propName] === 'asc') {
@@ -302,7 +304,7 @@ const createTableColumns = async () => {
           content.push(h(ElIcon, { size: '1rem' }, { default: () => h(SortDown) }))
         }
         return h(ElTooltip,
-          { content: propAttrs.description || propAttrs.title, placement: 'top', effect: 'light' },
+          { content: propAttrs.description || propAttrs.title, placement: 'top', effect: 'light', showAfter: TipShowAfter },
           {
             default: () => h(
               'div',
@@ -398,7 +400,7 @@ const onDocCellClick = async (rowData: any, rowIndex: number, propName: string, 
   const prop = Collection.schema.body.properties[propName]
   CurrentColumn.title = prop.title
   CurrentColumn.name = propName
-  const oldWidth = ClStyle.columnsWidth?.[propName] ?? prop.width ?? 0
+  const oldWidth = ClStyle.columnsWidth?.[propName] ?? prop.width ?? 120
   CurrentColumn.width = colWidth.value = parseInt(oldWidth)
 
   await createTableColumns()

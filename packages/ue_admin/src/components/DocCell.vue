@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full py-2" @click="onCellClick">
+  <div class="h-full w-full py-2 px-1 break-all" @click="onCellClick">
     <span v-if="propAttrs.type === 'array' && propAttrs.items?.format === 'file'">
       <span v-for="(i, v) in doc[propName]" :key="v">
         <el-link type="primary" @click="downLoadFile(i)">{{
