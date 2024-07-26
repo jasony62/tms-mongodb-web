@@ -565,7 +565,7 @@ function onExecute(
         showClose: true,
       })
       listDocByKw()
-    } else if (result && typeof result === 'object') {
+    } else if (result && typeof result === 'object' && Object.keys(result).length > 0) {
       /**
        * 返回的是对象
        */

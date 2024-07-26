@@ -34,37 +34,37 @@ interface DocumentWebhookInf {
   /**
    * 创建文档前执行webhook
    * @param newDoc
-   * @param coll
+   * @param coll 集合
    */
   beforeCreate(newDoc: any, coll: any): Promise<WEBHOOK_RESULT>
   /**
    * 创建文档后执行webhook
    * @param newDoc
-   * @param coll
+   * @param coll 集合
    */
   afterCreate(newDoc: any, coll: any): Promise<WEBHOOK_RESULT>
   /**
    * 更新文档前执行webhook
    * @param newDoc
-   * @param coll
+   * @param coll 集合
    */
   beforeUpdate(newDoc: any, coll: any): Promise<WEBHOOK_RESULT>
   /**
    * 更新文档后执行webhook
    * @param newDoc
-   * @param coll
+   * @param coll 集合
    */
   afterUpdate(newDoc: any, coll: any): Promise<WEBHOOK_RESULT>
   /**
    * 删除文档前执行webhook
    * @param newDoc
-   * @param coll
+   * @param coll 集合
    */
   beforeRemove(newDoc: any, coll: any): Promise<WEBHOOK_RESULT>
   /**
    * 删除文档后执行webhook
    * @param newDoc
-   * @param coll
+   * @param coll 集合
    */
   afterRemove(newDoc: any, coll: any): Promise<WEBHOOK_RESULT>
 }
@@ -134,7 +134,7 @@ class DocumentWebhook implements DocumentWebhookInf {
   /**
    * 创建文档前调用webhook
    * @param doc
-   * @param coll
+   * @param coll 集合
    */
   async beforeCreate(doc: any, coll: any): Promise<WEBHOOK_RESULT> {
     // 构造消息
@@ -155,7 +155,7 @@ class DocumentWebhook implements DocumentWebhookInf {
   /**
    * 创建文档后调用webhook
    * @param newDoc
-   * @param coll
+   * @param coll 集合
    */
   async afterCreate(newDoc: any, coll: any): Promise<WEBHOOK_RESULT> {
     // 构造消息

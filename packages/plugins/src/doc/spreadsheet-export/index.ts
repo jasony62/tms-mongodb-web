@@ -36,11 +36,11 @@ function findSysColl(ctrl, existDb, clName) {
  *
  * @param ctrl
  * @param existDb
- * @param clSysname
+ * @param tmwCl
  * @param rowsJson
  * @returns
  */
-async function createDocuments(ctrl, existDb, clSysname, rowsJson) {
+async function createDocuments(ctrl, existDb, tmwCl, rowsJson) {
   const modelDoc = new ModelDoc(ctrl.mongoClient, ctrl.bucket, ctrl.client)
   const docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK)
 
@@ -57,29 +57,25 @@ async function createDocuments(ctrl, existDb, clSysname, rowsJson) {
     return newRow
   })
 
-  try {
-    // 通过webhook处理数据
-    let beforeRst: any = await docWebhook.beforeCreate(finishRows, existDb)
+  // 通过webhook处理数据
+  let beforeRst: any = await docWebhook.beforeCreate(finishRows, tmwCl)
 
-    if (beforeRst.passed !== true) throw Error('操作被Webhook.beforeCreate阻止')
+  if (beforeRst.passed !== true) throw Error('操作被Webhook.beforeCreate阻止')
 
-    if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
-      finishRows = beforeRst.rewrited
+  if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
+    finishRows = beforeRst.rewrited
 
-    // 数据存储到集合中
-    const rst = await findSysColl(ctrl, existDb, clSysname)
-      .insertMany(finishRows)
-      .then(async (r) => {
-        await modelDoc.dataActionLog(r.ops, '创建', existDb.name, clSysname)
-        return finishRows
-      })
+  // 数据存储到集合中
+  const rst = await findSysColl(ctrl, existDb, tmwCl.sysname)
+    .insertMany(finishRows)
+    .then(async (r) => {
+      await modelDoc.dataActionLog(r.ops, '创建', existDb.name, tmwCl.sysname)
+      return finishRows
+    })
 
-    // 通过webhook处理数据
-    let afterRst: any = await docWebhook.afterCreate(rst, existDb)
-    if (afterRst.passed !== true) throw Error('操作被Webhook.afterCreate阻止')
-  } catch (error) {
-    throw Error(error.message)
-  }
+  // 通过webhook处理数据
+  let afterRst: any = await docWebhook.afterCreate(rst, tmwCl)
+  if (afterRst.passed !== true) throw Error('操作被Webhook.afterCreate阻止')
 }
 
 type ExportFileInfoResult = {
@@ -245,7 +241,7 @@ async function exportAsDocs(ctrl, tmwCl, sheets, options = { startRow: 1 }) {
     docs.push(doc)
   })
 
-  await createDocuments(ctrl, existDb, tmwCl.name, docs)
+  await createDocuments(ctrl, existDb, tmwCl, docs)
 }
 
 /**
@@ -289,32 +285,37 @@ class SpreadsheetExportPlugin extends PluginBase {
    * @returns
    */
   async execute(ctrl: any, tmwCl: any) {
-    const [ok, sheets] = await this._getSpreadsheetData(ctrl, tmwCl)
-    if (ok === false) return { code: 10001, msg: sheets }
+    try {
+      const [ok, sheets] = await this._getSpreadsheetData(ctrl, tmwCl)
+      if (ok === false) return { code: 10001, msg: sheets }
 
-    let { outType, startRow } = ctrl.request.body.widget
-    let relativeUrl
-    switch (outType) {
-      case 'excel':
-        relativeUrl = await exportAsExcel(ctrl, tmwCl, sheets)
-        break
-      case 'json':
-        relativeUrl = await exportAsJson(ctrl, tmwCl, sheets)
-        break
-      case 'docs':
-        await exportAsDocs(ctrl, tmwCl, sheets, { startRow })
-        break
-      default:
-        return { code: 10001, msg: `不支持的导出类型【${outType}】` }
+      let { outType, startRow } = ctrl.request.body.widget
+      let relativeUrl
+      switch (outType) {
+        case 'excel':
+          relativeUrl = await exportAsExcel(ctrl, tmwCl, sheets)
+          break
+        case 'json':
+          relativeUrl = await exportAsJson(ctrl, tmwCl, sheets)
+          break
+        case 'docs':
+          await exportAsDocs(ctrl, tmwCl, sheets, { startRow })
+          break
+        default:
+          return { code: 10001, msg: `不支持的导出类型【${outType}】` }
+      }
+
+      if (relativeUrl) {
+        let appContext = ctrl.tmsContext.AppContext.insSync()
+        let url = `${appContext.router?.fsdomain?.prefix ?? ''}/${relativeUrl}`
+        return { code: 0, msg: { url } }
+      }
+
+      return { code: 0, msg: {} }
+    } catch (e) {
+      console.log('[plugins:doc:spreadsheet-export] 发生为止错误', e)
+      return { code: 50001, msg: `发生未知错误：${e.message}` }
     }
-
-    if (relativeUrl) {
-      let appContext = ctrl.tmsContext.AppContext.insSync()
-      let url = `${appContext.router?.fsdomain?.prefix ?? ''}/${relativeUrl}`
-      return { code: 0, msg: { url } }
-    }
-
-    return { code: 0, msg: {} }
   }
 }
 

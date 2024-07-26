@@ -8,8 +8,9 @@
         <br />
       </span>
     </span>
-    <div v-else-if="propAttrs.type === 'string' && propAttrs.format === 'longtext'">
-      <el-tooltip :content="longtextTip()" raw-content placement="right" effect="light">
+    <div v-else-if="showTip">
+      <el-tooltip :content="longtextTip()" raw-content placement="right-start" effect="light"
+        :show-after="TipShowAfter">
         <div>{{ readableValue() }}</div>
       </el-tooltip>
     </div>
@@ -20,6 +21,7 @@
 </template>
 
 <script setup lang="ts">
+import { TIP_SHOW_AFTER } from '@/global'
 
 const Props = defineProps({
   propAttrs: { type: Object, default: {} },
@@ -27,6 +29,10 @@ const Props = defineProps({
   doc: { type: Object, default: {} },
   downloadFile: { type: Function, default: (i: number) => { } }
 })
+
+const showTip = (Props.propAttrs.type === 'string' && Props.propAttrs.format === 'longtext') || Props.propAttrs.type === 'json' || Props.propAttrs.type === 'object' || Props.propAttrs.type === 'array'
+
+const TipShowAfter = TIP_SHOW_AFTER()
 
 const emit = defineEmits(['docCellClick'])
 
@@ -100,9 +106,13 @@ const readableValue = () => {
 
 // 长文本提示
 const longtextTip = () => {
-  const { propName, doc } = Props
+  const { propAttrs, propName, doc } = Props
   const val = doc[propName]
-  return `<div style="width:200px;">${val}</div>`
+  if (propAttrs.type === 'string') {
+    return `<div style="width:200px;">${val}</div>`
+  } else {
+    return `<div style="width:300px;">${JSON.stringify(val)}</div>`
+  }
 }
 
 const downLoadFile = (i: number) => {

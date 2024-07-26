@@ -27,6 +27,7 @@ type Globalsettings = {
   }
   labels?: { [k: string]: string } // 标题定义
   pagination?: { [k: string]: { [k: string]: number } } // 分页参数
+  tipShowAfter: number // 提示显示时间
 }
 
 let _globalsettings: Globalsettings = {
@@ -60,6 +61,7 @@ let _globalsettings: Globalsettings = {
         false,
     },
   },
+  tipShowAfter: 1000,
 }
 /**
  * 根据在线获取的全局设置
@@ -96,6 +98,8 @@ export function init(settings: Globalsettings) {
   if (settings.pagination && typeof settings.pagination === 'object') {
     _globalsettings.pagination = settings.pagination
   }
+  if (settings.tipShowAfter)
+    _globalsettings.tipShowAfter = settings.tipShowAfter
 }
 /**
  * 根据环境变量设置认证服务起始地址
@@ -239,6 +243,10 @@ export const MULTIPLE_MODE = () => _globalsettings.multiple
  * 获取模板变量地址
  */
 export const TEMPLATE_VARS_API_URL = () => _globalsettings.templateVarsApiUrl
+/**
+ * 获取模板变量地址
+ */
+export const TIP_SHOW_AFTER = () => _globalsettings.tipShowAfter
 
 // 默认的文档对象说明模板
 const DocManualTpl = `<div class="p-4 flex flex-col gap-2"> <div>ID: {{ doc._id }}</div><div>TAGS: {{doc.${TMW_APP_TAGS()}}}</div> </div>`
