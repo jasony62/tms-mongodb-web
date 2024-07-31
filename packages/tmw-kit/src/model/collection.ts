@@ -9,6 +9,7 @@ import ModelAcl from './acl.js'
 import ModelDb from './db.js'
 import Document from './document.js'
 import Debug from 'debug'
+import { TTmwCl, TTmwClAclRight, TTmwDb } from '../types/index.js'
 
 const debug = Debug('tmw-kit:model:collection')
 
@@ -86,7 +87,7 @@ class Collection extends Base {
    * @param newCl
    * @returns
    */
-  async create(existDb, info) {
+  async create(existDb: TTmwDb, info) {
     const newCl: any = this.sanitize(info)
     // 加工数据
     this.processBeforeStore(newCl, 'insert')
@@ -159,7 +160,7 @@ class Collection extends Base {
    * @param info
    * @returns
    */
-  async update(tmwDb, existCl, info) {
+  async update(tmwDb: TTmwDb, existCl: TTmwCl, info) {
     // 格式化集合名
     let newClName
     if (info.name !== undefined && info.name !== existCl.name) {
@@ -250,7 +251,7 @@ class Collection extends Base {
    * @param id
    * @returns
    */
-  async remove(tmwDb, id: string) {
+  async remove(tmwDb: TTmwDb, id: string) {
     const tmwCl = await this.byId(tmwDb, id)
     /**
      * 删除自由表格数据
@@ -283,7 +284,7 @@ class Collection extends Base {
    * @param tmwDb
    * @param tmwCl
    */
-  async _removeSpreadsheet(tmwDb, tmwCl) {
+  async _removeSpreadsheet(tmwDb: TTmwDb, tmwCl: TTmwCl) {
     const modelSS = new ModelSpreadsheet(
       this.mongoClient,
       this.bucket,
@@ -295,7 +296,7 @@ class Collection extends Base {
    * 删除集合关联的文档列定义
    * @param tmwCl
    */
-  async _removeClSchema(tmwCl) {
+  async _removeClSchema(tmwCl: TTmwCl) {
     const modelSc = new ModelSchema(this.mongoClient, this.bucket, this.client)
     const schema = await modelSc.bySchemaId(tmwCl.schema_id, {
       onlyProperties: false,
@@ -309,7 +310,7 @@ class Collection extends Base {
    *
    * 补充集合的schema信息，解决集合层级关系
    */
-  async processCl(tmwCls: any[]) {
+  async processCl(tmwCls: TTmwCl[]) {
     /**
      * 进行批量查询，减少数据库访问次数
      */
@@ -453,7 +454,7 @@ class Collection extends Base {
    *
    * @param {object} tmwCl
    */
-  async getSchemaByCollection(tmwCl) {
+  async getSchemaByCollection(tmwCl: TTmwCl) {
     const client = this.mongoClient
     const cl = client.db(META_ADMIN_DB).collection('mongodb_object')
     // 获取表列
@@ -482,32 +483,6 @@ class Collection extends Base {
         return false
       })
   }
-  //
-  static async getCollection(existDb, clName) {
-    const client = await this['mongoClient']
-    const cl = client.db(META_ADMIN_DB).collection('mongodb_object')
-    //
-    return cl
-      .findOne({
-        'db.sysname': existDb.sysname,
-        name: clName,
-        type: 'collection',
-      })
-      .then((result) => result)
-      .then((myCl) => {
-        if (myCl.schema_id) {
-          return cl
-            .findOne({ type: 'schema', _id: new ObjectId(myCl.schema_id) })
-            .then((schema) => {
-              myCl.schema = schema
-              delete myCl.schema_id
-              return myCl
-            })
-        }
-        delete myCl.schema_id
-        return myCl
-      })
-  }
   /**
    *  检查集合名
    */
@@ -533,7 +508,7 @@ class Collection extends Base {
    *
    * @returns {object} 集合对象
    */
-  async byId(tmwDb, id: string) {
+  async byId(tmwDb: TTmwDb, id: string) {
     const query: any = { _id: new ObjectId(id), type: 'collection' }
 
     if (typeof tmwDb === 'object') query['db.sysname'] = tmwDb.sysname
@@ -556,7 +531,7 @@ class Collection extends Base {
    *
    * @returns {object} 集合对象
    */
-  async byName(tmwDb, clName: string) {
+  async byName(tmwDb: TTmwDb | string, clName: string): Promise<TTmwCl> {
     const query: any = { name: clName, type: 'collection' }
 
     if (typeof tmwDb === 'object') query['db.sysname'] = tmwDb.sysname
@@ -567,45 +542,58 @@ class Collection extends Base {
     const mgClient = this.mongoClient
     const clMongoObj = mgClient.db(META_ADMIN_DB).collection('mongodb_object')
 
-    const cl = await clMongoObj.findOne(query)
+    const tmwCl: TTmwCl = await clMongoObj.findOne(query)
     /**
      * 检查访问控制权限
      */
-    if (cl?.aclCheck === true) {
+    if (tmwCl?.aclCheck === true) {
       // 没有指定用户身份
       if (!this.client) throw Error('没有指定用户身份，无法访问')
       // 不是管理员，需要检查权限
       if (this.client.isAdmin !== true) {
-        if (cl.creator !== this.client.id) {
-          const right = await this._modelAcl.check(
-            { id: cl._id.toString(), type: 'collection' },
-            { id: this.client.id }
-          )
+        if (tmwCl.creator !== this.client.id) {
+          let right: TTmwClAclRight
+          tmwDb = await this._modelDb.bySysname(tmwCl.db.sysname)
+          if (!tmwDb) throw Error('集合的数据库不存在，无法访问')
+          if (tmwDb.asClAcl === true) {
+            //检查是否用数据库的访问控制列表检查
+            right = await this._modelAcl.check(
+              { id: tmwDb._id.toString(), type: 'database' },
+              { id: this.client.id }
+            )
+          } else {
+            // 检查集合的访问控制列表
+            right = await this._modelAcl.check(
+              { id: tmwCl._id.toString(), type: 'collection' },
+              { id: this.client.id }
+            )
+          }
           if (!right) throw Error('没有访问权限')
-          cl.right = right
+
+          tmwCl.right = right
         }
       }
     }
 
-    return cl
+    return tmwCl
   }
   /**
    * 在数据库内按系统名称查找集合
    *
-   * @param {object} db - 集合所属数据库
+   * @param {object} tmwDb - 集合所属数据库
    * @param {string} clSysname - 集合系统名称
    *
    * @returns {object} 集合对象
    */
-  async bySysname(db, clSysname) {
+  async bySysname(tmwDb: TTmwDb, clSysname): Promise<TTmwCl> {
     const query: any = {
-      'db.sysname': db.sysname,
+      'db.sysname': tmwDb.sysname,
       sysname: clSysname,
       type: 'collection',
     }
     if (this.bucket) query.bucket = this.bucket.name
 
-    const cl = await this.clMongoObj.findOne(query)
+    const cl: TTmwCl = await this.clMongoObj.findOne(query)
 
     return cl
   }

@@ -1,6 +1,7 @@
 import mongodb from 'mongodb'
 import Base from './base.js'
 import ModelDb from './db.js'
+import { TMongoDbObjectId } from '../types/index.js'
 
 const ObjectId = mongodb.ObjectId
 
@@ -39,7 +40,7 @@ class Schema extends Base {
    * @param options
    * @returns
    */
-  async bySchemaIds(ids: [], options = {}) {
+  async bySchemaIds(ids: TMongoDbObjectId[], options = {}) {
     const query = {
       type: 'schema',
       _id: { $in: ids },

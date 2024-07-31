@@ -381,6 +381,7 @@ class Document extends Base {
    * @param {number} [page.page]
    * @param {number} [page.size]
    * @param {boolean} [like=true]
+   * @param {object} [projection]
    *
    * @returns {[]}
    */

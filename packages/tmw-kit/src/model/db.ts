@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid'
 import Debug from 'debug'
 import Base from './base.js'
 import ModelAcl from './acl.js'
+import { TTmwDb } from '../types/index.js'
 
 const debug = Debug('tmw-kit:model:db')
 
@@ -88,7 +89,7 @@ class Db extends Base {
    * @param db
    * @returns
    */
-  async checkAcl(db) {
+  async checkAcl(db: TTmwDb) {
     if (db.aclCheck !== true) return null
 
     if (!this.client) throw Error('没有指定用户身份，无法访问')
@@ -118,11 +119,11 @@ class Db extends Base {
    *
    * @returns {object} 数据库对象
    */
-  async byName(dbName) {
+  async byName(dbName): Promise<TTmwDb> {
     const query: any = { name: dbName, type: 'database' }
     if (this.bucket) query.bucket = this.bucket.name
 
-    const db = await this.clMongoObj.findOne(query)
+    const db: TTmwDb = await this.clMongoObj.findOne(query)
     if (db) {
       const right = await this.checkAcl(db)
       if (null !== right) db.right = right
@@ -135,7 +136,7 @@ class Db extends Base {
    *
    * @param {string} sysname
    */
-  async bySysname(sysname) {
+  async bySysname(sysname): Promise<TTmwDb> {
     const query = { sysname, type: 'database' }
 
     const db = await this.clMongoObj.findOne(query)

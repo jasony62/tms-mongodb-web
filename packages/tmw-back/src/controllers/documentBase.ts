@@ -58,6 +58,7 @@ class DocBase extends Base {
 
     // 要新建的文档数据
     let docData = this.request.body
+    if (!docData) return new ResultFault('没有指定要新建的文档数据')
 
     // 加工数据
     this.modelDoc.processBeforeStore(docData, 'insert', docSchema)
@@ -248,6 +249,34 @@ class DocBase extends Base {
     return new ResultData(newDoc)
   }
   /**
+   * 批量更新
+   */
+  async bulkUpdateById() {
+    const docs = this.request.body
+    if (!docs || !Array.isArray(docs))
+      return new ResultFault('没有指定要更新的文档数据')
+
+    const existCl = await this.docHelper.findRequestCl()
+
+    for (let doc of docs) {
+      let { _id } = doc
+      if (!_id) continue
+
+      let existDoc = await this.modelDoc.byId(existCl, _id)
+      if (!existDoc) return new ResultFault(`要更新的文档[_id=${_id}]不存在`)
+
+      let newDoc = JSON.parse(JSON.stringify(doc))
+      delete newDoc._id
+      delete newDoc.bucket
+
+      const isOk = await this.modelDoc.update(existCl, _id, newDoc)
+
+      if (!isOk) return new ResultFault(`更新文档[_id=${_id}]失败`)
+    }
+
+    return new ResultData('ok')
+  }
+  /**
    * 替换指定数据库指定集合下的文档
    */
   async replace() {
@@ -320,8 +349,17 @@ class DocBase extends Base {
   async list() {
     const tmwCl = await this.docHelper.findRequestCl()
 
-    const { page, size, tags, includeDeleted } = this.request.query
+    const { page, size, tags, fields, includeDeleted } = this.request.query
     let { filter, orderBy } = this.request.body
+
+    // 返回字段
+    let projection = null
+    if (fields) {
+      projection = fields.split(',').reduce((projection, field) => {
+        projection[field] = 1
+        return projection
+      }, {})
+    }
 
     // 排序规则
     if (tmwCl.orderBy && typeof tmwCl.orderBy === 'object') {
@@ -336,9 +374,10 @@ class DocBase extends Base {
       { filter, orderBy },
       { page, size },
       true, // like
-      null, // projection
+      projection,
       /yes|true/i.test(includeDeleted)
     )
+
     if (ok === false) return new ResultFault(result)
 
     return new ResultData(result)
