@@ -2,6 +2,7 @@ import { PluginProfileScope, PluginProfileAmount } from 'tmw-data'
 import { loadConfig } from 'tmw-kit'
 import { PluginHttpSendDocs } from 'tmw-kit/dist/plugin/index.js'
 import path from 'path'
+import { jsonRender } from 'tms-handlebars'
 
 /**配置文件存放位置*/
 const ConfigDir = path.resolve(
@@ -47,6 +48,18 @@ class HttpSendDocPlugin extends PluginHttpSendDocs {
     return url
   }
   /**
+   *
+   * @param ctrl
+   * @param tmwCl
+   * @returns
+   */
+  getHeaders(ctrl, tmwCl) {
+    const { widget } = ctrl.request.body
+    let headers = widget?.headers
+    headers = headers ? JSON.parse(headers) : {}
+    return headers
+  }
+  /**
    * 将指定的文档数据作为要发送的数据
    * @param ctrl 控制器实例
    * @param tmwCl 数据库集合定义实例
@@ -54,15 +67,24 @@ class HttpSendDocPlugin extends PluginHttpSendDocs {
    */
   async getBody(ctrl, tmwCl) {
     const { widget } = ctrl.request.body
-    const excludeId = widget?.excludeId
+    let { excludeId, transformTpl } = widget ?? {}
 
-    const [ok, docs] = await this.findRequestDocs(ctrl, tmwCl)
+    let [ok, docs] = await this.findRequestDocs(ctrl, tmwCl)
     if (ok === false) throw Error(docs)
 
     /**清除_id字段*/
     if (excludeId === true) {
       if (Array.isArray(docs)) docs.forEach((doc) => delete doc._id)
       else delete docs._id
+    }
+    /**数据转换*/
+    if (transformTpl) {
+      try {
+        transformTpl = JSON.parse(transformTpl)
+        docs = await jsonRender(transformTpl, { docs })
+      } catch (e) {
+        throw Error('根据模板转换发送数据失败，原因：' + e.message)
+      }
     }
 
     return docs

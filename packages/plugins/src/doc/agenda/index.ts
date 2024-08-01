@@ -2,7 +2,6 @@ import { PluginProfileScope, PluginProfileAmount } from 'tmw-data'
 import { loadConfig, ModelDoc } from 'tmw-kit'
 import { PluginBase } from 'tmw-kit/dist/plugin/index.js'
 import path from 'path'
-import axios from 'axios'
 import Debug from 'debug'
 
 const debug = Debug('tmw:plugins:agenda')
@@ -21,7 +20,6 @@ const ConfigFile =
  */
 class AgendaDocPlugin extends PluginBase {
   jobFields // 文档中和调度任务对应的字段
-  axiosInstance
 
   constructor(file: string) {
     super(file)
@@ -31,7 +29,6 @@ class AgendaDocPlugin extends PluginBase {
     this.scope = PluginProfileScope.document
     this.amount = PluginProfileAmount.many
     this.beforeWidget = { name: 'external', url: '', size: '40%' }
-    this.axiosInstance = axios
     this.jobFields = {}
   }
 
@@ -43,9 +40,19 @@ class AgendaDocPlugin extends PluginBase {
    */
   private async sendHttp(method, url, body) {
     if (/get/i.test(method)) {
-      return this.axiosInstance.get(url).then(({ data }) => data)
+      const rsp = await fetch(url)
+      const data = await rsp.json()
+      return data
     } else if (/post/i.test(method)) {
-      return this.axiosInstance.post(url, body).then(({ data }) => data)
+      const rsp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          body: JSON.stringify(body),
+        },
+      })
+      const data = await rsp.json()
+      return data
     }
     throw Error(`不支持的HTTP方法【${method}】`)
   }

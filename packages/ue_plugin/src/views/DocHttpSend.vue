@@ -11,8 +11,14 @@
             <el-option label="post" value="post" />
           </el-select>
         </el-form-item>
+        <el-form-item label="请求头">
+          <el-input type="textarea" v-model="userInput.headers" placeholder="请求头的json表示" :rows="5" />
+        </el-form-item>
         <el-form-item label="清除发送的文档数据的id字段">
           <el-switch v-model="userInput.excludeId" :disabled="!enableInput.excludeId"></el-switch>
+        </el-form-item>
+        <el-form-item label="文档数据转换模板">
+          <el-input type="textarea" v-model="userInput.transformTpl" placeholder="数据转换模板" :rows="5" />
         </el-form-item>
       </el-form>
       <el-divider />
@@ -39,7 +45,9 @@ import { reactive, ref, toRaw } from 'vue';
 const userInput = reactive({
   url: '',
   method: 'post',
-  excludeId: true
+  headers: '',
+  excludeId: true,
+  transformTpl: ''
 })
 
 const enableInput = reactive({

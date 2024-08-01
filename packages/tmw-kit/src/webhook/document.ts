@@ -1,5 +1,3 @@
-import axios from 'axios'
-
 // WEBHOOK文档事件
 enum WEBHOOK_DOC_EVENT {
   BeforeCreate = 'beforeCreate',
@@ -97,11 +95,8 @@ class DocumentWebhookNoop implements DocumentWebhookInf {
 class DocumentWebhook implements DocumentWebhookInf {
   private _webhooUrl
 
-  axiosInstance
-
   constructor(webhookUrl: string) {
     this._webhooUrl = webhookUrl
-    this.axiosInstance = axios.create()
   }
 
   get webhookUrl() {
@@ -114,8 +109,13 @@ class DocumentWebhook implements DocumentWebhookInf {
    * @returns
    */
   private async sendReq(evt: WEBHOOK_POSTED) {
-    const rsp = await this.axiosInstance.post(this.webhookUrl, evt)
-    const { msg, code, result } = rsp.data
+    const rsp = await fetch(this.webhookUrl, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(evt),
+    })
+    const data = await rsp.json()
+    const { msg, code, result } = data
 
     let ret
     switch (code) {

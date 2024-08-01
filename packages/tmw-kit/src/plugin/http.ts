@@ -1,8 +1,5 @@
 import log4js from '@log4js-node/log4js-api'
-import axios from 'axios'
-
 import { PluginBase } from './base.js'
-
 import ModelCol from '../model/collection.js'
 
 const logger = log4js.getLogger('tms-mongodb-web')
@@ -11,11 +8,8 @@ const logger = log4js.getLogger('tms-mongodb-web')
  * @extends PluginBase
  */
 export abstract class PluginHttpSend extends PluginBase {
-  axiosInstance
-
   constructor(file: string) {
     super(file)
-    this.axiosInstance = axios.create()
   }
 
   validate() {
@@ -41,6 +35,8 @@ export abstract class PluginHttpSend extends PluginBase {
   abstract getMethod(ctrl: any, tmwCl: any)
 
   abstract getUrl(ctrl: any, tmwCl: any)
+
+  abstract getHeaders(ctrl: any, tmwCl: any)
 
   abstract getBody(ctrl: any, tmwCl: any)
 }
@@ -75,38 +71,80 @@ export abstract class PluginHttpSendDocs extends PluginHttpSend {
    * @param {object} ctrl - 调用插件的控制器对象
    * @param {object} tmwCl - 文档所在集合
    *
-   * @requires {any} axios响应对象中的data对象
+   * @requires {any} 响应对象中的data对象
    */
   async httpSend(ctrl, tmwCl) {
-    let { getConfig, axiosInstance } = this
+    let { getConfig } = this
 
     const url = this.getUrl(ctrl, tmwCl)
+
+    let headers = this.getHeaders(ctrl, tmwCl)
+
     let config =
       getConfig && typeof getConfig === 'function' ? getConfig(ctrl, tmwCl) : {}
 
-    config = Object.assign(config, {
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
-    })
+    headers = Object.assign(
+      config,
+      {
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+      },
+      headers
+    )
 
     const method = this.getMethod(ctrl, tmwCl)
 
     logger.debug(`插件[${this.name}]向[${url}]接口用[${method}]方法发送数据`)
-
     try {
+      const fetchOptions: any = {}
       switch (method) {
         case 'post':
           let body = await this.getBody(ctrl, tmwCl)
-          return axiosInstance.post(url, body, config).then(({ data }) => data)
+          Object.assign(fetchOptions, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', ...config },
+            body: JSON.stringify(body),
+          })
+          break
         case 'get':
-          return axiosInstance.get(url, config).then(({ data }) => data)
+          Object.assign(fetchOptions, { headers: { ...config } })
+          break
         case 'delete':
-          return axiosInstance.delete(url, config).then(({ data }) => data)
+          Object.assign(fetchOptions, {
+            headers: {
+              method: 'DELETE',
+              headers: { ...config },
+            },
+          })
+          break
+      }
+      if (Object.keys(fetchOptions).length) {
+        logger.debug(`向[${url}发送[${fetchOptions.method}]请求]`)
+        const rsp = await fetch(url, fetchOptions)
+        const { status, statusText } = rsp
+        if (status !== 200) {
+          const errmsg = `请求[${url}]失败，状态码[${status}，原因[${statusText}]`
+          logger.warn(errmsg)
+          return Promise.reject(errmsg)
+        }
+
+        const result = await rsp.json()
+        logger.debug(`请求[${url}]成功，返回数据：${JSON.stringify(result)}`)
+        return result
       }
       return Promise.reject(`插件[${this.name}]不支持的请求方法[${method}]`)
     } catch (e) {
       logger.warn(`插件[${this.name}]在[${url}]接口执行[${method}]方法异常`, e)
       return Promise.reject(e.message)
     }
+  }
+  /**
+   *
+   * @param ctrl
+   * @param tmwCl
+   * @returns
+   */
+  getHeaders(ctrl: any, tmwCl: any) {
+    return {}
   }
 }
