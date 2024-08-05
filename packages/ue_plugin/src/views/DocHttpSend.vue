@@ -102,6 +102,7 @@ window.addEventListener('message', (event) => {
   const { plugin, response } = data
   if (plugin && typeof plugin === 'object') {
     const { ui } = plugin
+    // 插件指定了请求参数值，不允许修改
     if (ui && typeof ui === 'object') {
       let { url, method, excludeId } = ui
       if (url?.value) {
@@ -118,17 +119,19 @@ window.addEventListener('message', (event) => {
       }
       RequireStore.value = false
     } else {
+      // 在浏览器本地存储中保存数据
       PluginName = plugin.name
       const latestInput = localStorage.getItem(StorageKey)
       if (latestInput) {
         let latest = JSON.parse(latestInput)
         if (latest.userInput) Object.assign(userInput, latest.userInput)
         if (latest.persistUserInput === true) persistUserInput.value = true
+      } else {
+        // 请求加载保存的数据
+        onExecute('load')
       }
       RequireStore.value = true
     }
-    // 请求加载保存的数据
-    onExecute('load')
   } else if (response) {
     if (typeof response === 'string')
       responseContent.value = response
@@ -144,31 +147,29 @@ window.addEventListener('message', (event) => {
 })
 
 function onExecute(action: string) {
-
-  if (Caller) {
-    if (action === 'load') {
-      const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: { action: 'load' }, handleResponse: true, applyAccessTokenField: 'url' }
+  if (!Caller) return
+  if (action === 'load') {
+    const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: { action: 'load' }, handleResponse: true, applyAccessTokenField: 'url' }
+    // 给调用方发送数据
+    Caller.postMessage(message, '*')
+    executed.value = true
+  } else if (userInput.url) {
+    const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: JSON.parse(JSON.stringify(toRaw(userInput))), handleResponse: true, applyAccessTokenField: 'url' }
+    try {
+      // 在本地存储中保存用户最近一次的输入
+      if (RequireStore.value === true) {
+        if (persistUserInput.value === true) {
+          localStorage.setItem(StorageKey, JSON.stringify({ userInput: toRaw(userInput), persistUserInput: true }))
+          message.result._persistUserInput = true
+        }
+        else
+          localStorage.removeItem(StorageKey)
+      }
       // 给调用方发送数据
       Caller.postMessage(message, '*')
       executed.value = true
-    } else {
-      if (userInput.url) {
-        const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: toRaw(userInput), handleResponse: true, applyAccessTokenField: 'url' }
-        try {
-          // 在本地存储中保存用户最近一次的输入
-          if (RequireStore.value === true) {
-            if (persistUserInput.value === true)
-              localStorage.setItem(StorageKey, JSON.stringify({ userInput: toRaw(userInput), persistUserInput: true }))
-            else
-              localStorage.removeItem(StorageKey)
-          }
-          // 给调用方发送数据
-          Caller.postMessage(message, '*')
-          executed.value = true
-        } catch (e) {
-          console.log('未知错误', e)
-        }
-      }
+    } catch (e) {
+      console.log('未知错误', e)
     }
   }
 }

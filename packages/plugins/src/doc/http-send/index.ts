@@ -25,66 +25,53 @@ class PluginReposi {
     this.cl = repois.cl
   }
 
-  load(configData) {
+  async load(configData) {
     const reposiUrl = `${this.url}/admin/document/list?db=${this.db}&cl=${this.cl}&access_token=${this.accesstoken}`
-    return fetch(reposiUrl, {
+    const rsp = await fetch(reposiUrl, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         filter: { dbName: configData.dbName, clName: configData.clName },
       }),
-    }).then((rsp) => {
-      if (rsp.status === 200) {
-        return rsp.json().then(({ result, code, msg }) => {
-          if (code !== 0) throw Error('获取配置信息失败，原因：' + msg)
-          if (Array.isArray(result.docs)) {
-            if (result.docs.length === 1) {
-              return result.docs[0]
-            } else if (result.docs.length > 1) {
-              throw Error('已保存的配置信息重复，请清理')
-            } else {
-              return null
-            }
-          }
-        })
-      }
-
-      throw Error('获取配置信息失败，原因：' + rsp.statusText)
     })
+    if (rsp.status === 200) {
+      const { code, msg, result } = await rsp.json()
+      if (code !== 0) throw Error('获取配置信息失败，原因：' + msg)
+      if (Array.isArray(result.docs)) {
+        if (result.docs.length === 1) {
+          return result.docs[0]
+        } else if (result.docs.length > 1) {
+          throw Error('已保存的配置信息重复，请清理')
+        } else {
+          return null
+        }
+      }
+    }
+
+    throw Error('获取配置信息失败，原因：' + rsp.statusText)
   }
 
-  save(configData) {
-    const reposiUrl = `${this.url}/admin/document/create?db=${this.db}&cl=${this.cl}&access_token=${this.accesstoken}`
+  async save(configData) {
+    const doc: any = await this.load(configData)
+    if (doc) {
+      if (!doc._id) throw Error('已有保存的配置信息，但是数据不完整')
 
-    return this.load(configData).then((doc: any) => {
-      if (doc) {
-        if (doc._id) {
-          const reposiUrl = `${this.url}/admin/document/update?db=${this.db}&cl=${this.cl}&access_token=${this.accesstoken}&id=${doc._id}`
-          return fetch(reposiUrl, {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify(configData),
-          }).then((rsp) => {
-            return true
-          })
-        }
-        throw Error('已保存的配置信息，但是数据不完整')
-      } else {
-        return fetch(reposiUrl, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(configData),
-        }).then((rsp) => {
-          if (rsp.status === 200) {
-            console.log('保存配置信息成功')
-            return true
-          } else {
-            console.log('保存配置信息失败')
-            return false
-          }
-        })
-      }
-    })
+      const urlUpdate = `${this.url}/admin/document/update?db=${this.db}&cl=${this.cl}&access_token=${this.accesstoken}&id=${doc._id}`
+      const rsp = await fetch(urlUpdate, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(configData),
+      })
+      return rsp.status === 200
+    } else {
+      const urlCreate = `${this.url}/admin/document/create?db=${this.db}&cl=${this.cl}&access_token=${this.accesstoken}`
+      const rsp = await fetch(urlCreate, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(configData),
+      })
+      return rsp.status === 200
+    }
   }
 }
 /**
@@ -185,13 +172,21 @@ class HttpSendDocPlugin extends PluginHttpSendDocs {
       })
       return { code: 0, msg: configData }
     } else {
-      if (this.reposi && typeof this.reposi === 'object') {
+      if (
+        this.reposi &&
+        typeof this.reposi === 'object' &&
+        widget._persistUserInput === true
+      ) {
         // 保存http配置信息
-        await this._saveConfig(ctrl, tmwCl)
+        await this._persistUserInput(ctrl, tmwCl)
       }
-      return await this.httpSend(ctrl, tmwCl).then((rspData) => {
-        return rspData
-      })
+      try {
+        const rspData = await this.httpSend(ctrl, tmwCl)
+        return { code: 0, msg: rspData }
+      } catch (e) {
+        console.log(e.message)
+        return { code: 100001, msg: e.message }
+      }
     }
   }
   /**
@@ -200,7 +195,7 @@ class HttpSendDocPlugin extends PluginHttpSendDocs {
    * @param ctrl
    * @param tmwCl
    */
-  private _saveConfig(ctrl: any, tmwCl: any) {
+  private async _persistUserInput(ctrl: any, tmwCl: any) {
     const { reposi } = this
     const { widget } = ctrl.request.body
     const { url, method, headers, excludeId, transformTpl } = widget

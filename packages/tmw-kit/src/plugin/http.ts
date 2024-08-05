@@ -68,6 +68,7 @@ export abstract class PluginHttpSendDocs extends PluginHttpSend {
   }
   /**
    * 发送http请求
+   *
    * @param {object} ctrl - 调用插件的控制器对象
    * @param {object} tmwCl - 文档所在集合
    *
@@ -116,6 +117,7 @@ export abstract class PluginHttpSendDocs extends PluginHttpSend {
           })
           break
       }
+
       if (Object.keys(fetchOptions).length) {
         logger.debug(`向[${url}发送[${fetchOptions.method}]请求]`)
         const rsp = await fetch(url, fetchOptions)
@@ -129,7 +131,7 @@ export abstract class PluginHttpSendDocs extends PluginHttpSend {
           return result
         }
         logger.debug(
-          `向[${url}发送[${fetchOptions.method}]请求]，状态码不是200，状态码[${status}，原因[${statusText}`
+          `向[${url}发送[${fetchOptions.method}]请求]，状态码不是200，状态码[${status}]，原因[${statusText}]`
         )
         if (status >= 400) {
           const errmsg = `请求[${url}]失败，状态码[${status}，原因[${statusText}]`
@@ -141,8 +143,11 @@ export abstract class PluginHttpSendDocs extends PluginHttpSend {
       }
       return Promise.reject(`插件[${this.name}]不支持的请求方法[${method}]`)
     } catch (e) {
-      logger.warn(`插件[${this.name}]在[${url}]接口执行[${method}]方法异常`, e)
-      return Promise.reject(e.message)
+      let errmsg = e.cause || e.message
+      logger.warn(
+        `插件[${this.name}]在[${url}]接口执行[${method}]方法异常，原因：${errmsg}`
+      )
+      return Promise.reject(errmsg)
     }
   }
   /**
