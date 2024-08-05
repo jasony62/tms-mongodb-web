@@ -56,26 +56,31 @@ class PluginReposi {
   save(configData) {
     const reposiUrl = `${this.url}/admin/document/create?db=${this.db}&cl=${this.cl}&access_token=${this.accesstoken}`
 
-    this.load(configData).then((doc: any) => {
+    return this.load(configData).then((doc: any) => {
       if (doc) {
         if (doc._id) {
           const reposiUrl = `${this.url}/admin/document/update?db=${this.db}&cl=${this.cl}&access_token=${this.accesstoken}&id=${doc._id}`
-          fetch(reposiUrl, {
+          return fetch(reposiUrl, {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify(configData),
+          }).then((rsp) => {
+            return true
           })
         }
+        throw Error('已保存的配置信息，但是数据不完整')
       } else {
-        fetch(reposiUrl, {
+        return fetch(reposiUrl, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify(configData),
         }).then((rsp) => {
           if (rsp.status === 200) {
             console.log('保存配置信息成功')
+            return true
           } else {
             console.log('保存配置信息失败')
+            return false
           }
         })
       }
@@ -171,13 +176,23 @@ class HttpSendDocPlugin extends PluginHttpSendDocs {
    * @returns
    */
   async execute(ctrl, tmwCl) {
-    if (this.reposi && typeof this.reposi === 'object') {
-      // 保存http配置信息
-      this._saveConfig(ctrl, tmwCl)
+    const { widget } = ctrl.request.body
+    if (widget?.action === 'load') {
+      const { reposi } = this
+      const configData = await new PluginReposi(reposi).load({
+        dbName: tmwCl.db.name,
+        clName: tmwCl.name,
+      })
+      return { code: 0, msg: configData }
+    } else {
+      if (this.reposi && typeof this.reposi === 'object') {
+        // 保存http配置信息
+        await this._saveConfig(ctrl, tmwCl)
+      }
+      return await this.httpSend(ctrl, tmwCl).then((rspData) => {
+        return rspData
+      })
     }
-    return await this.httpSend(ctrl, tmwCl).then((rspData) => {
-      return rspData
-    })
   }
   /**
    * 配置信息保存的数据库中
@@ -201,7 +216,7 @@ class HttpSendDocPlugin extends PluginHttpSendDocs {
         transformTpl,
       },
     }
-    new PluginReposi(reposi).save(configData)
+    return new PluginReposi(reposi).save(configData)
   }
 }
 /**

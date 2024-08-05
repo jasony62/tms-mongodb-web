@@ -127,30 +127,48 @@ window.addEventListener('message', (event) => {
       }
       RequireStore.value = true
     }
+    // 请求加载保存的数据
+    onExecute('load')
   } else if (response) {
     if (typeof response === 'string')
       responseContent.value = response
-    else if (typeof response === 'object')
-      responseContent.value = JSON.stringify(response, null, 2)
+    else if (typeof response === 'object') {
+      if (response.http && typeof response.http === 'object') {
+        Object.assign(userInput, response.http)
+      }
+      else {
+        responseContent.value = JSON.stringify(response, null, 2)
+      }
+    }
   }
 })
 
-function onExecute() {
-  if (Caller && userInput.url) {
-    const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: toRaw(userInput), handleResponse: true, applyAccessTokenField: 'url' }
-    try {
-      // 在本地存储中保存用户最近一次的输入
-      if (RequireStore.value === true) {
-        if (persistUserInput.value === true)
-          localStorage.setItem(StorageKey, JSON.stringify({ userInput: toRaw(userInput), persistUserInput: true }))
-        else
-          localStorage.removeItem(StorageKey)
-      }
+function onExecute(action: string) {
+
+  if (Caller) {
+    if (action === 'load') {
+      const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: { action: 'load' }, handleResponse: true, applyAccessTokenField: 'url' }
       // 给调用方发送数据
       Caller.postMessage(message, '*')
       executed.value = true
-    } catch (e) {
-      console.log('未知错误', e)
+    } else {
+      if (userInput.url) {
+        const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: toRaw(userInput), handleResponse: true, applyAccessTokenField: 'url' }
+        try {
+          // 在本地存储中保存用户最近一次的输入
+          if (RequireStore.value === true) {
+            if (persistUserInput.value === true)
+              localStorage.setItem(StorageKey, JSON.stringify({ userInput: toRaw(userInput), persistUserInput: true }))
+            else
+              localStorage.removeItem(StorageKey)
+          }
+          // 给调用方发送数据
+          Caller.postMessage(message, '*')
+          executed.value = true
+        } catch (e) {
+          console.log('未知错误', e)
+        }
+      }
     }
   }
 }
