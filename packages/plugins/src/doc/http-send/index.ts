@@ -13,10 +13,83 @@ const ConfigDir = path.resolve(
 const ConfigFile =
   process.env.TMW_PLUGIN_DOC_HTTP_SEND_CONFIG_NAME || './plugin/doc/http-send'
 
+class PluginReposi {
+  url: string
+  accesstoken: string
+  db: string
+  cl: string
+  constructor(repois) {
+    this.url = repois.url
+    this.accesstoken = repois.accesstoken
+    this.db = repois.db
+    this.cl = repois.cl
+  }
+
+  load(configData) {
+    const reposiUrl = `${this.url}/admin/document/list?db=${this.db}&cl=${this.cl}&access_token=${this.accesstoken}`
+    return fetch(reposiUrl, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        filter: { dbName: configData.dbName, clName: configData.clName },
+      }),
+    }).then((rsp) => {
+      if (rsp.status === 200) {
+        return rsp.json().then(({ result, code, msg }) => {
+          if (code !== 0) throw Error('获取配置信息失败，原因：' + msg)
+          if (Array.isArray(result.docs)) {
+            if (result.docs.length === 1) {
+              return result.docs[0]
+            } else if (result.docs.length > 1) {
+              throw Error('已保存的配置信息重复，请清理')
+            } else {
+              return null
+            }
+          }
+        })
+      }
+
+      throw Error('获取配置信息失败，原因：' + rsp.statusText)
+    })
+  }
+
+  save(configData) {
+    const reposiUrl = `${this.url}/admin/document/create?db=${this.db}&cl=${this.cl}&access_token=${this.accesstoken}`
+
+    this.load(configData).then((doc: any) => {
+      if (doc) {
+        if (doc._id) {
+          const reposiUrl = `${this.url}/admin/document/update?db=${this.db}&cl=${this.cl}&access_token=${this.accesstoken}&id=${doc._id}`
+          fetch(reposiUrl, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(configData),
+          })
+        }
+      } else {
+        fetch(reposiUrl, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(configData),
+        }).then((rsp) => {
+          if (rsp.status === 200) {
+            console.log('保存配置信息成功')
+          } else {
+            console.log('保存配置信息失败')
+          }
+        })
+      }
+    })
+  }
+}
 /**
  * 通过http发送集合中的文档数据到指定地址
  */
 class HttpSendDocPlugin extends PluginHttpSendDocs {
+  /**
+   * 保存http请求配置信息的位置
+   */
+  reposi: null | { url: string; accesstoken: string; db: string; cl: string }
   constructor(file) {
     super(file)
     this.name = 'doc-http-send'
@@ -89,16 +162,46 @@ class HttpSendDocPlugin extends PluginHttpSendDocs {
 
     return docs
   }
+
   /**
    * 执行插件操作
+   *
    * @param ctrl 控制器实例
    * @param tmwCl 数据库集合定义实例
    * @returns
    */
   async execute(ctrl, tmwCl) {
+    if (this.reposi && typeof this.reposi === 'object') {
+      // 保存http配置信息
+      this._saveConfig(ctrl, tmwCl)
+    }
     return await this.httpSend(ctrl, tmwCl).then((rspData) => {
       return rspData
     })
+  }
+  /**
+   * 配置信息保存的数据库中
+   *
+   * @param ctrl
+   * @param tmwCl
+   */
+  private _saveConfig(ctrl: any, tmwCl: any) {
+    const { reposi } = this
+    const { widget } = ctrl.request.body
+    const { url, method, headers, excludeId, transformTpl } = widget
+
+    const configData = {
+      dbName: tmwCl.db.name,
+      clName: tmwCl.name,
+      http: {
+        url,
+        method,
+        headers,
+        excludeId,
+        transformTpl,
+      },
+    }
+    new PluginReposi(reposi).save(configData)
   }
 }
 /**
@@ -128,6 +231,10 @@ export async function createPlugin(file: any) {
       clBlacklist,
       schemaBlacklist,
       schema,
+      reposiDb,
+      reposiCl,
+      reposiUrl,
+      reposiAccessToken,
     } = config
 
     // const disabled = widgetUrl && widgetUrl.indexOf('http') === 0 ? false : true
@@ -209,6 +316,21 @@ export async function createPlugin(file: any) {
         if (!newPlugin.beforeWidget.ui) newPlugin.beforeWidget.ui = {}
         newPlugin.beforeWidget.ui.excludeId = {
           value: /true|yes|1/i.test(excludeId[index]),
+        }
+      }
+      // reposi
+      if (reposiUrl && typeof reposiUrl === 'string') {
+        if (reposiAccessToken && typeof reposiAccessToken === 'string') {
+          if (reposiDb && typeof reposiDb === 'string') {
+            if (reposiCl && typeof reposiCl === 'string') {
+              newPlugin.reposi = {
+                url: reposiUrl,
+                accesstoken: reposiAccessToken,
+                db: reposiDb,
+                cl: reposiCl,
+              }
+            }
+          }
         }
       }
       return newPlugin

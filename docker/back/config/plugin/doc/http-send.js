@@ -15,6 +15,10 @@ const {
   TMW_PLUGIN_DOC_HTTP_SEND_METHOD: Method,
   TMW_PLUGIN_DOC_HTTP_SEND_EXCLUDEID: ExcludeId,
   TMW_PLUGIN_DOC_HTTP_SEND_WIDGET_URL,
+  TMW_PLUGIN_DOC_HTTP_SEND_REPOSI_DB: ReposiDb,
+  TMW_PLUGIN_DOC_HTTP_SEND_REPOSI_CL: ReposiCl,
+  TMW_PLUGIN_DOC_HTTP_SEND_REPOSI_URL: ReposiUrl,
+  TMW_PLUGIN_DOC_HTTP_SEND_REPOSI_ACCESSTOKEN: ReposiAccessToken,
 } = process.env
 
 // 插件前端页面地址
@@ -40,4 +44,8 @@ export default {
   bucket: Bucket ? Bucket.split(',') : [],
   db: Db ? Db.split(',') : [],
   cl: Cl ? Cl.split(',') : [],
+  reposiDb: ReposiDb ? ReposiDb : 'tmw-plugins',
+  reposiCl: ReposiCl ? ReposiCl : 'doc-http-send',
+  reposiUrl: ReposiUrl,
+  reposiAccessToken: ReposiAccessToken,
 }

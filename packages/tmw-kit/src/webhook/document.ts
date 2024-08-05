@@ -114,6 +114,14 @@ class DocumentWebhook implements DocumentWebhookInf {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(evt),
     })
+
+    const { status, statusText } = rsp
+    if (status !== 200) {
+      const errmsg = `调用webhook接口失败，原因: ${status} ${statusText}`
+      console.error(errmsg, `接口地址：${this.webhookUrl}`)
+      throw Error(errmsg)
+    }
+
     const data = await rsp.json()
     const { msg, code, result } = data
 

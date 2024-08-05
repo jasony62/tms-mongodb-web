@@ -111,10 +111,8 @@ export abstract class PluginHttpSendDocs extends PluginHttpSend {
           break
         case 'delete':
           Object.assign(fetchOptions, {
-            headers: {
-              method: 'DELETE',
-              headers: { ...config },
-            },
+            method: 'DELETE',
+            headers: { ...config },
           })
           break
       }
@@ -122,15 +120,24 @@ export abstract class PluginHttpSendDocs extends PluginHttpSend {
         logger.debug(`向[${url}发送[${fetchOptions.method}]请求]`)
         const rsp = await fetch(url, fetchOptions)
         const { status, statusText } = rsp
-        if (status !== 200) {
+        if (
+          status === 200 &&
+          rsp.headers.get('content-type')?.includes('application/json')
+        ) {
+          const result = await rsp.json()
+          logger.debug(`请求[${url}]成功，返回数据：${JSON.stringify(result)}`)
+          return result
+        }
+        logger.debug(
+          `向[${url}发送[${fetchOptions.method}]请求]，状态码不是200，状态码[${status}，原因[${statusText}`
+        )
+        if (status >= 400) {
           const errmsg = `请求[${url}]失败，状态码[${status}，原因[${statusText}]`
           logger.warn(errmsg)
           return Promise.reject(errmsg)
         }
 
-        const result = await rsp.json()
-        logger.debug(`请求[${url}]成功，返回数据：${JSON.stringify(result)}`)
-        return result
+        return 'OK'
       }
       return Promise.reject(`插件[${this.name}]不支持的请求方法[${method}]`)
     } catch (e) {
