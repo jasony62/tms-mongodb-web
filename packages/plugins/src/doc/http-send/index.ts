@@ -166,11 +166,14 @@ class HttpSendDocPlugin extends PluginHttpSendDocs {
     const { widget } = ctrl.request.body
     if (widget?.action === 'load') {
       const { reposi } = this
-      const configData = await new PluginReposi(reposi).load({
-        dbName: tmwCl.db.name,
-        clName: tmwCl.name,
-      })
-      return { code: 0, msg: configData }
+      if (reposi && typeof reposi === 'object') {
+        const configData = await new PluginReposi(reposi).load({
+          dbName: tmwCl.db.name,
+          clName: tmwCl.name,
+        })
+        return { code: 0, msg: configData }
+      }
+      return { code: 0, msg: {} }
     } else {
       if (
         this.reposi &&

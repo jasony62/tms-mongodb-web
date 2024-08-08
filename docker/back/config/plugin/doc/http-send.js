@@ -46,6 +46,6 @@ export default {
   cl: Cl ? Cl.split(',') : [],
   reposiDb: ReposiDb ? ReposiDb : 'tmw-plugins',
   reposiCl: ReposiCl ? ReposiCl : 'doc-http-send',
-  reposiUrl: ReposiUrl,
+  reposiUrl: ReposiUrl ? ReposiUrl : 'http://rcs-bot-cms:3000/api',
   reposiAccessToken: ReposiAccessToken,
 }

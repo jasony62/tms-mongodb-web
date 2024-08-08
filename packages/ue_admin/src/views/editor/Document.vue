@@ -600,7 +600,7 @@ const diagram = () => {
 
 const preview = () => {
   previewMode.value = 'text'
-  previewResult.value = JSON.stringify(elJdeDoc.value?.editing(), null, 2)
+  previewResult.value = JSON.stringify(elJdeDoc.value?.editing(true), null, 2)
 }
 
 const copyTooltipVisible = ref(false)
@@ -633,7 +633,7 @@ const updatePreview = () => {
 }
 
 const onSubmit = () => {
-  let newDoc = elJdeDoc.value?.editing()
+  let newDoc = elJdeDoc.value?.editing(true)
   if (newDoc) {
     newDoc[TagsFieldName] = docTags.value
     if (document.value._id) {

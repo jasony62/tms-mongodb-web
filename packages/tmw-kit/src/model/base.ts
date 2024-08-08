@@ -224,7 +224,7 @@ class Base {
           data._id = new ObjectId(data._id)
         }
         // 对象的创建人
-        data.creator = this.client.id
+        data[tmwConfig.TMW_APP_CREATOR] = this.client.id
         // 对象创建时间
         data[tmwConfig.TMW_APP_CREATETIME] = current
         /**根据schema处理数据 */
@@ -251,9 +251,20 @@ class Base {
         }
         break
       case 'update':
-        // if (typeof data[tmwConfig.TMW_APP_CREATETIME] !== 'undefined')
-        //   delete data[this.tmwConfig.TMW_APP_CREATETIME]
+        // 创建时间不允许修改
+        if (existData && existData[tmwConfig.TMW_APP_CREATETIME])
+          data[tmwConfig.TMW_APP_CREATETIME] =
+            existData[tmwConfig.TMW_APP_CREATETIME]
+        // 创建人不允许修改
+        if (existData && existData[tmwConfig.TMW_APP_CREATOR])
+          data[tmwConfig.TMW_APP_CREATOR] = existData[tmwConfig.TMW_APP_CREATOR]
+        // bucket不允许修改
+        if (existData && existData[tmwConfig.TMW_APP_BUCKET])
+          data[tmwConfig.TMW_APP_BUCKET] = existData[tmwConfig.TMW_APP_BUCKET]
+
+        // 指定最后更新时间
         data[tmwConfig.TMW_APP_UPDATETIME] = current
+
         /**根据schema处理数据 */
         if (schema && typeof schema === 'object' && existData) {
           /**

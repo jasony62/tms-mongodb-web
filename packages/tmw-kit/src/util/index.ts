@@ -17,6 +17,8 @@ export async function loadTmwConfig() {
   } else {
     TMW_CONFIG = {
       TMW_APP_CREATETIME: 'TMW_CREATE_TIME',
+      TMW_APP_CREATOR: 'creator',
+      TMW_APP_BUCKET: 'bucket',
       TMW_APP_UPDATETIME: 'TMW_UPDATE_TIME',
       TMW_APP_DELETETIME: 'TMW_DELETE_TIME',
       TMW_APP_TAGS: 'TMW_TAGS', // 默认的数据标签字段
