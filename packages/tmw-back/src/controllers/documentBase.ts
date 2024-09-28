@@ -42,6 +42,33 @@ class DocBase extends Base {
     return new ResultData(existDoc)
   }
   /**
+   * 查找符合条件的第1条记录
+   */
+  async findOne() {
+    const existCl = await this.docHelper.findRequestCl()
+
+    let { filter, like = false, fields } = this.request.body
+
+    if (!filter || typeof filter !== 'object')
+      return new ResultFault('没有指定查询条件')
+
+    let projection = fields
+      ? fields.split(',').reduce((p, field) => {
+          p[field] = 1
+          return p
+        }, {})
+      : {}
+
+    let matchedDoc = await this.modelDoc.findOne(
+      existCl,
+      { filter, like },
+      projection
+    )
+    if (!matchedDoc) return new ResultFault('指定的文档不存在')
+
+    return new ResultData(matchedDoc)
+  }
+  /**
    * 指定数据库指定集合下新建文档
    */
   async create() {

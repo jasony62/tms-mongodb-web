@@ -57,7 +57,15 @@ function storedValue(schemaProp, valRaw, doc?: any) {
     }
     return valRet
   }
-  // 枚举值
+  if (type === 'object' || type === 'json') {
+    try {
+      valRet = JSON.parse(valRaw)
+    } catch (e) {
+      valRet = {}
+    }
+    return valRet
+  }
+
   if (type === 'array') {
     if (items?.type === 'json' || items?.type === 'object') {
       try {
@@ -161,7 +169,8 @@ class ImportPlugin extends PluginBase {
       // 处理文档列定义对应的数据
       for (let schemaProp of schemaIter) {
         const { fullname, attrs } = schemaProp
-        if (!fullname) continue
+        // 跳过根字段，一级字段的子字段
+        if (!fullname || fullname.split('.').length > 1) continue
         const { title } = attrs
         let val
         if (row2[title]) {
@@ -173,6 +182,7 @@ class ImportPlugin extends PluginBase {
         }
 
         const docVal = storedValue(schemaProp, val, newDoc)
+
         // 需要考虑fullname多级的情况
         _.set(newDoc, fullname, docVal)
       }

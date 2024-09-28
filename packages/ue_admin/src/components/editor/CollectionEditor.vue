@@ -32,6 +32,12 @@
         <el-form-item label="说明">
           <el-input type="textarea" v-model="collection.description"></el-input>
         </el-form-item>
+        <el-form-item label="文档内容不受schema限制">
+          <el-select v-model="collection.schemaArbitrary" placeholder="请选择">
+            <el-option label="否" value="no"></el-option>
+            <el-option label="是" value="yes"></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="自由表格">
           <el-select v-model="collection.spreadsheet" placeholder="请选择">
             <el-option label="否" value="no"></el-option>
@@ -104,13 +110,11 @@
 </template>
 
 <script setup lang="ts">
-import { Batch, startBatch } from 'tms-vue3'
-import apiDb from '@/apis/database'
+import { Batch } from 'tms-vue3'
 import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiTag from '@/apis/tag'
-import apiAcl from '@/apis/acl'
-import { computed, h, onMounted, reactive, ref, toRaw } from 'vue'
+import { computed, onMounted, reactive, ref, toRaw } from 'vue'
 import { FormRules, ElMessageBox, ElButton, ElInput, ElSelect, ElOption } from 'element-plus'
 
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'

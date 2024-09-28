@@ -5,21 +5,21 @@
       <el-breadcrumb :separator-icon="ArrowRight">
         <el-breadcrumb-item :to="{ name: 'databases' }">{{ DbLabel }}</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'database', params: { dbName } }">{{
-        dbName
-      }}</el-breadcrumb-item>
+          dbName
+        }}</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'collection', params: { dbName, clName } }">{{ clName }}</el-breadcrumb-item>
         <el-breadcrumb-item>{{
-        document._id ? document._id : '新建文档'
-      }}</el-breadcrumb-item>
+          Document._id ? Document._id : '新建文档'
+        }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
     <div class="p-2 border border-gray-200 mb-2 rounded-md text-center">
       <el-button type="primary" @click="onSubmit">提交</el-button>
       <el-button v-for="ep in etlPlugins" type="success" @click="handleExtract(ep)">{{ ep.title }}</el-button>
     </div>
-    <div class="flex flex-row gap-4 h-full overflow-auto pb-4" v-if="collection._id && (!docId || document._id)">
+    <div class="flex flex-row gap-4 h-full overflow-auto pb-4" v-if="Collection._id && (!docId || Document._id)">
       <div class="w-1/3 h-full flex-grow-none overflow-auto">
-        <tms-json-doc ref="elJdeDoc" :schema="collection.editSchema?.body || collection.schema.body" :value="document"
+        <tms-json-doc ref="elJdeDoc" :schema="Collection.editSchema?.body || Collection.schema.body" :value="Document"
           :enable-paste="true" :on-paste="onJdocPaste" :on-lookup="onJdocLookup" :on-file-select="onFileSelect"
           :on-file-download="onFileDownload" :show-field-fullname="showFieldFullname" :hide-root-title="true"
           :hide-root-description="true" @jdoc-focus="onJdocFocus"></tms-json-doc>
@@ -67,8 +67,8 @@
         </div>
         <div class="border border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
           <pre v-if="previewMode === 'text'" class="whitespace-pre-wrap break-all">{{ previewResult }}</pre>
-          <json-diagram-x6 ref="elDiagram" v-if="previewMode === 'diagram'" :schema="collection.schema.body"
-            :doc="document" @click-value-node="onClickValueNode">
+          <json-diagram-x6 ref="elDiagram" v-if="previewMode === 'diagram'" :schema="Collection.schema.body"
+            :doc="Document" @click-value-node="onClickValueNode">
           </json-diagram-x6>
         </div>
       </div>
@@ -161,8 +161,8 @@ const elYamlEditor = ref<HTMLElement | undefined>(undefined)
 // 模板字段编辑器
 const elTtvField = ref<{ editing: () => string } | null>(null)
 
-const collection = ref<any>({ schema: { body: {} } })
-const document = ref({ _id: '' })
+const Collection = ref<any>({ schema: { body: {} } })
+const Document = ref({ _id: '' })
 const showFieldFullname = ref(false)
 const { toClipboard } = useClipboard()
 const activeField = ref<Field>() // 正在编辑的字段
@@ -178,10 +178,10 @@ onMounted(() => {
 
 // 文档字段转化规则
 const DocFieldConvertRules = computed(() =>
-  collection.value.docFieldConvertRules &&
-    typeof collection.value.docFieldConvertRules === 'object' &&
-    Object.keys(collection.value.docFieldConvertRules).length
-    ? collection.value.docFieldConvertRules
+  Collection.value.docFieldConvertRules &&
+    typeof Collection.value.docFieldConvertRules === 'object' &&
+    Object.keys(Collection.value.docFieldConvertRules).length
+    ? Collection.value.docFieldConvertRules
     : null
 )
 
@@ -633,14 +633,19 @@ const updatePreview = () => {
 }
 
 const onSubmit = () => {
-  let newDoc = elJdeDoc.value?.editing(true)
+  /**
+   * 将表单数据转换为文档数据
+   * 第1个参数：matchSchema = false
+   * 第2个参数：cleanEmpty = true
+   */
+  const newDoc = elJdeDoc.value?.editing(Collection.value.schemaArbitrary === 'yes' ? false : true)
   if (newDoc) {
     newDoc[TagsFieldName] = docTags.value
-    if (document.value._id) {
+    if (Document.value._id) {
       apiDoc
-        .update(bucketName, dbName, clName, document.value._id, newDoc)
+        .update(bucketName, dbName, clName, Document.value._id, newDoc)
         .then(() => {
-          Object.assign(document.value, newDoc)
+          Object.assign(Document.value, newDoc)
           // 更新预览视图
           if (previewMode.value) updatePreview()
           ElMessage.success({ message: '修改成功' })
@@ -648,9 +653,9 @@ const onSubmit = () => {
     } else {
       if (Object.keys(newDoc).length === 0) return false
       apiDoc
-        .create(bucketName, dbName, collection.value.name, newDoc)
+        .create(bucketName, dbName, Collection.value.name, newDoc)
         .then((newDoc: any) => {
-          document.value = newDoc
+          Document.value = newDoc
           ElMessage.success({ message: '新建成功' })
         })
     }
@@ -687,8 +692,9 @@ const tags = ref<any[]>([])
 // 文档上的标签
 const docTags = ref<string[]>([])
 
+// 获得文档所在集合对象
 apiCl.byName(bucketName, dbName, clName).then((cl: any) => {
-  collection.value = cl
+  Collection.value = cl
 })
 apiTag.list(bucketName).then((datas: any) => {
   tags.value.push(...datas)
@@ -703,7 +709,7 @@ apiEtl.findForDst(bucketName, dbName, clName, 'document').then((etls: any) => {
 
 if (docId)
   apiDoc.get(bucketName, dbName, clName, docId).then((doc: any) => {
-    document.value = doc
+    Document.value = doc
     let tags: string[] = Array.isArray(doc[TagsFieldName]) ? doc[TagsFieldName] : []
     docTags.value.push(...tags)
   })

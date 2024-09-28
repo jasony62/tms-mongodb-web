@@ -42,7 +42,7 @@
     "@types/debug": "^4.1.7",
     "@types/jsoneditor": "9.9.5",
     "@types/lodash": "^4.14.182",
-    "@types/node": "20.5.9",
+    "@types/node": "22.7.4",
     "@vitejs/plugin-vue": "5.0.4",
     "autoprefixer": "^10.4.5",
     "less": "^4.2.0",
