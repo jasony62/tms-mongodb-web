@@ -264,8 +264,8 @@ importers:
         specifier: ^0.0.6
         version: 0.0.6(debug@4.3.4)
       tms-vue3-ui:
-        specifier: ^0.0.91
-        version: 0.0.91
+        specifier: ^0.0.92
+        version: 0.0.92
       vue:
         specifier: 3.3.4
         version: 3.3.4
@@ -340,8 +340,8 @@ importers:
         specifier: ^3.16.4
         version: 3.16.4
       tms-vue3-ui:
-        specifier: ^0.0.91
-        version: 0.0.91
+        specifier: ^0.0.92
+        version: 0.0.92
       vue:
         specifier: 3.3.4
         version: 3.3.4
@@ -4507,8 +4507,8 @@ packages:
   tmpl@1.0.5:
     resolution: {integrity: sha512-3f0uOEAQwIqGuWW2MVzYg8fV/QNnc/IpuJNG837rLuczAaLVHslWHZQj4IGiEl5Hs3kkbhwL9Ab7Hrsmuj+Smw==}
 
-  tms-data-aid@0.0.90:
-    resolution: {integrity: sha512-CeBz86akPBPE506q1TUhC8sV/o6XbgQ4oSlOoMub5Aj3lzarVavIoo93w9Bnlvr2Zwz4Jso4rS5PssW0XkxsQg==}
+  tms-data-aid@0.0.92:
+    resolution: {integrity: sha512-d70eAHUJYdamwhdfkrk/7kL4+9GuF7gkRSD7SJlObcLl3PDySohWP9ol7PkM1hG2pIsEPyu1EL1qfp8ytGhlNA==}
 
   tms-handlebars@0.0.2:
     resolution: {integrity: sha512-7mPs/c6xrTs2BH2jNcPlAqwO4+A/xfmaRXZJJV4Xn50TzDjVlodMr5gufvwNORh2RvDD2JqN7ZniP7Ds3IjjLA==}
@@ -4548,8 +4548,8 @@ packages:
   tms-template-wizard@0.0.9:
     resolution: {integrity: sha512-Lh95Z7wNJLjkUBhT/aObMnrMj9a3dBEoAXOKXhTPykBoBguuidbhYvJ3vDPWg2imgyLj5nPoe439OvC+n4+6wA==}
 
-  tms-vue3-ui@0.0.91:
-    resolution: {integrity: sha512-OwUtkOBOsDrsfmUmuzMhCrOqGKFWRAe7+WklQZtVrr9rH4d+fXDdutuTAOpkvwO4yUDKORXIDu1j6TlDZ4i+Xw==}
+  tms-vue3-ui@0.0.92:
+    resolution: {integrity: sha512-Y+YbXO6AALv3F9jttLDaRl9QJlDED5Ig6Rab8V3ZrvkpvM+k14qG1e+VGVqTatassS+NOmOCXsrMYd4eSBO4Xg==}
 
   tms-vue3@0.0.5:
     resolution: {integrity: sha512-djzmchp3U17EKWuwKvtk1cKqUUfitcR//+L6jpNfCiUyfZxASD56szd+kmKV+qRnUJBHlY17hFaS9p4SkXc4uw==}
@@ -10052,7 +10052,7 @@ snapshots:
 
   tmpl@1.0.5: {}
 
-  tms-data-aid@0.0.90:
+  tms-data-aid@0.0.92:
     dependencies:
       debug: 4.3.4
       lodash: 4.17.21
@@ -10333,13 +10333,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  tms-vue3-ui@0.0.91:
+  tms-vue3-ui@0.0.92:
     dependencies:
       debug: 4.3.4
       lodash: 4.17.21
       lodash.set: 4.3.2
       randexp: 0.5.3
-      tms-data-aid: 0.0.90
+      tms-data-aid: 0.0.92
       tms-vue3: 0.0.5(debug@4.3.4)
     transitivePeerDependencies:
       - supports-color
