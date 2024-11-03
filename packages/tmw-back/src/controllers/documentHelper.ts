@@ -1,4 +1,4 @@
-import unrepeat from './unrepeat.js'
+// import unrepeat from './unrepeat.js'
 import _ from 'lodash'
 import fs from 'fs'
 import PATH from 'path'
@@ -169,18 +169,18 @@ class DocumentHelper extends CtrlHelper {
       }
 
       // 比对去重
-      let failDatas = []
-      if (noRepeatconfig) {
-        const newDocs = await unrepeat(
-          this.ctrl,
-          jsonFinishRows,
-          noRepeatconfig
-        )
-        if (newDocs.length === 0) return [false, `已全部存在或重复`]
+      // let failDatas = []
+      // if (noRepeatconfig) {
+      //   const newDocs = await unrepeat(
+      //     this.ctrl,
+      //     jsonFinishRows,
+      //     noRepeatconfig
+      //   )
+      //   if (newDocs.length === 0) return [false, `已全部存在或重复`]
 
-        failDatas = _.difference(jsonFinishRows, newDocs)
-        jsonFinishRows = newDocs
-      }
+      //   failDatas = _.difference(jsonFinishRows, newDocs)
+      //   jsonFinishRows = newDocs
+      // }
 
       // 写入到数据库
       const newRows = await this.modelDoc.createMany(existCl, jsonFinishRows)

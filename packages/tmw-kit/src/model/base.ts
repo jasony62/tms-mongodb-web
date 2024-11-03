@@ -158,7 +158,7 @@ class Base {
     return subQuery
   }
   /**
-   * 组装 查询条件
+   * 组装查询条件
    */
   assembleQuery(filter: FilterSimple | FilterLike, like = true) {
     let query = {} // 要返回的mongodb查询条件
@@ -169,6 +169,8 @@ class Base {
           const { keyword } = filter[column]
           if (keyword && typeof keyword === 'string' && keyword.length == 24) {
             query[column] = new ObjectId(keyword)
+          } else if (Array.isArray(keyword) && keyword.length) {
+            query[column] = { $in: keyword.map((id) => new ObjectId(id)) }
           }
         } else {
           let cond: FilterLike = filter[column]
@@ -182,6 +184,8 @@ class Base {
           const val = filter[column]
           if (val && typeof val === 'string' && val.length == 24) {
             query[column] = new ObjectId(filter[column])
+          } else if (Array.isArray(val) && val.length) {
+            query[column] = { $in: val.map((id) => new ObjectId(id)) }
           }
         } else {
           query[column] = filter[column]

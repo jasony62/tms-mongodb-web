@@ -1,6 +1,6 @@
 {
   "name": "tmw-kit",
-  "version": "0.0.45",
+  "version": "0.0.46",
   "description": "tms-monogodb-web开发工具包",
   "type": "module",
   "main": "./dist/index.js",
@@ -14,18 +14,18 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@log4js-node/log4js-api": "^1.0.2",
-    "archiver": "^6.0.1",
-    "crypto-js": "^4.2.0",
-    "dayjs": "^1.11.3",
+    "@log4js-node/log4js-api": "1.0.2",
+    "archiver": "7.0.1",
+    "crypto-js": "4.2.0",
+    "dayjs": "1.11.3",
     "debug": "^4.3.4",
-    "glob": "10.3.4",
+    "glob": "11.0.0",
     "jsondiffpatch": "^0.6.0",
-    "jsonpath-plus": "^7.2.0",
+    "jsonpath-plus": "10.1.0",
     "lodash": "^4.17.21",
     "mongo-escape": "^2.0.6",
     "mongodb": "5.6.0",
-    "nanoid": "4.0.2",
+    "nanoid": "5.0.8",
     "tmw-data": "workspace:*"
   },
   "devDependencies": {

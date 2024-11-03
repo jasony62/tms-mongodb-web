@@ -1,7 +1,6 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import { Base } from 'tmw-kit/dist/ctrl/index.js'
 import DocumentHelper from './documentHelper.js'
-import unrepeat from './unrepeat.js'
 import {
   ModelDoc,
   ModelCl,
@@ -14,6 +13,21 @@ import _ from 'lodash'
 import mongodb from 'mongodb'
 
 const ObjectId = mongodb.ObjectId
+
+/**
+ * 将指定的字段参数转换为mongodb的projection对象
+ *
+ * @param fields 逗号分隔的字段列表
+ * @returns
+ */
+function fieldsToProjection(fields: string) {
+  return fields
+    ? fields.split(',').reduce((p, field) => {
+        p[field] = 1
+        return p
+      }, {})
+    : {}
+}
 
 /**文档对象控制器基类 */
 class DocBase extends Base {
@@ -35,7 +49,7 @@ class DocBase extends Base {
 
     const { id, fields } = this.request.query
 
-    let projection = {}
+    let projection = fieldsToProjection(fields)
     let existDoc = await this.modelDoc.byId(existCl, id, projection)
     if (!existDoc) return new ResultFault('指定的文档不存在')
 
@@ -52,12 +66,7 @@ class DocBase extends Base {
     if (!filter || typeof filter !== 'object')
       return new ResultFault('没有指定查询条件')
 
-    let projection = fields
-      ? fields.split(',').reduce((p, field) => {
-          p[field] = 1
-          return p
-        }, {})
-      : {}
+    let projection = fieldsToProjection(fields)
 
     let matchedDoc = await this.modelDoc.findOne(
       existCl,
@@ -380,13 +389,7 @@ class DocBase extends Base {
     let { filter, orderBy } = this.request.body
 
     // 返回字段
-    let projection = null
-    if (fields) {
-      projection = fields.split(',').reduce((projection, field) => {
-        projection[field] = 1
-        return projection
-      }, {})
-    }
+    let projection = fieldsToProjection(fields)
 
     // 排序规则
     if (tmwCl.orderBy && typeof tmwCl.orderBy === 'object') {

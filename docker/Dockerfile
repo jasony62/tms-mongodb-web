@@ -128,7 +128,7 @@ RUN chmod +x /usr/local/bin/start_all.sh
 COPY ./docker/back/config /usr/app/tmw/config
 
 # 安装基础包
-RUN npm install --location=global mongosh
+RUN npm install --location=global mongosh@2.3.1
 
 # 可以暴露的端口
 EXPOSE 80
