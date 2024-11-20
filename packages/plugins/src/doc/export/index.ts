@@ -218,11 +218,13 @@ async function exportAsExcel(ctrl, tmwCl, docs, leafLevel): Promise<string> {
       const valRaw = _.get(doc, name)
       const text = readableValue(prop.attrs, valRaw, doc)
       // xlsx对文本的长度有限制
-      if (text) {
+      if (text && typeof text === 'string') {
         if (text.length <= 32767) data.push(text)
-        else data.push(text.substr(0, 32767))
-      } else {
+        else data.push(text.substring(0, 32767))
+      } else if (text === null || text === undefined) {
         data.push('')
+      } else {
+        data.push(text)
       }
       return data
     }, [])

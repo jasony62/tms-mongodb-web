@@ -381,19 +381,38 @@ class DocBase extends Base {
   }
   /**
    * 获得指定数据库指定集合下的文档
+   *
+   * filter: {"_id":{"keyword":["673c420e979ce73abd0052e2","66f8b6a9896f91f91f9885e8"]}}
+   * orderBy: {"field1":"desc","field2":"asc"}
+   *
    */
   async list() {
     const tmwCl = await this.docHelper.findRequestCl()
 
-    const { page, size, tags, fields, includeDeleted } = this.request.query
-    let { filter, orderBy } = this.request.body
+    const {
+      page,
+      size,
+      tags,
+      fields,
+      includeDeleted,
+      filter: qFilter,
+      orderBy: qOrderBy,
+    } = this.request.query
+
+    let filter =
+      this.request.body.filter ?? (qFilter ? JSON.parse(qFilter) : {})
+
+    let orderBy =
+      this.request.body.orderBy ?? (qOrderBy ? JSON.parse(qOrderBy) : {})
 
     // 返回字段
     let projection = fieldsToProjection(fields)
 
     // 排序规则
-    if (tmwCl.orderBy && typeof tmwCl.orderBy === 'object') {
-      orderBy = Object.assign(tmwCl.orderBy, orderBy)
+    if (!orderBy || typeof orderBy !== 'object') {
+      if (tmwCl.orderBy && typeof tmwCl.orderBy === 'object') {
+        ;(orderBy = tmwCl.orderBy), orderBy
+      }
     }
 
     // 包含全部标签
