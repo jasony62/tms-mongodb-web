@@ -217,6 +217,7 @@ class DocBase extends Base {
 
     return new ResultData(isOk)
   }
+
   /**
    * 更新指定数据库指定集合下的文档
    */
@@ -283,6 +284,78 @@ class DocBase extends Base {
       newDoc = afterRst.rewrited
 
     return new ResultData(newDoc)
+  }
+  /**
+   * 查找符合条件的第1条记录进行更新
+   */
+  async updateOne() {
+    const existCl = await this.docHelper.findRequestCl()
+
+    let { filter, like = false, updated } = this.request.body
+
+    if (!filter || typeof filter !== 'object')
+      return new ResultFault('没有指定查询条件')
+
+    if (!updated || typeof updated !== 'object')
+      return new ResultFault('没有指定要更新的内容')
+
+    let existDoc = await this.modelDoc.findOne(existCl, { filter, like })
+    if (!existDoc) return new ResultFault('指定的文档不存在')
+
+    const docSchema = await this.modelDoc.getDocSchema(existCl.schema_id)
+    if (!docSchema || typeof docSchema !== 'object')
+      throw Error(
+        `在集合${existCl.name}/${existCl.sysname}更新文档时，没有提供schema`
+      )
+
+    const docId = existDoc._id.toString()
+    // 加工数据
+    this.modelDoc.processBeforeStore(updated, 'update', docSchema, existDoc)
+
+    // 通过webhook处理数据
+    let beforeRst = await this.docWebhook.beforeUpdate(
+      { _id: docId, ...updated },
+      existCl
+    )
+    if (beforeRst.passed !== true)
+      return new ResultFault(
+        beforeRst.reason || '操作被Webhook.afterUpdate阻止'
+      )
+    if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
+      updated = beforeRst.rewrited
+
+    let updated2 = _.omit(updated, ['_id', 'bucket'])
+    const isOk = await this.modelDoc.update(existCl, docId, updated2)
+
+    if (!isOk) return new ResultFault('更新文档失败')
+
+    // 日志
+    if (this.tmwConfig.TMW_APP_DATA_ACTION_LOG === 'Y') {
+      let beforeDoc = {}
+      beforeDoc[existDoc._id] = beforeDoc
+      this.modelDoc.dataActionLog(
+        updated,
+        '修改',
+        existCl.db.name,
+        existCl.name,
+        '',
+        '',
+        beforeDoc
+      )
+    }
+
+    // 通过webhook处理数据
+    let afterRst = await this.docWebhook.afterUpdate(
+      { _id: docId, ...updated },
+      existCl
+    )
+    if (afterRst.passed !== true)
+      return new ResultFault(afterRst.reason || '操作被Webhook.afterUpdate阻止')
+
+    if (afterRst.rewrited && typeof afterRst.rewrited === 'object')
+      updated = afterRst.rewrited
+
+    return new ResultData(updated)
   }
   /**
    * 批量更新
@@ -382,7 +455,10 @@ class DocBase extends Base {
   /**
    * 获得指定数据库指定集合下的文档
    *
-   * filter: {"_id":{"keyword":["673c420e979ce73abd0052e2","66f8b6a9896f91f91f9885e8"]}}
+   * filter: {"_id": {"keyword": ["673c420e979ce73abd0052e2", "66f8b6a9896f91f91f9885e8"]}}
+   *
+   * filter: {"state": {"feature": "eq", "keyword": "1"}}
+   *
    * orderBy: {"field1":"desc","field2":"asc"}
    *
    */
@@ -485,7 +561,7 @@ class DocBase extends Base {
    * 按指定的列进行分组，并显示每个分组的记录数
    */
   async group() {
-    const existCl = await this['docHelper'].findRequestCl()
+    const existCl = await this.docHelper.findRequestCl()
 
     let { groupBy, filter } = this['request'].body
     if (!groupBy || !Array.isArray(groupBy) || groupBy.length === 0)
@@ -498,8 +574,8 @@ class DocBase extends Base {
     if (Object.keys(groupId).length === 0)
       return new ResultFault('参数[groupBy]包含的列名称类型错误，不是字符串')
 
-    let cl = this['docHelper'].findSysColl(existCl)
-    let query = filter ? this['modelDoc'].assembleQuery(filter) : {}
+    let cl = this.docHelper.findSysColl(existCl)
+    let query = filter ? this.modelDoc.assembleQuery(filter) : {}
     let pipeline = [
       {
         $match: query,
@@ -514,7 +590,7 @@ class DocBase extends Base {
       },
     ]
 
-    let { skip, limit } = this['docHelper'].requestPage()
+    let { skip, limit } = this.docHelper.requestPage()
     if (typeof skip === 'number') {
       skip = { $skip: skip }
       limit = { $limit: limit }
@@ -674,8 +750,7 @@ class DocBase extends Base {
         `指定的目标集合[db=${toDb}][cl=${targetCl}]不可访问`
       )
 
-    const { query, operation, errCause } =
-      this['docHelper'].getRequestBatchQuery()
+    const { query, operation, errCause } = this.docHelper.getRequestBatchQuery()
     if (errCause) return new ResultFault(errCause)
 
     let total = await this.modelDoc.count(existCl, query)

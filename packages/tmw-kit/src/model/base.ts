@@ -55,6 +55,7 @@ class Base {
     return TMW_CONFIG
   }
   /**
+   * 构造单个查询条件对象
    *
    * @param cond
    * @returns
@@ -64,8 +65,10 @@ class Base {
       let kws = keyword.split(/,|，/)
       return kws.length === 1 ? keyword : '(' + kws.join('|') + ')'
     }
-
-    if (typeof cond === 'string') return { $regex: cond }
+    /**
+     * 没有指定操作符的情况
+     */
+    if (typeof cond === 'string') return cond ? { $regex: cond } : ''
     else if (typeof cond === 'number') return cond
 
     if (cond && typeof cond !== 'object') return undefined
@@ -76,7 +79,7 @@ class Base {
     if (keyword === undefined) return undefined
 
     // boolean值的false和0
-    if (!keyword) return cond.keyword
+    // if (!keyword) return cond.keyword
 
     if (!feature && ![null, '', undefined].includes(keyword)) {
       if (typeof keyword === 'string') {
@@ -88,7 +91,7 @@ class Base {
       }
     }
 
-    let subQuery
+    let subQuery // 查询条件对象
 
     switch (feature) {
       case 'include':
