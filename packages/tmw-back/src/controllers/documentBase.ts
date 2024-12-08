@@ -459,6 +459,8 @@ class DocBase extends Base {
    *
    * filter: {"state": {"feature": "eq", "keyword": "1"}}
    *
+   * {"filter": {"disabled": {"feature": "exists", "keyword": true}}}
+   *
    * orderBy: {"field1":"desc","field2":"asc"}
    *
    */
