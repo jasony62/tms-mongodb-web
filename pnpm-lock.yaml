@@ -8,9 +8,6 @@ importers:
 
   packages/plugins:
     dependencies:
-      axios:
-        specifier: ^1.5.0
-        version: 1.5.0(debug@4.3.4)
       dayjs:
         specifier: ^1.11.3
         version: 1.11.7
@@ -57,9 +54,6 @@ importers:
       archiver:
         specifier: 7.0.1
         version: 7.0.1
-      axios:
-        specifier: ^1.5.0
-        version: 1.5.0(debug@4.3.4)
       commander:
         specifier: 12.1.0
         version: 12.1.0

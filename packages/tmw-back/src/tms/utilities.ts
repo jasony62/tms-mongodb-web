@@ -3,7 +3,11 @@ import * as _ from 'lodash'
 /**
  * 对数组中的元素去重
  */
-export default function unrepeatByArray(arr, columns, keepFirstRepeatData = false) {
+export default function unrepeatByArray(
+  arr,
+  columns,
+  keepFirstRepeatData = false
+) {
   let hash = []
   let repeatData = []
   let newArr = _.filter(arr, (d) => {
