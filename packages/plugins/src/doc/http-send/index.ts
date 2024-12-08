@@ -2,7 +2,7 @@ import { PluginProfileScope, PluginProfileAmount } from 'tmw-data'
 import { loadConfig } from 'tmw-kit'
 import { PluginHttpSendDocs } from 'tmw-kit/dist/plugin/index.js'
 import path from 'path'
-import { jsonRender } from 'tms-handlebars'
+import { jsonRender } from 'tms-data-aid'
 
 /**配置文件存放位置*/
 const ConfigDir = path.resolve(
