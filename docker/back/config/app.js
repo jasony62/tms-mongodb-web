@@ -74,7 +74,10 @@ let appConfig = {
     TMW_APP_TAGS: env.TMW_APP_TAGS || 'TMW_TAGS', // 默认的数据标签字段
   },
   body: {
-    jsonLimit: env.TMW_APP_BODY_JSON_LIMIT || '1mb',
+    jsonLimit: env.TMW_APP_BODY_JSON_LIMIT ?? '1mb',
+    formLimit: env.TMW_APP_BODY_FORM_LIMIT ?? '56kb',
+    textLimit: env.TMW_APP_BODY_TEXT_LIMIT ?? '56kb',
+    maxFileSize: env.TMW_APP_BODY_MAX_FILE_SIZE ?? '200mb', // 上传文件最大限制
   },
 }
 
