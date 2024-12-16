@@ -12,8 +12,8 @@
   "author": "jasony62",
   "license": "MIT",
   "dependencies": {
-    "dayjs": "^1.11.3",
-    "debug": "^4.3.4",
+    "dayjs": "1.11.13",
+    "debug": "4.4.0",
     "glob": "11.0.0",
     "pinyin-pro": "3.26.0",
     "tms-data-aid": "^0.0.107",

@@ -69,7 +69,7 @@ import { useAssistant } from '@/composables/assistant'
 import { useMitt } from '@/composables/mitt'
 import { useRouter, useRoute } from 'vue-router'
 import { Avatar } from '@element-plus/icons-vue'
-import * as jsonpointer from 'jsonpointer'
+import { JSONPointer } from 'tms-data-aid'
 import facStore from '@/store'
 
 const router = useRouter()
@@ -80,7 +80,7 @@ const route = useRoute()
 const { clientInfo } = facStore()
 const ClientName = computed(() => {
   const jp = LOGIN_USERNAME_JSONPOINTER()
-  const name = jsonpointer.get(clientInfo, jp)
+  const name = JSONPointer.get(clientInfo, jp)
   return name
 })
 const COMPACT = computed(() => COMPACT_MODE())

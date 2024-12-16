@@ -9,8 +9,8 @@
       </el-breadcrumb>
       <el-breadcrumb :separator-icon="ArrowRight" v-else>
         <el-breadcrumb-item :to="{ name: 'databases' }">{{
-        DbLabel
-      }}</el-breadcrumb-item>
+          DbLabel
+          }}</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'database', params: { dbName: dbName } }">{{ dbName }}</el-breadcrumb-item>
         <el-breadcrumb-item>{{ clName }}</el-breadcrumb-item>
       </el-breadcrumb>
@@ -53,8 +53,8 @@
         </div>
         <div v-for="ep in etlPlugins">
           <el-button type="success" plain @click="handleExtract(ep)">{{
-        ep.title
-      }}</el-button>
+            ep.title
+            }}</el-button>
         </div>
         <tmw-plugins :plugins="CompData.plugins" :total-by-all="totalByAll" :total-by-filter="totalByFilter"
           :total-by-checked="totalByChecked" :handle-plugin="handlePlugin"
@@ -93,7 +93,7 @@ import {
 import { ArrowRight, Filter, SortUp, SortDown } from '@element-plus/icons-vue'
 import { Batch } from 'tms-vue3'
 import * as _ from 'lodash'
-import * as Handlebars from 'handlebars'
+import { Handlebars } from 'tms-data-aid'
 import apiCl from '@/apis/collection'
 import apiSchema from '@/apis/schema'
 import apiPlugin from '@/apis/plugin'
