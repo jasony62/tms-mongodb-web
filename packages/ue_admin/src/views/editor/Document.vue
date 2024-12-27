@@ -44,6 +44,9 @@
         <handlebars-viz ref="elTtvField" :vars-root-name="'vars'" :vars="templateVars"
           :template-text="activeFieldValue" />
       </div>
+      <div v-if="isMarkdownField" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
+        <div ref="elMarkdownViewer" class="w-full h-full p-2 border border-gray-300 rounded-md"></div>
+      </div>
       <div v-if="isXmlField" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
         <div>
           <el-button type="primary" @click="updateFieldValue">更新【{{ activeField?.fullname }}】</el-button>
@@ -135,6 +138,7 @@ import { useAssistant } from '@/composables/assistant'
 import { TmsAxios } from 'tms-vue3'
 import { transform } from '@/data-aid.js/transform'
 import { EditorView } from "@codemirror/view"
+import { marked } from 'marked'
 
 // 系统指定的标签字段名称
 const TagsFieldName = TMW_APP_TAGS()
@@ -154,6 +158,8 @@ const { bucketName, dbName, clName, docId } = props
 const elJdeDoc = ref<{ editing: () => any; editDoc: DocAsArray } | null>(null)
 // JSON字段编辑器
 const elJsonEditor = ref<HTMLElement | null>(null)
+// Markdown文本编辑器
+const elMarkdownViewer = ref<HTMLElement | undefined>(undefined)
 // XML文本编辑器
 const elXmlEditor = ref<HTMLElement | undefined>(undefined)
 // YAML文本编辑器
@@ -213,6 +219,17 @@ const isHandlebarsField = computed(() => {
   return false
 })
 /**
+ * 显示markdown字段辅助窗口
+ */
+const isMarkdownField = computed(() => {
+  if (activeField.value?.schemaType === 'string') {
+    if (['markdown'].includes(activeField.value.schemaProp.attrs?.format)) {
+      return true
+    }
+  }
+  return false
+})
+/**
  * 显示xml字段辅助编辑窗口
  */
 const isXmlField = computed(() => {
@@ -250,6 +267,19 @@ const onJdocFocus = (field: Field) => {
           jsonEditor = new JSONEditor(elJsonEditor.value, options)
           let fieldValue = elJdeDoc.value?.editDoc.get(field.fullname)
           jsonEditor.set(fieldValue ?? '')
+        }
+      })
+      break
+    case field.schemaProp.attrs?.format === 'markdown':
+      nextTick(async () => {
+        if (elMarkdownViewer.value) {
+          elMarkdownViewer.value.attachShadow({ mode: 'open' })
+          if (elMarkdownViewer.value.shadowRoot) {
+            let fieldValue = elJdeDoc.value?.editDoc.get(field.fullname)
+            console.log('fff', fieldValue)
+            let text = await marked.parse(fieldValue ?? '')
+            elMarkdownViewer.value.shadowRoot.innerHTML = text
+          }
         }
       })
       break

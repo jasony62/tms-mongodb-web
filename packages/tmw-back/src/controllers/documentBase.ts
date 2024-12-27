@@ -471,7 +471,7 @@ class DocBase extends Base {
       page,
       size,
       tags,
-      fields,
+      fields: qFields,
       includeDeleted,
       filter: qFilter,
       orderBy: qOrderBy,
@@ -482,6 +482,8 @@ class DocBase extends Base {
 
     let orderBy =
       this.request.body.orderBy ?? (qOrderBy ? JSON.parse(qOrderBy) : {})
+
+    let fields = this.request.body.fields ?? qFields ?? ''
 
     // 返回字段
     let projection = fieldsToProjection(fields)

@@ -5,7 +5,7 @@
   "private": true,
   "description": "",
   "scripts": {
-    "build": "rimraf ./dist && tsc -p tsconfig.build.json",
+    "build": "rimraf ./dist && tsc -p tsconfig.build.json --skipLibCheck",
     "dev": "node ./dist/server"
   },
   "keywords": [],

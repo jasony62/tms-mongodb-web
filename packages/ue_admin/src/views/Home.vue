@@ -21,7 +21,6 @@
             <span>{{ DbLabel }}</span>
           </el-menu-item>
           <el-sub-menu index="globalSchema">
-
             <template #title>字段定义</template>
             <el-menu-item index="/docSchemas/">
               <span>文档</span>

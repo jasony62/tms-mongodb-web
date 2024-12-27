@@ -21,8 +21,8 @@ importers:
         specifier: 3.26.0
         version: 3.26.0
       tms-data-aid:
-        specifier: ^0.0.107
-        version: 0.0.107
+        specifier: ^0.0.108
+        version: 0.0.108
       tmw-data:
         specifier: workspace:*
         version: link:../tmw-data
@@ -221,6 +221,9 @@ importers:
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
+      marked:
+        specifier: ^15.0.4
+        version: 15.0.4
       mitt:
         specifier: 3.0.1
         version: 3.0.1
@@ -231,8 +234,8 @@ importers:
         specifier: 4.8.1
         version: 4.8.1
       tms-data-aid:
-        specifier: ^0.0.107
-        version: 0.0.107
+        specifier: ^0.0.108
+        version: 0.0.108
       tms-koa-crypto:
         specifier: ^0.2.15
         version: 0.2.15
@@ -240,11 +243,11 @@ importers:
         specifier: ^0.0.11
         version: 0.0.11
       tms-vue3:
-        specifier: ^0.0.6
-        version: 0.0.6(debug@4.4.0)
+        specifier: ^0.0.7
+        version: 0.0.7(debug@4.4.0)
       tms-vue3-ui:
-        specifier: ^0.0.92
-        version: 0.0.92
+        specifier: ^0.0.93
+        version: 0.0.93
       vue:
         specifier: 3.5.13
         version: 3.5.13(typescript@5.2.2)
@@ -1901,8 +1904,8 @@ packages:
   axios@0.27.2:
     resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
 
-  axios@1.5.0:
-    resolution: {integrity: sha512-D4DdjDo5CY50Qms0qGQTTw6Q44jl7zRwY7bthds06pUGfChBCTcQs+N743eFWGEd6pRTMd6A+I87aWyFV5wiZQ==}
+  axios@1.7.9:
+    resolution: {integrity: sha512-LhLcE7Hbiryz8oMDdDptSrWowmB4Bl6RCt6sIJKpRB4XtVf0iEgewX3au/pJqm+Py1kCASkb/FFKjxQaLtxJvw==}
 
   b4a@1.6.4:
     resolution: {integrity: sha512-fpWrvyVHEKyeEvbKZTVOeZF3VSKKWtJxFIxX/jaVPf+cLbGUSitjb49pHLqPV2BUNNZ0LcoeEGfE/YCpyDYHIw==}
@@ -2582,6 +2585,15 @@ packages:
 
   follow-redirects@1.15.1:
     resolution: {integrity: sha512-yLAMQs+k0b2m7cVxpS1VKJVvoz7SS9Td1zss3XRwXj+ZDH00RJgnuLx7E44wx02kQLrdM3aOOy+FpzS7+8OizA==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+
+  follow-redirects@1.15.9:
+    resolution: {integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -3358,6 +3370,11 @@ packages:
 
   makeerror@1.0.12:
     resolution: {integrity: sha512-JmqCvUhmt43madlpFzG4BQzG2Z3m6tvQDNKdClZnO3VbIudJYmxsT0FNJMeiB2+JTSlTQTSbU8QdesVmwJcmLg==}
+
+  marked@15.0.4:
+    resolution: {integrity: sha512-TCHvDqmb3ZJ4PWG7VEGVgtefA5/euFmsIhxtD0XsBxI39gUSKL81mIRFdt0AiNQozUahd4ke98ZdirExd/vSEw==}
+    engines: {node: '>= 18'}
+    hasBin: true
 
   media-typer@0.3.0:
     resolution: {integrity: sha512-dq+qelQ9akHpcOl/gUVRTxVIOkAJ1wR3QAvb4RsVjS8oVoFjDGTc679wJYmUmknUF5HwMLOgb5O+a3KxfWapPQ==}
@@ -4259,8 +4276,8 @@ packages:
   tmpl@1.0.5:
     resolution: {integrity: sha512-3f0uOEAQwIqGuWW2MVzYg8fV/QNnc/IpuJNG837rLuczAaLVHslWHZQj4IGiEl5Hs3kkbhwL9Ab7Hrsmuj+Smw==}
 
-  tms-data-aid@0.0.107:
-    resolution: {integrity: sha512-wEhp5V/EUTgALnQhWWhyRpWZJoLMEzXFZd0YxvSf3p8m3paXsSrQ0uix/AHl/IQUzJ5/3giJKf4+2kbGQkI71A==}
+  tms-data-aid@0.0.108:
+    resolution: {integrity: sha512-66OKA7U8xlOVAmcBaPRRpvIvA5UBzRzX3jeBL0LOIxtmoSTWy3gpZmlglpa54bGQzhV2aivjqERJN5CCVlYRUg==}
 
   tms-data-aid@0.0.92:
     resolution: {integrity: sha512-d70eAHUJYdamwhdfkrk/7kL4+9GuF7gkRSD7SJlObcLl3PDySohWP9ol7PkM1hG2pIsEPyu1EL1qfp8ytGhlNA==}
@@ -4291,11 +4308,14 @@ packages:
   tms-vue3-ui@0.0.92:
     resolution: {integrity: sha512-Y+YbXO6AALv3F9jttLDaRl9QJlDED5Ig6Rab8V3ZrvkpvM+k14qG1e+VGVqTatassS+NOmOCXsrMYd4eSBO4Xg==}
 
+  tms-vue3-ui@0.0.93:
+    resolution: {integrity: sha512-+VqDZjfDKfscLiwYU8+ig+g0vi9tfal3wfOSEXFJtlM/ZB3fzLN4EnQoW8Cq9GtMtkBVY5POOzN2NZaHlw+dsg==}
+
   tms-vue3@0.0.5:
     resolution: {integrity: sha512-djzmchp3U17EKWuwKvtk1cKqUUfitcR//+L6jpNfCiUyfZxASD56szd+kmKV+qRnUJBHlY17hFaS9p4SkXc4uw==}
 
-  tms-vue3@0.0.6:
-    resolution: {integrity: sha512-x21hQNslwUE11eIZ9fGMALsmgY7LEc/WxmUt+eku/5qSM1USiuPb28CUqFoKPnewYE3t8WPYDwcPP7SdiByxww==}
+  tms-vue3@0.0.7:
+    resolution: {integrity: sha512-PX98GFKCblSXnYk2gYoKXW4cNWi1ZLctR85meX5IVElcLCKFO4STM5TIRQFfP18cGsQPuD16FDyau/R620I1iQ==}
 
   to-fast-properties@2.0.0:
     resolution: {integrity: sha512-/OaKK0xYrs3DmxRYqL/yDc+FxFUVYhDlXMhRmv3z915w2HF1tnN1omB354j8VUGO/hbRzyD6Y3sA7v7GS/ceog==}
@@ -6734,9 +6754,9 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  axios@1.5.0(debug@4.4.0):
+  axios@1.7.9(debug@4.4.0):
     dependencies:
-      follow-redirects: 1.15.1(debug@4.4.0)
+      follow-redirects: 1.15.9(debug@4.4.0)
       form-data: 4.0.0
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -7421,6 +7441,10 @@ snapshots:
   flatted@3.3.2: {}
 
   follow-redirects@1.15.1(debug@4.4.0):
+    optionalDependencies:
+      debug: 4.4.0
+
+  follow-redirects@1.15.9(debug@4.4.0):
     optionalDependencies:
       debug: 4.4.0
 
@@ -8413,6 +8437,8 @@ snapshots:
     dependencies:
       tmpl: 1.0.5
 
+  marked@15.0.4: {}
+
   media-typer@0.3.0: {}
 
   memoize-one@6.0.0: {}
@@ -9331,7 +9357,7 @@ snapshots:
 
   tmpl@1.0.5: {}
 
-  tms-data-aid@0.0.107:
+  tms-data-aid@0.0.108:
     dependencies:
       array-sort: 1.0.0
       debug: 4.4.0
@@ -9474,15 +9500,25 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  tms-vue3-ui@0.0.93:
+    dependencies:
+      debug: 4.4.0
+      jsonpointer: 5.0.1
+      randexp: 0.5.3
+      tms-data-aid: 0.0.108
+      tms-vue3: 0.0.7(debug@4.4.0)
+    transitivePeerDependencies:
+      - supports-color
+
   tms-vue3@0.0.5(debug@4.4.0):
     dependencies:
       axios: 0.27.2(debug@4.4.0)
     transitivePeerDependencies:
       - debug
 
-  tms-vue3@0.0.6(debug@4.4.0):
+  tms-vue3@0.0.7(debug@4.4.0):
     dependencies:
-      axios: 1.5.0(debug@4.4.0)
+      axios: 1.7.9(debug@4.4.0)
     transitivePeerDependencies:
       - debug
 
