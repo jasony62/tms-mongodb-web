@@ -21,8 +21,8 @@ importers:
         specifier: 3.26.0
         version: 3.26.0
       tms-data-aid:
-        specifier: ^0.0.108
-        version: 0.0.108
+        specifier: ^0.0.109
+        version: 0.0.109
       tmw-data:
         specifier: workspace:*
         version: link:../tmw-data
@@ -234,8 +234,8 @@ importers:
         specifier: 4.8.1
         version: 4.8.1
       tms-data-aid:
-        specifier: ^0.0.108
-        version: 0.0.108
+        specifier: ^0.0.109
+        version: 0.0.109
       tms-koa-crypto:
         specifier: ^0.2.15
         version: 0.2.15
@@ -4278,6 +4278,9 @@ packages:
 
   tms-data-aid@0.0.108:
     resolution: {integrity: sha512-66OKA7U8xlOVAmcBaPRRpvIvA5UBzRzX3jeBL0LOIxtmoSTWy3gpZmlglpa54bGQzhV2aivjqERJN5CCVlYRUg==}
+
+  tms-data-aid@0.0.109:
+    resolution: {integrity: sha512-MbsNHUaOjo620AuYhWhC2kRCFW2eaKz7y8h6nuz5dl62MxdpgRZxk/SD3GvAZlJqGogbdWDzL1WN1hcg4Vy4UQ==}
 
   tms-data-aid@0.0.92:
     resolution: {integrity: sha512-d70eAHUJYdamwhdfkrk/7kL4+9GuF7gkRSD7SJlObcLl3PDySohWP9ol7PkM1hG2pIsEPyu1EL1qfp8ytGhlNA==}
@@ -9358,6 +9361,22 @@ snapshots:
   tmpl@1.0.5: {}
 
   tms-data-aid@0.0.108:
+    dependencies:
+      array-sort: 1.0.0
+      debug: 4.4.0
+      get-value: 3.0.1
+      handlebars: 4.7.8
+      has-value: 2.0.2
+      is-even: 1.0.0
+      jexl: 2.3.0
+      json-logic-js: 2.0.5
+      jsonpointer: 5.0.1
+      kind-of: 6.0.3
+      randexp: 0.5.3
+    transitivePeerDependencies:
+      - supports-color
+
+  tms-data-aid@0.0.109:
     dependencies:
       array-sort: 1.0.0
       debug: 4.4.0
