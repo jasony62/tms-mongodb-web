@@ -41,7 +41,6 @@
           </el-table-column>
           <el-table-column prop="description" label="说明"></el-table-column>
           <el-table-column label="操作" width="120">
-
             <template #default="scope">
               <el-button v-if="HasClEditRight" @click="editCollection(scope.row, scope.$index)" type="primary" link
                 size="small">设置
@@ -92,7 +91,6 @@ import { ArrowDown, ArrowRight } from '@element-plus/icons-vue'
 import { onMounted, reactive, computed, ref, toRaw } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { Batch } from 'tms-vue3'
-
 import facStore from '@/store'
 import { openCollectionEditor, } from '@/components/editor'
 import { ElMessage, ElMessageBox, ElTree } from 'element-plus'

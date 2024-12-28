@@ -14,10 +14,10 @@
             <el-table-column label="定义名称" width="240">
               <template #default="scope">
                 <router-link
-                  :to="{ name: 'schemaEditor', params: { bucketName, scope: 'document', schemaId: scope.row._id } }">
+                  :to="{ name: 'schemaEditor', params: { bucketName, dbName, scope: 'document', schemaId: scope.row._id } }">
                   {{
-      scope.row.name
-    }}
+                    scope.row.name
+                  }}
                 </router-link>
               </template>
             </el-table-column>
