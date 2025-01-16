@@ -95,12 +95,23 @@ class Document extends Base {
    *
    * @returns {object} 文档对象
    */
-  async findOne(existCl, { filter, like = false }, projection = null) {
+  async findOne(existCl, { filter, like = false, orderBy }, projection = null) {
     const sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
 
     let options: any = {}
+
+    // 返回字段
     if (projection && typeof projection === 'object')
       options.projection = projection
+
+    // 排序
+    const sort = {}
+    if (orderBy && typeof orderBy === 'object' && Object.keys(orderBy).length) {
+      for (const key in orderBy) sort[key] = orderBy[key] === 'desc' ? -1 : 1
+    } else {
+      sort['_id'] = -1
+    }
+    options.sort = sort
 
     let query = filter ? this.assembleQuery(filter, like) : {}
 
@@ -278,7 +289,7 @@ class Document extends Base {
     const sysCl = this._getSysCl(dbName, clName)
 
     // 对象的创建人
-    rows.forEach((row) => (row.creator = this.client.id))
+    rows.forEach((row) => (row.creator = this.client?.id ?? ''))
 
     const rst = await sysCl.insertMany(rows).then(async ({ insertedIds }) => {
       // await this.dataActionLog(r.ops, '创建', dbName, clName)
@@ -346,8 +357,6 @@ class Document extends Base {
   }
   /**
    * 替换指定id的文档
-   *
-   * 如果更新的是从集合中的数据，改为更新主集合中的数据
    *
    * @param {object} existCl - 文档对象所在集合
    * @param {string} id - 文档对象id

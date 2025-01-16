@@ -61,7 +61,7 @@ class DocBase extends Base {
   async findOne() {
     const existCl = await this.docHelper.findRequestCl()
 
-    let { filter, like = false, fields } = this.request.body
+    let { filter, like = false, fields, orderBy } = this.request.body
 
     if (!filter || typeof filter !== 'object')
       return new ResultFault('没有指定查询条件')
@@ -70,7 +70,7 @@ class DocBase extends Base {
 
     let matchedDoc = await this.modelDoc.findOne(
       existCl,
-      { filter, like },
+      { filter, like, orderBy },
       projection
     )
     if (!matchedDoc) return new ResultFault('指定的文档不存在')

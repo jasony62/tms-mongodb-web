@@ -27,7 +27,7 @@ class AgendaDocPlugin extends PluginBase {
     this.title = '调度任务'
     this.description = '根据文档数据执行调度任务'
     this.scope = PluginProfileScope.document
-    this.amount = PluginProfileAmount.many
+    this.amount = PluginProfileAmount.one
     this.beforeWidget = { name: 'external', url: '', size: '40%' }
     this.jobFields = {}
   }

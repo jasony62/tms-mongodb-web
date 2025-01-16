@@ -21,8 +21,8 @@ importers:
         specifier: 3.26.0
         version: 3.26.0
       tms-data-aid:
-        specifier: ^0.0.110
-        version: 0.0.110
+        specifier: ^0.0.111
+        version: 0.0.111
       tmw-data:
         specifier: workspace:*
         version: link:../tmw-data
@@ -234,8 +234,8 @@ importers:
         specifier: 4.8.1
         version: 4.8.1
       tms-data-aid:
-        specifier: ^0.0.110
-        version: 0.0.110
+        specifier: ^0.0.111
+        version: 0.0.111
       tms-koa-crypto:
         specifier: ^0.2.15
         version: 0.2.15
@@ -246,8 +246,8 @@ importers:
         specifier: ^0.0.7
         version: 0.0.7(debug@4.4.0)
       tms-vue3-ui:
-        specifier: ^0.0.94
-        version: 0.0.94
+        specifier: ^0.0.96
+        version: 0.0.96
       vue:
         specifier: 3.5.13
         version: 3.5.13(typescript@5.2.2)
@@ -319,8 +319,8 @@ importers:
         specifier: 3.26.0
         version: 3.26.0
       tms-vue3-ui:
-        specifier: ^0.0.94
-        version: 0.0.94
+        specifier: ^0.0.96
+        version: 0.0.96
       vue:
         specifier: 3.5.13
         version: 3.5.13(typescript@5.2.2)
@@ -4264,8 +4264,8 @@ packages:
   tmpl@1.0.5:
     resolution: {integrity: sha512-3f0uOEAQwIqGuWW2MVzYg8fV/QNnc/IpuJNG837rLuczAaLVHslWHZQj4IGiEl5Hs3kkbhwL9Ab7Hrsmuj+Smw==}
 
-  tms-data-aid@0.0.110:
-    resolution: {integrity: sha512-PYKBamdPDF7rWB38XjL4hCCC1IWQ5kgeAu4wQMmd675w2Sv9TOTfeimc8kIFFo32dGriEWa8rJqwML4w5/tX7w==}
+  tms-data-aid@0.0.111:
+    resolution: {integrity: sha512-pXxsJLvBAFpVV3sqLU4A02bpoOfeYJ5TZu021ts5ur844GCp3t60QVmQ7/Q4hW+KWnDqy7anJ/yNXF1wcaORog==}
 
   tms-koa-account@0.2.15:
     resolution: {integrity: sha512-T1duWFOWLZyGjAegOkfckY83vABkqFbzoyAUzcHrLZiqmzTXX3NjJ7KCTK7I2ul9He++GDyFzDZVyQF3t7vQfA==}
@@ -4290,8 +4290,8 @@ packages:
   tms-template-wizard@0.0.9:
     resolution: {integrity: sha512-Lh95Z7wNJLjkUBhT/aObMnrMj9a3dBEoAXOKXhTPykBoBguuidbhYvJ3vDPWg2imgyLj5nPoe439OvC+n4+6wA==}
 
-  tms-vue3-ui@0.0.94:
-    resolution: {integrity: sha512-XKs/S7digjgwuyKpPwOSKMlovcByvzq6jR6arFl3ylo4/2EkrRXia87hWONI0luuNSCG8EGz+CcI1w3HisSpbA==}
+  tms-vue3-ui@0.0.96:
+    resolution: {integrity: sha512-lPveccQETg0ohk1SmIkmST90skndYesAt1UeOaEQ3i+kYCp8+5rFjslG+4fPP4M7CdEL1Ay8QBOcgqqxRnrdog==}
 
   tms-vue3@0.0.7:
     resolution: {integrity: sha512-PX98GFKCblSXnYk2gYoKXW4cNWi1ZLctR85meX5IVElcLCKFO4STM5TIRQFfP18cGsQPuD16FDyau/R620I1iQ==}
@@ -9325,7 +9325,7 @@ snapshots:
 
   tmpl@1.0.5: {}
 
-  tms-data-aid@0.0.110:
+  tms-data-aid@0.0.111:
     dependencies:
       array-sort: 1.0.0
       debug: 4.4.0
@@ -9337,6 +9337,7 @@ snapshots:
       json-logic-js: 2.0.5
       jsonpointer: 5.0.1
       kind-of: 6.0.3
+      lodash.set: 4.3.2
       randexp: 0.5.3
     transitivePeerDependencies:
       - supports-color
@@ -9448,12 +9449,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  tms-vue3-ui@0.0.94:
+  tms-vue3-ui@0.0.96:
     dependencies:
       debug: 4.4.0
       jsonpointer: 5.0.1
       randexp: 0.5.3
-      tms-data-aid: 0.0.110
+      tms-data-aid: 0.0.111
       tms-vue3: 0.0.7(debug@4.4.0)
     transitivePeerDependencies:
       - supports-color
