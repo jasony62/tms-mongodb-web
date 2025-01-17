@@ -1,9 +1,11 @@
+const { env } = process
+
 export default {
-  disabled: true,
+  disabled: !/false|no/i.test(env.TMW_APP_AGENDA_DISABLED),
   mongodb: {
     source: 'master',
-    database: 'agenda',
-    collection: 'agendaJobs',
+    database: env.TMW_APP_AGENDA_DATABASE || 'agenda',
+    collection: env.TMW_APP_AGENDA_COLLECTION || 'agendaJobs',
   },
-  jobDir: 'jobs/**', // 逗号分隔，支持glob格式
+  jobDir: env.TMW_APP_AGENDA_JOBDIR || 'jobs/**', // 逗号分隔，支持glob格式
 }

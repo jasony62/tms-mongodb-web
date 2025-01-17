@@ -16,6 +16,51 @@ const ConfigFile =
   process.env.TMW_PLUGIN_DOC_AGENDA_CONFIG_NAME || './plugin/doc/agenda'
 
 /**
+ * 执行http请求
+ *
+ * @param method
+ * @param url
+ * @param headers
+ * @param body
+ */
+async function sendHttp(method, url, headers, body) {
+  debug('发起HTTP请求', method, url)
+
+  if (/get/i.test(method)) {
+    const rsp = await fetch(url, { headers })
+    if (rsp.status !== 200)
+      debug(
+        '执行HTTP请求【%s】，返回：status=%d statusText=%s',
+        url,
+        rsp.status,
+        rsp.statusText
+      )
+    const data = await rsp.json()
+    return data
+  } else if (/post/i.test(method)) {
+    const rsp = await fetch(url, {
+      method: 'POST',
+      headers: Object.assign(
+        {},
+        { 'content-type': 'application/json' },
+        headers ?? {}
+      ),
+      body: JSON.stringify(body),
+    })
+    if (rsp.status !== 200)
+      debug(
+        '执行HTTP请求【%s】，返回：status=%d statusText=%s',
+        url,
+        rsp.status,
+        rsp.statusText
+      )
+    const data = await rsp.json()
+    return data
+  }
+
+  throw Error(`不支持的HTTP方法【${method}】`)
+}
+/**
  * 根据指定的文档生成调度任务
  */
 class AgendaDocPlugin extends PluginBase {
@@ -27,34 +72,9 @@ class AgendaDocPlugin extends PluginBase {
     this.title = '调度任务'
     this.description = '根据文档数据执行调度任务'
     this.scope = PluginProfileScope.document
-    this.amount = PluginProfileAmount.one
+    this.amount = PluginProfileAmount.many
     this.beforeWidget = { name: 'external', url: '', size: '40%' }
     this.jobFields = {}
-  }
-
-  /**
-   * 执行http请求
-   * @param method
-   * @param url
-   * @param body
-   */
-  private async sendHttp(method, url, body) {
-    if (/get/i.test(method)) {
-      const rsp = await fetch(url)
-      const data = await rsp.json()
-      return data
-    } else if (/post/i.test(method)) {
-      const rsp = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          body: JSON.stringify(body),
-        },
-      })
-      const data = await rsp.json()
-      return data
-    }
-    throw Error(`不支持的HTTP方法【${method}】`)
   }
 
   async execute(ctrl: any, tmwCl: any) {
@@ -99,19 +119,22 @@ class AgendaDocPlugin extends PluginBase {
         return false
       }
 
+      let headers = doc[this.jobFields.headers]
+
       let body = doc[this.jobFields.body]
 
-      return { url, method, body }
+      return { url, method, headers, body }
     }
+
     switch (widget.action) {
       case 'create':
         // 执行任务
         for (let doc of docsOrCause) {
           let state = doc[this.jobFields.state]
-          if (!state || typeof state !== 'string') {
-            fail('【state】为空', doc)
-            continue
-          }
+          // if (!state || typeof state !== 'string') {
+          //   fail('【state】为空', doc)
+          //   continue
+          // }
           if (state === 'running') continue
 
           let name = doc[this.jobFields.name]
@@ -130,8 +153,8 @@ class AgendaDocPlugin extends PluginBase {
 
           // 定义任务
           agenda.define(name, async (job) => {
-            let { method, url, body } = httpParams
-            await this.sendHttp(method, url, body)
+            let { method, url, body, headers } = httpParams
+            await sendHttp(method, url, headers, body)
           })
           // 指定任务的执行计划
           await agenda.every(interval, name)
