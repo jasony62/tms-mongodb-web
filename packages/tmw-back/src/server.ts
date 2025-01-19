@@ -60,7 +60,7 @@ async function dbInit(MongoContext) {
 /**
  * 框架完成初始化
  */
-async function afterInit({ MongoContext }) {
+async function afterInit({ MongoContext, AgendaContext }) {
   logger.info('已完成框架初始化')
   /**
    * 数据加密基础key
@@ -86,6 +86,16 @@ async function afterInit({ MongoContext }) {
    * 数据初始化
    */
   if (MongoContext) await dbInit(MongoContext)
+  /**
+   * 恢复调度任务
+   */
+  if (AgendaContext) {
+    try {
+      ;(await import('tms-koa-agenda')).startup(AgendaContext)
+    } catch (e) {
+      console.log('初始化调度服务异常', e)
+    }
+  }
 }
 
 // 捕获ctrl+c

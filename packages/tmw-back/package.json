@@ -23,6 +23,7 @@
     "nanoid": "5.0.9",
     "tms-koa": "^0.2.15",
     "tms-koa-account": "^0.2.15",
+    "tms-koa-agenda": "^0.2.19",
     "tms-koa-captcha": "^0.2.15",
     "tmw-data": "workspace:*",
     "tmw-kit": "workspace:*",

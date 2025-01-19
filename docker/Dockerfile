@@ -114,7 +114,11 @@ RUN sed -i 's/"tmw-kit": "file:\.\.\/kit"/"tmw-kit": "\*"/g' /usr/app/tmw/packag
 COPY ./docker/back/start_back.sh /usr/app/tmw/start_back.sh
 RUN chmod +x /usr/app/tmw/start_back.sh
 
-# plugins
+# 内置控制器插件
+## 定时任务控制器插件
+COPY ./docker/back/ctrl-plugins/agenda.json /usr/app/tmw/ctrl_plugin_config/agenda.json
+
+# 内置前端plugins
 COPY --from=builder /usr/src/tmw/plugins/dist /usr/app/tmw/plugins/dist
 COPY --from=builder /usr/src/tmw/plugins/node_modules /usr/app/tmw/plugins/node_modules
 
