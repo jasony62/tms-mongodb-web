@@ -34,7 +34,7 @@
               fixed
               :row-event-handlers="RowEventHandlers"
               :row-class="rowClass"
-              :on-doc-cell-click="onDocCellClick"
+              :on-doc-cell-click="onDocFieldCellClick"
             />
           </template>
         </el-auto-resizer>
@@ -262,6 +262,25 @@ const handleCondition = () => {
   return criterais
 }
 /**
+ * 转换文档选中状态
+ *
+ * @param doc
+ * @param docIndex
+ * @param checked
+ */
+const toggleDocSelected = (
+  doc: object,
+  docIndex: number,
+  checked?: CheckboxValueType
+) => {
+  if (checked === undefined) {
+    checked = !selectedDocuments.value.includes(doc)
+  }
+  if (checked) selectedDocuments.value.push(doc)
+  else selectedDocuments.value.splice(selectedDocuments.value.indexOf(doc), 1)
+  CheckedRow[docIndex] = checked
+}
+/**
  * 获得集合文档定义的顶层属性，作为表格的列
  */
 const createTableColumns = async () => {
@@ -285,7 +304,9 @@ const createTableColumns = async () => {
     Object.assign(matchedSchema, props)
   }
   CompData.properties = Object.freeze(matchedSchema)
-  // 选择列
+  /**
+   * 设置选择列
+   */
   if (MULTIPLE.value !== false) {
     tableColumns.value.push({
       key: 'selection',
@@ -298,13 +319,7 @@ const createTableColumns = async () => {
         rowIndex: number
       }) => {
         const onChange = (checked: CheckboxValueType) => {
-          if (checked) selectedDocuments.value.push(rowData)
-          else
-            selectedDocuments.value.splice(
-              selectedDocuments.value.indexOf(rowData),
-              1
-            )
-          CheckedRow[rowIndex] = checked
+          toggleDocSelected(rowData, rowIndex, checked)
         }
         return h(ElCheckbox, { modelValue: CheckedRow[rowIndex], onChange })
       },
@@ -323,7 +338,9 @@ const createTableColumns = async () => {
       },
     })
   }
-  // 数据列
+  /**
+   * 数据列
+   */
   const columnsWidth = ClStyle.columnsWidth ?? {}
   Object.entries<any>(CompData.properties).forEach(([propName, propAttrs]) => {
     tableColumns.value.push({
@@ -346,7 +363,7 @@ const createTableColumns = async () => {
           doc: rowData,
           downloadFile: downLoadFile,
           onDocCellClick: () => {
-            onDocCellClick(rowData, rowIndex, propName, columnIndex)
+            onDocFieldCellClick(rowData, rowIndex, propName, columnIndex)
           },
         })
       },
@@ -397,7 +414,9 @@ const createTableColumns = async () => {
       },
     })
   })
-  // 操作列
+  /**
+   * 操作列
+   */
   tableColumns.value.push({
     key: 'operations',
     title: '操作',
@@ -482,8 +501,15 @@ const handleFilter = (schema: any, name: any) => {
   })
 }
 
-// 点击单元格
-const onDocCellClick = async (
+/**
+ * 点击文档字段单元格
+ *
+ * @param rowData
+ * @param rowIndex
+ * @param propName
+ * @param columnIndex
+ */
+const onDocFieldCellClick = async (
   rowData: any,
   rowIndex: number,
   propName: string,
@@ -494,6 +520,10 @@ const onDocCellClick = async (
   CurrentColumn.name = propName
   const oldWidth = ClStyle.columnsWidth?.[propName] ?? prop.width ?? 120
   CurrentColumn.width = colWidth.value = parseInt(oldWidth)
+  /**
+   * 切换文档选中状态
+   */
+  toggleDocSelected(rowData, rowIndex)
 
   await createTableColumns()
 }
