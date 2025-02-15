@@ -1,8 +1,13 @@
 <template>
   <div class="grid place-items-center h-screen">
-    <div class="border-2 rounded w-1/4">
-      <register :schema="schema()" :fn-captcha="fnCaptcha" :fn-register="fnRegister" :on-success="fnSuccessToken"
-        :on-fail="fnFailToken">
+    <div class="border-2 border-gray-200 rounded w-1/4">
+      <register
+        :schema="schema()"
+        :fn-captcha="fnCaptcha"
+        :fn-register="fnRegister"
+        :on-success="fnSuccessToken"
+        :on-fail="fnFailToken"
+      >
       </register>
     </div>
   </div>
@@ -27,11 +32,12 @@ const fnSuccessToken = (data: any) => {
       type: 'success',
       onClose: function () {
         router.push('/login')
-      }
+      },
     })
   }
 }
 const fnFailToken = (response: any) => {
   ElMessage.error(response.msg || '注册失败')
 }
-</script>@/apis/auth
+</script>
+@/apis/auth

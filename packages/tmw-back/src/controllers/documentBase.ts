@@ -1,13 +1,7 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import { Base } from 'tmw-kit/dist/ctrl/index.js'
 import DocumentHelper from './documentHelper.js'
-import {
-  ModelDoc,
-  ModelCl,
-  ModelSpreadsheet,
-  makeTagsFilter,
-  createDocWebhook,
-} from 'tmw-kit'
+import { ModelDoc, ModelCl, ModelSpreadsheet, createDocWebhook } from 'tmw-kit'
 import { ElasticSearchIndex } from 'tmw-kit/dist/elasticsearch/index.js'
 import _ from 'lodash'
 import mongodb from 'mongodb'
@@ -92,8 +86,26 @@ class DocBase extends Base {
         `在集合【${existCl.name}/${existCl.sysname}】没有schema，无法创建文档`
       )
 
+    let { replace, updateAsDelete = 'no' } = this.request.query
+
     // 要新建的文档数据
-    let docData = this.request.body
+    let docData, deleteCount
+    if (replace === 'yes') {
+      let { filter, doc } = this.request.body
+      // 删除指定的文档
+      if (filter && typeof filter === 'object') {
+        let query = this.modelDoc.assembleQuery(filter)
+        deleteCount = await this.modelDoc.removeMany(
+          existCl,
+          query,
+          updateAsDelete === 'yes'
+        )
+      }
+      docData = doc
+    } else {
+      docData = this.request.body
+    }
+
     if (!docData) return new ResultFault('没有指定要新建的文档数据')
 
     // 加工数据
@@ -121,6 +133,8 @@ class DocBase extends Base {
       docData = afterRst.rewrited
 
     // 返回结果
+    if (replace === 'yes')
+      return new ResultData({ deleteCount, newDoc: docData })
     return new ResultData(docData)
   }
   /**
@@ -138,8 +152,25 @@ class DocBase extends Base {
         `在集合【${existCl.name}/${existCl.sysname}】没有schema，无法创建文档`
       )
 
+    let { replace, updateAsDelete = 'no' } = this.request.query
+
     // 要新建的文档数据
-    const docsData = this.request.body
+    let docsData, deleteCount
+    if (replace === 'yes') {
+      let { filter, docs } = this.request.body
+      // 删除指定的文档
+      if (filter && typeof filter === 'object') {
+        let query = this.modelDoc.assembleQuery(filter)
+        deleteCount = await this.modelDoc.removeMany(
+          existCl,
+          query,
+          updateAsDelete === 'yes'
+        )
+      }
+      docsData = docs
+    } else {
+      docsData = this.request.body
+    }
 
     const newDocs = []
 
@@ -175,6 +206,7 @@ class DocBase extends Base {
       }
     }
     // 返回结果
+    if (replace === 'yes') return new ResultData({ deleteCount, newDocs })
     return new ResultData(newDocs)
   }
   /**
@@ -280,8 +312,11 @@ class DocBase extends Base {
     if (afterRst.passed !== true)
       return new ResultFault(afterRst.reason || '操作被Webhook.afterUpdate阻止')
 
-    if (afterRst.rewrited && typeof afterRst.rewrited === 'object')
-      newDoc = afterRst.rewrited
+    if (afterRst.rewrited && typeof afterRst.rewrited === 'object') {
+      return new ResultData(afterRst.rewrited)
+    }
+
+    newDoc = await this.modelDoc.byId(existCl, id)
 
     return new ResultData(newDoc)
   }
@@ -352,10 +387,13 @@ class DocBase extends Base {
     if (afterRst.passed !== true)
       return new ResultFault(afterRst.reason || '操作被Webhook.afterUpdate阻止')
 
-    if (afterRst.rewrited && typeof afterRst.rewrited === 'object')
-      updated = afterRst.rewrited
+    if (afterRst.rewrited && typeof afterRst.rewrited === 'object') {
+      return new ResultData(afterRst.rewrited)
+    }
 
-    return new ResultData(updated)
+    let newDoc = await this.modelDoc.byId(existCl, docId)
+
+    return new ResultData(newDoc)
   }
   /**
    * 批量更新
@@ -494,9 +532,6 @@ class DocBase extends Base {
         ;(orderBy = tmwCl.orderBy), orderBy
       }
     }
-
-    // 包含全部标签
-    if (tags) filter = makeTagsFilter(tags, filter)
 
     const [ok, result] = await this.modelDoc.list(
       tmwCl,

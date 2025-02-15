@@ -1,7 +1,6 @@
 import DbEditor from './DbEditor.vue'
 import DirEditor from './DirEditor.vue'
 import CollectionEditor from './CollectionEditor.vue'
-import TagEditor from './TagEditor.vue'
 import SelectCondition from './SelectCondition.vue'
 import SchemaEditor from './SchemaEditor.vue'
 import BucketEditor from './BucketEditor.vue'
@@ -136,23 +135,6 @@ export function openCollectionEditor(options: CollectionEditorOptions) {
     collection,
     onClose: (newCl: any) => {
       if (newCl && onBeforeClose) onBeforeClose(newCl)
-      app.unmount()
-      document.body.removeChild(root)
-    },
-  })
-  app.use(ElementPlus, { locale: zhCn }).mount(root)
-}
-/***/
-export function openTagEditor(options: TagEditorOptions) {
-  const root = document.createElement('div')
-  document.body.appendChild(root)
-  const { mode, bucketName, tag, onBeforeClose } = options
-  let app = createApp(TagEditor, {
-    mode,
-    bucketName,
-    tag,
-    onClose: (newDb: any) => {
-      if (newDb && onBeforeClose) onBeforeClose(newDb)
       app.unmount()
       document.body.removeChild(root)
     },

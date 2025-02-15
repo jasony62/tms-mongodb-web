@@ -131,13 +131,13 @@ class Document extends Base {
    *
    * @returns {boolean} 是否更新成功
    */
-  async remove(tmwCl, id): Promise<boolean> {
+  async remove(tmwCl, id, updateAsDelete = false): Promise<boolean> {
     let sysCl = this._getSysCl(tmwCl.db.sysname, tmwCl.sysname)
 
     const removeQuery = { _id: new ObjectId(id) }
 
     let deletedCount
-    if (UPDATE_AS_DELETE) {
+    if (UPDATE_AS_DELETE || updateAsDelete === true) {
       const current = dayjs().format('YYYY-MM-DD HH:mm:ss')
       const result = await sysCl.updateOne(removeQuery, {
         $set: { [this.tmwConfig.TMW_APP_DELETETIME]: current },
@@ -171,7 +171,7 @@ class Document extends Base {
    *
    * @returns {number} 删除的文档数量
    */
-  async removeMany(tmwCl, query) {
+  async removeMany(tmwCl, query, updateAsDelete = false) {
     const sysCl = this._getSysCl(tmwCl.db.sysname, tmwCl.sysname)
 
     const removedDocs = await sysCl
@@ -181,7 +181,7 @@ class Document extends Base {
     if (removedDocs.length === 0) return 0
 
     let deletedCount
-    if (UPDATE_AS_DELETE) {
+    if (UPDATE_AS_DELETE || updateAsDelete === true) {
       const current = dayjs().format('YYYY-MM-DD HH:mm:ss')
       const result = await sysCl.updateMany(query, {
         $set: { [this.tmwConfig.TMW_APP_DELETETIME]: current },

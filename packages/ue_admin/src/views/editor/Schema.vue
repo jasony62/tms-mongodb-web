@@ -2,9 +2,15 @@
   <div id="schemaEditor">
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight">
-        <el-breadcrumb-item :to="{ name: 'database' }" v-if="dbName">{{ dbName }}</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ name: 'databaseDocSchemas' }" v-if="dbName">字段定义</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ name: 'docSchemas' }" v-else>字段定义</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'database' }" v-if="dbName">{{
+          dbName
+        }}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'databaseDocSchemas' }" v-if="dbName"
+          >字段定义</el-breadcrumb-item
+        >
+        <el-breadcrumb-item :to="{ name: 'docSchemas' }" v-else
+          >字段定义</el-breadcrumb-item
+        >
         <el-breadcrumb-item>{{ title }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
@@ -12,20 +18,35 @@
       <el-button type="primary" @click="onSubmit">{{ submitTitle }}</el-button>
     </div>
     <div class="flex-1 mb-4 flex flex-row overflow-hidden">
-      <el-tabs tab-position="left" v-model="activeTab" class="h-full flex-shrink-0">
+      <el-tabs
+        tab-position="left"
+        v-model="activeTab"
+        class="h-full flex-shrink-0"
+      >
         <el-tab-pane label="基本信息" name="first"></el-tab-pane>
         <el-tab-pane label="列定义" name="second"></el-tab-pane>
       </el-tabs>
       <div class="overflow-auto flex-grow h-full">
-        <el-form v-show="activeTab === 'first'" :model="schema" label-position="top" class="w-1/3">
+        <el-form
+          v-show="activeTab === 'first'"
+          :model="schema"
+          label-position="top"
+          class="w-1/3"
+        >
           <el-form-item label="列定义名称（英文）" prop="name">
             <el-input v-model="schema.name"></el-input>
           </el-form-item>
-          <el-form-item label="显示名（中文）【由列定义中的根节点标题自动填充】">
+          <el-form-item
+            label="显示名（中文）【由列定义中的根节点标题自动填充】"
+          >
             <el-input v-model="schema.title" :disabled="true"></el-input>
           </el-form-item>
           <el-form-item label="说明">
-            <el-input type="textarea" v-model="schema.description" :disabled="true"></el-input>
+            <el-input
+              type="textarea"
+              v-model="schema.description"
+              :disabled="true"
+            ></el-input>
           </el-form-item>
           <el-form-item label="顺序号">
             <el-input-number v-model="schema.order"></el-input-number>
@@ -33,15 +54,20 @@
           <el-form-item label="父定义名称">
             <el-input v-model="schema.parentName"></el-input>
           </el-form-item>
-          <el-form-item label="标签">
-            <el-select v-model="schema.tags" multiple clearable placeholder="请选择">
-              <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
-            </el-select>
-          </el-form-item>
         </el-form>
-        <div v-if="activeTab === 'second'" class="flex flex-row gap-4 h-full overflow-auto">
-          <tms-json-schema class="h-full w-1/2 overflow-auto" ref="$jse" :schema="schema.body" :root-name="'$'"
-            :on-upload="onUploadFile" :on-message="onMessage" :on-paste="onPasteSchema">
+        <div
+          v-if="activeTab === 'second'"
+          class="flex flex-row gap-4 h-full overflow-auto"
+        >
+          <tms-json-schema
+            class="h-full w-1/2 overflow-auto"
+            ref="$jse"
+            :schema="schema.body"
+            :root-name="'$'"
+            :on-upload="onUploadFile"
+            :on-message="onMessage"
+            :on-paste="onPasteSchema"
+          >
             <template #extattrs="{ attrs }">
               <el-form-item label="不可修改">
                 <el-switch v-model="attrs.readonly"></el-switch>
@@ -50,19 +76,33 @@
                 <el-switch v-model="attrs.fulltextSearch"></el-switch>
               </el-form-item>
               <el-form-item label="列宽度">
-                <el-input v-model="attrs.width" placeholder="指定在表格中的显示宽度"></el-input>
+                <el-input
+                  v-model="attrs.width"
+                  placeholder="指定在表格中的显示宽度"
+                ></el-input>
               </el-form-item>
             </template>
           </tms-json-schema>
           <div class="h-full w-1/2 flex flex-col gap-2 relative">
             <div class="absolute top-0 right-0">
               <el-button @click="preview">预览</el-button>
-              <el-tooltip effect="dark" content="复制" placement="bottom" :visible="copyTooltipVisible">
-                <el-button @click="copy" :disabled="!previewResult">复制</el-button>
+              <el-tooltip
+                effect="dark"
+                content="复制"
+                placement="bottom"
+                :visible="copyTooltipVisible"
+              >
+                <el-button @click="copy" :disabled="!previewResult"
+                  >复制</el-button
+                >
               </el-tooltip>
             </div>
-            <div class="border border-gray-200 rounded-md p-2 h-full w-full overflow-auto">
-              <pre class="whitespace-pre-wrap break-all">{{ previewResult }}</pre>
+            <div
+              class="border border-gray-200 rounded-md p-2 h-full w-full overflow-auto"
+            >
+              <pre class="whitespace-pre-wrap break-all">{{
+                previewResult
+              }}</pre>
             </div>
           </div>
         </div>
@@ -85,7 +125,6 @@
 </template>
 <script setup lang="ts">
 import apiSchema from '@/apis/schema'
-import apiTag from '@/apis/tag'
 import apiDoc from '@/apis/document'
 import { ArrowRight } from '@element-plus/icons-vue'
 import { computed, ref, reactive, nextTick } from 'vue'
@@ -103,7 +142,7 @@ const props = defineProps({
   bucketName: { type: String, default: '' },
   scope: { type: String, default: '' },
   schemaId: { type: String, default: '' },
-  dbName: { type: String, default: '' }
+  dbName: { type: String, default: '' },
 })
 const { bucketName, scope, dbName } = props
 const editingSchemaId = ref(props.schemaId)
@@ -112,14 +151,26 @@ const submitTitle = computed(() => {
   return editingSchemaId.value ? '修改' : '新建'
 })
 const title = computed(() => {
-  let t = scope === 'document' ? '文档字段定义' : (scope === 'db' ? '数据库属性定义' : '集合属性定义')
+  let t =
+    scope === 'document'
+      ? '文档字段定义'
+      : scope === 'db'
+      ? '数据库属性定义'
+      : '集合属性定义'
   t += '-' + (editingSchemaId.value ? '修改' : '新建')
   return t
 })
 const activeTab = ref('first')
-const tags = reactive([] as any[])
 
-const schema = ref({ name: '', title: '', description: '', order: 99999, parentName: '', scope: scope, tags: [], body: {} })
+const schema = ref({
+  name: '',
+  title: '',
+  description: '',
+  order: 99999,
+  parentName: '',
+  scope: scope,
+  body: {},
+})
 if (dbName) Object.assign(schema.value, { database: dbName })
 const previewResult = ref('')
 
@@ -149,15 +200,17 @@ const copy = async () => {
   try {
     await toClipboard(previewResult.value)
     copyTooltipVisible.value = true
-    setTimeout(() => { copyTooltipVisible.value = false }, 1000)
-  } catch (e) { }
+    setTimeout(() => {
+      copyTooltipVisible.value = false
+    }, 1000)
+  } catch (e) {}
 }
 
 const elJsonEditor = ref<HTMLElement | null>(null)
 let jsonEditor: any = null
 const jsonEditorOptions = {
   mode: 'code',
-  search: false
+  search: false,
 }
 const pasteSchemaPanel = ref(false)
 let pastedSchema: any
@@ -173,7 +226,7 @@ const onPasteSchema = (prop: SchemaProp) => {
       try {
         const clipText = await navigator.clipboard.readText()
         jsonEditor.setText(clipText)
-      } catch (e) { }
+      } catch (e) {}
     }
   })
   return new Promise((resovle, reject) => {
@@ -231,10 +284,6 @@ const onSubmit = () => {
   }
 }
 
-apiTag.list(bucketName).then((datas: any) => {
-  tags.push(...datas)
-})
-
 if (props.schemaId) {
   apiSchema.get(bucketName, props.schemaId).then((data: any) => {
     let { title, description } = data
@@ -246,11 +295,11 @@ if (props.schemaId) {
 </script>
 
 <style lang="scss">
+@reference 'tailwindcss';
 #schemaEditor {
   @apply h-full flex flex-col overflow-hidden;
 
   .tvu-jse {
-
     .tvu-jse__properties,
     .tvu-jse__property-fields {
       @apply w-1/2 border border-gray-200 rounded-md overflow-auto p-2;
@@ -258,7 +307,6 @@ if (props.schemaId) {
   }
 
   .jsoneditor {
-
     .jsoneditor-transform,
     .jsoneditor-poweredBy {
       display: none;

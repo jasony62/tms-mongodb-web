@@ -10,7 +10,6 @@ import Dir from '../views/Dir.vue'
 import Acl from '../views/Acl.vue'
 import DbSchemas from '../views/DbSchemas.vue'
 import ClSchemas from '../views/ClSchemas.vue'
-import Tag from '../views/Tag.vue'
 import Files from '../views/Files.vue'
 import Database from '../views/Database.vue'
 import Collection from '../views/Collection.vue'
@@ -158,12 +157,6 @@ const routes: RouteRecordRaw[] = [
         path: `${BucketPart}/clSchemas/`,
         name: 'clSchemas',
         component: ClSchemas,
-        props: true,
-      },
-      {
-        path: `${BucketPart}/tag/`,
-        name: 'tag',
-        component: Tag,
         props: true,
       },
       {

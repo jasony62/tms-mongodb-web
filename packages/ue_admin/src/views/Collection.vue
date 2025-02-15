@@ -10,8 +10,11 @@
       <el-breadcrumb :separator-icon="ArrowRight" v-else>
         <el-breadcrumb-item :to="{ name: 'databases' }">{{
           DbLabel
-          }}</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ name: 'database', params: { dbName: dbName } }">{{ dbName }}</el-breadcrumb-item>
+        }}</el-breadcrumb-item>
+        <el-breadcrumb-item
+          :to="{ name: 'database', params: { dbName: dbName } }"
+          >{{ dbName }}</el-breadcrumb-item
+        >
         <el-breadcrumb-item>{{ clName }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
@@ -21,17 +24,35 @@
       <div class="flex flex-col gap-4" :class="COMPACT ? 'w-full' : 'w-4/5'">
         <el-auto-resizer class="flex-grow overflow-x-auto">
           <template #default="{ height, width }">
-            <el-table-v2 id="table" :data="store.documents" :columns="tableColumns" :row-height="rowHeight"
-              :width="width" :height="height" fixed :row-event-handlers="RowEventHandlers" :row-class="rowClass"
-              :on-doc-cell-click="onDocCellClick" />
+            <el-table-v2
+              id="table"
+              :data="store.documents"
+              :columns="tableColumns"
+              :row-height="rowHeight"
+              :width="width"
+              :height="height"
+              fixed
+              :row-event-handlers="RowEventHandlers"
+              :row-class="rowClass"
+              :on-doc-cell-click="onDocCellClick"
+            />
           </template>
         </el-auto-resizer>
         <div class="flex flex-row gap-4 p-2 items-center justify-between">
-          <span class="tmw-pagination__text">已选中 {{ selectedDocuments.length }} 条数据</span>
+          <span class="tmw-pagination__text"
+            >已选中 {{ selectedDocuments.length }} 条数据</span
+          >
           <div class="flex flex-row gap-4" :hide-on-single-page="true">
-            <el-pagination layout="total, sizes, prev, pager, next" background :total="CompData.docBatch.total"
-              :page-sizes="[10, 25, 50, 100]" :current-page="CompData.docBatch.page" :page-size="CompData.docBatch.size"
-              @current-change="changeDocPage" @size-change="changeDocSize"></el-pagination>
+            <el-pagination
+              layout="total, sizes, prev, pager, next"
+              background
+              :total="CompData.docBatch.total"
+              :page-sizes="[10, 25, 50, 100]"
+              :current-page="CompData.docBatch.page"
+              :page-size="CompData.docBatch.size"
+              @current-change="changeDocPage"
+              @size-change="changeDocSize"
+            ></el-pagination>
             <el-button @click="listDocByKw">刷新</el-button>
           </div>
         </div>
@@ -43,22 +64,39 @@
             <el-form-item label="表格行高度">
               <el-input-number v-model="rowHeight" :step="50" />
             </el-form-item>
-            <el-form-item :label="(CurrentColumn.title ? `【${CurrentColumn.title}】` : '') + '列宽度'">
-              <el-input-number v-model="colWidth" :min="0" :step="40" :disabled="!CurrentColumn.name" />
+            <el-form-item
+              :label="
+                (CurrentColumn.title ? `【${CurrentColumn.title}】` : '') +
+                '列宽度'
+              "
+            >
+              <el-input-number
+                v-model="colWidth"
+                :min="0"
+                :step="40"
+                :disabled="!CurrentColumn.name"
+              />
             </el-form-item>
           </el-form>
         </div>
         <div>
-          <el-button v-if="HasDocEditRight" @click="createDocument">添加文档</el-button>
+          <el-button v-if="HasDocEditRight" @click="createDocument"
+            >添加文档</el-button
+          >
         </div>
         <div v-for="ep in etlPlugins">
           <el-button type="success" plain @click="handleExtract(ep)">{{
             ep.title
-            }}</el-button>
+          }}</el-button>
         </div>
-        <tmw-plugins :plugins="CompData.plugins" :total-by-all="totalByAll" :total-by-filter="totalByFilter"
-          :total-by-checked="totalByChecked" :handle-plugin="handlePlugin"
-          :docslen="store.documents.length"></tmw-plugins>
+        <tmw-plugins
+          :plugins="CompData.plugins"
+          :total-by-all="totalByAll"
+          :total-by-filter="totalByFilter"
+          :total-by-checked="totalByChecked"
+          :handle-plugin="handlePlugin"
+          :docslen="store.documents.length"
+        ></tmw-plugins>
       </div>
     </div>
   </div>
@@ -67,6 +105,7 @@
 </template>
 
 <style scoped lang="scss">
+@reference 'tailwindcss';
 #table :deep(.el-table-v2__row.current-row) {
   @apply text-red-400;
 }
@@ -168,7 +207,7 @@ const tableColumns = ref<any>([])
 
 // 组件级数据
 const CompData = reactive({
-  docBatch: new Batch(() => { }),
+  docBatch: new Batch(() => {}),
   properties: {} as FieldProp,
   plugins: [] as any[],
   filter: reactive({}),
@@ -202,9 +241,9 @@ const rowClass = ({ rowData }: Parameters<RowClassNameGetter<any>>[0]) => {
 // 表格事件
 const RowEventHandlers = {
   onClick: (params: RowEventHandlerParams) => {
-    const { rowData } = params
+    const { rowData, rowIndex } = params
     CurrentRow.value = rowData
-  }
+  },
 }
 
 const handleCondition = () => {
@@ -213,8 +252,7 @@ const handleCondition = () => {
     filter: {} as any,
     orderBy: {} as any,
   }
-  if (!conditions.length)
-    return criterais
+  if (!conditions.length) return criterais
 
   conditions.forEach((ele: any) => {
     Object.assign(criterais.filter, ele.rule.filter)
@@ -252,10 +290,20 @@ const createTableColumns = async () => {
     tableColumns.value.push({
       key: 'selection',
       width: 40,
-      cellRenderer: ({ rowData, rowIndex }: { rowData: any, rowIndex: number }) => {
+      cellRenderer: ({
+        rowData,
+        rowIndex,
+      }: {
+        rowData: any
+        rowIndex: number
+      }) => {
         const onChange = (checked: CheckboxValueType) => {
           if (checked) selectedDocuments.value.push(rowData)
-          else selectedDocuments.value.splice(selectedDocuments.value.indexOf(rowData), 1)
+          else
+            selectedDocuments.value.splice(
+              selectedDocuments.value.indexOf(rowData),
+              1
+            )
           CheckedRow[rowIndex] = checked
         }
         return h(ElCheckbox, { modelValue: CheckedRow[rowIndex], onChange })
@@ -263,15 +311,16 @@ const createTableColumns = async () => {
       headerCellRenderer: () => {
         const onChange = (checked: CheckboxValueType) => {
           if (checked) {
-            for (let i = 0; i < store.documents.length; i++) CheckedRow[i] = true
+            for (let i = 0; i < store.documents.length; i++)
+              CheckedRow[i] = true
             selectedDocuments.value.push(...store.documents)
           } else {
-            Object.keys(CheckedRow).forEach((k) => CheckedRow[k] = false)
+            Object.keys(CheckedRow).forEach((k) => (CheckedRow[k] = false))
             selectedDocuments.value.splice(0, selectedDocuments.value.length)
           }
         }
         return h(ElCheckbox, { onChange })
-      }
+      },
     })
   }
   // 数据列
@@ -282,7 +331,15 @@ const createTableColumns = async () => {
       dataKey: propName,
       title: propAttrs.title,
       width: columnsWidth[propName] ?? propAttrs.width ?? 120,
-      cellRenderer: ({ rowData, rowIndex, columnIndex }: { rowData: any, rowIndex: number, columnIndex: number }) => {
+      cellRenderer: ({
+        rowData,
+        rowIndex,
+        columnIndex,
+      }: {
+        rowData: any
+        rowIndex: number
+        columnIndex: number
+      }) => {
         return h(DocCell, {
           propAttrs,
           propName,
@@ -290,29 +347,54 @@ const createTableColumns = async () => {
           downloadFile: downLoadFile,
           onDocCellClick: () => {
             onDocCellClick(rowData, rowIndex, propName, columnIndex)
-          }
+          },
         })
       },
       headerCellRenderer: () => {
         const content = [
           h('div', { class: 'px-1' }, propAttrs.title),
-          h(ElIcon, { size: '1rem', class: { 'column-filter-active': IsColumnFiltered[propName] } }, { default: () => h(Filter) }),
+          h(
+            ElIcon,
+            {
+              size: '1rem',
+              class: { 'column-filter-active': IsColumnFiltered[propName] },
+            },
+            { default: () => h(Filter) }
+          ),
         ]
         if (SortColumn[propName] === 'asc') {
-          content.push(h(ElIcon, { size: '1rem' }, { default: () => h(SortUp) }))
-        } if (SortColumn[propName] === 'desc') {
-          content.push(h(ElIcon, { size: '1rem' }, { default: () => h(SortDown) }))
+          content.push(
+            h(ElIcon, { size: '1rem' }, { default: () => h(SortUp) })
+          )
         }
-        return h(ElTooltip,
-          { content: propAttrs.description || propAttrs.title, placement: 'top', effect: 'light', showAfter: TipShowAfter },
+        if (SortColumn[propName] === 'desc') {
+          content.push(
+            h(ElIcon, { size: '1rem' }, { default: () => h(SortDown) })
+          )
+        }
+        return h(
+          ElTooltip,
           {
-            default: () => h(
-              'div',
-              { class: 'flex flex-row gap-1 items-center', onClick: (evt: any) => { handleFilter(propAttrs, propName) } },
-              content
-            )
-          })
-      }
+            content: propAttrs.description || propAttrs.title,
+            placement: 'top',
+            effect: 'light',
+            showAfter: TipShowAfter,
+          },
+          {
+            default: () =>
+              h(
+                'div',
+                {
+                  class: 'flex flex-row gap-1 items-center',
+                  onClick: (evt: any) => {
+                    handleFilter(propAttrs, propName)
+                  },
+                },
+                content
+              ),
+          }
+        )
+      },
     })
   })
   // 操作列
@@ -330,7 +412,7 @@ const createTableColumns = async () => {
         onEdit: editDocument,
         onCopy: copyDocument,
         onRemove: removeDocument,
-        onAcl: gotoAcl
+        onAcl: gotoAcl,
       })
     },
   })
@@ -383,11 +465,16 @@ const handleFilter = (schema: any, name: any) => {
       /**
        * 设置列状态
        */
-      Object.keys(IsColumnFiltered).forEach(k => delete IsColumnFiltered[k])
+      Object.keys(IsColumnFiltered).forEach((k) => delete IsColumnFiltered[k])
       store.conditions.forEach((c: any) => {
-        if (c.byKeyword
-          || Array.isArray(c.rule?.filter[c.columnName]?.keyword)
-          || (schema.type === 'boolean' && [true, false, null].indexOf(c.rule?.filter[c.columnName]?.keyword)) !== -1)
+        if (
+          c.byKeyword ||
+          Array.isArray(c.rule?.filter[c.columnName]?.keyword) ||
+          (schema.type === 'boolean' &&
+            [true, false, null].indexOf(
+              c.rule?.filter[c.columnName]?.keyword
+            )) !== -1
+        )
           IsColumnFiltered[c.columnName] = true
       })
       listDocByKw()
@@ -396,7 +483,12 @@ const handleFilter = (schema: any, name: any) => {
 }
 
 // 点击单元格
-const onDocCellClick = async (rowData: any, rowIndex: number, propName: string, columnIndex: number) => {
+const onDocCellClick = async (
+  rowData: any,
+  rowIndex: number,
+  propName: string,
+  columnIndex: number
+) => {
   const prop = Collection.schema.body.properties[propName]
   CurrentColumn.title = prop.title
   CurrentColumn.name = propName
@@ -416,13 +508,13 @@ const createDocument = () => {
 const previewDocument = (document: any) => {
   const onSave = HasDocEditRight.value
     ? (newDoc: any) => {
-      apiDoc
-        .update(bucketName, dbName, clName, document._id, newDoc)
-        .then(() => {
-          Object.assign(document, newDoc)
-          ElMessage.success({ showClose: true, message: '修改成功' })
-        })
-    }
+        apiDoc
+          .update(bucketName, dbName, clName, document._id, newDoc)
+          .then(() => {
+            Object.assign(document, newDoc)
+            ElMessage.success({ showClose: true, message: '修改成功' })
+          })
+      }
     : undefined
   // 打开预览窗口
   const { opened } = useDocPreviewJson({ document, onSave })
@@ -453,7 +545,7 @@ const removeDocument = (document: any) => {
           // listDocByKw()
         })
     })
-    .catch(() => { })
+    .catch(() => {})
 }
 
 const copyDocument = (document: any) => {
@@ -467,7 +559,10 @@ const copyDocument = (document: any) => {
  * 打开文档acl编辑对话框
  */
 const gotoAcl = (doc: any) => {
-  router.push({ name: 'docAcl', params: { bucketName, dbName, clName, docId: doc._id } })
+  router.push({
+    name: 'docAcl',
+    params: { bucketName, dbName, clName, docId: doc._id },
+  })
 }
 /**
  * 文档对象的说明
@@ -502,7 +597,7 @@ const setPluginDocParam = (docScope: string) => {
 }
 /**
  * 执行插件操作
- * 
+ *
  * @param plugin 指定的插件
  * @param docScope 操作的文档范围类型
  * @param widgetResult 插件部件收集的数据
@@ -567,7 +662,11 @@ function onExecute(
         showClose: true,
       })
       listDocByKw()
-    } else if (result && typeof result === 'object' && Object.keys(result).length > 0) {
+    } else if (
+      result &&
+      typeof result === 'object' &&
+      Object.keys(result).length > 0
+    ) {
       /**
        * 返回的是对象
        */
@@ -618,9 +717,11 @@ function onExecute(
       } else if (result.type === 'numbers') {
         /**返回操作结果——数量 */
         let { nInserted, nModified, nRemoved } = result
-        let message = `插件[${plugin.title}]执行完毕，添加[${parseInt(nInserted) || 0
-          }]条，修改[${parseInt(nModified) || 0}]条，删除[${parseInt(nRemoved) || 0
-          }]条记录。`
+        let message = `插件[${plugin.title}]执行完毕，添加[${
+          parseInt(nInserted) || 0
+        }]条，修改[${parseInt(nModified) || 0}]条，删除[${
+          parseInt(nRemoved) || 0
+        }]条记录。`
         ElMessageBox.confirm(message, '提示', {
           confirmButtonText: '关闭',
           cancelButtonText: '刷新数据',
@@ -709,28 +810,6 @@ const changeDocPage = (page: number) => {
 const changeDocSize = (size: number) => {
   CompData.docBatch.size = size
   CompData.docBatch.goto(1)
-}
-/**
- * 根据标签获得匹配的schema
- * @param tags
- */
-const listSchemaByTag = (tags: any) => {
-  let temp = {}
-  const arrPromise = tags.map((item: string) =>
-    apiSchema.listByTag(bucketName, item)
-  )
-  return Promise.all(arrPromise)
-    .then((res) => {
-      res.forEach((schemas: any) => {
-        schemas.forEach((schema: any) => {
-          temp = { ...temp, ...schema.body.properties }
-        })
-      })
-      return temp
-    })
-    .catch((err: any) => {
-      throw new Error(err)
-    })
 }
 
 const listDocByKw = () => {

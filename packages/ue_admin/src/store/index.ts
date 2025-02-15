@@ -17,7 +17,6 @@ export default defineStore('mongodb', {
       collectionSchemas: [] as any[],
       collectionDirs: [] as any[],
       collections: [] as any[],
-      tags: [] as any[],
       documents: [] as any[],
       conditions: [] as any[], // 保存每一列的筛选条件
       collCache: new Map<string, any>(),
@@ -265,27 +264,6 @@ export default defineStore('mongodb', {
       return apis.doc.remove(bucket, db, cl, document._id).then(() => {
         this.documents.splice(this.documents.indexOf(document), 1)
         return { document }
-      })
-    },
-    listTags(payload: { bucket: any }) {
-      const { bucket } = payload
-      return apis.tag.list(bucket).then((tags: never[]) => {
-        this.tags = tags
-        return { tags }
-      })
-    },
-    appendTag(payload: { tag: any }) {
-      this.tags.push(payload.tag)
-    },
-    updateTag(payload: { index: any; tag: any }) {
-      const { index, tag } = payload
-      this.tags.splice(index, 1, tag)
-    },
-    removeTag(payload: { bucket: any; tag: any }) {
-      const { bucket, tag } = payload
-      return apis.tag.remove(bucket, tag).then(() => {
-        this.tags.splice(this.tags.indexOf(tag), 1)
-        return { tag }
       })
     },
     conditionAddColumn(payload: { condition: any }) {

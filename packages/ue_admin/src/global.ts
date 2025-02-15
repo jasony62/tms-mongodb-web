@@ -12,7 +12,6 @@ type Globalsettings = {
   externalLoginUrl: string // 第三方登录
   externalFsUrl: string
   templateVarsApiUrl: string
-  tmwAppTags: string // 标签字段名称
   compact: boolean // 精简模式，在iframe打开时使用
   extract: boolean // 提取数据模式，在iframe打开时使用
   multiple: boolean // 提取数据模式下，是否支持多选
@@ -44,7 +43,6 @@ let _globalsettings: Globalsettings = {
   externalLoginUrl: import.meta.env.VITE_EXTERNAL_LOGIN_URL,
   externalFsUrl: import.meta.env.VITE_EXTERNAL_FS_URL,
   templateVarsApiUrl: import.meta.env.VITE_TEMPLATE_VARS_API_URL,
-  tmwAppTags: import.meta.env.VITE_TMW_APP_TAGS || 'TMW_TAGS',
   compact: false,
   extract: false,
   multiple: true,
@@ -85,7 +83,6 @@ export function init(settings: Globalsettings) {
     _globalsettings.externalFsUrl = settings.externalFsUrl
   if (settings.templateVarsApiUrl)
     _globalsettings.templateVarsApiUrl = settings.templateVarsApiUrl
-  if (settings.tmwAppTags) _globalsettings.tmwAppTags = settings.tmwAppTags
   if (settings.compact === true) _globalsettings.compact = true
   if (settings.extract === true) _globalsettings.extract = true
   if (settings.multiple === false) _globalsettings.multiple = false
@@ -223,11 +220,6 @@ export const EXTERNAL_LOGIN_URL = () => _globalsettings.externalLoginUrl
  */
 export const EXTERNAL_FS_URL = () => _globalsettings.externalFsUrl
 /**
- * 标签数据字段名
- * @returns
- */
-export const TMW_APP_TAGS = () => _globalsettings.tmwAppTags
-/**
  * 精简模式
  */
 export const COMPACT_MODE = () => _globalsettings.compact
@@ -249,7 +241,7 @@ export const TEMPLATE_VARS_API_URL = () => _globalsettings.templateVarsApiUrl
 export const TIP_SHOW_AFTER = () => _globalsettings.tipShowAfter
 
 // 默认的文档对象说明模板
-const DocManualTpl = `<div class="p-4 flex flex-col gap-2"> <div>ID: {{ doc._id }}</div><div>TAGS: {{doc.${TMW_APP_TAGS()}}}</div> </div>`
+const DocManualTpl = `<div class="p-4 flex flex-col gap-2"> <div>ID: {{ doc._id }}</div></div>`
 
 /**
  * 文档对象在线用户手册

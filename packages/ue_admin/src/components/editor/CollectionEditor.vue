@@ -1,20 +1,44 @@
 <template>
-  <el-dialog title="集合" v-model="dialogVisible" :destroy-on-close="true" :close-on-click-modal="false"
-    :before-close="onBeforeClose">
+  <el-dialog
+    title="集合"
+    v-model="dialogVisible"
+    :destroy-on-close="true"
+    :close-on-click-modal="false"
+    :before-close="onBeforeClose"
+  >
     <div class="el-dialog-div">
       <el-tabs v-model="activeTab">
         <el-tab-pane label="基本信息" name="info"></el-tab-pane>
         <el-tab-pane label="扩展信息" name="extra"></el-tab-pane>
         <el-tab-pane label="设置" name="setting"></el-tab-pane>
-        <el-tab-pane label="文档编辑转换规则" name="convert" v-if="false"></el-tab-pane>
+        <el-tab-pane
+          label="文档编辑转换规则"
+          name="convert"
+          v-if="false"
+        ></el-tab-pane>
       </el-tabs>
-      <el-form :model="collection" label-position="top" v-show="activeTab === 'info'" :rules="rules">
+      <el-form
+        :model="collection"
+        label-position="top"
+        v-show="activeTab === 'info'"
+        :rules="rules"
+      >
         <el-form-item label="所属分类目录" v-if="clDirs?.length">
-          <el-tree-select v-model="newClDirFullName" clearable check-strictly :data="clDirs"
-            :render-after-expand="false" node-key="full_name" :props="ClDirTreeProps" />
+          <el-tree-select
+            v-model="newClDirFullName"
+            clearable
+            check-strictly
+            :data="clDirs"
+            :render-after-expand="false"
+            node-key="full_name"
+            :props="ClDirTreeProps"
+          />
         </el-form-item>
         <el-form-item label="集合名称（系统）" prop="sysname">
-          <el-input v-model="collection.sysname" :disabled="mode === 'update'"></el-input>
+          <el-input
+            v-model="collection.sysname"
+            :disabled="mode === 'update'"
+          ></el-input>
         </el-form-item>
         <el-form-item label="集合名称（英文）" prop="name">
           <el-input v-model="collection.name"></el-input>
@@ -23,9 +47,22 @@
           <el-input v-model="collection.title"></el-input>
         </el-form-item>
         <el-form-item label="集合文档字段定义" prop="schema_id">
-          <el-select v-model="collection.schema_id" clearable placeholder="请选择定义名称">
-            <el-option-group v-for="schema in schemas" :key="schema.label" :label="schema.label">
-              <el-option v-for="item in schema.options" :key="item._id" :label="item.title" :value="item._id" />
+          <el-select
+            v-model="collection.schema_id"
+            clearable
+            placeholder="请选择定义名称"
+          >
+            <el-option-group
+              v-for="schema in schemas"
+              :key="schema.label"
+              :label="schema.label"
+            >
+              <el-option
+                v-for="item in schema.options"
+                :key="item._id"
+                :label="item.title"
+                :value="item._id"
+              />
             </el-option-group>
           </el-select>
         </el-form-item>
@@ -51,37 +88,69 @@
             <div>
               <el-form :inline="true" label-position="left">
                 <el-form-item>
-                  <el-select v-model="newClExtSchema.id" clearable placeholder="请选择定义名称" style="width: 240px">
-                    <el-option-group v-for="schema in schemas" :key="schema.label" :label="schema.label">
-                      <el-option v-for="item in schema.options" :key="item._id" :label="item.title" :value="item._id" />
+                  <el-select
+                    v-model="newClExtSchema.id"
+                    clearable
+                    placeholder="请选择定义名称"
+                    style="width: 240px"
+                  >
+                    <el-option-group
+                      v-for="schema in schemas"
+                      :key="schema.label"
+                      :label="schema.label"
+                    >
+                      <el-option
+                        v-for="item in schema.options"
+                        :key="item._id"
+                        :label="item.title"
+                        :value="item._id"
+                      />
                     </el-option-group>
                   </el-select>
                 </el-form-item>
                 <el-form-item>
-                  <el-button type="primary" @click="onAddClExtSchema()">添加</el-button>
+                  <el-button type="primary" @click="onAddClExtSchema()"
+                    >添加</el-button
+                  >
                 </el-form-item>
               </el-form>
-              <div class="flex flex-col mt-2" v-if="collection.ext_schemas.length">
-                <div v-for="(s, index) in collection.ext_schemas" class="flex flex-row gap-2">
+              <div
+                class="flex flex-col mt-2"
+                v-if="collection.ext_schemas.length"
+              >
+                <div
+                  v-for="(s, index) in collection.ext_schemas"
+                  class="flex flex-row gap-2"
+                >
                   <div>{{ s.title }}</div>
-                  <div><el-button size="small" @click="onRemoveClExtSchema(s, index)" :icon="Delete" circle></el-button>
+                  <div>
+                    <el-button
+                      size="small"
+                      @click="onRemoveClExtSchema(s, index)"
+                      :icon="Delete"
+                      circle
+                    ></el-button>
                   </div>
                 </div>
               </div>
             </div>
-            <el-alert title="在基础文档内容定义的基础上，合并多个文档定义，构成使用的定义。" type="info" :closable="false" />
-          </el-form-item>
-          <el-form-item label="集合标签" v-if="false">
-            <el-select v-model="collection.tags" clearable multiple placeholder="请选择集合标签">
-              <el-option v-for="tag in tags" :key="tag._id" :label="tag.name" :value="tag.name"></el-option>
-            </el-select>
+            <el-alert
+              title="在基础文档内容定义的基础上，合并多个文档定义，构成使用的定义。"
+              type="info"
+              :closable="false"
+            />
           </el-form-item>
         </el-form>
       </div>
       <el-form label-position="top" v-show="activeTab === 'setting'">
         <el-form-item label="集合通过访问控制列表访问">
           <el-switch v-model="collection.aclCheck"></el-switch>
-          <el-alert title="集合创建成功后可设置访问控制列表。" type="info" :closable="false" v-if="!collection._id" />
+          <el-alert
+            title="集合创建成功后可设置访问控制列表。"
+            type="info"
+            :closable="false"
+            v-if="!collection._id"
+          />
         </el-form-item>
         <el-form-item label="集合中的文档通过访问控制列表访问">
           <el-switch v-model="collection.docAclCheck"></el-switch>
@@ -90,15 +159,24 @@
           <el-switch v-model="collection.adminOnly"></el-switch>
         </el-form-item>
         <el-form-item label="集合中的文档保存到Elasticsearch">
-          <el-switch v-model="collection.extensions.elasticsearch.enabled"></el-switch>
+          <el-switch
+            v-model="collection.extensions.elasticsearch.enabled"
+          ></el-switch>
         </el-form-item>
         <el-form-item label="按文档创建先后升序排序（默认降序）">
-          <el-switch v-model="collection.orderBy._id" active-value="asc" inactive-value="desc"></el-switch>
+          <el-switch
+            v-model="collection.orderBy._id"
+            active-value="asc"
+            inactive-value="desc"
+          ></el-switch>
         </el-form-item>
       </el-form>
       <div v-show="activeTab === 'convert'" class="h-96">
-        <textarea ref="elConvEditor" class="h-full w-full border border-gray-200 p-2"
-          v-model="docFieldConvertRules"></textarea>
+        <textarea
+          ref="elConvEditor"
+          class="h-full w-full border border-gray-200 p-2"
+          v-model="docFieldConvertRules"
+        ></textarea>
       </div>
     </div>
 
@@ -113,9 +191,15 @@
 import { Batch } from 'tms-vue3'
 import apiCollection from '@/apis/collection'
 import apiSchema from '@/apis/schema'
-import apiTag from '@/apis/tag'
 import { computed, onMounted, reactive, ref, toRaw } from 'vue'
-import { FormRules, ElMessageBox, ElButton, ElInput, ElSelect, ElOption } from 'element-plus'
+import {
+  FormRules,
+  ElMessageBox,
+  ElButton,
+  ElInput,
+  ElSelect,
+  ElOption,
+} from 'element-plus'
 
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
 import { Delete } from '@element-plus/icons-vue'
@@ -144,7 +228,6 @@ const props = defineProps({
         description: '',
         schema_id: '',
         ext_schemas: [],
-        tags: [],
         dir_full_name: '',
         spreadsheet: 'no',
         aclCheck: DEFAULT_VALUES()?.aclCheck?.cl,
@@ -152,17 +235,17 @@ const props = defineProps({
         adminOnly: false,
         extensions: {
           elasticsearch: {
-            enabled: false
+            enabled: false,
           },
         },
         orderBy: {
-          TMW_CREATE_TIME: 'desc'
+          TMW_CREATE_TIME: 'desc',
         },
         docFieldConvertRules: {},
       }
     },
   },
-  onClose: { type: Function, default: (newCl: any) => { } },
+  onClose: { type: Function, default: (newCl: any) => {} },
 })
 
 // 设置默认值
@@ -183,14 +266,13 @@ const schemas = reactive([
     options: [] as any[],
   },
 ])
-const tags = ref([] as any[])
 const criteria = reactive({
   databaseLoading: false,
   databases: [] as any[],
-  dbBatch: new Batch(() => { }),
+  dbBatch: new Batch(() => {}),
   collectionLoading: false,
   collections: [] as any[],
-  clBatch: new Batch(() => { }),
+  clBatch: new Batch(() => {}),
   properties: {} as { [k: string]: any },
 })
 
@@ -229,12 +311,12 @@ const ClDirTreeProps = {
   children: 'children',
   label: 'title',
 }
-const listClDir = (async () => {
+const listClDir = async () => {
   clDirs.value = await store.listCollectionDir({
     bucket: bucketName,
     db: dbName,
   })
-})
+}
 /**
  * 扩展schema
  */
@@ -252,9 +334,6 @@ onMounted(() => {
       })
     })
   listClDir()
-  apiTag.list(props.bucketName).then((tags2: any[]) => {
-    tags2.forEach((t) => tags.value.push(t))
-  })
 })
 
 // 关闭对话框时执行指定的回调方法
@@ -269,7 +348,7 @@ const onBeforeClose = () => {
 
 const rules = reactive<FormRules>({
   name: [{ required: true, message: '集合名称不允许为空' }],
-  schema_id: [{ required: true, message: '集合文档定义不允许为空' }]
+  schema_id: [{ required: true, message: '集合文档定义不允许为空' }],
 })
 
 const onSubmit = () => {
@@ -280,10 +359,12 @@ const onSubmit = () => {
   if (!collection.schema_id)
     return ElMessageBox.alert('请指定[集合内容定义(默认)]的值')
 
-      //清除附加字段
-      ;['schema_name', 'schema_order', 'schema_parentName', 'children'].forEach(item => {
-        if (collection.hasOwnProperty(item)) delete collection[item]
-      })
+    //清除附加字段
+  ;['schema_name', 'schema_order', 'schema_parentName', 'children'].forEach(
+    (item) => {
+      if (collection.hasOwnProperty(item)) delete collection[item]
+    }
+  )
 
   // 所属分类目录
   collection.dir_full_name = toRaw(newClDirFullName.value)

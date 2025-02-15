@@ -13,8 +13,8 @@
   "license": "MIT",
   "dependencies": {
     "archiver": "7.0.1",
-    "commander": "12.1.0",
-    "dayjs": "^1.11.3",
+    "commander": "13.1.0",
+    "dayjs": "1.11.13",
     "debug": "4.4.0",
     "glob": "11.0.0",
     "lodash": "^4.17.21",
@@ -30,9 +30,9 @@
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.182",
+    "@types/lodash": "4.17.15",
     "@types/node": "22.7.4",
     "rimraf": "6.0.1",
-    "typescript": "5.5.0-dev.20240326"
+    "typescript": "5.7.3"
   }
 }

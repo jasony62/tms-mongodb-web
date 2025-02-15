@@ -1,7 +1,7 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import Base from 'tmw-kit/dist/ctrl/base.js'
 import DocumentHelper from '../documentHelper.js'
-import { ModelDoc, ModelSchema, makeTagsFilter, makeProjection } from 'tmw-kit'
+import { ModelDoc, ModelSchema, makeProjection } from 'tmw-kit'
 import Debug from 'debug'
 
 /**
@@ -49,7 +49,7 @@ class Document extends Base {
    * @returns
    */
   async list() {
-    const { page, size, tags, fields, debug } = this.request.query
+    const { page, size, fields, debug } = this.request.query
 
     let deglog // 输出调试信息
     if (/y|yes|true/i.test(debug))
@@ -64,10 +64,7 @@ class Document extends Base {
     let { filter: rawFilter, orderBy } = this.request.body
 
     // 标签加入筛选条件
-    let filter
-    if (Array.isArray(tags) && tags.length)
-      filter = makeTagsFilter(tags, rawFilter)
-    else filter = rawFilter
+    let filter = rawFilter
 
     if (deglog && rawFilter)
       deglog('请求的过滤条件', rawFilter, JSON.stringify(filter))

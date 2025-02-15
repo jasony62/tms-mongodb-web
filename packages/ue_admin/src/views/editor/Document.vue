@@ -3,11 +3,16 @@
     <!--header-->
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight">
-        <el-breadcrumb-item :to="{ name: 'databases' }">{{ DbLabel }}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'databases' }">{{
+          DbLabel
+        }}</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ name: 'database', params: { dbName } }">{{
           dbName
         }}</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ name: 'collection', params: { dbName, clName } }">{{ clName }}</el-breadcrumb-item>
+        <el-breadcrumb-item
+          :to="{ name: 'collection', params: { dbName, clName } }"
+          >{{ clName }}</el-breadcrumb-item
+        >
         <el-breadcrumb-item>{{
           Document._id ? Document._id : '新建文档'
         }}</el-breadcrumb-item>
@@ -15,63 +20,132 @@
     </div>
     <div class="p-2 border border-gray-200 mb-2 rounded-md text-center">
       <el-button type="primary" @click="onSubmit">提交</el-button>
-      <el-button v-for="ep in etlPlugins" type="success" @click="handleExtract(ep)">{{ ep.title }}</el-button>
+      <el-button
+        v-for="ep in etlPlugins"
+        type="success"
+        @click="handleExtract(ep)"
+        >{{ ep.title }}</el-button
+      >
     </div>
-    <div class="flex flex-row gap-4 h-full overflow-auto pb-4" v-if="Collection._id && (!docId || Document._id)">
+    <div
+      class="flex flex-row gap-4 h-full overflow-auto pb-4"
+      v-if="Collection._id && (!docId || Document._id)"
+    >
       <div class="w-1/3 h-full flex-grow-none overflow-auto">
-        <tms-json-doc ref="elJdeDoc" :schema="Collection.editSchema?.body || Collection.schema.body" :value="Document"
-          :enable-paste="true" :on-paste="onJdocPaste" :on-lookup="onJdocLookup" :on-file-select="onFileSelect"
-          :on-file-download="onFileDownload" :show-field-fullname="showFieldFullname" :hide-root-title="true"
-          :hide-root-description="true" @jdoc-focus="onJdocFocus"></tms-json-doc>
-        <el-form label-position="top">
-          <el-form-item label="标签">
-            <el-select v-model="docTags" multiple clearable placeholder="请选择">
-              <el-option v-for="tag in tags" :label="tag.name" :value="tag.name"></el-option>
-            </el-select>
-          </el-form-item>
-        </el-form>
+        <tms-json-doc
+          ref="elJdeDoc"
+          :schema="Collection.editSchema?.body || Collection.schema.body"
+          :value="Document"
+          :enable-paste="true"
+          :on-paste="onJdocPaste"
+          :on-lookup="onJdocLookup"
+          :on-file-select="onFileSelect"
+          :on-file-download="onFileDownload"
+          :show-field-fullname="showFieldFullname"
+          :hide-root-title="true"
+          :hide-root-description="true"
+          @jdoc-focus="onJdocFocus"
+        ></tms-json-doc>
       </div>
-      <div v-if="isJsonField" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
+      <div
+        v-if="isJsonField"
+        class="w-1/3 h-full flex flex-col gap-2 overflow-auto"
+      >
         <div>
-          <el-button type="primary" @click="updateFieldValue">更新【{{ activeField?.fullname }}】</el-button>
+          <el-button type="primary" @click="updateFieldValue"
+            >更新【{{ activeField?.fullname }}】</el-button
+          >
         </div>
         <div ref="elJsonEditor" class="flex-grow"></div>
       </div>
-      <div v-if="isHandlebarsField" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
+      <div
+        v-if="isHandlebarsField"
+        class="w-1/3 h-full flex flex-col gap-2 overflow-auto"
+      >
         <div>
-          <el-button type="primary" @click="updateFieldValue">更新【{{ activeField?.fullname }}】</el-button>
+          <el-button type="primary" @click="updateFieldValue"
+            >更新【{{ activeField?.fullname }}】</el-button
+          >
         </div>
-        <handlebars-viz ref="elTtvField" :vars-root-name="'vars'" :vars="templateVars"
-          :template-text="activeFieldValue" />
+        <handlebars-viz
+          ref="elTtvField"
+          :vars-root-name="'vars'"
+          :vars="templateVars"
+          :template-text="activeFieldValue"
+        />
       </div>
-      <div v-if="isMarkdownField" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
-        <div ref="elMarkdownViewer" class="w-full h-full p-2 border border-gray-300 rounded-md"></div>
+      <div
+        v-if="isMarkdownField"
+        class="w-1/3 h-full flex flex-col gap-2 overflow-auto"
+      >
+        <div
+          ref="elMarkdownViewer"
+          class="w-full h-full p-2 border border-gray-300 rounded-md"
+        ></div>
       </div>
-      <div v-if="isXmlField" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
+      <div
+        v-if="isXmlField"
+        class="w-1/3 h-full flex flex-col gap-2 overflow-auto"
+      >
         <div>
-          <el-button type="primary" @click="updateFieldValue">更新【{{ activeField?.fullname }}】</el-button>
+          <el-button type="primary" @click="updateFieldValue"
+            >更新【{{ activeField?.fullname }}】</el-button
+          >
         </div>
-        <div ref="elXmlEditor" class="w-full border border-gray-300 rounded-md"></div>
+        <div
+          ref="elXmlEditor"
+          class="w-full border border-gray-300 rounded-md"
+        ></div>
       </div>
-      <div v-if="isYamlField" class="w-1/3 h-full flex flex-col gap-2 overflow-auto">
+      <div
+        v-if="isYamlField"
+        class="w-1/3 h-full flex flex-col gap-2 overflow-auto"
+      >
         <div>
-          <el-button type="primary" @click="updateFieldValue">更新【{{ activeField?.fullname }}】</el-button>
+          <el-button type="primary" @click="updateFieldValue"
+            >更新【{{ activeField?.fullname }}】</el-button
+          >
         </div>
-        <div ref="elYamlEditor" class="w-full border border-gray-300 rounded-md"></div>
+        <div
+          ref="elYamlEditor"
+          class="w-full border border-gray-300 rounded-md"
+        ></div>
       </div>
-      <div class="h-full flex flex-col gap-2 relative"
-        :class="isJsonField || isHandlebarsField || isXmlField || isYamlField ? 'w-1/3' : 'w-2/3'">
+      <div
+        class="h-full flex flex-col gap-2 relative"
+        :class="
+          isJsonField || isHandlebarsField || isXmlField || isYamlField
+            ? 'w-1/3'
+            : 'w-2/3'
+        "
+      >
         <div class="absolute top-0 right-0" style="z-index: 999">
           <el-button @click="diagram">图形</el-button>
           <el-button @click="preview">预览</el-button>
-          <el-tooltip effect="dark" content="复制" placement="bottom" :visible="copyTooltipVisible">
+          <el-tooltip
+            effect="dark"
+            content="复制"
+            placement="bottom"
+            :visible="copyTooltipVisible"
+          >
             <el-button @click="copy" :disabled="!previewResult">复制</el-button>
           </el-tooltip>
         </div>
-        <div class="border border-gray-300 rounded-md p-2 h-full w-full overflow-auto">
-          <pre v-if="previewMode === 'text'" class="whitespace-pre-wrap break-all">{{ previewResult }}</pre>
-          <json-diagram-x6 ref="elDiagram" v-if="previewMode === 'diagram'" :schema="Collection.schema.body"
-            :doc="Document" @click-value-node="onClickValueNode">
+        <div
+          class="border border-gray-300 rounded-md p-2 h-full w-full overflow-auto"
+        >
+          <pre
+            v-if="previewMode === 'text'"
+            class="whitespace-pre-wrap break-all"
+            >{{ previewResult }}</pre
+          >
+          <json-diagram-x6
+            ref="elDiagram"
+            v-if="previewMode === 'diagram'"
+            :schema="Collection.schema.body"
+            :doc="Document"
+            @click-value-node="onClickValueNode"
+          >
           </json-diagram-x6>
         </div>
       </div>
@@ -93,11 +167,11 @@
 </template>
 
 <style lang="scss">
+@reference 'tailwindcss';
 #docEditor {
   @apply w-full h-full overflow-auto flex flex-col gap-2;
 
   .jsoneditor {
-
     .jsoneditor-transform,
     .jsoneditor-poweredBy {
       display: none;
@@ -115,8 +189,12 @@
 import { computed, nextTick, ref, inject, watch, onMounted } from 'vue'
 import TmsJsonDoc, { Field, DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
 import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
-import { EXTERNAL_FS_URL, getLocalToken, LABEL, TEMPLATE_VARS_API_URL, TMW_APP_TAGS } from '@/global'
-import apiTag from '@/apis/tag'
+import {
+  EXTERNAL_FS_URL,
+  getLocalToken,
+  LABEL,
+  TEMPLATE_VARS_API_URL,
+} from '@/global'
 import apiCl from '@/apis/collection'
 import apiDoc from '@/apis/document'
 import apiEtl from '@/apis/etl'
@@ -137,11 +215,10 @@ import PropValueEditor from '@/components/PropValueEditor.vue'
 import { useAssistant } from '@/composables/assistant'
 import { TmsAxios } from 'tms-vue3'
 import { transform } from '@/data-aid.js/transform'
-import { EditorView } from "@codemirror/view"
+import { EditorView } from '@codemirror/view'
 import { marked } from 'marked'
 
 // 系统指定的标签字段名称
-const TagsFieldName = TMW_APP_TAGS()
 const DbLabel = computed(() => LABEL('database', '数据库'))
 
 const debug = Debug('tmw:doc-editor')
@@ -185,8 +262,8 @@ onMounted(() => {
 // 文档字段转化规则
 const DocFieldConvertRules = computed(() =>
   Collection.value.docFieldConvertRules &&
-    typeof Collection.value.docFieldConvertRules === 'object' &&
-    Object.keys(Collection.value.docFieldConvertRules).length
+  typeof Collection.value.docFieldConvertRules === 'object' &&
+  Object.keys(Collection.value.docFieldConvertRules).length
     ? Collection.value.docFieldConvertRules
     : null
 )
@@ -212,7 +289,11 @@ const isJsonField = computed(() => {
  */
 const isHandlebarsField = computed(() => {
   if (activeField.value?.schemaType === 'string') {
-    if (['mustache', 'handlebars'].includes(activeField.value.schemaProp.attrs?.format)) {
+    if (
+      ['mustache', 'handlebars'].includes(
+        activeField.value.schemaProp.attrs?.format
+      )
+    ) {
       return true
     }
   }
@@ -286,12 +367,14 @@ const onJdocFocus = (field: Field) => {
     case field.schemaProp.attrs?.format === 'xml':
       nextTick(() => {
         if (elXmlEditor.value) {
-          elXmlEditor.value.childNodes.forEach(c => elXmlEditor.value?.removeChild(c))
+          elXmlEditor.value.childNodes.forEach((c) =>
+            elXmlEditor.value?.removeChild(c)
+          )
           let fieldValue = elJdeDoc.value?.editDoc.get(field.fullname)
           xmlEditor = new EditorView({
             doc: fieldValue ?? '',
             extensions: [],
-            parent: elXmlEditor.value
+            parent: elXmlEditor.value,
           })
         }
       })
@@ -299,12 +382,14 @@ const onJdocFocus = (field: Field) => {
     case field.schemaProp.attrs?.format === 'yaml':
       nextTick(() => {
         if (elYamlEditor.value) {
-          elYamlEditor.value.childNodes.forEach(c => elYamlEditor.value?.removeChild(c))
+          elYamlEditor.value.childNodes.forEach((c) =>
+            elYamlEditor.value?.removeChild(c)
+          )
           let fieldValue = elJdeDoc.value?.editDoc.get(field.fullname)
           yamlEditor = new EditorView({
             doc: fieldValue ?? '',
             extensions: [],
-            parent: elYamlEditor.value
+            parent: elYamlEditor.value,
           })
         }
       })
@@ -350,7 +435,9 @@ const activeFieldValue = computed<string>(() => {
   return ''
 })
 
-const elDiagram = ref<{ setPropertyValue: (field: Field, newVal: any) => void } | null>(null)
+const elDiagram = ref<{
+  setPropertyValue: (field: Field, newVal: any) => void
+} | null>(null)
 const $dialog = inject(dialogInjectionKey)
 /**
  * 在图表上选中了一个值节点
@@ -368,7 +455,7 @@ const onClickValueNode = (field: Field) => {
           elJdeDoc.value?.editDoc.set(field.fullname, newVal)
           // 修改图标中的数据
           elDiagram.value?.setPropertyValue(field, newVal)
-        }
+        },
       },
     })
   }
@@ -395,7 +482,7 @@ function convertExternalData(field: Field, source: string, data: any): any {
   if (!newData) return newData
   log(
     `字段【${field.fullname}】从【${source}】获得外部数据\n` +
-    JSON.stringify(data, null, 2)
+      JSON.stringify(data, null, 2)
   )
   if (DocFieldConvertRules.value === null) {
     log(
@@ -448,14 +535,14 @@ function convertExternalData(field: Field, source: string, data: any): any {
 
   log(
     `字段【${field.fullname}】有【${source}】数据转换规则\n` +
-    JSON.stringify(usedRule, null, 2)
+      JSON.stringify(usedRule, null, 2)
   )
   let converted = {}
   transform(usedRule, data, converted)
 
   log(
     `字段【${field.fullname}】获得【${source}】转换后数据\n` +
-    JSON.stringify(converted, null, 2)
+      JSON.stringify(converted, null, 2)
   )
   if (dataType === 'object' && typeof data === 'object')
     _.assign(newData, data, converted)
@@ -465,9 +552,9 @@ function convertExternalData(field: Field, source: string, data: any): any {
 }
 /**
  * 执行数据转化操作
- * @param result 
- * @param doc 
- * @param transform 
+ * @param result
+ * @param doc
+ * @param transform
  */
 const lookupTransform = (result: any, doc: any, transform: any) => {
   if (Array.isArray(transform) && transform.length) {
@@ -476,12 +563,11 @@ const lookupTransform = (result: any, doc: any, transform: any) => {
       let val = _.get(doc, src)
       _.set(result, dst, val)
     })
-  } else
-    result.id = doc._id
+  } else result.id = doc._id
 }
 /**
  * 表单字段要求查询数据
- * @param field 
+ * @param field
  */
 const onJdocLookup = async (field: Field) => {
   const { lookup } = field.schemaProp
@@ -508,7 +594,12 @@ const onJdocLookup = async (field: Field) => {
       }
     }
     window.addEventListener('message', resultListener)
-    const { opened } = useAssistant({ extract: true, multiple: false, dbName, clName: source?.cl })
+    const { opened } = useAssistant({
+      extract: true,
+      multiple: false,
+      dbName,
+      clName: source?.cl,
+    })
     opened.value = true
   })
 }
@@ -519,7 +610,7 @@ let pasteDocEditor: any
 let pastedDoc: any
 const jsonEditorOptions = {
   mode: 'code',
-  search: false
+  search: false,
 }
 /**
  * 对指定字段执行黏贴操作，快速添加子字段
@@ -536,7 +627,7 @@ const onJdocPaste = async (field: Field) => {
       try {
         const clipText = await navigator.clipboard.readText()
         pasteDocEditor.setText(clipText ?? '')
-      } catch (e) { }
+      } catch (e) {}
     }
   })
   return new Promise((resovle, reject) => {
@@ -642,7 +733,7 @@ const copy = async () => {
     setTimeout(() => {
       copyTooltipVisible.value = false
     }, 1000)
-  } catch (e) { }
+  } catch (e) {}
 }
 /**
  * 更新预览视图
@@ -668,9 +759,10 @@ const onSubmit = () => {
    * 第1个参数：matchSchema = false
    * 第2个参数：cleanEmpty = true
    */
-  const newDoc = elJdeDoc.value?.editing(Collection.value.schemaArbitrary === 'yes' ? false : true)
+  const newDoc = elJdeDoc.value?.editing(
+    Collection.value.schemaArbitrary === 'yes' ? false : true
+  )
   if (newDoc) {
-    newDoc[TagsFieldName] = docTags.value
     if (Document.value._id) {
       apiDoc
         .update(bucketName, dbName, clName, Document.value._id, newDoc)
@@ -710,24 +802,19 @@ const handleExtract = (etl: any) => {
     }
   }
   window.addEventListener('message', resultListener)
-  let options: any = { extract: true, dbName: 'e2e5gmx_addrbook', clName: 'account' }
+  let options: any = {
+    extract: true,
+    dbName: 'e2e5gmx_addrbook',
+    clName: 'account',
+  }
   if (etl?.rules?.multiple !== true) options.multiple = false
   const { opened } = useAssistant(options)
   opened.value = true
 }
 
-// 全部标签
-const tags = ref<any[]>([])
-
-// 文档上的标签
-const docTags = ref<string[]>([])
-
 // 获得文档所在集合对象
 apiCl.byName(bucketName, dbName, clName).then((cl: any) => {
   Collection.value = cl
-})
-apiTag.list(bucketName).then((datas: any) => {
-  tags.value.push(...datas)
 })
 /**
  * etl插件
@@ -740,8 +827,6 @@ apiEtl.findForDst(bucketName, dbName, clName, 'document').then((etls: any) => {
 if (docId)
   apiDoc.get(bucketName, dbName, clName, docId).then((doc: any) => {
     Document.value = doc
-    let tags: string[] = Array.isArray(doc[TagsFieldName]) ? doc[TagsFieldName] : []
-    docTags.value.push(...tags)
   })
 /**
  * 获得模板变量
@@ -758,7 +843,7 @@ if (TEMPLATE_VARS_API_URL()) {
     .then((rsp: any) => {
       let { vars } = rsp.data
       if (Array.isArray(vars) && vars.length) {
-        vars.forEach(v => {
+        vars.forEach((v) => {
           let { name, title, examples } = v
           let v2: any = { name, title }
           if (Array.isArray(examples) && examples.length) v2.examples = examples

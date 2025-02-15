@@ -1,8 +1,15 @@
 <template>
   <div class="grid place-items-center h-screen">
-    <div class="border-2 rounded w-1/4">
-      <sms-code :schema="schema" action-text="登录" :fn-send-code="fnSendCode" :fn-send-sms-code="fnSendSmsCode"
-        :fn-verify="fnVerify" :on-success="fnSuccessVerify" :on-fail="fnFailVerify">
+    <div class="border-2 border-gray-200 rounded w-1/4">
+      <sms-code
+        :schema="schema"
+        action-text="登录"
+        :fn-send-code="fnSendCode"
+        :fn-send-sms-code="fnSendSmsCode"
+        :fn-verify="fnVerify"
+        :on-success="fnSuccessVerify"
+        :on-fail="fnFailVerify"
+      >
       </sms-code>
     </div>
   </div>
@@ -24,4 +31,5 @@ const fnSuccessVerify = (token: string) => {
 const fnFailVerify = (msg: string) => {
   console.log(msg)
 }
-</script>@/apis/auth
+</script>
+@/apis/auth

@@ -39,13 +39,6 @@ export default {
       .get(`${base}/remove`, { params })
       .then((rst: ApiRst) => rst.data.result)
   },
-  listByTag(bucket: any, tagName: string) {
-    const base = BACK_API_URL() + '/admin/schema'
-    const params = { bucket, tag: tagName }
-    return TmsAxios.ins('mongodb-api')
-      .get(`${base}/listByTag`, { params })
-      .then((rst: ApiRst) => rst.data.result)
-  },
   get(bucket: any, schemaId: string) {
     const base = BACK_API_URL() + '/admin/schema'
     const params = { bucket, id: schemaId }

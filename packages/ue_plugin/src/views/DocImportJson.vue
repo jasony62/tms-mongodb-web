@@ -14,6 +14,7 @@
   </div>
 </template>
 <style lang="scss">
+@reference 'tailwindcss';
 html,
 body,
 #app {
@@ -21,7 +22,6 @@ body,
 }
 
 .jsoneditor {
-
   .jsoneditor-transform,
   .jsoneditor-poweredBy {
     display: none;
@@ -31,7 +31,7 @@ body,
 <script setup lang="ts">
 import JSONEditor from 'jsoneditor'
 import 'jsoneditor/dist/jsoneditor.css'
-import { onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue'
 
 const elJsonEditor = ref<HTMLElement | null>(null)
 
@@ -50,19 +50,24 @@ onMounted(() => {
 
 const executed = ref(false)
 
-enum PluginWidgetAction { Created = 'Created', Cancel = 'Cancel', Execute = 'Execute', Close = 'Close' }
+enum PluginWidgetAction {
+  Created = 'Created',
+  Cancel = 'Cancel',
+  Execute = 'Execute',
+  Close = 'Close',
+}
 
 interface PluginWidgetResult {
-  action: PluginWidgetAction,
-  result?: any,
-  handleResponse?: boolean,
+  action: PluginWidgetAction
+  result?: any
+  handleResponse?: boolean
   applyAccessTokenField?: string // 定用户输入中申请添加access_token的字段
-  reloadOnClose?: boolean // 关闭部件后是否要刷新数据 
+  reloadOnClose?: boolean // 关闭部件后是否要刷新数据
 }
 
 // 调用插件的页面
 const Caller = window.parent
-const message: PluginWidgetResult = ({ action: PluginWidgetAction.Created })
+const message: PluginWidgetResult = { action: PluginWidgetAction.Created }
 Caller.postMessage(message, '*')
 
 /**接收结果*/
@@ -74,7 +79,10 @@ window.addEventListener('message', (event) => {
 function onExecute() {
   if (Caller) {
     let newDoc = jsonEditor.get()
-    const message: PluginWidgetResult = { action: PluginWidgetAction.Execute, result: newDoc }
+    const message: PluginWidgetResult = {
+      action: PluginWidgetAction.Execute,
+      result: newDoc,
+    }
     try {
       // 给调用方发送数据
       Caller.postMessage(message, '*')
@@ -87,9 +95,8 @@ function onExecute() {
 
 function onCancel() {
   if (Caller) {
-    const message: PluginWidgetResult = ({ action: PluginWidgetAction.Cancel })
+    const message: PluginWidgetResult = { action: PluginWidgetAction.Cancel }
     Caller.postMessage(message, '*')
   }
 }
-
 </script>

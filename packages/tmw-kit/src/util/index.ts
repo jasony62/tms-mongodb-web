@@ -21,7 +21,6 @@ export async function loadTmwConfig() {
       TMW_APP_BUCKET: 'bucket',
       TMW_APP_UPDATETIME: 'TMW_UPDATE_TIME',
       TMW_APP_DELETETIME: 'TMW_DELETE_TIME',
-      TMW_APP_TAGS: 'TMW_TAGS', // 默认的数据标签字段
       TMW_APP_DATA_ACTION_LOG: 'N',
     }
   }
@@ -35,25 +34,6 @@ export function makeProjection(fields: any, fixed = { _id: 0 }) {
         return result
       }, fixed)
     : null
-}
-/**
- * 按标签过滤条件
- */
-export async function makeTagsFilter(tags: string | string[], filter?) {
-  /* 包含全部标签 */
-  if (tags && typeof tags === 'string') tags = tags.split(',')
-  if (!Array.isArray(tags) || tags.length === 0) return null
-
-  let tmwConfig = await loadTmwConfig()
-
-  filter ??= {}
-  if (!filter[tmwConfig.TMW_APP_TAGS])
-    filter[tmwConfig.TMW_APP_TAGS] = {
-      feature: 'all',
-      keyword: tags,
-    }
-
-  return filter
 }
 /*
  * 加载配置文件
