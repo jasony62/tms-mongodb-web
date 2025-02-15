@@ -1,45 +1,96 @@
 <template>
-  <el-dialog :title="'筛选-' + schema.title" v-model="dialogVisible" :destroy-on-close="false"
-    :close-on-click-modal="false">
-    <el-form :model="Condition" label-width="60px" v-if="!IsEnumerableField && !IsBooleanField">
+  <el-dialog
+    :title="'筛选-' + schema.title"
+    v-model="dialogVisible"
+    :destroy-on-close="false"
+    :close-on-click-modal="false"
+  >
+    <el-form
+      :model="Condition"
+      label-width="60px"
+      v-if="!IsEnumerableField && !IsBooleanField"
+    >
       <el-form-item label="按条件" v-if="IsNumberField">
-        <el-select v-model="Condition.byRule" placeholder="请选择筛选规则" @change="handleSelectChange">
-          <el-option v-for="op in ByRuleOptions2" :label="op.label" :value="op.value">
+        <el-select
+          v-model="Condition.byRule"
+          placeholder="请选择筛选规则"
+          @change="handleRuleChange"
+        >
+          <el-option
+            v-for="op in ByNumberRuleOptions"
+            :label="op.label"
+            :value="op.value"
+          >
           </el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="按条件" v-else>
-        <el-select v-model="Condition.byRule" placeholder="请选择筛选规则" @change="handleSelectChange">
-          <el-option v-for="op in ByRuleOptions" :label="op.label" :value="op.value">
+        <el-select
+          v-model="Condition.byRule"
+          placeholder="请选择筛选规则"
+          @change="handleRuleChange"
+        >
+          <el-option
+            v-for="op in ByKeywordRuleOptions"
+            :label="op.label"
+            :value="op.value"
+          >
           </el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="条件值">
-        <el-input placeholder="请输入内容,多个条件值以英文逗号间隔" v-model="Condition.byKeyword" @input="handleInputChange"></el-input>
+        <el-radio-group
+          v-if="Condition.byRule === 'exists' || Condition.byRule === 'empty'"
+          v-model="FieldValueBoolean"
+          @change="handleKeywordChange"
+        >
+          <el-radio value="empty">空</el-radio>
+          <el-radio value="yes">是</el-radio>
+          <el-radio value="no">否</el-radio>
+        </el-radio-group>
+        <el-input
+          v-else
+          placeholder="请输入内容,多个条件值以英文逗号间隔"
+          v-model="Condition.byKeyword"
+          @input="handleKeywordChange"
+        ></el-input>
       </el-form-item>
     </el-form>
     <el-form v-if="IsEnumerableField" :inline="true">
       <el-checkbox-group v-model="SelectedFieldValueOptions">
-        <el-checkbox v-for="op in FieldValueOptions" :label="op.label" :value="op.value"></el-checkbox>
+        <el-checkbox
+          v-for="op in FieldValueOptions"
+          :label="op.label"
+          :value="op.value"
+        ></el-checkbox>
       </el-checkbox-group>
     </el-form>
     <el-form v-if="IsBooleanField" :inline="true">
       <el-radio-group v-model="FieldValueBoolean">
-        <el-radio label="empty">空</el-radio>
-        <el-radio label="yes">是</el-radio>
-        <el-radio label="no">否</el-radio>
+        <el-radio value="empty">空</el-radio>
+        <el-radio value="yes">是</el-radio>
+        <el-radio value="no">否</el-radio>
       </el-radio-group>
     </el-form>
     <div v-if="schema.groupable === true">
-      <el-table id="tables" ref="multipleTableRef" :data="groups" tooltip-effect="dark" :border="true" height="270"
-        @selection-change="handleSelectionChange">
-        <el-table-column type="selection" width="55">
-        </el-table-column>
+      <el-table
+        id="tables"
+        ref="multipleTableRef"
+        :data="groups"
+        tooltip-effect="dark"
+        :border="true"
+        height="270"
+        @selection-change="handleGroupChange"
+      >
+        <el-table-column type="selection" width="55"> </el-table-column>
         <el-table-column :label="'全选(' + total + ')'">
           <template #default="scope">
             <div v-if="schema.type === 'array' && schema.enum">
               <span v-for="(i, v) in schema.enum" :key="v">
-                <span v-if="scope.row.title && scope.row.title.includes(i.value)">{{ i.label }}&nbsp;</span>
+                <span
+                  v-if="scope.row.title && scope.row.title.includes(i.value)"
+                  >{{ i.label }}&nbsp;</span
+                >
               </span>
               <span>{{ '(' + scope.row.sum + ')' }}</span>
             </div>
@@ -58,15 +109,15 @@
     </div>
     <template #footer>
       <el-form :inline="true">
-        <el-form-item style="float:left;">
+        <el-form-item style="float: left">
           <el-button type="warning" @click="onClear">重置</el-button>
           <el-button type="default" @click="onBeforeClose">取消</el-button>
         </el-form-item>
         <el-form-item>
-          <el-radio-group v-model="Condition.bySort" @change="handleSort">
-            <el-radio-button label="asc">升序</el-radio-button>
-            <el-radio-button label="desc">降序</el-radio-button>
-            <el-radio-button label="">默认</el-radio-button>
+          <el-radio-group v-model="Condition.bySort" @change="handleSortChange">
+            <el-radio-button label="asc" value="asc">升序</el-radio-button>
+            <el-radio-button label="desc" value="desc">降序</el-radio-button>
+            <el-radio-button label="" value="">默认</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item>
@@ -79,18 +130,18 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
 import type { ElTable } from 'element-plus'
-import { computed, onMounted, reactive, ref, nextTick, toRaw } from 'vue'
+import { computed, onMounted, reactive, ref, toRaw } from 'vue'
 import apiDoc from '@/apis/document'
 
 interface Group {
-  sum: number,
+  sum: number
   title: string
 }
 
 const emit = defineEmits(['submit'])
 
 const props = defineProps({
-  onClose: { type: Function, default: (newData: any) => { } },
+  onClose: { type: Function, default: (newData: any) => {} },
   dialogVisible: { default: true },
   bucket: { type: String, default: '' },
   db: { type: String, default: '' },
@@ -104,40 +155,42 @@ const props = defineProps({
         type: '',
         groupable: false,
         enum: [],
-        enumGroups: []
+        enumGroups: [],
       }
-    }
+    },
   },
   conditions: {
     type: Array,
-    default: []
+    default: [],
   },
 })
 const dialogVisible = ref(props.dialogVisible)
 
 const multipleTableRef = ref<InstanceType<typeof ElTable>>()
 /**
-* 字段是否提供选项
-*/
-const IsNumberField = props.schema.type === 'number' || props.schema.type === 'integer'
+ * 字段是否提供选项
+ */
+const IsNumberField =
+  props.schema.type === 'number' || props.schema.type === 'integer'
 /**
  * 编辑的查询条件
  */
 const Condition = reactive({
   byRule: IsNumberField ? 'eq' : 'include',
-  byKeyword: '',
+  byKeyword: '' as string | boolean | null,
   bySort: '',
   columnName: props.columnName,
   rule: {
     filter: { [props.columnName]: {} } as { [k: string]: any },
-    orderBy: {} as { [k: string]: any }
+    orderBy: {} as { [k: string]: any },
   },
   multipleSelection: [] as any[],
 })
 /**
  * 字段是否提供选项
  */
-const IsEnumerableField = Array.isArray(props.schema.enum) || Array.isArray(props.schema.oneOf)
+const IsEnumerableField =
+  Array.isArray(props.schema.enum) || Array.isArray(props.schema.oneOf)
 /**
  * 字段的可选值
  */
@@ -149,71 +202,79 @@ const SelectedFieldValueOptions = ref<any>([])
 /**
  * 关键字匹配规则
  */
-const ByRuleOptions = [
+const ByKeywordRuleOptions = [
   {
     value: 'eq',
-    label: '相等'
+    label: '相等',
   },
   {
     value: 'ne',
-    label: '不相等'
+    label: '不相等',
   },
   {
     value: 'include',
-    label: '包含'
+    label: '包含',
   },
   {
     value: 'start',
-    label: '开头是'
+    label: '开头是',
   },
   {
     value: 'notStart',
-    label: '开头不是'
+    label: '开头不是',
   },
   {
     value: 'end',
-    label: '结尾是'
+    label: '结尾是',
   },
   {
     value: 'notEnd',
-    label: '结尾不是'
-  }
+    label: '结尾不是',
+  },
+  {
+    value: 'exists',
+    label: '存在值',
+  },
+  {
+    value: 'empty',
+    label: '空字符串',
+  },
 ]
 /**
  * 数值型
  */
-const ByRuleOptions2 = [
+const ByNumberRuleOptions = [
   {
     value: 'eq',
-    label: '等于'
+    label: '等于',
   },
   {
     value: 'gt',
-    label: '大于'
+    label: '大于',
   },
   {
     value: 'gte',
-    label: '大于等于'
+    label: '大于等于',
   },
   {
     value: 'lt',
-    label: '小于'
+    label: '小于',
   },
   {
     value: 'lte',
-    label: '小于等于'
+    label: '小于等于',
   },
   {
     value: 'ne',
-    label: '不等于'
+    label: '不等于',
   },
   {
     value: 'in',
-    label: '包含'
+    label: '包含',
   },
   {
     value: 'nin',
-    label: '不包含'
+    label: '不包含',
   },
 ]
 /**
@@ -228,11 +289,11 @@ const FieldValueBoolean = ref('empty')
 let timer: any = null
 let page = reactive({
   at: 1,
-  size: 100
+  size: 100,
 })
 let criterias = reactive({
   filter: {} as { [k: string]: any },
-  orderBy: {} as { [k: string]: any }
+  orderBy: {} as { [k: string]: any },
 })
 let groups = reactive([] as Group[])
 
@@ -243,7 +304,7 @@ const isAllElection = computed(() => {
 const total = computed(() => {
   if (Condition.multipleSelection.length) {
     return Condition.multipleSelection
-      .map((ele: { sum: any; }) => ele.sum)
+      .map((ele: { sum: any }) => ele.sum)
       .reduce((prev: any, curr: any) => prev + curr)
   } else {
     return 0
@@ -253,35 +314,58 @@ const loadMore = () => {
   page.at++
   updateByColumn(true)
 }
-const handleInputChange = (val: any) => {
+
+const handleRuleChange = (val: any) => {
+  Condition.rule.filter[props.columnName].feature = val
+}
+
+const handleKeywordChange = (val: any) => {
   Condition.rule.filter = {
     ...criterias.filter,
-    ...Condition.rule.filter
+    ...Condition.rule.filter,
   }
   Condition.rule.orderBy = criterias.orderBy
   if (!Condition.rule.filter[props.columnName]) {
     Condition.rule.filter[props.columnName] = {}
   }
-  setKeyword(val)
+  if ('exists' === Condition.byRule) {
+    const val = toRaw(FieldValueBoolean.value)
+    Condition.rule.filter[props.columnName].keyword =
+      val === 'yes' ? true : val === 'no' ? false : null
+  } else if ('empty' === Condition.byRule) {
+    const val = toRaw(FieldValueBoolean.value)
+    if (val === 'yes') {
+      Condition.rule.filter[props.columnName].feature = 'eq'
+      Condition.rule.filter[props.columnName].keyword = ''
+    } else if (val === 'no') {
+      Condition.rule.filter[props.columnName].feature = 'ne'
+      Condition.rule.filter[props.columnName].keyword = ''
+    } else {
+      Condition.rule.filter[props.columnName].keyword = null
+    }
+  } else {
+    handleKeyword(val)
+  }
   clearTimeout(timer)
   if (!props.schema.groupable !== false) return
   timer = setTimeout(() => {
     updateByColumn(false)
   }, 500)
 }
-
-const setKeyword = (keyword: string) => {
+/**
+ * 将用户输入的keyword条件转换为提交格式
+ *
+ * @param keyword
+ */
+const handleKeyword = (keyword: string) => {
   const propFilter = Condition.rule.filter[props.columnName]
-  if (
-    ['array', 'string'].includes(props.schema.type) &&
-    props.schema.enum
-  ) {
+  if (['array', 'string'].includes(props.schema.type) && props.schema.enum) {
     let kws = keyword
       .split(',')
       .map((item: any) =>
         props.schema.enum
-          .filter((enumItem: { label: any; }) => enumItem.label === item)
-          .map((filterItem: { value: any; }) => filterItem.value)
+          .filter((enumItem: { label: any }) => enumItem.label === item)
+          .map((filterItem: { value: any }) => filterItem.value)
       )
       .join()
       .split(',')
@@ -289,21 +373,20 @@ const setKeyword = (keyword: string) => {
     propFilter.feature = 'in'
   } else {
     if (Condition.byRule === 'in' || Condition.byRule === 'nin') {
-      propFilter.keyword = IsNumberField ? keyword.split(',').map(k => parseFloat(k)) : keyword.split(',')
+      propFilter.keyword = IsNumberField
+        ? keyword.split(',').map((k) => parseFloat(k))
+        : keyword.split(',')
     } else {
       propFilter.keyword = IsNumberField ? parseFloat(keyword) : keyword
     }
-    if (!propFilter.feature)
-      propFilter.feature = Condition.byRule
+    if (!propFilter.feature) propFilter.feature = Condition.byRule
   }
 }
-const handleSelectChange = (val: any) => {
-  Condition.rule.filter[props.columnName].feature = val
-}
+
 /**
  * 设置排序条件
  */
-const handleSort = (type: string) => {
+const handleSortChange = (type: string) => {
   Condition.bySort = type
   if (type) {
     Condition.rule.orderBy[props.columnName] = type
@@ -314,7 +397,7 @@ const handleSort = (type: string) => {
   emit('submit', result)
   closeDialog(result)
 }
-const handleSelectionChange = (val: Group[]) => {
+const handleGroupChange = (val: Group[]) => {
   Condition.multipleSelection = val
 }
 const listByColumn = (
@@ -325,7 +408,7 @@ const listByColumn = (
   page: number,
   size: number,
   filter: any,
-  orderBy: any,
+  orderBy: any
 ) => {
   return apiDoc.byColumnVal(
     bucketName,
@@ -335,13 +418,14 @@ const listByColumn = (
     page,
     size,
     filter,
-    orderBy,
+    orderBy
   )
 }
 const updateByColumn = (isLoadMore: boolean) => {
-  let orderBy = JSON.stringify(Condition.rule.orderBy) === '{}'
-    ? criterias.orderBy
-    : Condition.rule.orderBy
+  let orderBy =
+    JSON.stringify(Condition.rule.orderBy) === '{}'
+      ? criterias.orderBy
+      : Condition.rule.orderBy
 
   return listByColumn?.(
     props.bucket,
@@ -373,6 +457,7 @@ const updateByColumn = (isLoadMore: boolean) => {
     }
   })
 }
+
 const closeDialog = (newCl?: any) => {
   props.onClose(newCl)
 }
@@ -405,7 +490,7 @@ const onSubmit = () => {
   if (IsEnumerableField) {
     Condition.rule.filter[props.columnName] = {
       keyword: toRaw(SelectedFieldValueOptions.value),
-      feature: 'in'
+      feature: 'in',
     }
   } else if (IsBooleanField) {
     const val = toRaw(FieldValueBoolean.value)
@@ -413,6 +498,7 @@ const onSubmit = () => {
       keyword: val === 'yes' ? true : val === 'no' ? false : null,
     }
   }
+
   const result = { condition: toRaw(Condition) }
   emit('submit', result)
   closeDialog(result)
@@ -436,10 +522,21 @@ onMounted(async () => {
       Condition.bySort = result.bySort
       Condition.rule = result.rule
       if (Array.isArray(Condition.rule?.filter[props.columnName]?.keyword)) {
-        SelectedFieldValueOptions.value.push(...Condition.rule.filter[props.columnName].keyword)
+        SelectedFieldValueOptions.value.push(
+          ...Condition.rule.filter[props.columnName].keyword
+        )
       } else if (IsBooleanField) {
         const kw = Condition.rule?.filter[props.columnName]?.keyword
-        FieldValueBoolean.value = kw === true ? 'yes' : kw === false ? 'no' : 'empty'
+        FieldValueBoolean.value =
+          kw === true ? 'yes' : kw === false ? 'no' : 'empty'
+      } else if ('exists' === Condition.byRule) {
+        const kw = Condition.rule?.filter[props.columnName]?.keyword
+        FieldValueBoolean.value =
+          kw === true ? 'yes' : kw === false ? 'no' : 'empty'
+      } else if ('empty' === Condition.byRule) {
+        const feature = Condition.rule?.filter[props.columnName]?.feature
+        FieldValueBoolean.value =
+          feature === 'eq' ? 'yes' : feature === 'ne' ? 'no' : 'empty'
       }
     }
   }
