@@ -91,10 +91,10 @@ class DocBase extends Base {
     // 要新建的文档数据
     let docData, deleteCount
     if (replace === 'yes') {
-      let { filter, doc } = this.request.body
+      let { filter, doc, like = false } = this.request.body
       // 删除指定的文档
       if (filter && typeof filter === 'object') {
-        let query = this.modelDoc.assembleQuery(filter)
+        let query = this.modelDoc.assembleQuery(filter, like)
         deleteCount = await this.modelDoc.removeMany(
           existCl,
           query,
@@ -157,10 +157,10 @@ class DocBase extends Base {
     // 要新建的文档数据
     let docsData, deleteCount
     if (replace === 'yes') {
-      let { filter, docs } = this.request.body
+      let { filter, docs, like = true } = this.request.body
       // 删除指定的文档
       if (filter && typeof filter === 'object') {
-        let query = this.modelDoc.assembleQuery(filter)
+        let query = this.modelDoc.assembleQuery(filter, like)
         deleteCount = await this.modelDoc.removeMany(
           existCl,
           query,
@@ -508,11 +508,11 @@ class DocBase extends Base {
     const {
       page,
       size,
-      tags,
       fields: qFields,
       includeDeleted,
       filter: qFilter,
       orderBy: qOrderBy,
+      like: qLike = true,
     } = this.request.query
 
     let filter =
@@ -520,6 +520,14 @@ class DocBase extends Base {
 
     let orderBy =
       this.request.body.orderBy ?? (qOrderBy ? JSON.parse(qOrderBy) : {})
+
+    // 是否使用模糊匹配
+    let like =
+      typeof this.request.body.like === 'boolean'
+        ? this.request.body.like
+        : typeof qLike === 'boolean'
+        ? qLike
+        : true
 
     let fields = this.request.body.fields ?? qFields ?? ''
 
@@ -529,7 +537,7 @@ class DocBase extends Base {
     // 排序规则
     if (!orderBy || typeof orderBy !== 'object') {
       if (tmwCl.orderBy && typeof tmwCl.orderBy === 'object') {
-        ;(orderBy = tmwCl.orderBy), orderBy
+        orderBy = tmwCl.orderBy
       }
     }
 
@@ -537,7 +545,7 @@ class DocBase extends Base {
       tmwCl,
       { filter, orderBy },
       { page, size },
-      true, // like
+      like,
       projection,
       /yes|true/i.test(includeDeleted)
     )
@@ -727,6 +735,18 @@ class DocBase extends Base {
   }
   /**
    * 批量修改数据
+   *
+   * 消息体
+   *
+   * ```json
+   *  {
+   *    columns: {},
+   *    body: {
+   *      filter: {},
+   *      docIds: []
+   *    }
+   *  }
+   * ```
    */
   async updateMany() {
     const existCl = await this.docHelper.findRequestCl()

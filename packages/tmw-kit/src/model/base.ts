@@ -231,7 +231,7 @@ class Base {
           data._id = new ObjectId(data._id)
         }
         // 对象的创建人
-        data[tmwConfig.TMW_APP_CREATOR] = this.client.id
+        if (this.client.id) data[tmwConfig.TMW_APP_CREATOR] = this.client.id
         // 对象创建时间
         data[tmwConfig.TMW_APP_CREATETIME] = current
         /**根据schema处理数据 */

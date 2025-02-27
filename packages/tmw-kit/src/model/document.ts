@@ -259,8 +259,8 @@ class Document extends Base {
     let sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
 
     // 对象的创建人
-    if (this.client) {
-      data.creator = this.client.id
+    if (this.client?.id) {
+      data[this.tmwConfig.TMW_APP_CREATOR] = this.client.id
     }
 
     const newDoc = await sysCl.insertOne(data).then(async (r) => {
@@ -289,7 +289,7 @@ class Document extends Base {
     const sysCl = this._getSysCl(dbName, clName)
 
     // 对象的创建人
-    rows.forEach((row) => (row.creator = this.client?.id ?? ''))
+    rows.forEach((row) => (row.creator = this.client?.id ?? undefined))
 
     const rst = await sysCl.insertMany(rows).then(async ({ insertedIds }) => {
       // await this.dataActionLog(r.ops, '创建', dbName, clName)
@@ -315,10 +315,17 @@ class Document extends Base {
    * @param {string} id - 文档对象id
    * @param {object} updated - 更新的数据
    * @param {object} removed - 清除的数据
+   * @param {object} otherOps - 其它操作，例如：$inc,$push
    *
    * @returns {boolean} 是否更新成功
    */
-  async update(existCl, id: string, updated: any, removed?: any) {
+  async update(
+    existCl,
+    id: string,
+    updated: any,
+    removed?: any,
+    otherOps?: any
+  ) {
     const sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
 
     const ops = {}
@@ -326,6 +333,9 @@ class Document extends Base {
       ops['$set'] = updated
     if (removed && typeof removed === 'object' && Object.keys(removed).length)
       ops['$unset'] = removed
+    if (otherOps && typeof otherOps === 'object') {
+      Object.assign(ops, otherOps)
+    }
 
     return sysCl
       .updateOne({ _id: new ObjectId(id) }, ops)

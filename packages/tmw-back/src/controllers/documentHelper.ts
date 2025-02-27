@@ -39,7 +39,7 @@ class DocumentHelper extends CtrlHelper {
    * @returns {object} 失败时errCause不为空，其内容为失败原因；否则，query为查询条件；operation为操作类型说明。
    */
   getRequestBatchQuery() {
-    let { filter, docIds } = this.ctrl.request.body
+    let { filter, docIds, like = true } = this.ctrl.request.body
     let query, operation, errCause
 
     if (Array.isArray(docIds) && docIds.length) {
@@ -55,7 +55,7 @@ class DocumentHelper extends CtrlHelper {
       query = {}
       operation = '批量（按全部）'
     } else if (typeof filter === 'object' && Object.keys(filter).length) {
-      query = this.modelDoc.assembleQuery(filter)
+      query = this.modelDoc.assembleQuery(filter, like)
       operation = '批量（按条件）'
     } else {
       errCause = '无效的批量文档指定条件，未执行删除操作'
