@@ -289,7 +289,9 @@ class Document extends Base {
     const sysCl = this._getSysCl(dbName, clName)
 
     // 对象的创建人
-    rows.forEach((row) => (row.creator = this.client?.id ?? undefined))
+    rows.forEach(
+      (row) => (row[this.tmwConfig.TMW_APP_CREATOR] = this.client?.id)
+    )
 
     const rst = await sysCl.insertMany(rows).then(async ({ insertedIds }) => {
       // await this.dataActionLog(r.ops, '创建', dbName, clName)
