@@ -46,10 +46,13 @@ class CollectionBase extends Base {
   }
   /**
    * 根据名称返回指定集合
+   *
    */
   async byName() {
     const existCl = await this.clHelper.findRequestCl()
-
+    /**
+     * 集合文档基础定义
+     */
     if (existCl.schema_id) {
       await this.clMongoObj
         .findOne({ type: 'schema', _id: new ObjectId(existCl.schema_id) })
@@ -59,6 +62,9 @@ class CollectionBase extends Base {
           return existCl
         })
     }
+    /**
+     * 集合文档扩展定义
+     */
     if (Array.isArray(existCl.ext_schemas) && existCl.ext_schemas.length) {
       const editSchema = existCl.schema
         ? JSON.parse(JSON.stringify(existCl.schema))
@@ -68,6 +74,7 @@ class CollectionBase extends Base {
           type: 'schema',
           _id: new ObjectId(es.id),
         })
+        // 深度合并
         _.merge(editSchema.body.properties, extSchema.body.properties)
       }
       existCl.editSchema = editSchema

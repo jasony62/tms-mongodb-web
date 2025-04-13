@@ -99,6 +99,12 @@ export function init(settings: Globalsettings) {
     _globalsettings.tipShowAfter = settings.tipShowAfter
 }
 /**
+ * 应用起始地址
+ */
+const { VITE_BASE_URL } = import.meta.env
+export const BASE_URL =
+  VITE_BASE_URL && VITE_BASE_URL !== '/' ? VITE_BASE_URL : '/admin'
+/**
  * 根据环境变量设置认证服务起始地址
  */
 let _AUTH_API_URL: string

@@ -253,7 +253,6 @@ class Document extends Base {
    *
    * @param existCl
    * @param data
-   * @param schema
    */
   async create(existCl, data: any) {
     let sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)

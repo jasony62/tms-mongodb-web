@@ -74,4 +74,3 @@ const fnFailLogin = (response: LoginResponse) => {
   ElMessage.error(response.msg || '登录失败')
 }
 </script>
-@/apis/auth

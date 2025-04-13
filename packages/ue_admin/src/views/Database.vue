@@ -3,38 +3,64 @@
     <!--header-->
     <div class="h-12 py-4 px-2">
       <el-breadcrumb :separator-icon="ArrowRight">
-        <el-breadcrumb-item :to="{ name: 'databases' }">{{ DbLabel }}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ name: 'databases' }">{{
+          DbLabel
+        }}</el-breadcrumb-item>
         <el-breadcrumb-item>{{ dbName }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
     <!--content-->
     <div class="flex flex-row gap-2">
       <!--right: 集合分类目录-->
-      <div class="flex flex-col items-start space-y-3 w-1/6" v-if="!COMPACT && data.clDirs?.length">
+      <div
+        class="flex flex-col items-start space-y-3 w-1/6"
+        v-if="!COMPACT && data.clDirs?.length"
+      >
         <div v-if="currentClDir">
-          <el-button type="primary" @click="removeCurrentClDir">{{ currentClDir.full_title }}<el-icon
-              class="el-icon--right">
-              <Close />
-            </el-icon></el-button>
+          <el-button type="primary" @click="removeCurrentClDir"
+            >{{ currentClDir.full_title
+            }}<el-icon class="el-icon--right"> <Close /> </el-icon
+          ></el-button>
         </div>
         <div>
-          <el-tree ref="treeClDirsRef" :data="data.clDirs" node-key="_id" :props="ClDirTreeProps"
-            @current-change="handleClDirCurrentChange" />
+          <el-tree
+            ref="treeClDirsRef"
+            :data="data.clDirs"
+            node-key="_id"
+            :props="ClDirTreeProps"
+            @current-change="handleClDirCurrentChange"
+          />
         </div>
       </div>
       <!--left or middle-->
       <div class="flex flex-col gap-4" :class="MiddleWidthStyleClass">
-        <el-table :data="store.collections" row-key="_id" stripe @selection-change="changeClSelect">
+        <el-table
+          :data="store.collections"
+          row-key="_id"
+          stripe
+          @selection-change="changeClSelect"
+        >
           <el-table-column type="selection" width="48"></el-table-column>
           <el-table-column label="集合名称">
             <template #default="scope">
-              <el-button type="primary" link size="small" @click="openCollection(dbName, scope.row)">{{ scope.row.name
-                }}</el-button>
+              <el-button
+                type="primary"
+                link
+                size="small"
+                @click="openCollection(dbName, scope.row)"
+                >{{ scope.row.name }}</el-button
+              >
             </template>
           </el-table-column>
-          <el-table-column prop="title" label="标题" width="180"></el-table-column>
-          <el-table-column v-for="(s, k, i) in database?.schema?.body.properties" :key="i" :prop="k">
-
+          <el-table-column
+            prop="title"
+            label="标题"
+            width="180"
+          ></el-table-column>
+          <el-table-column
+            v-for="(s, k) in database?.schema?.body.properties"
+            :prop="k"
+          >
             <template #header>
               <span>{{ s.title }}</span>
             </template>
@@ -42,23 +68,47 @@
           <el-table-column prop="description" label="说明"></el-table-column>
           <el-table-column label="操作" width="120">
             <template #default="scope">
-              <el-button v-if="HasClEditRight" @click="editCollection(scope.row, scope.$index)" type="primary" link
-                size="small">设置
+              <el-button
+                v-if="HasClEditRight"
+                @click="editCollection(scope.row, scope.$index)"
+                type="primary"
+                link
+                size="small"
+                >设置
               </el-button>
               <el-dropdown class="tmw-opt__dropdown">
-                <el-button type="primary" link size="small">更多
+                <el-button type="primary" link size="small"
+                  >更多
                   <el-icon class="el-icon--right"><arrow-down /></el-icon>
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item>
-                      <el-button type="primary" link size="small" @click="gotoAcl(scope.row)">访问控制</el-button>
+                      <el-button
+                        type="primary"
+                        link
+                        size="small"
+                        @click="gotoAcl(scope.row)"
+                        >访问控制</el-button
+                      >
                     </el-dropdown-item>
                     <el-dropdown-item divided>
-                      <el-button type="danger" link size="small" @click="removeCollection(scope.row)">删除集合</el-button>
+                      <el-button
+                        type="danger"
+                        link
+                        size="small"
+                        @click="removeCollection(scope.row)"
+                        >删除集合</el-button
+                      >
                     </el-dropdown-item>
                     <el-dropdown-item>
-                      <el-button type="danger" link size="small" @click="emptyCollection(scope.row)">清空集合</el-button>
+                      <el-button
+                        type="danger"
+                        link
+                        size="small"
+                        @click="emptyCollection(scope.row)"
+                        >清空集合</el-button
+                      >
                     </el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
@@ -67,7 +117,9 @@
           </el-table-column>
         </el-table>
         <div class="flex flex-row gap-4 p-2 items-center justify-between">
-          <span class="tmw-pagination__text">已选中 {{ data.multipleCl.length }} 条数据</span>
+          <span class="tmw-pagination__text"
+            >已选中 {{ data.multipleCl.length }} 条数据</span
+          >
         </div>
       </div>
       <!--right-->
@@ -78,8 +130,13 @@
         <div>
           <el-button @click="createCollection">添加集合</el-button>
         </div>
-        <tmw-plugins :plugins="plugins" :total-by-all="totalByAll" :total-by-filter="totalByFilter"
-          :total-by-checked="totalByChecked" :handle-plugin="handlePlugin"></tmw-plugins>
+        <tmw-plugins
+          :plugins="plugins"
+          :total-by-all="totalByAll"
+          :total-by-filter="totalByFilter"
+          :total-by-checked="totalByChecked"
+          :handle-plugin="handlePlugin"
+        ></tmw-plugins>
       </div>
     </div>
   </div>
@@ -92,10 +149,17 @@ import { onMounted, reactive, computed, ref, toRaw } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { Batch } from 'tms-vue3'
 import facStore from '@/store'
-import { openCollectionEditor, } from '@/components/editor'
+import { openCollectionEditor } from '@/components/editor'
 import { ElMessage, ElMessageBox, ElTree } from 'element-plus'
 import { Close } from '@element-plus/icons-vue'
-import { COMPACT_MODE, LABEL, BACK_API_URL, FS_BASE_URL, getLocalToken, PAGINATION_COL_SIZE } from '@/global'
+import {
+  COMPACT_MODE,
+  LABEL,
+  BACK_API_URL,
+  FS_BASE_URL,
+  getLocalToken,
+  PAGINATION_COL_SIZE,
+} from '@/global'
 import apiPlugin from '@/apis/plugin'
 import apiDb from '@/apis/database'
 import apiSchema from '@/apis/schema'
@@ -117,13 +181,16 @@ const totalByFilter = computed(() => 0)
 const totalByChecked = computed(() => data.multipleCl.length)
 
 const MiddleWidthStyleClass = computed(() => {
-  return COMPACT.value ? 'w-full h-full' : data.clDirs?.length ? 'w-4/6' : 'w-4/5'
+  return COMPACT.value
+    ? 'w-full h-full'
+    : data.clDirs?.length
+    ? 'w-4/6'
+    : 'w-4/5'
 })
 
 const HasClEditRight = computed(() => {
   const { right } = database.value
-  if (!right || (Array.isArray(right) && right.length === 0))
-    return true
+  if (!right || (Array.isArray(right) && right.length === 0)) return true
 
   if (Array.isArray(right) && !right.includes('readCl')) return true
 
@@ -134,9 +201,9 @@ const database = ref()
 const plugins = ref([])
 
 const data = reactive({
-  clBatch: new Batch(() => { }),
+  clBatch: new Batch(() => {}),
   multipleCl: [] as any[],
-  clDirs: [] as any[]
+  clDirs: [] as any[],
 })
 /**
  * 集合分类树上选择节点
@@ -165,19 +232,29 @@ onBeforeRouteLeave((to, from) => {
 })
 
 const gotoDbDocSchemas = () => {
-  router.push({ name: 'databaseDocSchemas', params: { bucketName: props.bucketName, dbName: props.dbName } })
+  router.push({
+    name: 'databaseDocSchemas',
+    params: { bucketName: props.bucketName, dbName: props.dbName },
+  })
 }
 
 const openCollection = (dbName: string, collection: any) => {
-  if (!collection.schema_id) return ElMessageBox.alert('需给集合补充文档内容定义的配置，方便管理文档')
+  if (!collection.schema_id)
+    return ElMessageBox.alert('需给集合补充文档内容定义的配置，方便管理文档')
   if (collection.spreadsheet === 'yes') {
-    router.push({ name: 'spreadsheet', params: { dbName, clName: collection.name } })
+    router.push({
+      name: 'spreadsheet',
+      params: { dbName, clName: collection.name },
+    })
   } else {
-    router.push({ name: 'collection', params: { dbName, clName: collection.name } })
+    router.push({
+      name: 'collection',
+      params: { dbName, clName: collection.name },
+    })
   }
 }
 
-const createCollection = (() => {
+const createCollection = () => {
   const clDir = toRaw(currentClDir.value)
   openCollectionEditor({
     mode: 'create',
@@ -190,10 +267,10 @@ const createCollection = (() => {
         store.appendCollection({ collection: newCollection })
         listClByKw()
       }
-    }
+    },
   })
-})
-const editCollection = ((collection: any, index: number) => {
+}
+const editCollection = (collection: any, index: number) => {
   openCollectionEditor({
     mode: 'update',
     bucketName: props.bucketName,
@@ -205,10 +282,10 @@ const editCollection = ((collection: any, index: number) => {
         store.updateCollection({ collection: newCollection, index })
         listClByKw()
       }
-    }
+    },
   })
-})
-const removeCollection = ((collection: any) => {
+}
+const removeCollection = (collection: any) => {
   if (collection.children && collection.children.length) {
     ElMessage({ message: '存在子集不允许删除', type: 'error' })
     return
@@ -221,18 +298,23 @@ const removeCollection = ((collection: any) => {
       confirmButtonText: '是',
       cancelButtonText: '取消',
       type: 'warning',
-    }).then(() => {
-      store.removeCollection({
-        bucket: props.bucketName,
-        db: props.dbName,
-        collection
-      }).then(() => {
-        ElMessage({ message: '集合已删除', type: 'success' })
-        listClByKw()
-      })
-    }).catch(() => { })
-})
-const emptyCollection = ((collection: any) => {
+    }
+  )
+    .then(() => {
+      store
+        .removeCollection({
+          bucket: props.bucketName,
+          db: props.dbName,
+          collection,
+        })
+        .then(() => {
+          ElMessage({ message: '集合已删除', type: 'success' })
+          listClByKw()
+        })
+    })
+    .catch(() => {})
+}
+const emptyCollection = (collection: any) => {
   ElMessageBox.confirm(
     `是否要清除集合【${collection.title}(${collection.name})】中的文档?`,
     `请确认`,
@@ -240,19 +322,31 @@ const emptyCollection = ((collection: any) => {
       confirmButtonText: '是',
       cancelButtonText: '取消',
       type: 'warning',
-    }).then(() => {
-      store.emptyCollection({
-        bucket: props.bucketName,
-        db: props.dbName,
-        collection
-      }).then(() => {
-        ElMessage({ message: '集合已清空', type: 'success' })
-        // listClByKw()
-      })
-    }).catch(() => { })
-})
+    }
+  )
+    .then(() => {
+      store
+        .emptyCollection({
+          bucket: props.bucketName,
+          db: props.dbName,
+          collection,
+        })
+        .then(() => {
+          ElMessage({ message: '集合已清空', type: 'success' })
+          // listClByKw()
+        })
+    })
+    .catch(() => {})
+}
 const gotoAcl = (cl: any) => {
-  router.push({ name: 'collectionAcl', params: { bucketName: props.bucketName, dbName: props.dbName, clName: cl.name } })
+  router.push({
+    name: 'collectionAcl',
+    params: {
+      bucketName: props.bucketName,
+      dbName: props.dbName,
+      clName: cl.name,
+    },
+  })
 }
 const changeClSelect = (value: any[]) => {
   data.multipleCl = value
@@ -270,20 +364,22 @@ const setPluginDocParam = (docScope: string) => {
 }
 /**
  * 执行插件操作
- * 
- * @param plugin 
- * @param docScope 
- * @param widgetResult 
- * @param widgetHandleResponse 
- * @param widgetDefaultHandleResponseRequired 
- * @param applyAccessTokenField 
+ *
+ * @param plugin
+ * @param docScope
+ * @param widgetResult
+ * @param widgetHandleResponse
+ * @param widgetDefaultHandleResponseRequired
+ * @param applyAccessTokenField
  */
-const onExecute = (plugin: any,
+const onExecute = (
+  plugin: any,
   docScope = '',
   widgetResult = undefined,
   widgetHandleResponse = false,
   widgetDefaultHandleResponseRequired = false,
-  applyAccessTokenField = '') => {
+  applyAccessTokenField = ''
+) => {
   let postBody: any
   if (plugin.amount === 'one') {
     let checkedColl
@@ -295,7 +391,12 @@ const onExecute = (plugin: any,
     if (!checkedColl) return Promise.reject('没有获得要操作的文档')
     //if (data.multipleCl.length !== 1) return
     let rawCl = toRaw(checkedColl)
-    postBody = { _id: rawCl._id, name: rawCl.name, sysname: rawCl.sysname, type: 'collection' }
+    postBody = {
+      _id: rawCl._id,
+      name: rawCl.name,
+      sysname: rawCl.sysname,
+      type: 'collection',
+    }
   } else {
     if (['all', 'filter', 'checked'].includes(docScope))
       postBody = setPluginDocParam(docScope)
@@ -324,10 +425,9 @@ const onExecute = (plugin: any,
   const queryParams: any = {
     bucket: props.bucketName ?? '',
     plugin: plugin.name,
-    db: props.dbName
+    db: props.dbName,
   }
-  if (plugin.amount === 'one')
-    queryParams.cl = postBody.name
+  if (plugin.amount === 'one') queryParams.cl = postBody.name
 
   // 执行插件方法
   return apiPlugin.execute(queryParams, postBody).then((result: any) => {
@@ -351,9 +451,7 @@ const onExecute = (plugin: any,
         let { inserted, modified, removed } = result
         /**在当前文档列表中移除删除的记录 */
         if (Array.isArray(removed) && (nRemoved = removed.length)) {
-          let dbs = store.dbs.filter(
-            (doc) => !removed.includes(doc._id)
-          )
+          let dbs = store.dbs.filter((doc) => !removed.includes(doc._id))
           store.dbs = dbs
         }
         /**在当前文档列表中更新修改的记录 */
@@ -380,9 +478,11 @@ const onExecute = (plugin: any,
       } else if (result.type === 'numbers') {
         /**返回操作结果——数量 */
         let { nInserted, nModified, nRemoved } = result
-        let message = `插件[${plugin.title}]执行完毕，添加[${parseInt(nInserted) || 0
-          }]条，修改[${parseInt(nModified) || 0}]条，删除[${parseInt(nRemoved) || 0
-          }]条记录。`
+        let message = `插件[${plugin.title}]执行完毕，添加[${
+          parseInt(nInserted) || 0
+        }]条，修改[${parseInt(nModified) || 0}]条，删除[${
+          parseInt(nRemoved) || 0
+        }]条记录。`
         ElMessageBox.confirm(message, '提示', {
           confirmButtonText: '关闭',
           cancelButtonText: '刷新数据',
@@ -405,21 +505,21 @@ const onExecute = (plugin: any,
     return 'ok'
   })
 }
-const listClByKw = ((keyword?: string) => {
+const listClByKw = (keyword?: string) => {
   data.clBatch = store.listCollection({
     bucket: props.bucketName,
     db: props.dbName,
     dirFullName: currentClDir.value?.full_name,
     keyword,
-    size: PAGINATION_COL_SIZE()
+    size: PAGINATION_COL_SIZE(),
   })
-})
-const listClDir = (async () => {
+}
+const listClDir = async () => {
   data.clDirs = await store.listCollectionDir({
     bucket: props.bucketName,
     db: props.dbName,
   })
-})
+}
 /**
  * 打开插件
  */
@@ -427,10 +527,7 @@ const { handlePlugin } = useTmwPlugins({
   bucketName: props.bucketName,
   onExecute,
   onCreate: async (plugin: any, msg: any) => {
-    if (
-      plugin.amount === 'one' &&
-      data.multipleCl.length === 1
-    ) {
+    if (plugin.amount === 'one' && data.multipleCl.length === 1) {
       // 处理单个集合时，将集合对象传递给插件
       const cl = toRaw(data.multipleCl[0])
       cl.schema = await apiSchema.get(props.bucketName, cl.schema_id)
@@ -443,7 +540,7 @@ const { handlePlugin } = useTmwPlugins({
   },
   onClose: () => {
     listClByKw()
-  }
+  },
 })
 
 onMounted(async () => {
@@ -451,7 +548,8 @@ onMounted(async () => {
   listClDir()
   listClByKw()
   plugins.value = await apiPlugin.getCollectionPlugins(
-    props.bucketName, props.dbName
+    props.bucketName,
+    props.dbName
   )
 })
 </script>

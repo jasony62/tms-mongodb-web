@@ -1,13 +1,20 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import { Base } from 'tmw-kit/dist/ctrl/index.js'
 import DocumentHelper from './documentHelper.js'
-import { ModelDoc, ModelCl, ModelSpreadsheet, createDocWebhook } from 'tmw-kit'
+import {
+  ModelDoc,
+  ModelCl,
+  ModelSpreadsheet,
+  createDocWebhook,
+  loadTmwConfig,
+} from 'tmw-kit'
 import { ElasticSearchIndex } from 'tmw-kit/dist/elasticsearch/index.js'
 import _ from 'lodash'
 import mongodb from 'mongodb'
 
 const ObjectId = mongodb.ObjectId
 
+const tmwConfig = await loadTmwConfig()
 /**
  * 将指定的字段参数转换为mongodb的projection对象
  *
@@ -73,6 +80,11 @@ class DocBase extends Base {
   }
   /**
    * 指定数据库指定集合下新建文档
+   *
+   * 替换模式
+   *
+   * TMW_REPLACE_TIMES记录是第几次替换
+   *
    */
   async create() {
     const existCl = await this.docHelper.findRequestCl()
@@ -89,30 +101,53 @@ class DocBase extends Base {
     let { replace, updateAsDelete = 'no' } = this.request.query
 
     // 要新建的文档数据
-    let docData, deleteCount
+    let newDocData, deleteCount
     if (replace === 'yes') {
       let { filter, doc, like = false } = this.request.body
       // 删除指定的文档
       if (filter && typeof filter === 'object') {
+        /**
+         * 删除要替换的文档
+         */
         let query = this.modelDoc.assembleQuery(filter, like)
         deleteCount = await this.modelDoc.removeMany(
           existCl,
           query,
           updateAsDelete === 'yes'
         )
+        /**
+         * 获得已有的替换最大次数
+         */
+        let { TMW_APP_REPLACETIMES } = tmwConfig
+        if (TMW_APP_REPLACETIMES && typeof TMW_APP_REPLACETIMES === 'string') {
+          if (updateAsDelete === 'yes') {
+            if (deleteCount) {
+              let filter2 = JSON.parse(JSON.stringify(filter))
+              delete filter2[tmwConfig.TMW_APP_DELETETIME]
+              let lastDoc = await this.modelDoc.findOne(existCl, {
+                filter: filter2,
+                like,
+                orderBy: { [TMW_APP_REPLACETIMES]: 'desc' },
+              })
+              doc[TMW_APP_REPLACETIMES] = lastDoc[TMW_APP_REPLACETIMES] + 1
+            } else {
+              doc[TMW_APP_REPLACETIMES] = 0
+            }
+          }
+        }
       }
-      docData = doc
+      newDocData = doc
     } else {
-      docData = this.request.body
+      newDocData = this.request.body
     }
 
-    if (!docData) return new ResultFault('没有指定要新建的文档数据')
+    if (!newDocData) return new ResultFault('没有指定要新建的文档数据')
 
     // 加工数据
-    this.modelDoc.processBeforeStore(docData, 'insert', docSchema)
+    this.modelDoc.processBeforeStore(newDocData, 'insert', docSchema)
 
     // 通过webhook处理数据
-    let beforeRst = await this.docWebhook.beforeCreate(docData, existCl)
+    let beforeRst = await this.docWebhook.beforeCreate(newDocData, existCl)
 
     if (beforeRst.passed !== true)
       return new ResultFault(
@@ -120,9 +155,9 @@ class DocBase extends Base {
       )
 
     if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
-      docData = beforeRst.rewrited
+      newDocData = beforeRst.rewrited
 
-    const newDoc = await this.modelDoc.create(existCl, docData, docSchema)
+    const newDoc = await this.modelDoc.create(existCl, newDocData, docSchema)
 
     // 通过webhook处理数据
     let afterRst = await this.docWebhook.afterCreate(newDoc, existCl)
@@ -130,12 +165,12 @@ class DocBase extends Base {
       return new ResultFault(afterRst.reason || '操作被Webhook.afterCreate阻止')
 
     if (afterRst.rewrited && typeof afterRst.rewrited === 'object')
-      docData = afterRst.rewrited
+      newDocData = afterRst.rewrited
 
     // 返回结果
     if (replace === 'yes')
-      return new ResultData({ deleteCount, newDoc: docData })
-    return new ResultData(docData)
+      return new ResultData({ deleteCount, newDoc: newDocData })
+    return new ResultData(newDocData)
   }
   /**
    * 指定数据库指定集合下批量新建文档

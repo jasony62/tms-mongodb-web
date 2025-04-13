@@ -137,10 +137,7 @@ function afterLoadSettings() {
     .mount('#app')
 }
 
-const { VITE_BASE_URL } = import.meta.env
-const UrlSettings =
-  (VITE_BASE_URL && VITE_BASE_URL !== '/' ? VITE_BASE_URL : '/admin') +
-  '/settings.json'
+const UrlSettings = `${BASE_URL}/settings.json`
 
 TmsAxios.ins('master-api')
   .get(UrlSettings)
