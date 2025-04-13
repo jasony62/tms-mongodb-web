@@ -21,6 +21,7 @@ import {
   setLocalToken,
   EXTERNAL_LOGIN_URL,
   externalLogin,
+  BASE_URL,
 } from './global'
 import './index.css'
 import 'element-plus/dist/index.css'
