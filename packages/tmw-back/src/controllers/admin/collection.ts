@@ -200,7 +200,7 @@ class Collection extends CollectionBase {
     info.sysname = sysname
     info.database = reqDb.name
     info.db = { sysname: reqDb.sysname, name: reqDb.name }
-    if (this.bucket) info.bucket = this.bucketObj.name
+    if (this.bucketObj) info.bucket = this.bucketObj.name
 
     return this.clMongoObj.insertOne(info).then((result) => {
       info._id = result.insertedId

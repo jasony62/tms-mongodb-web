@@ -16,6 +16,10 @@ const ObjectId = mongodb.ObjectId
  */
 const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
 /**
+ * 排序的字符集
+ */
+const COLLATION_LOCALE = process.env.TMW_APP_COLLATION_LOCALE || 'zh'
+/**
  * 用update代替delete操作
  * 添加删除时间
  */
@@ -462,6 +466,7 @@ class Document extends Base {
       .skip(skip)
       .limit(limit)
       .sort(sort)
+      .collation({ locale: COLLATION_LOCALE })
       .toArray()
       .then(async (docs) => {
         return docs

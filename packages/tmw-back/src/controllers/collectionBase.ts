@@ -121,7 +121,11 @@ class CollectionBase extends Base {
     const existCl = await this.clHelper.findRequestCl()
 
     let info = this.request.body
-    let modelCl = new ModelCl(this.mongoClient, this.bucket, this.client)
+    let modelCl = new ModelCl(
+      this.mongoClient,
+      this.bucketObj?.name,
+      this.client
+    )
 
     const result = await modelCl.update(this.reqDb, existCl, info)
     if (result[0] !== true) {

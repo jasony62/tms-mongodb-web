@@ -28,6 +28,7 @@ let appConfig = {
     credentials: true,
   },
   auth: {
+    bucket: { disabled: true },
     // 内置账号
     client: {
       npm: {

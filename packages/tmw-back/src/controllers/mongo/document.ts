@@ -112,8 +112,16 @@ class Document extends DocBase {
       return new ResultFault('没有要移动的数据')
     }
 
-    let modelCl = new ModelCl(this.mongoClient, this.bucket, this.client)
-    let modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
+    let modelCl = new ModelCl(
+      this.mongoClient,
+      this.bucketObj?.name,
+      this.client
+    )
+    let modelDoc = new ModelDoc(
+      this.mongoClient,
+      this.bucketObj?.name,
+      this.client
+    )
 
     const oldExistCl = await modelCl.byName(oldDb, oldCl)
     let oldDocus, total, operateType

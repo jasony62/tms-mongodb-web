@@ -61,7 +61,7 @@ class DbBase extends CtrlBase {
    */
   async create() {
     let info = this.request.body
-    if (this.bucket) info.bucket = this.bucketObj.name
+    if (this.bucketObj) info.bucket = this.bucketObj.name
 
     let [flag, result] = await this.dbHelper.dbCreate(info)
 
@@ -78,7 +78,11 @@ class DbBase extends CtrlBase {
     let info = this.request.body
 
     // 检查数据库名
-    let modelDb = new ModelDb(this.mongoClient, this.bucketObj, this.client)
+    let modelDb = new ModelDb(
+      this.mongoClient,
+      this.bucketObj?.name,
+      this.client
+    )
 
     let newName
     if (info.name !== undefined) {
@@ -114,7 +118,7 @@ class DbBase extends CtrlBase {
 
     let top = type === 'up' ? '10000' : null
     const query: any = { _id: new ObjectId(id) }
-    if (this.bucket) query.bucket = this.bucketObj.name
+    if (this.bucketObj) query.bucket = this.bucketObj.name
 
     return this.clMongoObj
       .updateOne(query, { $set: { top } })

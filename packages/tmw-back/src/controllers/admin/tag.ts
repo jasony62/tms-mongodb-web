@@ -46,7 +46,7 @@ class Tag extends TagBase {
     let info = this.request.body
     info.name = info.name.replace(/(^\s*)|(\s*$)/g, '')
 
-    if (this.bucket && typeof this.bucket === 'object')
+    if (this.bucketObj && typeof this.bucketObj === 'object')
       info.bucket = this.bucketObj.name
 
     // 查询是否存在同名标签

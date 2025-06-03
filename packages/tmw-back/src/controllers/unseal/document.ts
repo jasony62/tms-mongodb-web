@@ -29,7 +29,11 @@ class Document extends Base {
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
     this.docHelper = new DocumentHelper(this)
-    this.modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
+    this.modelDoc = new ModelDoc(
+      this.mongoClient,
+      this.bucketObj?.name,
+      this.client
+    )
   }
   /**
    * 检查请求是否来源于可信主机，跳过认证机制
@@ -45,7 +49,7 @@ class Document extends Base {
   private async getDocSchema(schema_id: string) {
     const modelSchema = new ModelSchema(
       this.mongoClient,
-      this.bucket,
+      this.bucketObj?.name,
       this.client
     )
 

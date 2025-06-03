@@ -39,7 +39,11 @@ class DocBase extends Base {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
     this.docHelper = new DocumentHelper(this)
     this.docWebhook = createDocWebhook(process.env.TMW_APP_WEBHOOK)
-    this.modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
+    this.modelDoc = new ModelDoc(
+      this.mongoClient,
+      this.bucketObj?.name,
+      this.client
+    )
   }
   /**
    * 根据ID返回单个文档的数据
@@ -742,7 +746,7 @@ class DocBase extends Base {
     if (existCl.spreadsheet === 'yes') {
       const modelSS = new ModelSpreadsheet(
         this.mongoClient,
-        this.bucket,
+        this.bucketObj?.name,
         this.client
       )
       await modelSS.removeByCl(existCl.db.sysname, existCl.sysname)
@@ -837,7 +841,11 @@ class DocBase extends Base {
     const existCl = await this.docHelper.findRequestCl()
 
     const { toDb, toCl } = this.request.query
-    const modelCl = new ModelCl(this.mongoClient, this.bucket, this.client)
+    const modelCl = new ModelCl(
+      this.mongoClient,
+      this.bucketObj?.name,
+      this.client
+    )
     const targetCl = await modelCl.byName(toDb, toCl)
     if (!targetCl)
       return new ResultFault(
@@ -960,7 +968,11 @@ class DocBase extends Base {
 
     if (!exportType) return new ResultFault('缺少导出的文件类型参数')
 
-    let modelDoc = new ModelDoc(this.mongoClient, this.bucket, this.client)
+    let modelDoc = new ModelDoc(
+      this.mongoClient,
+      this.bucketObj?.name,
+      this.client
+    )
 
     let query
     if (docIds && docIds.length > 0) {
@@ -979,7 +991,11 @@ class DocBase extends Base {
 
     const existCl = await this.docHelper.findRequestCl()
     // 集合列
-    let modelCl = new ModelCl(this.mongoClient, this.bucket, this.client)
+    let modelCl = new ModelCl(
+      this.mongoClient,
+      this.bucketObj?.name,
+      this.client
+    )
     columns = columns ? columns : await modelCl.getSchemaByCollection(existCl)
     if (!columns) return new ResultFault('指定的集合没有指定集合列')
 

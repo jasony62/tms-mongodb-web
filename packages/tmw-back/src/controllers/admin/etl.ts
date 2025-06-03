@@ -13,14 +13,18 @@ class Etl extends Base {
 
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
-    this.modelEtl = new EtlModel(this.mongoClient, this.bucket, this.client)
+    this.modelEtl = new EtlModel(
+      this.mongoClient,
+      this.bucketObj?.name,
+      this.client
+    )
     this.etlHelper = new EtlHelper(this)
   }
   /**
    * 查找和目的集合以及操作意图匹配的定义
    */
   async findForDst() {
-    let { bucket, db, cl, scope } = this.request.query
+    let { db, cl, scope } = this.request.query
     let [ok, result] = await this.modelEtl.list({ db, coll: cl }, scope)
 
     if (ok !== true) return new ResultFault(result)

@@ -21,7 +21,6 @@ function allowAccessBucket(bucket, clientId) {
 const isRequireBucket = /yes|true/i.test(process.env.TMW_REQUIRE_BUCKET)
 
 class Base extends Ctrl {
-  bucketObj
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
