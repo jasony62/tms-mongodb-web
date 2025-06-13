@@ -63,8 +63,8 @@ class CreateAccountPlugin extends PluginBase {
           code: 10001,
           msg: afterRst.reason || '操作被Webhook.afterCreate阻止',
         }
-
-      return { code: 0, msg: '创建账号成功' }
+      const { _id } = newAccount
+      return { code: 0, msg: { id: _id.toString() } }
     } catch (e) {
       return { code: 10001, msg: e }
     }

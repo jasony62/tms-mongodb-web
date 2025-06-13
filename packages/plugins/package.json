@@ -16,7 +16,7 @@
     "debug": "4.4.0",
     "glob": "11.0.0",
     "pinyin-pro": "3.26.0",
-    "tms-data-aid": "0.0.119",
+    "tms-data-aid": "0.0.120",
     "tmw-data": "workspace:*",
     "tmw-kit": "workspace:*",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz"
