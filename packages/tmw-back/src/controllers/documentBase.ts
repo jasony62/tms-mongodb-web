@@ -178,6 +178,15 @@ class DocBase extends Base {
   }
   /**
    * 指定数据库指定集合下批量新建文档
+   * query
+   * replace = 'yes' // 是否替换已有的文档
+   *
+   * body
+   * {
+   *   filter: {}, // 删除指定的文档
+   *   docs: [], // 要新建的文档数据
+   *   like: true // 是否使用模糊匹配
+   * }
    */
   async createMany() {
     const existCl = await this.docHelper.findRequestCl()
@@ -531,12 +540,15 @@ class DocBase extends Base {
   }
   /**
    * 获得指定数据库指定集合下的文档
-   *
+   * like === true
    * filter: {"_id": {"keyword": ["673c420e979ce73abd0052e2", "66f8b6a9896f91f91f9885e8"]}}
    *
    * filter: {"state": {"feature": "eq", "keyword": "1"}}
    *
    * {"filter": {"disabled": {"feature": "exists", "keyword": true}}}
+   *
+   * like === false
+   * filter: {"name": "张三"}
    *
    * orderBy: {"field1":"desc","field2":"asc"}
    *

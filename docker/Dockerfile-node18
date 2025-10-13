@@ -1,7 +1,7 @@
 # 开箱即用的tms-mongodb-web镜像
 
 # 服务预编译
-FROM node:22-alpine AS builder
+FROM node:18-alpine AS builder
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
 
 # 修改npm源
@@ -87,7 +87,7 @@ RUN echo VITE_BASE_URL=$vite_plugin_base_url >> /usr/src/tmw/ue_plugin/.env
 RUN cd /usr/src/tmw/ue_plugin && pnpm build
 
 # 生成运行镜像
-FROM node:22-alpine
+FROM node:18-alpine
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
   && apk update && apk add bash tzdata \
   && cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
