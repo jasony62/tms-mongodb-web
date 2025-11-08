@@ -1,4 +1,3 @@
-import * as _ from 'lodash'
 import Helper from 'tmw-kit/dist/ctrl/helper.js'
 import unrepeatByArray from '../tms/utilities.js'
 
@@ -40,7 +39,7 @@ export default async function unrepeat(ctrl, data, transform) {
   })
 
   return Promise.all(docs2).then((docs3) => {
-    return _.filter(docs3, (d) => {
+    return docs3.filter((d) => {
       if (d == false) {
         return false
       } else {

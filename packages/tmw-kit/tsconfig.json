@@ -9,7 +9,7 @@
     "rootDir": "./",
     "declaration": true,
     "sourceMap": false,
-    "types": ["node", "jest"]
+    "types": ["node"]
   },
   "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.d.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "dist"]

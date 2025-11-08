@@ -1,4 +1,5 @@
-import _ from 'lodash'
+// import _ from 'lodash'
+import { omit } from 'es-toolkit'
 import { ResultData, ResultFault } from 'tms-koa'
 import TagBase from '../tagBase.js'
 import mongodb from 'mongodb'
@@ -108,7 +109,8 @@ class Tag extends TagBase {
     let query: any = { _id: new ObjectId(id), type: 'tag' }
     if (this.bucketObj) query.bucket = this.bucketObj.name
 
-    info = _.omit(info, ['_id', 'type', 'bucket'])
+    // info = _.omit(info, ['_id', 'type', 'bucket'])
+    info = omit(info, ['_id', 'type', 'bucket'])
 
     return this.clTagObj
       .updateOne(query, { $set: info }, { upsert: true })

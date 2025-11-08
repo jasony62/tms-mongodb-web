@@ -2,7 +2,8 @@ import { ResultData, ResultFault } from 'tms-koa'
 import { Base } from 'tmw-kit/dist/ctrl/index.js'
 import DocumentHelper from '../documentHelper.js'
 import { ModelDoc, ModelSchema, SchemaIter, AES } from 'tmw-kit'
-import * as _ from 'lodash'
+// import * as _ from 'lodash'
+import { get, set } from 'es-toolkit/compat'
 
 /**
  *
@@ -82,10 +83,12 @@ class Document extends Base {
     for (let schemaProp of schemaIter) {
       let { fullname, attrs } = schemaProp
       if (attrs.format === 'password') {
-        let val = _.get(existDoc, fullname)
+        let val = get(existDoc, fullname)
+        // let val = _.get(existDoc, fullname)
         if (val && typeof val === 'string') {
           let decrypted = AES.decrypt(val)
-          _.set(existDoc, fullname, decrypted)
+          set(existDoc, fullname, decrypted)
+          // _.set(existDoc, fullname, decrypted)
         }
       }
     }
@@ -127,10 +130,12 @@ class Document extends Base {
         let { fullname, attrs } = schemaProp
         if (attrs.format === 'password') {
           result.docs.forEach((doc) => {
-            let val = _.get(doc, fullname)
+            let val = get(doc, fullname)
+            // let val = _.get(doc, fullname)
             if (val && typeof val === 'string') {
               let decrypted = AES.decrypt(val)
-              _.set(doc, fullname, decrypted)
+              set(doc, fullname, decrypted)
+              // _.set(doc, fullname, decrypted)
             }
           })
         }
@@ -160,10 +165,12 @@ class Document extends Base {
     for (let schemaProp of schemaIter) {
       let { fullname, attrs } = schemaProp
       if (attrs.format === 'password') {
-        let val = _.get(existDoc, fullname)
+        let val = get(existDoc, fullname)
+        // let val = _.get(existDoc, fullname)
         if (val && typeof val === 'string') {
           let decrypted = AES.decrypt(val)
-          _.set(existDoc, fullname, decrypted)
+          set(existDoc, fullname, decrypted)
+          // _.set(existDoc, fullname, decrypted)
         }
       }
     }

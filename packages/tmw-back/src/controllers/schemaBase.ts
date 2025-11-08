@@ -1,7 +1,8 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import { Base } from 'tmw-kit/dist/ctrl/index.js'
 import SchemaHelper from './schemaHelper.js'
-import _ from 'lodash'
+// import _ from 'lodash'
+import { omit } from 'es-toolkit'
 import mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
@@ -135,7 +136,8 @@ class SchemaBase extends Base {
 
     let info = this.request.body
     const { scope } = info
-    info = _.omit(info, ['_id', 'scope', 'bucket'])
+    // info = _.omit(info, ['_id', 'scope', 'bucket'])
+    info = omit(info, ['_id', 'scope', 'bucket'])
     if (typeof info.order !== 'number') info.order = 99999
 
     // 查询是否存在同名文档列定义

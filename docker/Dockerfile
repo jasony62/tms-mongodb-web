@@ -1,7 +1,7 @@
 # 开箱即用的tms-mongodb-web镜像
 
 # 服务预编译
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
 
 # 修改npm源

@@ -9,7 +9,8 @@ import {
   loadTmwConfig,
 } from 'tmw-kit'
 import { ElasticSearchIndex } from 'tmw-kit/dist/elasticsearch/index.js'
-import _ from 'lodash'
+// import _ from 'lodash'
+import { omit } from 'es-toolkit'
 import mongodb from 'mongodb'
 
 const ObjectId = mongodb.ObjectId
@@ -332,7 +333,8 @@ class DocBase extends Base {
     if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
       newDoc = beforeRst.rewrited
 
-    let updated = _.omit(newDoc, ['_id', 'bucket'])
+    // let updated = _.omit(newDoc, ['_id', 'bucket'])
+    let updated = omit(newDoc, ['_id', 'bucket'])
     const isOk = await this.modelDoc.update(existCl, id, updated)
 
     if (!isOk) return new ResultFault('更新文档失败')
@@ -407,7 +409,8 @@ class DocBase extends Base {
     if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
       updated = beforeRst.rewrited
 
-    let updated2 = _.omit(updated, ['_id', 'bucket'])
+    // let updated2 = _.omit(updated, ['_id', 'bucket'])
+    let updated2 = omit(updated, ['_id', 'bucket'])
     const isOk = await this.modelDoc.update(existCl, docId, updated2)
 
     if (!isOk) return new ResultFault('更新文档失败')
@@ -505,7 +508,8 @@ class DocBase extends Base {
     if (beforeRst.rewrited && typeof beforeRst.rewrited === 'object')
       newDoc = beforeRst.rewrited
 
-    let updated = _.omit(newDoc, ['_id', 'bucket'])
+    // let updated = _.omit(newDoc, ['_id', 'bucket'])
+    let updated = omit(newDoc, ['_id', 'bucket'])
     const isOk = await this.modelDoc.replace(existCl, id, updated)
 
     if (!isOk) return new ResultFault('更新文档失败')

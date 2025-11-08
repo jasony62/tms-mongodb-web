@@ -1,5 +1,3 @@
-import * as _ from 'lodash'
-
 /**
  * 对数组中的元素去重
  */
@@ -10,7 +8,7 @@ export default function unrepeatByArray(
 ) {
   let hash = []
   let repeatData = []
-  let newArr = _.filter(arr, (d) => {
+  let newArr = arr.filter((d) => {
     let dd = {}
     columns.forEach((v) => {
       dd[v] = d[v]
@@ -26,7 +24,7 @@ export default function unrepeatByArray(
   })
   // 不保留重复数据
   if (keepFirstRepeatData === false) {
-    newArr = _.filter(newArr, (d) => {
+    newArr = newArr.filter((d) => {
       let dd = {}
       columns.forEach((v) => {
         dd[v] = d[v]

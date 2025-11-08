@@ -13,26 +13,24 @@
   "license": "MIT",
   "dependencies": {
     "archiver": "7.0.1",
-    "commander": "13.1.0",
-    "dayjs": "1.11.13",
-    "debug": "4.4.0",
-    "glob": "11.0.0",
-    "lodash": "^4.17.21",
+    "commander": "14.0.2",
+    "dayjs": "1.11.19",
+    "debug": "4.4.3",
+    "es-toolkit": "^1.41.0",
+    "glob": "11.0.3",
     "log4js": "6.9.1",
-    "mongodb": "5.9.2",
-    "nanoid": "5.0.9",
-    "tms-koa": "^0.2.15",
-    "tms-koa-account": "^0.2.15",
-    "tms-koa-agenda": "^0.2.19",
-    "tms-koa-captcha": "^0.2.15",
+    "mongodb": "7.0.0",
+    "nanoid": "5.1.6",
+    "tms-koa": "0.2.22",
+    "tms-koa-account": "0.2.22",
+    "tms-koa-agenda": "0.2.22",
+    "tms-koa-captcha": "0.2.22",
     "tmw-data": "workspace:*",
     "tmw-kit": "workspace:*",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz"
   },
   "devDependencies": {
-    "@types/lodash": "4.17.15",
-    "@types/node": "22.7.4",
-    "rimraf": "6.0.1",
-    "typescript": "5.7.3"
+    "@types/node": "24.10.0",
+    "rimraf": "6.1.0"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "tmw-data",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "TMW数据结构",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,7 +18,7 @@
   "author": "jasony62",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "22.14.1",
-    "rimraf": "6.0.1"
+    "@types/node": "24.10.0",
+    "rimraf": "6.1.0"
   }
 }

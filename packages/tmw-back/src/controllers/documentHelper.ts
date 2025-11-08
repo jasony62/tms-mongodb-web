@@ -1,5 +1,3 @@
-// import unrepeat from './unrepeat.js'
-import _ from 'lodash'
 import fs from 'fs'
 import PATH from 'path'
 import mongodb from 'mongodb'

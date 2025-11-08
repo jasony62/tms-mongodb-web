@@ -3,7 +3,8 @@ const { FsContext } = Context
 import { UploadPlain } from 'tms-koa/dist/model/fs/upload.js'
 import { LocalFS } from 'tms-koa/dist/model/fs/local.js'
 import DocBase from '../documentBase.js'
-import _ from 'lodash'
+// import _ from 'lodash'
+import { upperCase } from 'es-toolkit'
 import { ModelCl, ModelDoc } from 'tmw-kit'
 import mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
@@ -134,7 +135,8 @@ class Document extends DocBase {
     } else {
       let query = {}
       let cl = this['docHelper'].findSysColl(oldExistCl)
-      if (_.toUpper(filter) !== 'ALL') {
+      // if (_.toUpper(filter) !== 'ALL') {
+      if (upperCase(filter) !== 'ALL') {
         query = modelDoc.assembleQuery(filter)
         operateType = `批量（按筛选）迁移`
       } else {

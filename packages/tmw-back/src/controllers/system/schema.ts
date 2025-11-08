@@ -1,4 +1,5 @@
-import * as _ from 'lodash'
+// import * as _ from 'lodash'
+import { omit } from 'es-toolkit'
 import { ResultData, ResultFault } from 'tms-koa'
 import Base from 'tmw-kit/dist/ctrl/base.js'
 import * as mongodb from 'mongodb'
@@ -103,7 +104,8 @@ class Schema extends Base {
   async update() {
     const { id } = this['request'].query
     let info = this['request'].body
-    info = _.omit(info, ['_id', 'scope', 'type'])
+    info = omit(info, ['_id', 'scope', 'type'])
+    // info = _.omit(info, ['_id', 'scope', 'type'])
 
     const query = { _id: new ObjectId(id), type: 'schema' }
 

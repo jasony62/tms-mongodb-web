@@ -1,4 +1,5 @@
-import _ from 'lodash'
+// import _ from 'lodash'
+import { intersection, difference } from 'es-toolkit'
 import { ResultFault, ResultData } from 'tms-koa'
 import PluginHelper from './pluginHelper.js'
 import { PluginContext, ModelSchema } from 'tmw-kit'
@@ -137,7 +138,8 @@ class Plugin extends CtrlBase {
        */
       if (Array.isArray(rejectedRight) && rejectedRight.length) {
         if (Array.isArray(tmwCl.right) && tmwCl.right.length) {
-          const result = _.intersection(tmwCl.right, rejectedRight)
+          const result = intersection(tmwCl.right, rejectedRight)
+          // const result = _.intersection(tmwCl.right, rejectedRight)
           if (result.length) return false
         }
       }
@@ -154,15 +156,18 @@ class Plugin extends CtrlBase {
 
       // 集合标签中不能包括指定的标签
       if (Array.isArray(excludeTags) && excludeTags.length)
-        if (_.intersection(excludeTags, objTags).length) return false
+        if (intersection(excludeTags, objTags).length) return false
+      // if (_.intersection(excludeTags, objTags).length) return false
 
       // 集合标签中包括指定的所有标签
       if (Array.isArray(everyTags) && everyTags.length)
-        if (_.difference(everyTags, objTags).length) return false
+        if (difference(everyTags, objTags).length) return false
+      // if (_.difference(everyTags, objTags).length) return false
 
       // 集合标签中包括至少1个指定标签
       if (Array.isArray(someTags) && someTags.length)
-        if (_.intersection(someTags, objTags).length === 0) return false
+        if (intersection(someTags, objTags).length === 0) return false
+      // if (_.intersection(someTags, objTags).length === 0) return false
 
       return true
     })

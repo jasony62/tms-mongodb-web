@@ -4,7 +4,8 @@ import CollectionHelper from './collectionHelper.js'
 import SchemaHelper from './schemaHelper.js'
 import { ModelCl } from 'tmw-kit'
 import { Base } from 'tmw-kit/dist/ctrl/index.js'
-import _ from 'lodash'
+// import _ from 'lodash'
+import { merge } from 'es-toolkit'
 
 /**
  * 保存元数据的数据库
@@ -75,7 +76,8 @@ class CollectionBase extends Base {
           _id: new ObjectId(es.id),
         })
         // 深度合并
-        _.merge(editSchema.body.properties, extSchema.body.properties)
+        // _.merge(editSchema.body.properties, extSchema.body.properties)
+        merge(editSchema.body.properties, extSchema.body.properties)
       }
       existCl.editSchema = editSchema
       delete existCl.ext_schemas
