@@ -78,6 +78,7 @@ RUN echo VITE_BASE_URL=$vite_admin_base_url >> /usr/src/tmw/ue_admin/.env
 RUN cd /usr/src/tmw/ue_admin && pnpm build
 ### 建立空的前端配置文件
 # RUN mkdir -p /usr/src/tmw/ue_admin/dist/${vite_base_url:-admin} && echo '{}' >> /usr/src/tmw/ue_admin/dist/${vite_base_url:-admin}/settings.json
+ARG vite_base_url
 COPY ./docker/ue_admin/settings.json.template /usr/src/tmw/ue_admin/dist/${vite_base_url:-admin}/settings.json.template
 
 ## ue_plugin
@@ -87,7 +88,7 @@ RUN echo VITE_BASE_URL=$vite_plugin_base_url >> /usr/src/tmw/ue_plugin/.env
 RUN cd /usr/src/tmw/ue_plugin && pnpm build
 
 # 生成运行镜像
-FROM node:22-alpine
+FROM node:24-alpine
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
   && apk update && apk add bash tzdata \
   && cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
