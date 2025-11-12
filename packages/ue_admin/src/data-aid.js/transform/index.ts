@@ -1,6 +1,5 @@
 import { JSONPath } from 'jsonpath-plus'
-import * as _ from 'lodash'
-
+import { set } from 'es-toolkit/compat'
 /**
  * 数据提取规则
  */
@@ -19,13 +18,13 @@ function fill(result: any, recvPath: string, valFrom: any, input: any): any {
        * source是jsonpath，源数据中取值
        */
       let val = JSONPath({ path: valFrom, json: input, wrap: false })
-      _.set(result, recvPath, val)
+      set(result, recvPath, val)
       break
     default:
       /**
        * source是值，直接赋值
        */
-      _.set(result, recvPath, valFrom)
+      set(result, recvPath, valFrom)
   }
 
   return result

@@ -2,36 +2,99 @@
   <div class="flex flex-row gap-2 h-full">
     <!--left-->
     <div class="flex flex-col gap-2" :class="COMPACT ? 'w-full' : 'w-4/5'">
-      <el-table :data="store.dbs" stripe @selection-change="changeDbSelect">
+      <el-table
+        :data="store.dbs"
+        stripe
+        @selection-change="changeDbSelect"
+        @filter-change="onFilterChange"
+      >
         <el-table-column type="selection" width="40"></el-table-column>
         <el-table-column label="数据库" width="180">
-          <template #default="scope">
-            <el-button type="primary" link size="small" @click="openDatabase(scope.row)">{{ scope.row.name
-              }}</el-button>
+          <template #header>
+            <el-input
+              v-model="criteria.name"
+              size="small"
+              placeholder="搜索数据库"
+              clearable
+              @clear="listDbByCriteria()"
+              @keyup.enter.native="listDbByCriteria()"
+            >
+              <template #append>
+                <el-button
+                  :icon="Search"
+                  @click="listDbByCriteria()"
+                ></el-button>
+              </template>
+            </el-input>
+          </template>
+          <template #default="{ row }">
+            <el-button
+              type="primary"
+              link
+              size="small"
+              @click="openDatabase(row)"
+              >{{ row.name }}</el-button
+            >
           </template>
         </el-table-column>
-        <el-table-column prop="title" label="名称" width="180"></el-table-column>
+        <el-table-column
+          prop="title"
+          label="标题"
+          width="180"
+        ></el-table-column>
         <el-table-column prop="description" label="说明"></el-table-column>
+        <el-table-column
+          prop="tags"
+          label="标签"
+          column-key="tags"
+          :filters="allTags"
+        >
+          <template #default="{ row }">
+            <div class="flex flex-row flex-wrap gap-1">
+              <el-tag v-for="tag in row.tags" type="info">{{
+                tag.tagName
+              }}</el-tag>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="120">
           <template #default="scope">
-            <el-button type="primary" link size="small" @click="editDb(scope.row, scope.$index)">设置</el-button>
+            <el-button
+              type="primary"
+              link
+              size="small"
+              @click="editDb(scope.row, scope.$index)"
+              >设置</el-button
+            >
             <el-dropdown class="tmw-opt__dropdown">
-              <el-button type="primary" link size="small">更多
+              <el-button type="primary" link size="small"
+                >更多
                 <el-icon class="el-icon--right"><arrow-down /></el-icon>
               </el-button>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item>
-                    <el-button type="primary" link @click="gotoDocSchemas(scope.row)">文档定义</el-button>
+                    <el-button
+                      type="primary"
+                      link
+                      @click="gotoDocSchemas(scope.row)"
+                      >文档定义</el-button
+                    >
                   </el-dropdown-item>
                   <el-dropdown-item>
-                    <el-button type="primary" link @click="gotoDir(scope.row)">分类目录</el-button>
+                    <el-button type="primary" link @click="gotoDir(scope.row)"
+                      >分类目录</el-button
+                    >
                   </el-dropdown-item>
                   <el-dropdown-item>
-                    <el-button type="primary" link @click="gotoAcl(scope.row)">访问控制</el-button>
+                    <el-button type="primary" link @click="gotoAcl(scope.row)"
+                      >访问控制</el-button
+                    >
                   </el-dropdown-item>
                   <el-dropdown-item divided>
-                    <el-button type="danger" link @click="removeDb(scope.row)">删除数据库</el-button>
+                    <el-button type="danger" link @click="removeDb(scope.row)"
+                      >删除数据库</el-button
+                    >
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -40,10 +103,20 @@
         </el-table-column>
       </el-table>
       <div class="flex flex-row gap-4 p-2 items-center justify-between">
-        <span class="tmw-pagination__text">已选中 {{ criteria.multipleDb.length }} 条数据</span>
-        <el-pagination :hide-on-single-page="true" layout="total, sizes, prev, pager, next" background
-          :total="criteria.dbBatch.total" :page-sizes="[10, 25, 50, 100]" :current-page="criteria.dbBatch.page"
-          :page-size="criteria.dbBatch.size" @current-change="changeDbPage" @size-change="changeDbSize"></el-pagination>
+        <span class="tmw-pagination__text"
+          >已选中 {{ criteria.multipleDb.length }} 条数据</span
+        >
+        <el-pagination
+          :hide-on-single-page="true"
+          layout="total, sizes, prev, pager, next"
+          background
+          :total="criteria.dbBatch.total"
+          :page-sizes="[10, 25, 50, 100]"
+          :current-page="criteria.dbBatch.page"
+          :page-size="criteria.dbBatch.size"
+          @current-change="changeDbPage"
+          @size-change="changeDbSize"
+        ></el-pagination>
       </div>
     </div>
     <!--right-->
@@ -51,28 +124,40 @@
       <div>
         <el-button @click="createDb">添加数据库</el-button>
       </div>
-      <tmw-plugins :plugins="plugins" :total-by-all="totalByAll" :total-by-filter="totalByFilter"
-        :total-by-checked="totalByChecked" :handle-plugin="handlePlugin"></tmw-plugins>
+      <tmw-plugins
+        :plugins="plugins"
+        :total-by-all="totalByAll"
+        :total-by-filter="totalByFilter"
+        :total-by-checked="totalByChecked"
+        :handle-plugin="handlePlugin"
+      ></tmw-plugins>
     </div>
   </div>
   <tmw-plugin-widget></tmw-plugin-widget>
 </template>
 
 <script setup lang="ts">
-import { ArrowDown } from '@element-plus/icons-vue'
+import { ArrowDown, Search } from '@element-plus/icons-vue'
 import { computed, onMounted, reactive, ref, toRaw } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Batch } from 'tms-vue3'
 
 import facStore from '@/store'
 import { openDbEditor } from '@/components/editor'
-import { BACK_API_URL, COMPACT_MODE, FS_BASE_URL, getLocalToken, LABEL, PAGINATION_DB_SIZE } from '@/global'
+import {
+  BACK_API_URL,
+  COMPACT_MODE,
+  FS_BASE_URL,
+  getLocalToken,
+  PAGINATION_DB_SIZE,
+} from '@/global'
 import apiPlugin from '@/apis/plugin'
+import apiTag from '@/apis/tag'
 import TmwPlugins from '@/components/PluginList.vue'
 import TmwPluginWidget from '@/components/PluginWidget.vue'
 import { useTmwPlugins } from '@/composables/plugins'
-import * as _ from 'lodash'
 import { useRouter } from 'vue-router'
+import { get, set } from 'es-toolkit/compat'
 
 const COMPACT = computed(() => COMPACT_MODE())
 
@@ -80,19 +165,21 @@ const router = useRouter()
 
 const store = facStore()
 
-// 查找条件下拉框分页包含记录数
+const allTags = reactive([] as any[])
 
 const props = defineProps({ bucketName: String })
 
 const criteria = reactive({
-  dbBatch: new Batch(() => { }),
+  name: undefined as string | undefined,
+  tags: undefined as string[] | undefined,
+  dbBatch: new Batch(() => {}),
   multipleDb: [] as any[],
 })
-const listDbByKw = (keyword: any) => {
+const listDbByCriteria = () => {
   criteria.dbBatch = store.listDatabase({
     bucket: props.bucketName,
-    keyword: keyword,
-    size: PAGINATION_DB_SIZE()
+    filter: { name: criteria.name, tags: criteria.tags },
+    size: PAGINATION_DB_SIZE(),
   })
 }
 const createDb = () => {
@@ -100,9 +187,8 @@ const createDb = () => {
     mode: 'create',
     bucketName: props.bucketName,
     onBeforeClose: (newDb?: any) => {
-      if (newDb)
-        store.appendDatabase({ db: newDb })
-    }
+      if (newDb) store.appendDatabase({ db: newDb })
+    },
   })
 }
 const editDb = (db: any, index: any) => {
@@ -111,9 +197,8 @@ const editDb = (db: any, index: any) => {
     bucketName: props.bucketName,
     database: JSON.parse(JSON.stringify(toRaw(db))),
     onBeforeClose: (newDb?: any) => {
-      if (newDb)
-        store.updateDatabase({ db: newDb, index })
-    }
+      if (newDb) store.updateDatabase({ db: newDb, index })
+    },
   })
 }
 const removeDb = (db: any) => {
@@ -124,12 +209,14 @@ const removeDb = (db: any) => {
       confirmButtonText: '是',
       cancelButtonText: '取消',
       type: 'warning',
-
-    }).then(() => {
+    }
+  )
+    .then(() => {
       store.removeDb({ bucket: props.bucketName, db }).then(() => {
         ElMessage({ message: '数据库已删除', type: 'success' })
       })
-    }).catch(() => { })
+    })
+    .catch(() => {})
 }
 const changeDbPage = (page: any) => {
   criteria.dbBatch.goto(page)
@@ -142,6 +229,15 @@ const changeDbSelect = (value: any[]) => {
   criteria.multipleDb = value
 }
 
+const onFilterChange = (newFilters: { [column: string]: string[] }) => {
+  console.log('过滤条件变更：', newFilters)
+  if (newFilters['tags'] && newFilters['tags'].length > 0) {
+    criteria.tags = newFilters['tags']
+  } else {
+    criteria.tags = undefined
+  }
+  listDbByCriteria()
+}
 /**
  * 设置插件操作的文档参数
  */
@@ -154,17 +250,24 @@ const setPluginDocParam = (docScope: string) => {
   }
 }
 
-const onExecute = (plugin: any,
+const onExecute = (
+  plugin: any,
   docScope = '',
   widgetResult = undefined,
   widgetHandleResponse = false,
   widgetDefaultHandleResponseRequired = false,
-  applyAccessTokenField = '') => {
+  applyAccessTokenField = ''
+) => {
   let postBody: any
   if (plugin.amount === 'one') {
     if (criteria.multipleDb.length !== 1) return
     let rawDb = toRaw(criteria.multipleDb[0])
-    postBody = { _id: rawDb._id, name: rawDb.name, sysname: rawDb.sysname, type: 'database' }
+    postBody = {
+      _id: rawDb._id,
+      name: rawDb.name,
+      sysname: rawDb.sysname,
+      type: 'database',
+    }
   } else {
     if (['all', 'filter', 'checked'].includes(docScope))
       postBody = setPluginDocParam(docScope)
@@ -174,14 +277,14 @@ const onExecute = (plugin: any,
   // 携带插件部件的数据
   if (widgetResult) {
     if (applyAccessTokenField && typeof applyAccessTokenField === 'string') {
-      let field: string = _.get(widgetResult, applyAccessTokenField)
+      let field: string = get(widgetResult, applyAccessTokenField)
       if (field && typeof field === 'string') {
         /**只有访问自己的后端服务时才添加*/
         if (field.indexOf(BACK_API_URL()) === 0) {
           field += field.indexOf('?') > 0 ? '&' : '?'
           let accessToken = getLocalToken() ?? ''
           field += `access_token=${accessToken}`
-          _.set(widgetResult, applyAccessTokenField, field)
+          set(widgetResult, applyAccessTokenField, field)
         }
       }
     }
@@ -204,7 +307,7 @@ const onExecute = (plugin: any,
         message: result,
         showClose: true,
       })
-      listDbByKw(null)
+      listDbByCriteria()
     } else if (result && typeof result === 'object') {
       /**返回的是对象*/
       if (result.type === 'documents') {
@@ -215,9 +318,7 @@ const onExecute = (plugin: any,
         let { inserted, modified, removed } = result
         /**在当前文档列表中移除删除的记录 */
         if (Array.isArray(removed) && (nRemoved = removed.length)) {
-          let dbs = store.dbs.filter(
-            (doc) => !removed.includes(doc._id)
-          )
+          let dbs = store.dbs.filter((doc) => !removed.includes(doc._id))
           store.dbs = dbs
         }
         /**在当前文档列表中更新修改的记录 */
@@ -244,15 +345,17 @@ const onExecute = (plugin: any,
       } else if (result.type === 'numbers') {
         /**返回操作结果——数量 */
         let { nInserted, nModified, nRemoved } = result
-        let message = `插件[${plugin.title}]执行完毕，添加[${parseInt(nInserted) || 0
-          }]条，修改[${parseInt(nModified) || 0}]条，删除[${parseInt(nRemoved) || 0
-          }]条记录。`
+        let message = `插件[${plugin.title}]执行完毕，添加[${
+          parseInt(nInserted) || 0
+        }]条，修改[${parseInt(nModified) || 0}]条，删除[${
+          parseInt(nRemoved) || 0
+        }]条记录。`
         ElMessageBox.confirm(message, '提示', {
           confirmButtonText: '关闭',
           cancelButtonText: '刷新数据',
           showClose: false,
         }).catch(() => {
-          listDbByKw(null)
+          listDbByCriteria()
         })
       } else if (typeof result.url === 'string') {
         /**下载文件*/
@@ -264,7 +367,7 @@ const onExecute = (plugin: any,
         message: `插件[${plugin.title}]执行完毕。`,
         showClose: true,
       })
-      listDbByKw(null)
+      listDbByCriteria()
     }
     return 'ok'
   })
@@ -276,21 +379,18 @@ const { handlePlugin } = useTmwPlugins({
   bucketName: props.bucketName,
   onExecute,
   onCreate: (plugin: any, msg: any) => {
-    if (
-      plugin.amount === 'one' &&
-      criteria.multipleDb.length === 1
-    ) {
+    if (plugin.amount === 'one' && criteria.multipleDb.length === 1) {
       // 处理单个文档时，将文档数据
       msg.database = toRaw(criteria.multipleDb[0])
     }
   },
   onClose: () => {
-    listDbByKw(null)
-  }
+    listDbByCriteria()
+  },
 })
 /**
- * 
- * @param db 
+ *
+ * @param db
  */
 const openDatabase = (db: any) => {
   if (db.spreadsheet === 'yes') {
@@ -300,13 +400,22 @@ const openDatabase = (db: any) => {
   }
 }
 const gotoDocSchemas = (db: any) => {
-  router.push({ name: 'databaseDocSchemas', params: { bucketName: props.bucketName, dbName: db.name } })
+  router.push({
+    name: 'databaseDocSchemas',
+    params: { bucketName: props.bucketName, dbName: db.name },
+  })
 }
 const gotoAcl = (db: any) => {
-  router.push({ name: 'databaseAcl', params: { bucketName: props.bucketName, dbName: db.name } })
+  router.push({
+    name: 'databaseAcl',
+    params: { bucketName: props.bucketName, dbName: db.name },
+  })
 }
 const gotoDir = (db: any) => {
-  router.push({ name: 'databaseDir', params: { bucketName: props.bucketName, dbName: db.name } })
+  router.push({
+    name: 'databaseDir',
+    params: { bucketName: props.bucketName, dbName: db.name },
+  })
 }
 const totalByAll = computed(() => criteria.dbBatch.total)
 const totalByFilter = computed(() => 0)
@@ -315,10 +424,15 @@ const totalByChecked = computed(() => criteria.multipleDb.length)
 const plugins = ref([])
 
 onMounted(async () => {
-  listDbByKw(null)
-  let bucket = props.bucketName
-  plugins.value = await apiPlugin.getDatabasePlugins(
-    bucket,
-  )
+  listDbByCriteria()
+  const bucket = props.bucketName
+  // 获取所有插件
+  plugins.value = await apiPlugin.getDatabasePlugins(bucket)
+  // 获取所有标签
+  apiTag.list(bucket).then((tags: any[]) => {
+    tags.forEach((tag: any) => {
+      allTags.push({ text: tag.name, value: tag._id })
+    })
+  })
 })
 </script>

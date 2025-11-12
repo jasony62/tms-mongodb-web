@@ -19,10 +19,10 @@
       </el-breadcrumb>
     </div>
     <!--content-->
-    <div class="flex-grow flex flex-row gap-2 overflow-y-auto">
+    <div class="grow flex flex-row gap-2 overflow-y-auto">
       <!--left-->
       <div class="flex flex-col gap-4" :class="COMPACT ? 'w-full' : 'w-4/5'">
-        <el-auto-resizer class="flex-grow overflow-x-auto">
+        <el-auto-resizer class="grow overflow-x-auto">
           <template #default="{ height, width }">
             <el-table-v2
               id="table"
@@ -130,8 +130,9 @@ import {
   ElIcon,
 } from 'element-plus'
 import { ArrowRight, Filter, SortUp, SortDown } from '@element-plus/icons-vue'
+import { get, set } from 'es-toolkit/compat'
+import { omit } from 'es-toolkit'
 import { Batch } from 'tms-vue3'
-import * as _ from 'lodash'
 import { Handlebars } from 'tms-data-aid'
 import apiCl from '@/apis/collection'
 import apiPlugin from '@/apis/plugin'
@@ -579,7 +580,7 @@ const removeDocument = (document: any) => {
 
 const copyDocument = (document: any) => {
   if (document.name) document.name += '_复制'
-  document = _.omit(document, ['_id'])
+  document = omit(document, ['_id'])
   apiDoc.create(bucketName, dbName, clName, document).then(() => {
     listDocByKw()
   })
@@ -658,14 +659,14 @@ function onExecute(
   // 携带插件部件的数据
   if (widgetResult) {
     if (applyAccessTokenField && typeof applyAccessTokenField === 'string') {
-      let field: string = _.get(widgetResult, applyAccessTokenField)
+      let field: string = get(widgetResult, applyAccessTokenField)
       if (field && typeof field === 'string') {
         /**只有访问自己的后端服务时才添加*/
         if (field.indexOf(BACK_API_URL()) === 0) {
           field += field.indexOf('?') > 0 ? '&' : '?'
           let accessToken = getLocalToken() ?? ''
           field += `access_token=${accessToken}`
-          _.set(widgetResult, applyAccessTokenField, field)
+          set(widgetResult, applyAccessTokenField, field)
         }
       }
     }

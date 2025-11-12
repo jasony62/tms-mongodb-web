@@ -43,13 +43,13 @@ class DbHelper extends CtrlHelper {
   }
   /**
    *
-   * @param keyword
+   * @param filter
    * @param skip
    * @param limit
    * @returns
    */
-  async list(keyword: string, skip: number, limit: number) {
-    return await this._modelDb.list(keyword, skip, limit)
+  async list(filter: { name: string }, skip: number, limit: number) {
+    return await this._modelDb.list(filter, skip, limit)
   }
 }
 

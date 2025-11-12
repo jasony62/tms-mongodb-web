@@ -32,6 +32,16 @@ const META_ADMIN_CL = 'mongodb_object'
  */
 const DIR_CL = 'mongodb_object_dir'
 /**
+ * 管理标签
+ */
+const TAG_CL = 'tag_object'
+/**
+ * 标签使用关系
+ *
+ */
+const TAG_RELATION_CL = 'tag_relation'
+
+/**
  * 管理对象访问控制列表
  */
 const ACL_CL = 'mongodb_object_acl'
@@ -39,18 +49,14 @@ const ACL_CL = 'mongodb_object_acl'
 const TMW_CONFIG = await loadTmwConfig()
 
 class Base {
-  mongoClient // mongodb连接客户端
-  bucket // 指定的数据空间
-  client // 执行操作的用户
   /**
    *
-   * @param {object} bucket - 用户存储空间
+   * @param mongoClient mongodb连接客户端
+   * @param bucket 指定的数据空间
+   * @param client 执行操作的用户
    */
-  constructor(mongoClient, bucket, client) {
-    this.mongoClient = mongoClient
-    this.bucket = bucket
-    this.client = client
-  }
+  constructor(public mongoClient, public bucket, public client) {}
+
   get tmwConfig() {
     return TMW_CONFIG
   }
@@ -325,6 +331,24 @@ class Base {
   get clDir() {
     const client = this.mongoClient
     const cl = client.db(META_ADMIN_DB).collection(DIR_CL)
+
+    return cl
+  }
+  /**
+   * 存储标签
+   */
+  get clTag() {
+    const client = this.mongoClient
+    const cl = client.db(META_ADMIN_DB).collection(TAG_CL)
+
+    return cl
+  }
+  /**
+   * 存储标签使用关系
+   */
+  get clTagRelation() {
+    const client = this.mongoClient
+    const cl = client.db(META_ADMIN_DB).collection(TAG_RELATION_CL)
 
     return cl
   }

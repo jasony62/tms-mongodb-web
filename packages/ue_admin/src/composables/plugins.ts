@@ -1,6 +1,6 @@
 import { ref, toRaw } from 'vue'
 import { useAssistant } from './assistant.js'
-import * as _ from 'lodash'
+import { get, set } from 'es-toolkit/compat'
 
 const elPluginWidget = ref<HTMLIFrameElement>()
 
@@ -29,8 +29,8 @@ const lookupTransform = (result: any, doc: any, transform: any) => {
   if (Array.isArray(transform) && transform.length) {
     transform.forEach((rule) => {
       let { src, dst } = rule
-      let val = _.get(doc, src)
-      _.set(result, dst, val)
+      let val = get(doc, src)
+      set(result, dst, val)
     })
   } else result.id = doc._id
 }

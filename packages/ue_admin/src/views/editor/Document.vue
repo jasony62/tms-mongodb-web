@@ -199,7 +199,6 @@ import apiCl from '@/apis/collection'
 import apiDoc from '@/apis/document'
 import apiEtl from '@/apis/etl'
 import useClipboard from 'vue-clipboard3'
-import * as _ from 'lodash'
 import Debug from 'debug'
 import { openPickFileEditor } from '@/components/editor'
 import { ElMessage } from 'element-plus'
@@ -217,6 +216,7 @@ import { TmsAxios } from 'tms-vue3'
 import { transform } from '@/data-aid.js/transform'
 import { EditorView } from '@codemirror/view'
 import { marked } from 'marked'
+import { set, get } from 'es-toolkit/compat'
 
 // 系统指定的标签字段名称
 const DbLabel = computed(() => LABEL('database', '数据库'))
@@ -545,8 +545,8 @@ function convertExternalData(field: Field, source: string, data: any): any {
       JSON.stringify(converted, null, 2)
   )
   if (dataType === 'object' && typeof data === 'object')
-    _.assign(newData, data, converted)
-  else _.assign(newData, converted)
+    Object.assign(newData, data, converted)
+  else Object.assign(newData, converted)
 
   return newData
 }
@@ -560,8 +560,8 @@ const lookupTransform = (result: any, doc: any, transform: any) => {
   if (Array.isArray(transform) && transform.length) {
     transform.forEach((rule) => {
       let { src, dst } = rule
-      let val = _.get(doc, src)
-      _.set(result, dst, val)
+      let val = get(doc, src)
+      set(result, dst, val)
     })
   } else result.id = doc._id
 }

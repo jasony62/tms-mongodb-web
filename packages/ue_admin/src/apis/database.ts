@@ -9,10 +9,14 @@ export default {
       .get(`${base}/byName`, { params: { bucket, name } })
       .then((rst: ApiRst) => rst.data.result)
   },
-  list(bucket: any, keyword?: string, batchArg?: any) {
+  list(
+    bucket: any,
+    filter?: { name?: string; tags?: string[] },
+    batchArg?: any
+  ) {
     const base = BACK_API_URL() + '/admin/db'
     return TmsAxios.ins('mongodb-api')
-      .get(`${base}/list`, { params: { bucket, keyword, ...batchArg } })
+      .post(`${base}/list`, { filter }, { params: { bucket, ...batchArg } })
       .then((rst: ApiRst) => rst.data.result)
   },
   create(bucket: any, proto: any) {

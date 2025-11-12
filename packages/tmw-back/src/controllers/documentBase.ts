@@ -9,7 +9,6 @@ import {
   loadTmwConfig,
 } from 'tmw-kit'
 import { ElasticSearchIndex } from 'tmw-kit/dist/elasticsearch/index.js'
-// import _ from 'lodash'
 import { omit } from 'es-toolkit'
 import mongodb from 'mongodb'
 

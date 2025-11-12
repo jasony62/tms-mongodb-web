@@ -166,7 +166,7 @@ import apiSchema from '@/apis/schema'
 import TmwPlugins from '@/components/PluginList.vue'
 import TmwPluginWidget from '@/components/PluginWidget.vue'
 import { useTmwPlugins } from '@/composables/plugins'
-import * as _ from 'lodash'
+import { get, set } from 'es-toolkit/compat'
 
 const COMPACT = computed(() => COMPACT_MODE())
 const DbLabel = computed(() => LABEL('database', '数据库'))
@@ -406,16 +406,16 @@ const onExecute = (
   // 携带插件部件的数据
   if (widgetResult && typeof widgetResult === 'object') {
     if (applyAccessTokenField && typeof applyAccessTokenField === 'string') {
-      let field: string = _.get(widgetResult, applyAccessTokenField)
+      let field: string = get(widgetResult, applyAccessTokenField)
       if (typeof field === 'string') {
         let accessToken = getLocalToken() ?? ''
         /**只有访问自己的后端服务时才添加*/
         if (field.indexOf(BACK_API_URL()) === 0) {
           field += field.indexOf('?') > 0 ? '&' : '?'
           field += `access_token=${accessToken}`
-          _.set(widgetResult, applyAccessTokenField, field)
+          set(widgetResult, applyAccessTokenField, field)
         } else {
-          _.set(widgetResult, applyAccessTokenField, accessToken)
+          set(widgetResult, applyAccessTokenField, accessToken)
         }
       }
     }

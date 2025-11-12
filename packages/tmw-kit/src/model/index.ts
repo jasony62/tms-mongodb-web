@@ -5,6 +5,7 @@ import ModelDir from './dir.js'
 import ModelAcl from './acl.js'
 import ModelDoc from './document.js'
 import ModelTag from './tag.js'
+import ModelTagRelation from './tag-relation.js'
 import ModelSchema from './schema.js'
 import ModelSpreadsheet from './spreadsheet.js'
 
@@ -16,6 +17,7 @@ export {
   ModelAcl,
   ModelDoc,
   ModelTag,
+  ModelTagRelation,
   ModelSchema,
   ModelSpreadsheet,
 }

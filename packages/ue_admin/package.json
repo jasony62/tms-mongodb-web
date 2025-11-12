@@ -17,11 +17,11 @@
     "debug": "4.4.3",
     "element-plus": "2.11.7",
     "elkjs": "0.11.0",
+    "es-toolkit": "^1.41.0",
     "gitart-vue-dialog": "^3.1.0",
     "jsondiffpatch": "0.7.3",
     "jsoneditor": "10.4.2",
     "jsonpath-plus": "10.3.0",
-    "lodash": "^4.17.21",
     "marked": "17.0.0",
     "mitt": "3.0.1",
     "pinia": "3.0.4",
@@ -38,8 +38,8 @@
     "x-data-spreadsheet": "^1.1.9"
   },
   "devDependencies": {
-    "@types/debug": "4.1.12",
     "@tailwindcss/postcss": "4.1.17",
+    "@types/debug": "4.1.12",
     "@types/jsoneditor": "9.9.6",
     "@types/lodash": "4.17.20",
     "@types/node": "24.10.0",

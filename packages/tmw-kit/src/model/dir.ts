@@ -94,7 +94,7 @@ class Dir extends Base {
   }
 
   /**
-   * 新建集合分类
+   * 列出集合分类
    *
    * @param existDb
    * @param scope

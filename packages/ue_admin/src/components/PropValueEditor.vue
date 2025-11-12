@@ -4,8 +4,15 @@
       <div class="content">
         <div class="name">{{ field.fullname }}</div>
         <div>
-          <tms-json-doc ref="$jde" class="w-full h-full overflow-auto" :schema="schema" :value="document"
-            :enable-paste="true" :hide-root-title="true" :hide-root-description="true"></tms-json-doc>
+          <tms-json-doc
+            ref="$jde"
+            class="w-full h-full overflow-auto"
+            :schema="schema"
+            :value="document"
+            :enable-paste="true"
+            :hide-root-title="true"
+            :hide-root-description="true"
+          ></tms-json-doc>
         </div>
       </div>
       <div class="actions flex flex-row gap-4">
@@ -20,7 +27,8 @@
 import TmsJsonDoc, { DocAsArray, Field } from 'tms-vue3-ui/dist/es/json-doc'
 import { JSONSchemaBuilder } from 'tms-vue3-ui/dist/es/json-schema'
 import { computed, PropType, ref } from 'vue'
-import * as _ from 'lodash'
+import { set } from 'es-toolkit/compat'
+import { cloneDeep } from 'es-toolkit'
 
 const props = defineProps({
   modelValue: {
@@ -29,7 +37,7 @@ const props = defineProps({
   },
   field: { type: Object as PropType<Field>, required: true },
   editDoc: { type: Object, required: true },
-  onSubmit: { type: Function, default: () => { } }
+  onSubmit: { type: Function, default: () => {} },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -45,7 +53,7 @@ const dialogState = computed({
 
 const { field, editDoc } = props
 // 编辑的属性定义
-const ClonedSchema = _.cloneDeep(field.schemaProp)
+const ClonedSchema = cloneDeep(field.schemaProp)
 ClonedSchema.path = ''
 // 如果是数组中的子项目，需要指定属性名称
 if (ClonedSchema.name === '[*]') ClonedSchema.name = 'arrayItem'
@@ -56,7 +64,7 @@ builder.props.push(ClonedSchema)
 // 用于生成表单的完整属性定义
 const schema = builder.unflatten()
 // 表单对应的文档
-const document = _.set({}, ClonedSchema.name, editDoc.get(field.fullname))
+const document = set({}, ClonedSchema.name, editDoc.get(field.fullname))
 
 const $jde = ref<{ editDoc: DocAsArray } | null>(null)
 /**

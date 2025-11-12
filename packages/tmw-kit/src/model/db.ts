@@ -4,6 +4,7 @@ import Debug from 'debug'
 import Base from './base.js'
 import ModelAcl from './acl.js'
 import { TTmwDb } from '../types/index.js'
+import { pipeline } from 'stream'
 
 const debug = Debug('tmw-kit:model:db')
 
@@ -150,12 +151,16 @@ class Db extends Base {
   /**
    * 获得当前用户可访问数据库列表
    *
-   * @param keyword
+   * @param filter
    * @param skip
    * @param limit
    * @returns
    */
-  async list(keyword: string, skip: number, limit: number) {
+  async list(
+    filter: { name?: string; tags?: string[] },
+    skip: number,
+    limit: number
+  ) {
     const query: any = { type: 'database' }
 
     // 检查授权访问列表条件
@@ -183,43 +188,93 @@ class Db extends Base {
 
     if (this.bucket) query.bucket = this.bucket.name
 
-    if (keyword) {
-      if (/\(/.test(keyword)) {
-        keyword = keyword.replace(/\(/g, '\\(')
+    let name = filter?.name
+    if (name) {
+      if (/\(/.test(name)) {
+        name = name.replace(/\(/g, '\\(')
       }
-      if (/\)/.test(keyword)) {
-        keyword = keyword.replace(/\)/g, '\\)')
+      if (/\)/.test(name)) {
+        name = name.replace(/\)/g, '\\)')
       }
-      let re = new RegExp(keyword)
-      query.$and = [
-        {
-          $or: [
-            { name: { $regex: re, $options: 'i' } },
-            { title: { $regex: re, $options: 'i' } },
-            { description: { $regex: re, $options: 'i' } },
-            { tag: { $regex: re, $options: 'i' } },
-          ],
-        },
-      ]
-      if (queryAclCheck)
-        query.$and.push({
-          $or: queryAclCheck,
-        })
-    } else {
-      if (queryAclCheck) query.$or = queryAclCheck
+      let re = new RegExp(name)
+      query.name = { $regex: re, $options: 'i' }
     }
 
+    if (queryAclCheck) query.$or = queryAclCheck
     const options: any = {
       projection: { type: 0 },
       sort: { top: -1, _id: -1 },
     }
-    // 添加分页条件
-    if (typeof skip === 'number') {
-      options.skip = skip
-      options.limit = limit
+
+    /**
+     * 标签关联查询
+     */
+    const tagPipeline: any = {
+      $lookup: {
+        let: { dbId: '$_id' },
+        from: 'tag_relation',
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [{ $eq: ['$target.id', { $toString: '$$dbId' }] }],
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 0, // 不返回
+              tagId: 1, // 返回
+              tagName: 1, // 返回
+              // 其他字段默认不返回
+            },
+          },
+        ],
+        as: 'tags', // 输出的字段名（数组）
+      },
+    }
+    /**
+     * 聚合查询条件组装
+     */
+    const pipeline: any[] = [
+      {
+        $match: query,
+      },
+      tagPipeline,
+    ]
+    /**
+     * 标签过滤条件
+     */
+    const tagIds = filter?.tags
+    if (Array.isArray(tagIds) && tagIds.length > 0) {
+      pipeline.push({
+        $match: {
+          $expr: {
+            $setIsSubset: [
+              tagIds, // 要求必须包含的 tagId 列表
+              {
+                $map: {
+                  input: '$tags',
+                  as: 'tag',
+                  in: '$$tag.tagId',
+                },
+              },
+            ],
+          },
+        },
+      })
     }
 
-    const tmwDbs = await this.clMongoObj.find(query, options).toArray()
+    // 返回字段和排序
+    pipeline.push({ $project: options.projection }, { $sort: options.sort })
+
+    // 添加分页条件
+    if (typeof skip === 'number' && typeof limit === 'number') {
+      pipeline.push({ $skip: skip }, { $limit: limit })
+    }
+
+    const tmwDbs = await this.clMongoObj.aggregate(pipeline).toArray()
+
     if (typeof skip === 'number') {
       let total = await this.clMongoObj.countDocuments(query)
       return { databases: tmwDbs, total }

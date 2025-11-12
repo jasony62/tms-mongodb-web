@@ -10,8 +10,6 @@ class TagBase extends Base {
 
   clMongoObj
 
-  clTagObj
-
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
     this.tagHelper = new TagHelper(this)
@@ -22,7 +20,6 @@ class TagBase extends Base {
     if (true !== result) return result
 
     this.clMongoObj = this.tagHelper.clMongoObj
-    this.clTagObj = this.tagHelper.clTagObj
 
     return true
   }
@@ -30,13 +27,11 @@ class TagBase extends Base {
    * 查询所有标签
    */
   async list() {
-    const query: any = {}
-    if (this.bucketObj && typeof this.bucketObj === 'object')
-      query.bucket = this.bucketObj.name
+    const [flag, result] = await this.tagHelper.listTag()
 
-    const tmsTags = await this.clTagObj.find(query).toArray()
+    if (!flag) return new ResultFault(result)
 
-    return new ResultData(tmsTags)
+    return new ResultData(result)
   }
 }
 

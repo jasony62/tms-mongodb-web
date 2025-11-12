@@ -4,7 +4,11 @@ import apis from '@/apis'
 import { Batch, startBatch } from 'tms-vue3'
 import { reactive } from 'vue'
 
-type DbPayload = { bucket?: string; keyword?: string; size: number }
+type DbPayload = {
+  bucket?: string
+  filter?: { name?: string; tags?: string[] }
+  size: number
+}
 
 export default defineStore('mongodb', {
   state: () => {
@@ -43,9 +47,13 @@ export default defineStore('mongodb', {
       })
     },
     listDatabase(payload: DbPayload): Batch {
-      let action = (bucket: string, keyword: string, batchArg: any) => {
+      let action = (
+        bucket: string,
+        filter: { name?: string; tags?: string[] },
+        batchArg: any
+      ) => {
         return apis.db
-          .list(bucket, keyword, batchArg)
+          .list(bucket, filter, batchArg)
           .then(
             (result: {
               databases: { _id: string; title: string; description: string }[]
@@ -55,8 +63,8 @@ export default defineStore('mongodb', {
             }
           )
       }
-      const { bucket, keyword, size } = payload
-      return startBatch(action, [bucket, keyword], {
+      const { bucket, filter, size } = payload
+      return startBatch(action, [bucket, filter], {
         size,
         wrap: reactive,
       })
@@ -68,7 +76,7 @@ export default defineStore('mongodb', {
     },
     updateDatabase(payload: { index: any; db: any }) {
       const { index, db } = payload
-      this.dbs.splice(index, 1, db)
+      Object.assign(this.dbs[index], db)
     },
     removeDb(payload: { bucket: any; db: any }) {
       const { bucket, db } = payload

@@ -1,9 +1,8 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import { CtrlBase } from './ctrlBase.js'
 import DbHelper from './dbHelper.js'
-import { ModelDb } from 'tmw-kit'
-import mongodb from 'mongodb'
-const ObjectId = mongodb.ObjectId
+import { ModelDb, ModelTagRelation } from 'tmw-kit'
+import { ObjectId } from 'mongodb'
 
 /**
  * 数据库控制器基类
@@ -48,9 +47,9 @@ class DbBase extends CtrlBase {
    * 返回集合列表
    */
   async list() {
-    let { keyword } = this.request.query
+    let { filter } = this.request.body
     let { skip, limit } = this.dbHelper.requestPage()
-    const result = await this.dbHelper.list(keyword, skip, limit)
+    const result = await this.dbHelper.list(filter, skip, limit)
 
     return new ResultData(result)
   }
@@ -75,10 +74,10 @@ class DbBase extends CtrlBase {
    * 更新数据库对象信息
    */
   async update() {
-    let info = this.request.body
+    const info = this.request.body
 
     // 检查数据库名
-    let modelDb = new ModelDb(
+    const modelDb = new ModelDb(
       this.mongoClient,
       this.bucketObj?.name,
       this.client
@@ -93,21 +92,34 @@ class DbBase extends CtrlBase {
 
     //修改集合查询
     const queryList = { 'db.sysname': info.sysname, type: 'collection' }
-
     // 修改集合值
     const updateList = { database: info.name, 'db.name': info.name }
-
+    // 更新所有相关集合的数据库名称
     await this.clMongoObj.updateMany(queryList, {
       $set: updateList,
     })
 
-    let { _id, bucket, sysname, ...updatedInfo } = info
+    /**
+     * 清除不能修改的字段
+     */
+    const { _id, bucket, sysname, tags, ...updatedInfo } = info
 
     const query = { _id: new ObjectId(_id) }
 
-    return this.clMongoObj
-      .updateOne(query, { $set: updatedInfo })
-      .then(() => new ResultData(info))
+    const result = await this.clMongoObj.updateOne(query, { $set: updatedInfo })
+    /**
+     * 更新标签
+     */
+    const modelTagRel = new ModelTagRelation(
+      this.mongoClient,
+      this.bucketObj?.name,
+      this.client
+    )
+    const newTags = await modelTagRel.update('database', _id, tags)
+
+    updatedInfo.tags = newTags
+
+    return new ResultData(updatedInfo)
   }
 
   /**
