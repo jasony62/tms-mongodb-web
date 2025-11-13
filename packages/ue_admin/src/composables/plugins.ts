@@ -41,8 +41,14 @@ const lookupTransform = (result: any, doc: any, transform: any) => {
  * @returns
  */
 export const useTmwPlugins = (options?: UseTmwPluginsOptions) => {
-  const { bucketName, dbName, clName, onExecute, onCreate, onClose } =
-    options ?? {}
+  const {
+    bucketName,
+    dbName = '',
+    clName = '',
+    onExecute,
+    onCreate,
+    onClose,
+  } = options ?? {}
   /**
    * 执行插件
    *

@@ -243,14 +243,14 @@ class Db extends DbBase {
    *
    */
   async remove() {
-    const existDb = await this['dbHelper'].findRequestDb()
+    const existDb = await this.dbHelper.findRequestDb()
 
     if (['admin', 'config', 'local', META_ADMIN_DB].includes(existDb.sysname))
       return new ResultFault(`不能删除系统自带数据库[${existDb.sysname}]`)
 
-    const cl = this['clMongoObj']
-    const query = { database: existDb.name, type: 'collection' }
-    if (this['bucket']) query['bucket'] = this.bucketObj.name
+    const cl = this.clMongoObj
+    const query: any = { 'db.name': existDb.name, type: 'collection' }
+    if (this.bucketObj?.name) query.bucket = this.bucketObj.name
     // 查找数据库下是否有集合，如果有则不能删除
     let colls = await cl.find(query).toArray()
     if (colls.length > 0)
@@ -258,7 +258,7 @@ class Db extends DbBase {
         `删除失败，数据库[${existDb.sysname}]中存在未删除的集合`
       )
 
-    const client = this['mongoClient']
+    const client = this.mongoClient
     return cl
       .deleteOne({ _id: existDb._id })
       .then(() => client.db(existDb.sysname).dropDatabase())
