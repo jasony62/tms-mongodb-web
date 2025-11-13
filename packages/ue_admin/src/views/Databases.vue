@@ -152,7 +152,6 @@ import {
   PAGINATION_DB_SIZE,
 } from '@/global'
 import apiPlugin from '@/apis/plugin'
-import apiTag from '@/apis/tag'
 import TmwPlugins from '@/components/PluginList.vue'
 import TmwPluginWidget from '@/components/PluginWidget.vue'
 import { useTmwPlugins } from '@/composables/plugins'
@@ -165,7 +164,11 @@ const router = useRouter()
 
 const store = facStore()
 
-const allTags = reactive([] as any[])
+const allTags = computed(() => {
+  return store.dbTags.map((tag: any) => {
+    return { text: tag.name, value: tag._id }
+  })
+})
 
 const props = defineProps({ bucketName: String })
 
@@ -429,10 +432,6 @@ onMounted(async () => {
   // 获取所有插件
   plugins.value = await apiPlugin.getDatabasePlugins(bucket)
   // 获取所有标签
-  apiTag.list(bucket).then((tags: any[]) => {
-    tags.forEach((tag: any) => {
-      allTags.push({ text: tag.name, value: tag._id })
-    })
-  })
+  store.listDbTag({ bucket })
 })
 </script>

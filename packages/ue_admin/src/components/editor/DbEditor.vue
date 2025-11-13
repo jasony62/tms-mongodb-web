@@ -104,12 +104,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, toRaw } from 'vue'
+import { computed, onMounted, reactive, ref, toRaw } from 'vue'
 import { ElMessageBox } from 'element-plus'
 import apiDb from '@/apis/database'
 import apiSchema from '@/apis/schema'
-import apiTag from '@/apis/tag'
 import { DEFAULT_VALUES } from '@/global'
+import facStore from '@/store'
 
 const emit = defineEmits(['submit'])
 
@@ -134,13 +134,17 @@ const props = defineProps({
   onClose: { type: Function, default: (newDb: any) => {} },
 })
 
+const store = facStore()
+
 const { mode, bucketName, onClose } = props
 
 const dialogVisible = ref(props.dialogVisible)
 const database = reactive(props.database)
 const activeTab = ref('info')
 const schemas = reactive([] as any[])
-const allTags = reactive([] as any[])
+const allTags = computed(() => {
+  return store.dbTags
+})
 
 // 关闭对话框时执行指定的回调方法
 const closeDialog = (newDb?: any) => {
@@ -157,14 +161,25 @@ const onSubmit = () => {
   if (!reg.test(database.name)) {
     return ElMessageBox.alert('请输入以英文字母开头的库名')
   }
+  // 判断标签中是否有新创建的标签
+  const hasNewTag = database.tags.find((tag: any) => typeof tag === 'string')
+
   if (mode === 'update') {
     apiDb.update(bucketName, toRaw(database)).then((newDb: any) => {
       emit('submit', newDb)
+      if (hasNewTag) {
+        // 如果有新创建的标签，则重新加载标签列表
+        store.listDbTag({ bucket: bucketName })
+      }
       closeDialog(newDb)
     })
   } else if (mode === 'create') {
     apiDb.create(bucketName, toRaw(database)).then((newDb: any) => {
       emit('submit', newDb)
+      if (hasNewTag) {
+        // 如果有新创建的标签，则重新加载标签列表
+        store.listDbTag({ bucket: bucketName })
+      }
       closeDialog(newDb)
     })
   }
@@ -174,11 +189,6 @@ onMounted(() => {
   apiSchema.listSimple(bucketName, 'collection').then((schemas2: any[]) => {
     schemas2.forEach((s: any) => {
       schemas.push(s)
-    })
-  })
-  apiTag.list(bucketName).then((tags: any[]) => {
-    tags.forEach((tag: any) => {
-      allTags.push(tag)
     })
   })
 })

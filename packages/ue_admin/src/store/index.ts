@@ -15,6 +15,7 @@ export default defineStore('mongodb', {
     return {
       clientInfo: {} as any,
       buckets: [] as any[],
+      dbTags: [] as any[],
       dbs: [] as any[],
       documentSchemas: [] as any[],
       dbSchemas: [] as any[],
@@ -31,6 +32,13 @@ export default defineStore('mongodb', {
       return apis.bucket.list().then((buckets: never[]) => {
         this.buckets = buckets
         return { buckets }
+      })
+    },
+    listDbTag(payload: { bucket: any }) {
+      // 获取所有标签
+      return apis.tag.list(payload.bucket).then((tags: any[]) => {
+        this.dbTags.splice(0, this.dbTags.length, ...tags)
+        return { tags }
       })
     },
     appendBucket(payload: { bucket: any }) {
