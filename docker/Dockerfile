@@ -1,7 +1,7 @@
 # 开箱即用的tms-mongodb-web镜像
 
 # 服务预编译
-FROM node:18-alpine AS builder
+FROM node:24-alpine AS builder
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
 
 # 修改npm源
@@ -29,7 +29,8 @@ RUN cd /usr/src/tmw/data && pnpm i --strict-peer-dependencies=false && pnpm buil
 ## kit
 COPY ./packages/tmw-kit /usr/src/tmw/kit
 RUN sed -i 's/"tmw-data": "workspace:\*"/"tmw-data": "file:\.\.\/data"/g' /usr/src/tmw/kit/package.json
-RUN cd /usr/src/tmw/kit && pnpm i --strict-peer-dependencies=false && pnpm build 
+# 解决需要批准安装unrs-resolver@1.12.2的问题
+RUN cd /usr/src/tmw/kit && pnpm i --strict-peer-dependencies=false --dangerously-allow-all-builds && pnpm build 
 # ### 去掉不必要的依赖包
 # RUN rm -rf /usr/src/tmw/kit/node_modules
 # RUN cd /usr/src/tmw/kit && pnpm i --production --strict-peer-dependencies=false
@@ -52,11 +53,11 @@ RUN cd /usr/src/tmw/back && pnpm i --strict-peer-dependencies=false
 
 ## ue_admin安装依赖包
 COPY ./packages/ue_admin/package.json /usr/src/tmw/ue_admin/package.json
-RUN cd /usr/src/tmw/ue_admin && pnpm i --strict-peer-dependencies=false
+RUN cd /usr/src/tmw/ue_admin && pnpm i --strict-peer-dependencies=false --dangerously-allow-all-builds
 
 ## ue_plugin安装依赖包
 COPY ./packages/ue_plugin/package.json /usr/src/tmw/ue_plugin/package.json
-RUN cd /usr/src/tmw/ue_plugin && pnpm i --strict-peer-dependencies=false
+RUN cd /usr/src/tmw/ue_plugin && pnpm i --strict-peer-dependencies=false --dangerously-allow-all-builds
 
 # 编译源代码（先安装包再编译是为了提高效率）
 ## back
@@ -87,7 +88,7 @@ RUN echo VITE_BASE_URL=$vite_plugin_base_url >> /usr/src/tmw/ue_plugin/.env
 RUN cd /usr/src/tmw/ue_plugin && pnpm build
 
 # 生成运行镜像
-FROM node:18-alpine
+FROM node:24-alpine
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
   && apk update && apk add bash tzdata \
   && cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime

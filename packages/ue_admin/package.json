@@ -26,7 +26,6 @@
     "jsonpath-plus": "^10.4.0",
     "jsonpointer": "^5.0.1",
     "lodash": "^4.18.1",
-    "minimist": ">=1.2.6",
     "mitt": "^3.0.1",
     "pinia": "^3.0.4",
     "socket.io-client": "4.8.3",
@@ -41,7 +40,6 @@
     "x-data-spreadsheet": "^1.1.9"
   },
   "devDependencies": {
-    "@babel/core": ">=7.23.2",
     "@types/debug": "^4.1.13",
     "@types/jsoneditor": "9.9.6",
     "@types/lodash": "^4.17.24",
