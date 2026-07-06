@@ -62,7 +62,7 @@ const aclUserColumns = [{
   title: '备注',
   width: '200px',
   cellRenderer: ({ rowData }: { rowData: any }) => h(ElInput, {
-    modelValue: rowData.user.remark, onInput: (value) => {
+    modelValue: rowData.user.remark, onInput: (value: any) => {
       rowData.user.remark = value
       rowData.__modified = true
     }
@@ -72,7 +72,7 @@ const aclUserColumns = [{
   title: '权限控制',
   width: '200px',
   cellRenderer: ({ rowData }: { rowData: any }) => h(ElSelect, {
-    modelValue: rowData.right, multiple: true, clearable: true, onChange: (value) => {
+    modelValue: rowData.right, multiple: true, clearable: true, onChange: (value: any) => {
       rowData.right = value
       rowData.__modified = true
     }

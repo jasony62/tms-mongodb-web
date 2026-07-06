@@ -1,6 +1,6 @@
 import DbBase from '../dbBase.js'
 import { ResultData, ResultFault } from 'tms-koa'
-import { ModelDb } from 'tmw-kit'
+import { ModelDb, isFerretdb } from 'tmw-kit'
 import { Double } from 'mongodb'
 
 /**
@@ -334,6 +334,9 @@ class Db extends DbBase {
    *
    */
   async getProfilingStatus() {
+    if (isFerretdb())
+      return new ResultFault('Profiling is not supported in ferretdb mode')
+
     const existDb = await this.dbHelper.findRequestDb()
 
     const client = this.mongoClient
@@ -354,6 +357,9 @@ class Db extends DbBase {
    *
    */
   async setProfilingLevel() {
+    if (isFerretdb())
+      return new ResultFault('Profiling is not supported in ferretdb mode')
+
     const existDb = await this.dbHelper.findRequestDb()
 
     let { profile = 1, slowms, sampleRate, filter } = this.request.body

@@ -9,6 +9,7 @@
     "rootDir": "./",
     "declaration": true,
     "sourceMap": false,
+    "skipLibCheck": true,
     "types": ["node", "jest"]
   },
   "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.d.ts", "test/**/*.ts"],

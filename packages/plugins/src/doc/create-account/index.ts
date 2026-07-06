@@ -97,7 +97,7 @@ export async function createPlugin(file: string) {
     if (!schemaJson) return false
     newPlugin.schemaJson = schemaJson
 
-    newPlugin.beforeWidget.url = widgetUrl
+    newPlugin.beforeWidget!.url = widgetUrl
 
     if (bucket) newPlugin.bucketName = new RegExp(bucket)
     if (db) newPlugin.dbName = new RegExp(db)

@@ -94,7 +94,7 @@ function storedValue(schemaProp, valRaw, doc?: any) {
  * 导入数据到集合中
  */
 class ImportPlugin extends PluginBase {
-  DownloadHost: string
+  DownloadHost!: string
 
   constructor(file: string) {
     super(file)
@@ -219,7 +219,7 @@ class ImportPlugin extends PluginBase {
         }
 
       return { code: 0, msg: '导入成功' }
-    } catch (error) {
+    } catch (error: any) {
       debug(`数据存储错误: ${error.message}`)
       return { code: 10001, msg: error.message }
     }
@@ -229,8 +229,8 @@ class ImportPlugin extends PluginBase {
    * 生成excel模板
    */
   private async processExcelTemplate(ctrl, clName, schemaIter, leafLevel) {
-    const titleAry = [] // 标题行
-    const nameAry = [] // 名称行
+    const titleAry: any[] = [] // 标题行
+    const nameAry: any[] = [] // 名称行
     leafLevel = leafLevel ? leafLevel : 0
     for (let schemaProp of schemaIter) {
       let { fullname, _path, _name, attrs } = schemaProp
@@ -310,7 +310,7 @@ export async function createPlugin(file: string) {
       schemaBlacklist,
     } = config
     const newPlugin = new ImportPlugin(file)
-    newPlugin.beforeWidget.url = widgetUrl
+    newPlugin.beforeWidget!.url = widgetUrl
 
     if (bucket) newPlugin.bucketName = new RegExp(bucket)
     if (db) newPlugin.dbName = new RegExp(db)

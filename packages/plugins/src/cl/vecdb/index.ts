@@ -25,10 +25,10 @@ const ConfigFile =
  * 集合向量数据库
  */
 class VecdbPlugin extends PluginBase {
-  mongoConnUrl: string
-  llmModelName: string
-  storeRoot: string
-  llmkitNpmSpeifier: string
+  mongoConnUrl!: string
+  llmModelName!: string
+  storeRoot!: string
+  llmkitNpmSpeifier!: string
 
   constructor(file: string) {
     super(file)
@@ -130,7 +130,7 @@ export async function createPlugin(file: string) {
     }
 
     const newPlugin = new VecdbPlugin(file)
-    newPlugin.beforeWidget.url = widgetUrl
+    newPlugin.beforeWidget!.url = widgetUrl
 
     if (bucket) newPlugin.bucketName = new RegExp(bucket)
     if (db) newPlugin.dbName = new RegExp(db)

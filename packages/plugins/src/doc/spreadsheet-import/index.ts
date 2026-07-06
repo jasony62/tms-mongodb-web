@@ -96,8 +96,8 @@ async function createXlsxTemplate(ctrl, tmwCl, leafLevel) {
   const XLSX = await import('xlsx')
   XLSX.set_fs(fs)
 
-  const titleAry = [] // 标题行
-  const nameAry = [] // 名称行
+  const titleAry: any[] = [] // 标题行
+  const nameAry: any[] = [] // 名称行
   leafLevel = leafLevel ? leafLevel : 0
   for (let schemaProp of schemaIter) {
     let { fullname, _path, _name, attrs } = schemaProp
@@ -189,10 +189,10 @@ async function wiriteSpreadsheet(
             )
           }
         }
-      } else if (options.overwrite === false && options.startIndex > 0) {
+      } else if (options.overwrite === false && options.startIndex! > 0) {
         // 在指定位置插入
         let rIndexLastWriteRow = -1
-        let rIndexOffset = options.startIndex - 1
+        let rIndexOffset = options.startIndex! - 1
         const newRows = {}
         Object.entries(oldRows).forEach(([rIndex, row]) => {
           let i = parseInt(rIndex)
@@ -214,7 +214,7 @@ async function wiriteSpreadsheet(
         const r = await modelSS.update(tmwCl.db.sysname, tmwCl.sysname, sheet)
       } else if (options.overwrite === true) {
         // 在指定位置插入
-        let rIndexOffset = options.startIndex - 1
+        let rIndexOffset = options.startIndex! - 1
         const oldRows = sheet.rows
         Object.entries(proto.rows).forEach(([rIndex, row]) => {
           let i = parseInt(rIndex)
@@ -300,7 +300,7 @@ async function fillSpreadsheet(ctrl, tmwCl, widget) {
     try {
       await aoaToSpreadsheet(ctrl, tmwCl, aoa, writeOptions)
       return [true, '导入成功']
-    } catch (error) {
+    } catch (error: any) {
       debug(`数据存储错误: ${error.message}`)
       return [false, error.message]
     }
@@ -317,7 +317,7 @@ async function fillSpreadsheet(ctrl, tmwCl, widget) {
     try {
       await jsonToSpreadsheet(ctrl, tmwCl, headersName, rowsJson, writeOptions)
       return [true, '导入成功']
-    } catch (error) {
+    } catch (error: any) {
       debug(`数据存储错误: ${error.message}`)
       return [false, error.message]
     }
@@ -329,7 +329,7 @@ async function fillSpreadsheet(ctrl, tmwCl, widget) {
  * 导入数据到集合中
  */
 class SpreadsheetImportPlugin extends PluginBase {
-  DownloadHost: string
+  DownloadHost!: string
 
   constructor(file: string) {
     super(file)
@@ -378,7 +378,7 @@ export async function createPlugin(file: string) {
       schemaBlacklist,
     } = config
     const newPlugin = new SpreadsheetImportPlugin(file)
-    newPlugin.beforeWidget.url = widgetUrl
+    newPlugin.beforeWidget!.url = widgetUrl
 
     if (bucket) newPlugin.bucketName = new RegExp(bucket)
     if (db) newPlugin.dbName = new RegExp(db)

@@ -59,7 +59,7 @@ export async function createPlugin(file: string) {
     let { widgetUrl, bucket, db, cl, title } = config
     const newPlugin = new DbAdminPlugin(file)
 
-    newPlugin.beforeWidget.url = widgetUrl
+    newPlugin.beforeWidget!.url = widgetUrl
 
     if (bucket) newPlugin.bucketName = new RegExp(bucket)
     if (db) newPlugin.dbName = new RegExp(db)

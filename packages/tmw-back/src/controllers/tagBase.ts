@@ -1,5 +1,6 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import { Base } from 'tmw-kit/dist/ctrl/index.js'
+import { ModelTag } from 'tmw-kit'
 import TagHelper from './tagHelper.js'
 
 /**
@@ -9,8 +10,6 @@ class TagBase extends Base {
   tagHelper
 
   clMongoObj
-
-  clTagObj
 
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
@@ -22,7 +21,6 @@ class TagBase extends Base {
     if (true !== result) return result
 
     this.clMongoObj = this.tagHelper.clMongoObj
-    this.clTagObj = this.tagHelper.clTagObj
 
     return true
   }
@@ -30,11 +28,9 @@ class TagBase extends Base {
    * 查询所有标签
    */
   async list() {
-    const query: any = {}
-    if (this.bucketObj && typeof this.bucketObj === 'object')
-      query.bucket = this.bucketObj.name
+    const modelTag = new ModelTag(this.mongoClient, this.bucket, this.client)
 
-    const tmsTags = await this.clTagObj.find(query).toArray()
+    const tmsTags = await modelTag.list(this.bucketObj?.name)
 
     return new ResultData(tmsTags)
   }

@@ -189,7 +189,7 @@ class Collection extends Base {
 
     const rst = await this.clMongoObj
       .updateOne({ _id: existCl._id }, { $set: updatedInfo, $unset: cleaned })
-      .then((rst) => [true, rst.result])
+      .then((rst) => [true, rst])
       .catch((err) => [false, err.message])
 
     if (rst[0] === false) return [false, rst[1]]
@@ -371,7 +371,7 @@ class Collection extends Base {
     }
 
     // 检查授权访问列表条件
-    let queryAclCheck: any[]
+    let queryAclCheck!: any[]
 
     // 当前用户不是管理员，仅管理员可见的集合不允许访问
     if (this.client.isAdmin !== true && tmwDb.asClAcl !== true) {
@@ -517,7 +517,7 @@ class Collection extends Base {
       ]
 
     // 集合名是否存在关键字中
-    let keyWord = []
+    let keyWord: string[] = []
     if (keyWord.includes(clName))
       return [false, '不能以此名作为集合名，请更换为其它名称']
 

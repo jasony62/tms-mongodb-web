@@ -16,7 +16,7 @@ const META_ADMIN_CL_TAG = 'tag_object'
  */
 class Helper {
   ctrl
-  bucket: { name: string }
+  bucket!: { name: string }
 
   constructor(ctrl) {
     this.ctrl = ctrl

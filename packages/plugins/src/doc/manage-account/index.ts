@@ -83,7 +83,7 @@ class ManageAccountPlugin extends PluginBase {
       }
 
       return { code: 0, msg: '操作成功' }
-    } catch (error) {
+    } catch (error: any) {
       return { code: 10001, msg: `执行插件失败，原因：${error}` }
     }
   }
@@ -115,7 +115,7 @@ export async function createPlugin(file: string) {
     if (!schemaJson) return false
     newPlugin.schemaJson = schemaJson
 
-    newPlugin.beforeWidget.url = widgetUrl
+    newPlugin.beforeWidget!.url = widgetUrl
 
     if (bucket) newPlugin.bucketName = new RegExp(bucket)
     if (db) newPlugin.dbName = new RegExp(db)

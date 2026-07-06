@@ -183,7 +183,7 @@ export async function createPlugin(file: string) {
       schemaBlacklist,
     } = config
     const newPlugin = new AgendaDocPlugin(file)
-    newPlugin.beforeWidget.url = widgetUrl
+    newPlugin.beforeWidget!.url = widgetUrl
 
     if (bucket) newPlugin.bucketName = new RegExp(bucket)
     if (db) newPlugin.dbName = new RegExp(db)

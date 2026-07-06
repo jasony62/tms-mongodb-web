@@ -38,7 +38,7 @@ const META_ADMIN_CL = 'mongodb_object'
  * 导入集合
  */
 class ImportPlugin extends PluginBase {
-  DownloadHost: string
+  DownloadHost!: string
 
   constructor(file: string) {
     super(file)
@@ -348,7 +348,7 @@ class ImportPlugin extends PluginBase {
       if (!k) continue
       if (k.indexOf('.') > -1) {
         const childKey = k.split('.')
-        const setKey = []
+        const setKey: any[] = []
         for (let i = 0; i < childKey.length - 1; i++) {
           setKey.push(childKey[i])
           const childProperties = _.get(properties, setKey)
@@ -476,7 +476,7 @@ class ImportPlugin extends PluginBase {
         }
 
       return { code: 0, msg: '导入成功' }
-    } catch (error) {
+    } catch (error: any) {
       debug(`数据存储错误: ${error.message}`)
       return { code: 10001, msg: error.message }
     }
@@ -520,7 +520,7 @@ export async function createPlugin(file: string) {
   if (config && typeof config === 'object') {
     let { widgetUrl, bucket, db, title, disabled, dbBlacklist } = config
     const newPlugin = new ImportPlugin(file)
-    newPlugin.beforeWidget.url = widgetUrl
+    newPlugin.beforeWidget!.url = widgetUrl
 
     if (bucket) newPlugin.bucketName = new RegExp(bucket)
     if (db) newPlugin.dbName = new RegExp(db)

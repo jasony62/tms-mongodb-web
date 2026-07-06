@@ -141,7 +141,7 @@ class Collection extends Base {
 
     const rst = await this['clPreset']
       .updateOne(query, { $set: updatedInfo }, { upsert: true })
-      .then((rst) => [true, rst.result])
+      .then((rst) => [true, rst])
       .catch((err) => [false, err.message])
 
     if (rst[0] === false) return new ResultFault(rst[1])

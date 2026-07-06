@@ -102,7 +102,7 @@ class LocalFsRepos {
       config
     )
     if (commitInfo.total) {
-      latestIndex = commitInfo.maxUsedNum === -1 ? 1 : ++commitInfo.maxUsedNum
+      latestIndex = commitInfo.maxUsedNum === -1 ? 1 : ++commitInfo.maxUsedNum!
       fs.renameSync(fullpath, `${fullpath}.${latestIndex}`)
     }
     /**
@@ -156,11 +156,11 @@ class LocalFsRepos {
       info.maxUsedNum = -1
       info.usedNums = []
       commits.reduce((info, commit) => {
-        let lastPart = commit.split('.').pop()
+        let lastPart = commit.split('.').pop()!
         let verNum = parseInt(lastPart)
         if (verNum > 0) {
-          info.usedNums.push(verNum)
-          info.maxUsedNum = verNum > info.maxUsedNum ? verNum : info.maxUsedNum
+          info.usedNums!.push(verNum)
+          info.maxUsedNum = verNum > info.maxUsedNum! ? verNum : info.maxUsedNum
         }
         return info
       }, info)
@@ -246,7 +246,7 @@ export async function createPlugin(file: string) {
       fsDomainName,
     } = config
     const newPlugin = new VersionReposPlugin(file)
-    newPlugin.beforeWidget.url = widgetUrl
+    newPlugin.beforeWidget!.url = widgetUrl
 
     if (bucket) newPlugin.bucketName = new RegExp(bucket)
     if (db) newPlugin.dbName = new RegExp(db)

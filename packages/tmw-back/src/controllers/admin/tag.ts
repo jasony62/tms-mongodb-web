@@ -1,8 +1,7 @@
 import _ from 'lodash'
 import { ResultData, ResultFault } from 'tms-koa'
+import { ModelTag } from 'tmw-kit'
 import TagBase from '../tagBase.js'
-import mongodb from 'mongodb'
-const ObjectId = mongodb.ObjectId
 
 /** 标签 */
 class Tag extends TagBase {
@@ -49,14 +48,14 @@ class Tag extends TagBase {
     if (this.bucket && typeof this.bucket === 'object')
       info.bucket = this.bucketObj.name
 
+    const modelTag = new ModelTag(this.mongoClient, this.bucket, this.client)
+
     // 查询是否存在同名标签
-    let existTag = await this.tagHelper.tagByName(info.name)
+    let existTag = await modelTag.findByName(info.name, info.bucket)
     if (existTag) return new ResultFault('已存在同名标签')
 
-    return this.clTagObj.insertOne(info).then((result) => {
-      info._id = result.insertedId
-      return new ResultData(info)
-    })
+    const result = await modelTag.create(info)
+    return new ResultData(result)
   }
   /**
    * @swagger
@@ -101,20 +100,16 @@ class Tag extends TagBase {
     const { id } = this.request.query
     let info = this.request.body
 
-    // 查询是否存在同名标签
-    let existTag = await this.tagHelper.tagByName(info.name)
-    if (existTag) return new ResultFault('已存在同名标签')
+    const modelTag = new ModelTag(this.mongoClient, this.bucket, this.client)
 
-    let query: any = { _id: new ObjectId(id), type: 'tag' }
-    if (this.bucketObj) query.bucket = this.bucketObj.name
+    // 查询是否存在同名标签
+    let existTag = await modelTag.findByName(info.name, this.bucketObj?.name)
+    if (existTag) return new ResultFault('已存在同名标签')
 
     info = _.omit(info, ['_id', 'type', 'bucket'])
 
-    return this.clTagObj
-      .updateOne(query, { $set: info }, { upsert: true })
-      .then(() => {
-        return new ResultData(info)
-      })
+    await modelTag.update(id, this.bucketObj?.name, info)
+    return new ResultData(info)
   }
   /**
    * @swagger
@@ -141,20 +136,16 @@ class Tag extends TagBase {
     const { name } = this.request.query
     if (!name) return new ResultFault('参数不完整')
 
-    // 是否正在使用
-    let rst = await this.clMongoObj.findOne({
-      tags: { $elemMatch: { $eq: name } },
-      type: 'schema',
-    })
+    const modelTag = new ModelTag(this.mongoClient, this.bucket, this.client)
 
+    // 是否正在使用
+    let rst = await modelTag.checkInUse(name)
     if (rst) {
       return new ResultFault('标签正在被使用不能删除')
     }
 
-    const query: any = { name: name }
-    if (this.bucketObj) query.bucket = this.bucketObj.name
-
-    return this.clTagObj.deleteOne(query).then(() => new ResultData('ok'))
+    await modelTag.remove(name, this.bucketObj?.name)
+    return new ResultData('ok')
   }
 }
 

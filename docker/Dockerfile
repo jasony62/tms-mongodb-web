@@ -66,8 +66,8 @@ RUN sed -i 's/"tmw-kit": "workspace:\*"/"tmw-kit": "file:\.\.\/kit"/g' /usr/src/
 RUN cd /usr/src/tmw/back && pnpm build 
 
 ### 去掉不必要的包，重新安装生产版本的包
-# RUN rm -rf /usr/src/tmw/back/node_modules
-RUN cd /usr/src/tmw/back && pnpm i --production --strict-peer-dependencies=false
+# pnpm v10 requires integrity for URL tarballs — skip production reinstall and keep all deps
+RUN cd /usr/src/tmw/back && rm -rf pnpm-lock.yaml node_modules/.cache
 # RUN cd /usr/src/tmw/back/node_modules/tmw-data && pnpm i --production --strict-peer-dependencies=false
 # RUN cd /usr/src/tmw/back/node_modules/tmw-kit && pnpm i --production --strict-peer-dependencies=false
 

@@ -6,6 +6,7 @@ import ModelAcl from './acl.js'
 import dayjs from 'dayjs'
 import { ElasticSearchIndex } from '../elasticsearch/index.js'
 import Debug from 'debug'
+import { PgPool, isFerretdb } from '../pg/pool.js'
 
 const debug = Debug('tmw-kit:model:document')
 
@@ -19,7 +20,8 @@ const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
  * 用update代替delete操作
  * 添加删除时间
  */
-const UPDATE_AS_DELETE = /true|yes/i.test(process.env.TMW_APP_UPDATE_AS_DELETE)
+const UPDATE_AS_DELETE = /true|yes/i.test(process.env.TMW_APP_UPDATE_AS_DELETE || '')
+let dataActionLogTableEnsured = false
 /**
  * 创建ES索引实例
  *
@@ -213,8 +215,8 @@ class Document extends Base {
 
     const targetSysCl = this._getSysCl(targetCl.db.sysname, targetCl.sysname)
 
-    let bulkOp = targetSysCl.initializeUnorderedBulkOp()
     let { tmwConfig } = this
+    let operations: any[] = []
     for (let doc of copyedDocs) {
       let { _id, ...info } = doc
       typeof info[tmwConfig.TMW_APP_CREATETIME] !== 'undefined' &&
@@ -224,18 +226,28 @@ class Document extends Base {
       let isExistDoc = await targetSysCl.findOne({ _id: doc._id })
       if (isExistDoc) {
         this.processBeforeStore(info, 'update')
-        bulkOp.find({ _id: doc._id }).updateOne({ $set: info })
+        operations.push({
+          updateOne: { filter: { _id: doc._id }, update: { $set: info } },
+        })
       } else {
         this.processBeforeStore(info, 'insert')
-        bulkOp.find({ _id: doc._id }).upsert().updateOne({
-          $setOnInsert: info,
+        operations.push({
+          updateOne: {
+            filter: { _id: doc._id },
+            update: { $setOnInsert: info },
+            upsert: true,
+          },
         })
       }
     }
 
-    return bulkOp.execute().then(({ nUpserted, nMatched, nModified }) => {
-      return { nUpserted, nMatched, nModified }
-    })
+    return targetSysCl
+      .bulkWrite(operations, { ordered: false })
+      .then((result) => ({
+        nUpserted: result.upsertedCount,
+        nMatched: result.matchedCount,
+        nModified: result.modifiedCount,
+      }))
   }
   /**
    * 新建文档
@@ -382,8 +394,8 @@ class Document extends Base {
    */
   async list(
     tmwCl,
-    { filter = null, orderBy = null } = {},
-    { page = 0, size = 0 } = {},
+    { filter = null, orderBy = null }: { filter?: any; orderBy?: any } = {},
+    { page = 0, size = 0 }: { page?: any; size?: any } = {},
     like = true,
     projection = null,
     includeDeleted = false
@@ -502,37 +514,39 @@ class Document extends Base {
     clname,
     operate_after_dbname = '',
     operate_after_clname = '',
-    operate_before_data = null,
-    client_info = null
+    operate_before_data: any = null,
+    client_info: any = null
   ) {
     if (!operate_type || !dbname || !clname) return false
     if (this.tmwConfig.TMW_APP_DATA_ACTION_LOG !== 'Y') return true
     if (dbname === META_ADMIN_DB && clname === 'tms_app_data_action_log')
       return false
 
-    // 避免改变原数据
     let datas = JSON.parse(JSON.stringify(oDatas))
 
     if (!Array.isArray(datas)) {
-      let dArr = []
+      let dArr: any[] = []
       dArr.push(datas)
       datas = dArr
     }
 
-    const client = this.mongoClient
-    const cl = client.db(META_ADMIN_DB)
-
-    // 插入日志表中
     let current = dayjs().format('YYYY-MM-DD HH:mm:ss')
-    const cl2 = cl.collection('tms_app_data_action_log')
     if (operate_before_data && Array.isArray(operate_before_data)) {
-      let newDatas = {}
+      let newDatas: Record<string, any> = {}
       operate_before_data.forEach((od) => {
         newDatas[od._id] = od
       })
       operate_before_data = newDatas
     }
-    //
+
+    if (isFerretdb()) {
+      return this.dataActionLogPG(datas, operate_type, dbname, clname, operate_after_dbname, operate_after_clname, operate_before_data, client_info, current)
+    }
+
+    const client = this.mongoClient
+    const cl = client.db(META_ADMIN_DB)
+
+    const cl2 = cl.collection('tms_app_data_action_log')
     for (const data of datas) {
       if (data._id) {
         data.operate_id = data._id
@@ -546,19 +560,16 @@ class Document extends Base {
       data.operate_after_clname = operate_after_clname
       data.operate_time = current
       data.operate_type = operate_type
-      /*本地客户端时读取用户信息*/
       if (this.client && this.client.data) {
         data.operate_account =
           this.client.data.account || this.client.data['cust_id']
         data.operate_nickname = this.client.data.nickname
       }
-      /*第三方调用时读取用户信息*/
       if (client_info) {
         data.operate_account =
           client_info.operate_account || client_info['cust_id']
         data.operate_nickname = client_info.operate_nickname
       }
-      // 旧数据
       if (operate_before_data) {
         if (
           typeof operate_before_data === 'object' &&
@@ -577,9 +588,72 @@ class Document extends Base {
 
     return true
   }
-  /**
-   * 查询文档完成情况
-   */
+
+  async dataActionLogPG(datas: any[], operate_type: string, dbname: string, clname: string, operate_after_dbname: string, operate_after_clname: string, operate_before_data: any, client_info: any, current: string) {
+    if (!dataActionLogTableEnsured) {
+      await PgPool.query(`CREATE TABLE IF NOT EXISTS tms_app_data_action_log (
+        id SERIAL PRIMARY KEY,
+        operate_id VARCHAR(255) DEFAULT '',
+        operate_dbname VARCHAR(255) NOT NULL,
+        operate_clname VARCHAR(255) NOT NULL,
+        operate_after_dbname VARCHAR(255) DEFAULT '',
+        operate_after_clname VARCHAR(255) DEFAULT '',
+        operate_time VARCHAR(50) NOT NULL,
+        operate_type VARCHAR(50) NOT NULL,
+        operate_account VARCHAR(255) DEFAULT '',
+        operate_nickname VARCHAR(255) DEFAULT '',
+        operate_before_data JSONB,
+        original_data JSONB
+      )`)
+      dataActionLogTableEnsured = true
+    }
+
+    for (const data of datas) {
+      const logEntry: any = {}
+      logEntry.operate_id = data._id ? data._id.toString() : ''
+      logEntry.operate_dbname = dbname
+      logEntry.operate_clname = clname
+      logEntry.operate_after_dbname = operate_after_dbname
+      logEntry.operate_after_clname = operate_after_clname
+      logEntry.operate_time = current
+      logEntry.operate_type = operate_type
+      if (this.client && this.client.data) {
+        logEntry.operate_account = this.client.data.account || this.client.data['cust_id']
+        logEntry.operate_nickname = this.client.data.nickname
+      }
+      if (client_info) {
+        logEntry.operate_account = client_info.operate_account || client_info['cust_id']
+        logEntry.operate_nickname = client_info.operate_nickname
+      }
+      if (operate_before_data) {
+        if (typeof operate_before_data === 'object' && operate_before_data[logEntry.operate_id]) {
+          logEntry.operate_before_data = JSON.stringify(operate_before_data[logEntry.operate_id])
+        } else if (typeof operate_before_data === 'string') {
+          logEntry.operate_before_data = operate_before_data
+        } else {
+          logEntry.operate_before_data = null
+        }
+      }
+
+      const cleanedData = { ...data }
+      delete cleanedData._id
+      logEntry.original_data = JSON.stringify(cleanedData)
+
+      await PgPool.query(
+        `INSERT INTO tms_app_data_action_log (operate_id, operate_dbname, operate_clname, operate_after_dbname, operate_after_clname, operate_time, operate_type, operate_account, operate_nickname, operate_before_data, original_data)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11::jsonb)`,
+        [
+          logEntry.operate_id, logEntry.operate_dbname, logEntry.operate_clname,
+          logEntry.operate_after_dbname, logEntry.operate_after_clname,
+          logEntry.operate_time, logEntry.operate_type,
+          logEntry.operate_account || '', logEntry.operate_nickname || '',
+          logEntry.operate_before_data, logEntry.original_data
+        ]
+      )
+    }
+    return true
+  }
+  /** 查询文档完成情况 */
   async getDocCompleteStatus(existCl, docs) {
     const clSchemas = await this._modelCl.getSchemaByCollection(existCl)
     if (!clSchemas) return docs

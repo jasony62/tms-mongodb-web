@@ -86,7 +86,7 @@ class DbSpreadsheetExportPlugin extends PluginBase {
 
       const wb = XLSX.utils.book_new()
       sheets.data.forEach((sheet) => {
-        const aoa = [] // 将表格的json数据转换为二维数组
+        const aoa: any[] = [] // 将表格的json数据转换为二维数组
         const { name, rows } = sheet
         Object.entries(rows).forEach(([key, row]: [string, any]) => {
           // rows中有len字段
@@ -143,7 +143,7 @@ export async function createPlugin(file: string) {
       schemaBlacklist,
     } = config
     const newPlugin = new DbSpreadsheetExportPlugin(file)
-    newPlugin.beforeWidget.url = widgetUrl
+    newPlugin.beforeWidget!.url = widgetUrl
 
     if (bucket) newPlugin.bucketName = new RegExp(bucket)
     if (db) newPlugin.dbName = new RegExp(db)

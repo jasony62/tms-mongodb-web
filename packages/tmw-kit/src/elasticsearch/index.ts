@@ -158,7 +158,7 @@ export class ElasticSearchIndex {
    */
   async search(match: Record<string, string>, options?: Record<string, any>) {
     const url = new URL(this.indexUri.toString() + `/_search`)
-    const { size, from } = options
+    const { size, from } = options || {}
     if (size) url.searchParams.append('size', size || ES_SEARCH_RESULT_SIZE)
     if (from) url.searchParams.append('from', from)
 

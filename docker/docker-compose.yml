@@ -20,16 +20,16 @@ services:
     # environment:
     #   # 必须指定才会开放push服务，实现在线表格的协同编写，需要和映射的push端口一致
     #   - UE_SETTINGS_BACK_PUSH_PORT=30002
-    # ports:
+    ports:
     #   # api端口
     #   - 30001:3000
     #   # push端口
     #   - 30002:3001
-    #   # web页面端口
-    #   - 3081:80
-    # volumes:
-    # - ../back/config:/usr/app/config
-    # - ../ue_admin/settings.json:/usr/share/nginx/html/admin/settings.json
+      # web页面端口
+      - 3081:80
+    volumes:
+    - ../back/config:/usr/app/config
+    - ../ue_admin/settings.json:/usr/share/nginx/html/admin/settings.json
     networks:
       - net
 

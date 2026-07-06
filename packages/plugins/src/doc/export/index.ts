@@ -187,9 +187,9 @@ async function exportAsExcel(ctrl, tmwCl, docs, leafLevel): Promise<string> {
 
   leafLevel = leafLevel ? leafLevel : 0
 
-  const titleAry = [] // 标题行
-  const nameAry = [] // 名称行
-  const propAry = []
+  const titleAry: any[] = [] // 标题行
+  const nameAry: any[] = [] // 名称行
+  const propAry: any[] = []
   for (let schemaProp of schemaIter) {
     let { fullname, _path, _name, attrs } = schemaProp
     if (
@@ -220,7 +220,7 @@ async function exportAsExcel(ctrl, tmwCl, docs, leafLevel): Promise<string> {
       if (text.length <= 32767) data.push(text)
       else data.push(text.substr(0, 32767))
       return data
-    }, [])
+    }, [] as any[])
     rows.push(row)
   })
 
@@ -358,7 +358,7 @@ export async function createPlugin(file: string) {
       schemaBlacklist,
     } = config
     const newPlugin = new ExportPlugin(file)
-    newPlugin.beforeWidget.url = widgetUrl
+    newPlugin.beforeWidget!.url = widgetUrl
 
     if (bucket) newPlugin.bucketName = new RegExp(bucket)
     if (db) newPlugin.dbName = new RegExp(db)

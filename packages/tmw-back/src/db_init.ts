@@ -1,4 +1,4 @@
-import { MongoClient, MongoError } from 'mongodb'
+import { MongoClient } from 'mongodb'
 import * as path from 'path'
 import { program } from 'commander'
 import { loadDataFrom } from 'tmw-kit/dist/util/database.js'
@@ -27,7 +27,7 @@ class Mongo {
       .catch((err) => {
         const msg = `数据库初始化-连接[${url}]失败：${err.message}`
         debug(msg)
-        return Promise.reject(new MongoError(msg))
+        return Promise.reject(new Error(msg))
       })
   }
   async client() {

@@ -36,7 +36,7 @@ class CollectionHelper extends Helper {
     return clDb
       .rename(newName)
       .then(() => this.clMongoObj.updateOne(query, { $set: { name: newName } }))
-      .then((rst) => [true, rst.result])
+      .then((rst) => [true, rst])
       .catch((err) => [false, err.message])
   }
   /**

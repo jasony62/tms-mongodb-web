@@ -116,7 +116,7 @@ export async function createPlugin(file: any) {
       // name
       newPlugin.name = name
       // widgetUrl
-      newPlugin.beforeWidget.url = widgetUrl
+      newPlugin.beforeWidget!.url = widgetUrl
 
       if (
         Array.isArray(disabled) &&
@@ -171,12 +171,12 @@ export async function createPlugin(file: any) {
       }
       // url
       if (Array.isArray(url) && index < url.length && url[index]) {
-        newPlugin.beforeWidget.ui = { url: { value: url[index] } }
+        newPlugin.beforeWidget!.ui = { url: { value: url[index] } }
       }
       // method
       if (Array.isArray(method) && index < method.length && method[index]) {
-        if (!newPlugin.beforeWidget.ui) newPlugin.beforeWidget.ui = {}
-        newPlugin.beforeWidget.ui.method = { value: method[index] }
+        if (!newPlugin.beforeWidget!.ui) newPlugin.beforeWidget!.ui = {}
+        newPlugin.beforeWidget!.ui.method = { value: method[index] }
       }
       // excludeId
       if (
@@ -184,8 +184,8 @@ export async function createPlugin(file: any) {
         index < excludeId.length &&
         excludeId[index]
       ) {
-        if (!newPlugin.beforeWidget.ui) newPlugin.beforeWidget.ui = {}
-        newPlugin.beforeWidget.ui.excludeId = {
+        if (!newPlugin.beforeWidget!.ui) newPlugin.beforeWidget!.ui = {}
+        newPlugin.beforeWidget!.ui.excludeId = {
           value: /true|yes|1/i.test(excludeId[index]),
         }
       }
@@ -197,7 +197,7 @@ export async function createPlugin(file: any) {
     // if (disabled) return false
 
     const newPlugin = new HttpSendDocPlugin(file)
-    newPlugin.beforeWidget.url = WidgetUrl
+    newPlugin.beforeWidget!.url = WidgetUrl
 
     return newPlugin
   }

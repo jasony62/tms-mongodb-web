@@ -15,10 +15,10 @@ const RequiredProps = ['name', 'scope', 'title', 'description']
  */
 export abstract class PluginBase {
   file: string // 插件配置文件名称
-  name: string // 插件名
-  scope: PluginProfileScope // 适用管理对象，支持：database，collection，document
-  title: string // 插件按钮名称
-  description: string // 插件描述信息
+  name!: string // 插件名
+  scope!: PluginProfileScope // 适用管理对象，支持：database，collection，document
+  title!: string // 插件按钮名称
+  description!: string // 插件描述信息
   bucketName?: RegExp // 和存储空间名称匹配的正则表达式
   dbName?: RegExp // 和数据库名称匹配的正则表达式
   clName?: RegExp // 和集合名称匹配的正则表达式
@@ -31,7 +31,7 @@ export abstract class PluginBase {
   amount?: PluginProfileAmount // 处理的数据量，zero,single,many
   visible? // 控制适用的文档条件，当文档的key的值和指定值一致时显示
   disabled?: boolean
-  spreadsheet?: boolean // 适用于自由表格？
+  spreadsheet: boolean = false // 适用于自由表格？
   beforeWidget?: PluginProfileBeforeWidget
   remoteWidgetOptions?: Function
   dbBlacklist?: RegExp // 黑名单，和数据库名称匹配的正则表达式

@@ -118,7 +118,7 @@ class DbBase extends CtrlBase {
 
     return this.clMongoObj
       .updateOne(query, { $set: { top } })
-      .then((rst) => new ResultData(rst.result))
+      .then((rst) => new ResultData(rst))
   }
 }
 

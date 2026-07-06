@@ -11,6 +11,9 @@ node_modules
 
 .env*
 dist
+opencode.json
+.opencode/
+.zread/
 
 /tests/
 /patch/

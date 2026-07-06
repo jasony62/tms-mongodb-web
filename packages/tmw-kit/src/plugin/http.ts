@@ -106,7 +106,7 @@ export abstract class PluginHttpSendDocs extends PluginHttpSend {
       return Promise.reject(`插件[${this.name}]不支持的请求方法[${method}]`)
     } catch (e) {
       logger.warn(`插件[${this.name}]在[${url}]接口执行[${method}]方法异常`, e)
-      return Promise.reject(e.message)
+      return Promise.reject(e instanceof Error ? e.message : String(e))
     }
   }
 }

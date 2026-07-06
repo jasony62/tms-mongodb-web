@@ -1,4 +1,5 @@
 import { Helper } from 'tmw-kit/dist/ctrl/index.js'
+import { ModelTag } from 'tmw-kit'
 
 /**
  * 标签控制器辅助类
@@ -10,13 +11,12 @@ class TagHelper extends Helper {
    * @param {string} name
    */
   async tagByName(name) {
-    const query: any = { name }
-    if (this.ctrl.bucketObj && typeof this.ctrl.bucketObj === 'object')
-      query.bucket = this.ctrl.bucketObj.name
-
-    const tag = await this.clTagObj.findOne(query)
-
-    return tag
+    const modelTag = new ModelTag(
+      this.ctrl.mongoClient,
+      this.ctrl.bucket,
+      this.ctrl.client
+    )
+    return modelTag.findByName(name, this.ctrl.bucketObj?.name)
   }
 }
 

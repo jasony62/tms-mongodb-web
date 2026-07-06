@@ -122,8 +122,8 @@ class Plugin extends CtrlBase {
         if (schemaBlacklist.test(clSchema.name) === true) return false
       }
 
-      if (bucketName && bucketName instanceof RegExp && this.bucket) {
-        if (bucketName.test(this.bucket) === false) return false
+      if (bucketName && bucketName instanceof RegExp && this.bucketObj) {
+        if (bucketName.test(this.bucketObj.name) === false) return false
       }
 
       if (dbName && dbName instanceof RegExp)

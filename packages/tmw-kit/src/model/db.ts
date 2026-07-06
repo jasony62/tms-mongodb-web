@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid'
 import Debug from 'debug'
 import Base from './base.js'
 import ModelAcl from './acl.js'
+import { isFerretdb } from '../pg/pool.js'
 
 const debug = Debug('tmw-kit:model:db')
 
@@ -156,7 +157,7 @@ class Db extends Base {
     const query: any = { type: 'database' }
 
     // 检查授权访问列表条件
-    let queryAclCheck: any[]
+    let queryAclCheck!: any[]
 
     // 当前用户不是管理员，仅管理员可见的数据库不允许访问
     if (this.client.isAdmin !== true) {
@@ -228,6 +229,7 @@ class Db extends Base {
    *
    */
   async getProfilingStatus(dbOrDbName: string) {
+    if (isFerretdb()) return { ok: 0, errmsg: 'Profiling is not supported in ferretdb mode' }
     let db
     if (dbOrDbName && typeof dbOrDbName === 'string')
       db = await this.byName(dbOrDbName)
@@ -249,6 +251,7 @@ class Db extends Base {
    *
    */
   async setProfilingLevel(dbOrDbName: string, params: any) {
+    if (isFerretdb()) return false
     let db
     if (dbOrDbName && typeof dbOrDbName === 'string')
       db = await this.byName(dbOrDbName)
@@ -272,6 +275,7 @@ class Db extends Base {
    * 指定管理命令
    */
   async runCommand(dbOrDbName: string, params: any) {
+    if (isFerretdb()) return { ok: 0, errmsg: 'Admin commands are not supported in ferretdb mode' }
     let result
     if (params.top) {
       let admin = this.mongoClient.db().admin()

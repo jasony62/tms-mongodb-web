@@ -1,24 +1,65 @@
+# FerretDB 存储后端部署覆盖文件（v2.7）
+#
+# 使用方式：
+#   生产环境: docker compose -f docker-compose.yml -f docker-compose.ferretdb.yml up
+# 开发环境: docker compose -f docker-compose.dev.yml -f docker-compose.ferretdb.yml up
+#       或: docker compose -f docker-compose.yml -f docker-compose.ferretdb.yml up -d postgres mongodb
+#           然后本地启动 tmw-back（见下）
+# 本地启动 tmw-back 连接 ferretdb：
+#   export TMW_STORAGE_BACKEND=ferretdb
+#   export TMW_POSTGRES_URI=postgresql://root:root@localhost:5432/ferretdb
+#   export TMW_MONGODB_PORT=37017
+#   pnpm --filter tmw-back build
+#   node packages/tmw-back/dist/server
+#
+# 注意：tmw-aio 服务来自 docker-compose.yml（生产），此文件仅为其注入环境变量。
+# dev 模式的 back 服务需手动 export 上述两个环境变量。
+#
+# FerretDB v2.7 需要 DocumentDB PostgreSQL 扩展（非标准 postgres:16）。
+# 客户端认证使用 SCRAM-SHA-256（MongoDB 驱动默认），无需设置 authMechanism=PLAIN。
+
 services:
   postgres:
-    image: postgres
+    image: ghcr.io/ferretdb/postgres-documentdb:17-0.107.0-ferretdb-2.7.0
+    restart: on-failure
+    ports:
+      - 5432:5432
+    command:
+      - postgres
+      - -c
+      - cron.database_name=ferretdb
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=ferretdb
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - pg-data:/var/lib/postgresql/data
+      - ./ferretdb/init-documentdb.sql:/docker-entrypoint-initdb.d/01-init-documentdb.sql
     networks:
-      net:
+      - net
 
   mongodb:
-    image: ghcr.io/ferretdb/ferretdb
+    build: null
+    image: ghcr.io/ferretdb/ferretdb:2.7.0
     restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_started
     ports:
       - 37017:27017
     environment:
-      - FERRETDB_POSTGRESQL_URL=postgres://postgres:5432/ferretdb
+      - FERRETDB_POSTGRESQL_URL=postgres://root:root@postgres:5432/ferretdb
     networks:
-      net:
+      - net
+
+  tmw-aio:
+    environment:
+      - TMW_STORAGE_BACKEND=ferretdb
+      - TMW_POSTGRES_URI=postgresql://root:root@postgres:5432/ferretdb
 
 networks:
   net:
+    driver: bridge
+
+volumes:
+  pg-data:

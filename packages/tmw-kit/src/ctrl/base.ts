@@ -18,12 +18,19 @@ function allowAccessBucket(bucket, clientId) {
   return coworkers.some((c) => c.id === clientId)
 }
 
-const isRequireBucket = /yes|true/i.test(process.env.TMW_REQUIRE_BUCKET)
+const isRequireBucket = /yes|true/i.test(process.env.TMW_REQUIRE_BUCKET || '')
 
 class Base extends Ctrl {
-  bucketObj
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
+  }
+
+  /**
+   * 返回 bucketObj（与 this.bucketObj 相同），用于类型安全的桶存在性检查。
+   * this.bucket（未在父类 Ctrl 中声明）现在通过此 getter 访问。
+   */
+  get bucket() {
+    return this.bucketObj
   }
   get tmwConfig() {
     return TMW_CONFIG

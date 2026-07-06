@@ -77,7 +77,7 @@ async function createDocuments(ctrl, existDb, clSysname, rowsJson) {
     // 通过webhook处理数据
     let afterRst: any = await docWebhook.afterCreate(rst, existDb)
     if (afterRst.passed !== true) throw Error('操作被Webhook.afterCreate阻止')
-  } catch (error) {
+  } catch (error: any) {
     throw Error(error.message)
   }
 }
@@ -147,7 +147,7 @@ async function exportAsExcel(ctrl, tmwCl, sheets): Promise<string> {
 
   filePath = path.join(filePath, `${fileName}.xlsx`)
 
-  const aoa = [] // 将表格的json数据转换为二维数组
+  const aoa: any[] = [] // 将表格的json数据转换为二维数组
   const { name, rows } = sheets.data[0]
   Object.entries(rows).forEach(([key, row]: [string, any]) => {
     // rows中有len字段
@@ -210,7 +210,7 @@ async function exportAsDocs(ctrl, tmwCl, sheets, options = { startRow: 1 }) {
   /**
    * 生成文档
    */
-  const docs = [] // 将表格的json数据转换为二维数组
+  const docs: any[] = [] // 将表格的json数据转换为二维数组
   const { rows } = sheets.data[0]
   Object.entries(rows).forEach(([key, row]: [string, any]) => {
     // rows中有len字段
@@ -325,7 +325,7 @@ export async function createPlugin(file: string) {
       schemaBlacklist,
     } = config
     const newPlugin = new SpreadsheetExportPlugin(file)
-    newPlugin.beforeWidget.url = widgetUrl
+    newPlugin.beforeWidget!.url = widgetUrl
 
     if (bucket) newPlugin.bucketName = new RegExp(bucket)
     if (db) newPlugin.dbName = new RegExp(db)
