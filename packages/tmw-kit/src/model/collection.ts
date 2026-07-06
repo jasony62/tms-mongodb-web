@@ -8,6 +8,9 @@ import ModelSchema from './schema.js'
 import ModelAcl from './acl.js'
 import ModelDb from './db.js'
 import Document from './document.js'
+import { isFerretdb } from '../pg/pool.js'
+import { MongoCollectionRepository, PgCollectionRepository } from '../repo/index.js'
+import type { ICollectionRepository } from '../repo/interfaces.js'
 import Debug from 'debug'
 
 const debug = Debug('tmw-kit:model:collection')
@@ -22,6 +25,11 @@ const CL_NAME_RE = '^[a-zA-Z]+[0-9a-zA-Z_-]{0,63}$'
 const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
 
 class Collection extends Base {
+  private get _collectionRepo(): ICollectionRepository {
+    return isFerretdb()
+      ? new PgCollectionRepository()
+      : new MongoCollectionRepository(this.mongoClient)
+  }
   get _modelSchema() {
     const modelSc = new ModelSchema(this.mongoClient, this.bucket, this.client)
     return modelSc
@@ -137,15 +145,15 @@ class Collection extends Base {
     /**检查集合在数据库中是否已经存在*/
     const sysCl = mgdb.collection(newCl.sysname)
     if (sysCl) {
-      return this.clMongoObj
-        .insertOne(newCl)
+      return this._collectionRepo
+        .create(newCl)
         .then((result) => [true, result])
         .catch((err) => [false, err.message])
     }
 
     return mgdb
       .createCollection(newCl.sysname)
-      .then(() => this.clMongoObj.insertOne(newCl))
+      .then(() => this._collectionRepo.create(newCl))
       .then((result) => [true, result])
       .catch((err) => [false, err.message])
   }
@@ -184,15 +192,7 @@ class Collection extends Base {
 
     const { _id, sysname, database, db, type, bucket, ...updatedInfo } = info
 
-    // 需要清除的字段。应该考虑根据schema做清除。
-    const cleaned = { children: '' }
-
-    const rst = await this.clMongoObj
-      .updateOne({ _id: existCl._id }, { $set: updatedInfo, $unset: cleaned })
-      .then((rst) => [true, rst])
-      .catch((err) => [false, err.message])
-
-    if (rst[0] === false) return [false, rst[1]]
+    const rst = await this._collectionRepo.update(existCl._id, info)
 
     // 更新es索引
     const { schema_id } = existCl
@@ -259,7 +259,7 @@ class Collection extends Base {
     /**
      * 删除集合的元数据定义
      */
-    await this.clMongoObj.deleteOne({ _id: tmwCl._id })
+    await this._collectionRepo.delete(tmwCl._id)
     /**
      * 删除schema
      */
@@ -374,7 +374,7 @@ class Collection extends Base {
     let queryAclCheck!: any[]
 
     // 当前用户不是管理员，仅管理员可见的集合不允许访问
-    if (this.client.isAdmin !== true && tmwDb.asClAcl !== true) {
+    if (this.client.isAdmin !== true && tmwDb?.asClAcl !== true) {
       // 不能是仅管理员访问
       query.adminOnly = { $ne: true }
       // 检查授权访问列表
@@ -532,19 +532,7 @@ class Collection extends Base {
    * @returns {object} 集合对象
    */
   async byId(tmwDb, id: string) {
-    const query: any = { _id: new ObjectId(id), type: 'collection' }
-
-    if (typeof tmwDb === 'object') query['db.sysname'] = tmwDb.sysname
-    else if (typeof tmwDb === 'string') query['db.name'] = tmwDb
-
-    if (this.bucket) query.bucket = this.bucket.name
-
-    const client = this.mongoClient
-    const clMongoObj = client.db(META_ADMIN_DB).collection('mongodb_object')
-
-    const cl = await clMongoObj.findOne(query)
-
-    return cl
+    return this._collectionRepo.findById(tmwDb, id, this.bucket?.name)
   }
   /**
    * 获得用户指定的集合信息
@@ -555,17 +543,11 @@ class Collection extends Base {
    * @returns {object} 集合对象
    */
   async byName(tmwDb, clName: string) {
-    const query: any = { name: clName, type: 'collection' }
-
-    if (typeof tmwDb === 'object') query['db.sysname'] = tmwDb.sysname
-    else if (typeof tmwDb === 'string') query['db.name'] = tmwDb
-
-    if (this.bucket) query.bucket = this.bucket.name
-
-    const client = this.mongoClient
-    const clMongoObj = client.db(META_ADMIN_DB).collection('mongodb_object')
-
-    const cl = await clMongoObj.findOne(query)
+    const cl = await this._collectionRepo.findByName(
+      tmwDb,
+      clName,
+      this.bucket?.name
+    )
     if (cl) {
       if (this.client.isAdmin !== true) {
         /**
@@ -593,16 +575,7 @@ class Collection extends Base {
    * @returns {object} 集合对象
    */
   async bySysname(db, clSysname) {
-    const query: any = {
-      'db.sysname': db.sysname,
-      sysname: clSysname,
-      type: 'collection',
-    }
-    if (this.bucket) query.bucket = this.bucket.name
-
-    const cl = await this.clMongoObj.findOne(query)
-
-    return cl
+    return this._collectionRepo.findBySysname(db, clSysname, this.bucket?.name)
   }
 }
 

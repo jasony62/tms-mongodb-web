@@ -11,9 +11,6 @@ node_modules
 
 .env*
 dist
-opencode.json
-.opencode/
-.zread/
 
 /tests/
 /patch/
@@ -24,3 +21,13 @@ pnpm-lock.yaml
 .pnpm-debug.log
 docker/standalone/back
 docker/data/
+
+.npmrc
+
+.data-cipher.key
+
+# ai coding
+opencode.json
+.opencode
+.codegraph
+.zread

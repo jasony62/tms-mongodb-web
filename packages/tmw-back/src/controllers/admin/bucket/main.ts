@@ -1,5 +1,6 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import BucketBase from '../../bucketBase.js'
+import ModelBucket from 'tmw-kit/dist/model/bucket.js'
 
 /** 用于给用户分配存储空间 */
 class Bucket extends BucketBase {
@@ -55,22 +56,13 @@ class Bucket extends BucketBase {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async create() {
-    let info = this['request'].body
-
-    const cl = this['clBucket']
-
-    // 查询是否存在同名存储空间
-    let buckets = await cl.find({ name: info.name }).toArray()
-    if (buckets.length > 0) {
-      return new ResultFault('已存在同名存储空间')
-    }
-
-    info.creator = this['client'].id
-
-    return cl.insertOne(info).then((result) => {
-      info._id = result.insertedId
-      return new ResultData(info)
-    })
+    const modelBucket = new ModelBucket(
+      this.mongoClient,
+      this.bucketObj,
+      this.client
+    )
+    const [ok, result] = await modelBucket.create(this['request'].body)
+    return ok ? new ResultData(result) : new ResultFault(result)
   }
   /**
    * @swagger
@@ -111,16 +103,16 @@ class Bucket extends BucketBase {
    */
   async update() {
     const bucketName = this['request'].query.bucket
-    let info = this['request'].body
-    let { _id, name, ...updatedInfo } = info
-    const bucketInfo = await this['clBucket'].findOne({ name: bucketName })
-    if (this['client'].id !== bucketInfo.creator)
-      return new ResultFault('没有权限')
-    return this['clBucket']
-      .updateOne({ name: bucketName }, { $set: updatedInfo })
-      .then((res) => {
-        return new ResultData(info)
-      })
+    const modelBucket = new ModelBucket(
+      this.mongoClient,
+      this.bucketObj,
+      this.client
+    )
+    const [ok, result] = await modelBucket.update(
+      bucketName,
+      this['request'].body
+    )
+    return ok ? new ResultData(result) : new ResultFault(result)
   }
   /**
    * @swagger
@@ -144,13 +136,13 @@ class Bucket extends BucketBase {
    */
   async remove() {
     const { bucket: bucketName } = this['request'].query
-    const bucketInfo = await this['clBucket'].findOne({ name: bucketName })
-    if (this['client'].id !== bucketInfo.creator)
-      return new ResultFault('没有权限')
-
-    return this['clBucket']
-      .deleteOne({ name: bucketName, creator: this['client'].id })
-      .then((result) => new ResultData(result.result))
+    const modelBucket = new ModelBucket(
+      this.mongoClient,
+      this.bucketObj,
+      this.client
+    )
+    const [ok, result] = await modelBucket.remove(bucketName)
+    return ok ? new ResultData(result) : new ResultFault(result)
   }
   /**
    * @swagger
@@ -171,15 +163,12 @@ class Bucket extends BucketBase {
    *               "$ref": "#/components/schemas/ResponseDataArray"
    */
   async list() {
-    const tmsBuckets = await this['clBucket']
-      .find({
-        $or: [
-          { creator: this['client'].id },
-          { 'coworkers.id': this['client'].id },
-        ],
-      })
-      .toArray()
-
+    const modelBucket = new ModelBucket(
+      this.mongoClient,
+      this.bucketObj,
+      this.client
+    )
+    const tmsBuckets = await modelBucket.list()
     return new ResultData(tmsBuckets)
   }
 }

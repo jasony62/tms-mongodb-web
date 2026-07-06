@@ -4,6 +4,8 @@ import Debug from 'debug'
 import Base from './base.js'
 import ModelAcl from './acl.js'
 import { isFerretdb } from '../pg/pool.js'
+import { MongoDbRepository, PgDbRepository } from '../repo/index.js'
+import type { IDbRepository } from '../repo/interfaces.js'
 
 const debug = Debug('tmw-kit:model:db')
 
@@ -11,6 +13,12 @@ const debug = Debug('tmw-kit:model:db')
 const DB_NAME_RE = '^[a-zA-Z]+[0-9a-zA-Z_-]{0,63}$'
 
 class Db extends Base {
+  private get _dbRepo(): IDbRepository {
+    return isFerretdb()
+      ? new PgDbRepository()
+      : new MongoDbRepository(this.mongoClient)
+  }
+
   get _modelAcl() {
     const model = new ModelAcl(this.mongoClient, this.bucket, this.client)
     return model
@@ -35,8 +43,6 @@ class Db extends Base {
    * @param {string} name
    */
   async create(info) {
-    info.type = 'database'
-
     // 检查数据库名
     let newName = this.checkDbName(info.name)
     if (newName[0] === false) return [false, newName[1]]
@@ -70,13 +76,12 @@ class Db extends Base {
     // 加工数据
     this.processBeforeStore(info, 'insert')
 
-    return this.clMongoObj
-      .insertOne(info)
-      .then((result) => {
-        info._id = result.insertedId
-        return [true, info]
-      })
-      .catch((err) => [false, err.message])
+    try {
+      const newDb = await this._dbRepo.create(info)
+      return [true, newDb]
+    } catch (err: any) {
+      return [false, err.message]
+    }
   }
   /**
    * 检查数据库的访问权限
@@ -118,10 +123,7 @@ class Db extends Base {
    * @returns {object} 数据库对象
    */
   async byName(dbName) {
-    const query: any = { name: dbName, type: 'database' }
-    if (this.bucket) query.bucket = this.bucket.name
-
-    const db = await this.clMongoObj.findOne(query)
+    const db = await this._dbRepo.findByName(dbName, this.bucket?.name)
     if (db) {
       const right = await this.checkAcl(db)
       if (null !== right) db.right = right
@@ -135,9 +137,7 @@ class Db extends Base {
    * @param {string} sysname
    */
   async bySysname(sysname) {
-    const query = { sysname, type: 'database' }
-
-    const db = await this.clMongoObj.findOne(query)
+    const db = await this._dbRepo.findBySysname(sysname, this.bucket?.name)
     if (db) {
       const right = await this.checkAcl(db)
       if (null !== right) db.right = right

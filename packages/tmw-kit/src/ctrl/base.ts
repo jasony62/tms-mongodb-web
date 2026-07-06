@@ -1,10 +1,8 @@
 import { Ctrl, ResultFault, ResultObjectNotFound } from 'tms-koa'
 import { loadTmwConfig } from '../util/index.js'
-
-/**
- * 保存元数据的数据库
- */
-const META_ADMIN_DB = process.env.TMW_APP_META_ADMIN_DB || 'tms_admin'
+import { isFerretdb } from '../pg/pool.js'
+import { MongoBucketRepository, PgBucketRepository } from '../repo/index.js'
+import type { IBucketRepository } from '../repo/interfaces.js'
 
 const TMW_CONFIG = await loadTmwConfig()
 
@@ -23,6 +21,12 @@ const isRequireBucket = /yes|true/i.test(process.env.TMW_REQUIRE_BUCKET || '')
 class Base extends Ctrl {
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
+  }
+
+  private get _bucketRepo(): IBucketRepository {
+    return isFerretdb()
+      ? new PgBucketRepository()
+      : new MongoBucketRepository(this.mongoClient)
   }
 
   /**
@@ -48,11 +52,7 @@ class Base extends Ctrl {
         return new ResultFault('没有提供bucket参数')
       }
       // 检查bucket是否存在
-      const client = this.mongoClient
-      const clBucket = client.db(META_ADMIN_DB).collection('bucket')
-      const bucketObj = await clBucket.findOne({
-        name: bucketName,
-      })
+      const bucketObj = await this._bucketRepo.findByName(bucketName)
       if (!bucketObj) {
         return new ResultObjectNotFound(`指定的[bucket=${bucketName}]不存在`)
       }

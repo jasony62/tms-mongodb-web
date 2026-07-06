@@ -150,7 +150,7 @@ class CollectionBase extends Base {
       const result = await this.clHelper.removeCl(this.reqDb, existCl)
       return new ResultData(result)
     } catch (e) {
-      return new ResultFault(e)
+      return new ResultFault(e instanceof Error ? e.message : String(e))
     }
   }
   /**

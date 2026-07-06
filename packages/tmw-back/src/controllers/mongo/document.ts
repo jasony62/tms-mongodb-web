@@ -58,7 +58,7 @@ class Document extends DocBase {
     try {
       filepath = await upload.store(file, '', 'Y')
     } catch (e) {
-      return new ResultFault(e.message)
+      return new ResultFault(e instanceof Error ? e.message : String(e))
     }
 
     let rst = await this.docHelper.importToColl(
