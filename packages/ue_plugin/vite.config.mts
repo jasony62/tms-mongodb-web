@@ -1,6 +1,10 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import { resolve } from 'path'
+import tailwindcss from '@tailwindcss/vite'
+import { fileURLToPath } from 'url'
+import { resolve, dirname } from 'path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const BASE_URL = process.env.VITE_BASE_URL
   ? process.env.VITE_BASE_URL
@@ -12,7 +16,7 @@ export default defineConfig({
   build: {
     outDir: `dist${BASE_URL}`,
   },
-  plugins: [vue()],
+  plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),

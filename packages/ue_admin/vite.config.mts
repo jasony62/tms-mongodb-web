@@ -1,6 +1,10 @@
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import { resolve } from 'path'
+import tailwindcss from '@tailwindcss/vite'
+import { fileURLToPath } from 'url'
+import { resolve, dirname } from 'path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default ({ mode }) => {
   const env = loadEnv(mode, process.cwd())
@@ -28,7 +32,7 @@ export default ({ mode }) => {
         },
       ],
     },
-    plugins: [vue()],
+    plugins: [vue(), tailwindcss()],
     server: {
       port: parseInt(process.env.DEV_SERVER_PORT) || 9000,
       fs: {

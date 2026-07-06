@@ -1,0 +1,1 @@
+No capability specs for this change — it is a dependency upgrade (Tailwind CSS v3 → v4) with no new or modified capabilities at the spec level. Behavioral requirements are unchanged across all features.
