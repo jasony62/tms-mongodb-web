@@ -29,9 +29,9 @@ import 'tms-vue3-ui/dist/es/flex/style/index.css'
 import './assets/common.scss'
 import apiAuth from '@/apis/auth'
 import { schema } from '@/data/login'
-import 'gitart-vue-dialog/dist/style.css'
+import 'gitart-vue-dialog/dist/gitart-vue-dialog.css'
 import { GDialog, plugin as dialogPlugin } from 'gitart-vue-dialog'
-import 'gitart-vue-dialog/dist/style.css'
+import 'gitart-vue-dialog/dist/gitart-vue-dialog.css'
 
 const { fnCaptcha, fnLogin } = apiAuth
 

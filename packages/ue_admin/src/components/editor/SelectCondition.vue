@@ -109,7 +109,7 @@ const props = defineProps({
 })
 const dialogVisible = ref(props.dialogVisible)
 
-const multipleTableRef = ref<InstanceType<typeof ElTable>>()
+const multipleTableRef = ref<InstanceType<any>>()
 /**
  * 编辑的查询条件
  */

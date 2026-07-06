@@ -5,6 +5,7 @@
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
     "moduleResolution": "Node",
+    "ignoreDeprecations": "6.0",
     "strict": true,
     "jsx": "preserve",
     "sourceMap": true,

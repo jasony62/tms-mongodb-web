@@ -30,6 +30,10 @@ export default ({ mode }) => {
           find: '@',
           replacement: resolve(__dirname, 'src'),
         },
+        {
+          find: '@vue/shared',
+          replacement: resolve(__dirname, 'node_modules/@vue/shared'),
+        },
       ],
     },
     plugins: [vue(), tailwindcss()],

@@ -315,7 +315,7 @@ const onAddClExtSchema = (usage = 'edit') => {
     newClExtSchema.value.id = ''
   }
 }
-const onRemoveClExtSchema = (clExtSchema: any, index: number) => {
+const onRemoveClExtSchema = (clExtSchema: any, index: any) => {
   collection.ext_schemas.splice(index, 1)
 }
 </script>
