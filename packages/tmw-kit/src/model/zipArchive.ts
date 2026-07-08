@@ -2,10 +2,10 @@ import { LocalFS } from 'tms-koa/dist/model/fs/local.js'
 import { Upload } from 'tms-koa/dist/model/fs/upload.js'
 import PATH from 'path'
 import fs from 'fs'
-import archiver from 'archiver'
+import { create } from 'archiver'
 
 function zipByArchive(space) {
-  const archive = archiver.create('zip', { zlib: { level: 9 } })
+  const archive = create('zip', { zlib: { level: 9 } })
 
   const output = fs.createWriteStream(space + '.zip')
 
