@@ -57,6 +57,7 @@ let appConfig = {
         generator: 'createCaptcha',
       },
     },
+    bucket: {}
   },
   tmwConfig: {
     TMW_APP_DEFAULT_ACLCHECK_DB:
