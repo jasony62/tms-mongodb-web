@@ -16,7 +16,7 @@ RUN apk update && apk upgrade && apk add python3 make gcc g++
 COPY ./docker/back/npmlibs/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br /root/.npm/_libvips/libvips-8.12.2-linuxmusl-x64.tar.br
 
 # 安装基础包
-RUN npm install --location=global pnpm typescript better-sqlite3
+RUN npm install --location=global pnpm typescript@6.0.3 better-sqlite3
 
 # 复制源代码
 ## data

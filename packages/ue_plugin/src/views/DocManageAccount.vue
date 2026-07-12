@@ -24,7 +24,7 @@
 <script setup lang="ts">
 import { ref, toRaw } from 'vue';
 import TmsJsonDoc, { DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
-import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
+import 'tms-vue3-ui/dist/es/json-doc/style/json-doc.css'
 
 const $jde = ref<{ editing: () => any; editDoc: DocAsArray } | null>(null)
 
