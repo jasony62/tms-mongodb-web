@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+.assistant {
+  border: 0;
+  @apply h-full w-full;
+}

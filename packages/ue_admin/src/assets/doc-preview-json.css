@@ -1,0 +1,4 @@
+.jsoneditor .jsoneditor-transform,
+.jsoneditor .jsoneditor-poweredBy {
+  display: none;
+}

@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+#schemaEditor {
+  @apply h-full flex flex-col overflow-hidden;
+}
+
+#schemaEditor .tvu-jse .tvu-jse__properties,
+#schemaEditor .tvu-jse .tvu-jse__property-fields {
+  @apply w-1/2 border border-gray-200 rounded-md overflow-auto p-2;
+}
+
+#schemaEditor .jsoneditor .jsoneditor-transform,
+#schemaEditor .jsoneditor .jsoneditor-poweredBy {
+  display: none;
+}

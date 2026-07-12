@@ -12,24 +12,24 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.3.2",
     "@vue/shared": "^3.5.39",
-    "element-plus": "2.14.2",
+    "element-plus": "2.14.3",
     "jsoneditor": "10.4.3",
     "pinia": "3.0.4",
     "pinyin-pro": "^3.28.1",
-    "tms-vue3-ui": "^0.0.107",
+    "tms-vue3-ui": "^0.1.0",
     "vue": "3.5.39",
     "vue-router": "5.1.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz"
   },
   "devDependencies": {
     "@types/jsoneditor": "9.9.6",
-    "@types/node": "26.1.0",
+    "@types/node": "26.1.1",
     "@vitejs/plugin-vue": "^6.0.7",
     "autoprefixer": "^10.5.2",
-    "postcss": "^8.5.16",
+    "postcss": "^8.5.17",
     "sass": "^1.101.0",
     "tailwindcss": "^4.3.2",
-    "vite": "8.1.3",
-    "vue-tsc": "3.3.6"
+    "vite": "8.1.4",
+    "vue-tsc": "3.3.7"
   }
 }

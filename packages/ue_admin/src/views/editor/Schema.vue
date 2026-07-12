@@ -244,24 +244,3 @@ if (props.schemaId) {
 }
 </script>
 
-<style lang="scss">
-#schemaEditor {
-  @apply h-full flex flex-col overflow-hidden;
-
-  .tvu-jse {
-
-    .tvu-jse__properties,
-    .tvu-jse__property-fields {
-      @apply w-1/2 border border-gray-200 rounded-md overflow-auto p-2;
-    }
-  }
-
-  .jsoneditor {
-
-    .jsoneditor-transform,
-    .jsoneditor-poweredBy {
-      display: none;
-    }
-  }
-}
-</style>

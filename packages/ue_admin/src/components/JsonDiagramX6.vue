@@ -103,12 +103,4 @@ onMounted(async () => {
   X6Graph.positionCell(nodes[0], 'left')
 })
 </script>
-<style lang="scss">
-#minimap {
-  position: absolute;
-  width: 300px;
-  height: 200px;
-  bottom: 0;
-  right: 0;
-}
-</style>
+

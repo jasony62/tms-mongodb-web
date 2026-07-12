@@ -17,7 +17,7 @@ import { getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Login, LoginResponse } from 'tms-vue3-ui'
-import 'tms-vue3-ui/dist/es/login/style/tailwind.scss'
+import 'tms-vue3-ui/dist/es/login/style/login.css'
 import { schema } from '@/data/login'
 import apiAuth from '@/apis/auth'
 import { setLocalToken } from '@/global'
@@ -62,4 +62,4 @@ const fnSuccessLogin = async (response: LoginResponse) => {
 const fnFailLogin = (response: LoginResponse) => {
   ElMessage.error(response.msg || '登录失败')
 }
-</script>@/apis/auth
+</script>

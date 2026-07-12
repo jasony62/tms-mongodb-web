@@ -259,11 +259,22 @@ class Base {
     return data
   }
   /**
+   * 获取并校验 mongoClient 实例，不存在则抛出异常
+   */
+  private get _mongoClient() {
+    const client = this.mongoClient
+    if (!client) {
+      throw new Error(
+        'MongoDB 客户端未初始化，请检查 mongodb 连接配置是否正确（host/port/user/password）以及数据库服务是否已启动。'
+      )
+    }
+    return client
+  }
+  /**
    * 存储管理对象的集合
    */
   get clMongoObj() {
-    const client = this.mongoClient
-    const cl = client.db(META_ADMIN_DB).collection(META_ADMIN_CL)
+    const cl = this._mongoClient.db(META_ADMIN_DB).collection(META_ADMIN_CL)
 
     return cl
   }
@@ -271,8 +282,7 @@ class Base {
    * 存储集合分类目录
    */
   get clDir() {
-    const client = this.mongoClient
-    const cl = client.db(META_ADMIN_DB).collection(DIR_CL)
+    const cl = this._mongoClient.db(META_ADMIN_DB).collection(DIR_CL)
 
     return cl
   }
@@ -280,8 +290,7 @@ class Base {
    * 存储管理对象访问控制列表
    */
   get clAcl() {
-    const client = this.mongoClient
-    const cl = client.db(META_ADMIN_DB).collection(ACL_CL)
+    const cl = this._mongoClient.db(META_ADMIN_DB).collection(ACL_CL)
 
     return cl
   }

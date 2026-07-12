@@ -13,6 +13,11 @@ export class MongoBucketRepository implements IBucketRepository {
   }
 
   private get clBucket(): any {
+    if (!this.mongoClient) {
+      throw new Error(
+        'MongoDB 客户端未初始化，请检查 mongodb 连接配置是否正确（host/port/user/password）以及数据库服务是否已启动。'
+      )
+    }
     return this.mongoClient.db(META_ADMIN_DB).collection('bucket')
   }
 

@@ -117,6 +117,9 @@ COPY --from=builder /usr/src/tmw/plugins/node_modules /usr/app/tmw/plugins/node_
 
 WORKDIR /usr/app/tmw
 
+# 文档
+COPY ./docs /usr/app/tmw/docs
+
 # 启动服务
 COPY ./docker/start_all.sh /usr/local/bin/start_all.sh 
 RUN chmod +x /usr/local/bin/start_all.sh 

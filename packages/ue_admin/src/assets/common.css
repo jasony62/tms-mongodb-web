@@ -1,16 +1,22 @@
+@import "tailwindcss";
+
 html, body, #app {
   @apply h-full w-full;
 }
+
 .tvu-login__form.tvu-login__form--modal {
-  @apply w-1/4
+  @apply w-1/4;
 }
+
 .tmw-opt__dropdown {
   vertical-align: middle;
 }
+
 .el-dialog-div {
   height: 55vh;
   overflow-y: auto;
 }
+
 .tmw-pagination__text {
   color: var(--el-text-color-regular);
   font-size: var(--el-font-size-base);

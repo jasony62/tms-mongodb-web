@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+.plugin-widget {
+  @apply h-full w-full border-0;
+}

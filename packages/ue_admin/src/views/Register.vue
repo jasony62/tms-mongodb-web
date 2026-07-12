@@ -11,7 +11,7 @@
 <script setup lang="ts">
 import { Register } from 'tms-vue3-ui'
 import { ElMessage } from 'element-plus'
-import 'tms-vue3-ui/dist/es/register/style/tailwind.scss'
+import 'tms-vue3-ui/dist/es/register/style/register.css'
 
 import { schema } from '@/data/register'
 import apiAuth from '@/apis/auth'
@@ -34,4 +34,4 @@ const fnSuccessToken = (data: any) => {
 const fnFailToken = (response: any) => {
   ElMessage.error(response.msg || '注册失败')
 }
-</script>@/apis/auth
+</script>

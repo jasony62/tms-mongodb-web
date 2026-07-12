@@ -27,6 +27,8 @@ services:
     command:
       - postgres
       - -c
+      - shared_preload_libraries=pg_documentdb_core,pg_cron,pg_documentdb
+      - -c
       - cron.database_name=ferretdb
     environment:
       - POSTGRES_USER=root
@@ -55,6 +57,8 @@ services:
   tmw-aio:
     environment:
       - TMW_STORAGE_BACKEND=ferretdb
+      - TMW_MONGODB_HOST=mongodb
+      - TMW_MONGODB_PORT=27017
       - TMW_POSTGRES_URI=postgresql://root:root@postgres:5432/ferretdb
 
 networks:

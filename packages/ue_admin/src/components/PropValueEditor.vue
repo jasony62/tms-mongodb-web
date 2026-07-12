@@ -69,23 +69,3 @@ const submit = () => {
 }
 </script>
 
-<style scoped lang="scss">
-.wrapper {
-  color: #000;
-
-  .content {
-    padding: 20px;
-  }
-
-  .name {
-    margin-bottom: 8px;
-  }
-
-  .actions {
-    display: flex;
-    justify-content: flex-end;
-    padding: 10px 20px;
-    border-top: 1px solid rgba(0, 0, 0, 0.12);
-  }
-}
-</style>

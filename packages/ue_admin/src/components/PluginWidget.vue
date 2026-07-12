@@ -6,11 +6,6 @@
     </div>
   </el-drawer>
 </template>
-<style scoped lang="scss">
-.plugin-widget {
-  @apply h-full w-full border-0;
-}
-</style>
 <script setup lang="ts">
 import { useTmwPlugins } from '@/composables/plugins'
 

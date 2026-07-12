@@ -89,29 +89,11 @@
   </div>
 </template>
 
-<style lang="scss">
-#docEditor {
-  @apply w-full h-full overflow-auto flex flex-col gap-2;
-
-  .jsoneditor {
-
-    .jsoneditor-transform,
-    .jsoneditor-poweredBy {
-      display: none;
-    }
-  }
-
-  .cm-editor {
-    @apply w-full;
-  }
-}
-</style>
-
 <script setup lang="ts">
 // @ts-nocheck
 import { computed, nextTick, ref, inject, watch, onMounted } from 'vue'
 import TmsJsonDoc, { Field, DocAsArray } from 'tms-vue3-ui/dist/es/json-doc'
-import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
+import 'tms-vue3-ui/dist/es/json-doc/style/json-doc.css'
 import { EXTERNAL_FS_URL, getLocalToken, LABEL, TEMPLATE_VARS_API_URL, TMW_APP_TAGS } from '@/global'
 import apiTag from '@/apis/tag'
 import apiCl from '@/apis/collection'

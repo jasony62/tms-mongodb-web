@@ -113,7 +113,7 @@ import apiAcl from '@/apis/acl'
 import { computed, h, onMounted, reactive, ref, toRaw } from 'vue'
 import { FormRules, ElMessageBox, ElButton, ElInput, ElSelect, ElOption } from 'element-plus'
 
-import 'tms-vue3-ui/dist/es/json-doc/style/tailwind.scss'
+import 'tms-vue3-ui/dist/es/json-doc/style/json-doc.css'
 import { Delete } from '@element-plus/icons-vue'
 import { DEFAULT_VALUES } from '@/global'
 import facStore from '@/store'

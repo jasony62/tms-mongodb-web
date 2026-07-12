@@ -15,6 +15,11 @@ class BucketBase extends Ctrl {
   }
   async tmsBeforeEach(): Promise<true | ResultFault> {
     const client = this.mongoClient
+    if (!client) {
+      return new ResultFault(
+        'MongoDB 客户端未初始化，请检查 mongodb 连接配置是否正确（host/port/user/password）以及数据库服务是否已启动。'
+      )
+    }
     const cl = client.db(META_ADMIN_DB).collection(META_ADMIN_CL_BUCKET)
     this['clBucket'] = cl
     return true

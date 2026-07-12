@@ -17,6 +17,11 @@ class Helper {
    */
   get clPreset() {
     const client = this['ctrl'].mongoClient
+    if (!client) {
+      throw new Error(
+        'MongoDB 客户端未初始化，请检查 mongodb 连接配置是否正确（host/port/user/password）以及数据库服务是否已启动。'
+      )
+    }
     const cl = client.db(META_ADMIN_DB).collection('bucket_preset_object')
 
     return cl

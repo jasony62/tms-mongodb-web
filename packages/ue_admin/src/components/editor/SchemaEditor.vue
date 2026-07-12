@@ -165,16 +165,3 @@ const onSubmit = () => {
 }
 </script>
 
-<style lang="scss">
-#schemaEditor {
-
-  .el-dialog.is-fullscreen {
-    @apply flex flex-col;
-
-    .el-dialog__body {
-      @apply flex-grow overflow-auto;
-    }
-  }
-
-}
-</style>

@@ -23,16 +23,6 @@
   </el-drawer>
 </template>
 
-<style scoped lang="scss">
-:deep(.jsoneditor) {
-
-  .jsoneditor-transform,
-  .jsoneditor-poweredBy {
-    display: none;
-  }
-}
-</style>
-
 <script setup lang="ts">
 import JSONEditor from 'jsoneditor'
 import 'jsoneditor/dist/jsoneditor.css'

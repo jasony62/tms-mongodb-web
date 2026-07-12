@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+#table .el-table-v2__row.current-row {
+  @apply text-red-400;
+}
+
+#table .column-filter-active {
+  @apply rounded-md border bg-blue-400 text-white;
+}

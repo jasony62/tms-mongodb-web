@@ -55,16 +55,6 @@
   <doc-preview-json></doc-preview-json>
 </template>
 
-<style scoped lang="scss">
-#table :deep(.el-table-v2__row.current-row) {
-  @apply text-red-400;
-}
-
-#table :deep(.column-filter-active) {
-  @apply rounded-md border bg-blue-400 text-white;
-}
-</style>
-
 <script setup lang="ts">
 import { onMounted, reactive, ref, computed, toRaw, h } from 'vue'
 import {

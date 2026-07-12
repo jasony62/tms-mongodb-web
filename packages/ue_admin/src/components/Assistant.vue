@@ -5,12 +5,6 @@
     </div>
   </el-drawer>
 </template>
-<style scoped lang="scss">
-.assistant {
-  border: 0;
-  @apply h-full w-full;
-}
-</style>
 <script setup lang="ts">
 import { useAssistant } from '@/composables/assistant'
 

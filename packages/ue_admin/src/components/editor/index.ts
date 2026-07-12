@@ -184,7 +184,7 @@ export function openSelectConditionEditor(options: SelectConditionOptions) {
 }
 
 import { JsonSchema } from 'tms-vue3-ui'
-import 'tms-vue3-ui/dist/es/json-schema/style/tailwind.scss'
+import 'tms-vue3-ui/dist/es/json-schema/style/json-schema.css'
 /***/
 export function openSchemaEditor(options: SchemaEditorOptions) {
   const root = document.createElement('div')
