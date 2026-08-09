@@ -444,7 +444,11 @@ class Collection extends Base {
         })
       }
 
-      const processed = await this.processCl(filtered)
+      const processed = await this._collectionRepo.processCl(
+        filtered,
+        this.mongoClient,
+        this.bucket?.name
+      )
       return { collections: processed, total }
     }
 

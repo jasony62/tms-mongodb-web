@@ -16,6 +16,7 @@ services:
       context: ../
       dockerfile: docker/Dockerfile
     image: jasony62/tmw-aio
+    container_name: tmw-aio
     # environment:
     #   # 必须指定才会开放push服务，实现在线表格的协同编写，需要和映射的push端口一致
     #   - UE_SETTINGS_BACK_PUSH_PORT=30002

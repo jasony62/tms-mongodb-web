@@ -21,6 +21,7 @@
 services:
   postgres:
     image: ghcr.io/ferretdb/postgres-documentdb:17-0.107.0-ferretdb-2.7.0
+    container_name: tmw-postgres
     ports:
       - 5432:5432
     command:
@@ -34,8 +35,8 @@ services:
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=ferretdb
     volumes:
-      - ./pg-data:/var/lib/postgresql/data
       - ./ferretdb/init-documentdb.sql:/docker-entrypoint-initdb.d/01-init-documentdb.sql
+      - ../volumes/postgresql/data:/var/lib/postgresql/data
     networks:
       - net
 

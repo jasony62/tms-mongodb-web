@@ -1,6 +1,6 @@
 <template>
   <div class="grid place-items-center h-screen">
-    <div class="border-2 rounded w-1/4">
+    <div class="border-2 border-gray-200 rounded w-1/4">
       <register :schema="schema()" :fn-captcha="fnCaptcha" :fn-register="fnRegister" :on-success="fnSuccessToken"
         :on-fail="fnFailToken">
       </register>

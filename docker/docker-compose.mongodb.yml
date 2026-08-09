@@ -1,0 +1,22 @@
+services:
+  mongodb:
+    build: ./mongodb
+    image: jasony62/mongo:7.0.4
+    container_name: tmw-mongo
+    environment:
+      MONGODB_INITDB_ROOT_USERNAME: root
+      MONGODB_INITDB_ROOT_PASSWORD: root
+    volumes:
+      - ../volumes/mongodb/data:/data/db
+    networks:
+      - net
+
+  tmw-aio:
+    environment:
+      - TMW_APP_LOG4JS_LEVEL=debug
+      - TMW_MONGODB_HOST=mongodb
+      - TMW_MONGODB_PORT=27017
+
+networks:
+  net:
+    driver: bridge

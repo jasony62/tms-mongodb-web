@@ -1,6 +1,6 @@
 <template>
   <div class="grid place-items-center h-screen">
-    <div class="border-2 rounded w-1/4">
+    <div class="border-2 border-gray-200 rounded w-1/4">
       <login :schema="schema()" :fn-captcha="fnCaptcha" :fn-login="fnLogin" :on-success="fnSuccessLogin"
         :on-fail="fnFailLogin">
       </login>

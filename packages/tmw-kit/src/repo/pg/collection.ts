@@ -347,8 +347,8 @@ export class PgCollectionRepository implements ICollectionRepository {
 
     const placeholders = schemaIds.map((_, i) => '$' + (i + 1)).join(',')
     const result = await PgPool.query(
-      `SELECT * FROM tmw_schema WHERE (id::text IN (${placeholders}) OR mongo_id IN (${placeholders}))`,
-      [...schemaIds, ...schemaIds]
+      `SELECT * FROM tmw_schema WHERE id::text IN (${placeholders})`,
+      schemaIds
     )
     const idToSchema: any = {}
     for (const row of result.rows) {
