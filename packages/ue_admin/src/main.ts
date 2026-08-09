@@ -25,6 +25,7 @@ import {
 import 'element-plus/dist/index.css'
 import 'tms-vue3-ui/dist/es/frame/style/frame.css'
 import 'tms-vue3-ui/dist/es/flex/style/flex.css'
+import 'tms-vue3-ui/dist/es/json-schema/style/json-schema.css'
 import './assets/common.css'
 import './assets/assistant.css'
 import './assets/plugin-widget.css'

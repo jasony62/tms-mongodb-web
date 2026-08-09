@@ -1,5 +1,6 @@
 {
   "name": "ue_admin",
+  "type": "module",
   "private": true,
   "version": "0.0.0",
   "scripts": {

@@ -1,9 +1,23 @@
 @import "tailwindcss";
 
-#schemaEditor .el-dialog.is-fullscreen {
-  @apply flex flex-col;
-}
 
-#schemaEditor .el-dialog.is-fullscreen .el-dialog__body {
-  @apply flex-grow overflow-auto;
+#schemaEditor {
+  .el-dialog.is-fullscreen {
+    @apply flex flex-col;
+  }
+
+  .el-dialog.is-fullscreen .el-dialog__body {
+    @apply flex-grow overflow-auto;
+  }
+
+  .tvu-jse {
+    .tvu-jse__field {
+
+      input,
+      textarea,
+      select {
+        @apply rounded p-2 border-2 border-gray-200;
+      }
+    }
+  }
 }

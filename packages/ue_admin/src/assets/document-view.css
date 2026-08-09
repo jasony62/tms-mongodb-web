@@ -2,13 +2,24 @@
 
 #docEditor {
   @apply w-full h-full overflow-auto flex flex-col gap-2;
-}
 
-#docEditor .jsoneditor .jsoneditor-transform,
-#docEditor .jsoneditor .jsoneditor-poweredBy {
-  display: none;
-}
+  .jsoneditor .jsoneditor-transform,
+  .jsoneditor .jsoneditor-poweredBy {
+    display: none;
+  }
 
-#docEditor .cm-editor {
-  @apply w-full;
+  .cm-editor {
+    @apply w-full;
+  }
+
+  .tvu-jdoc__root {
+    .tvu-jdoc__field {
+
+      input,
+      textarea,
+      select {
+        @apply rounded p-2 border-2 border-gray-200;
+      }
+    }
+  }
 }

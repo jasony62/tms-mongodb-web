@@ -29,3 +29,5 @@ pnpm-lock.yaml
 # 方便本地调试的数据
 public/settings.json
 public/oauth
+ue_admin.log
+ue_admin.pid

@@ -1,7 +1,7 @@
 <template>
   <div class="h-full flex flex-col">
     <!--header-->
-    <div class="px-2 py-1 text-right border-b">
+    <div class="px-2 py-1 text-right border-b border-gray-200">
       <el-dropdown>
         <el-button circle :icon="Avatar"></el-button>
         <template #dropdown>
@@ -40,7 +40,7 @@
             <span>文件管理</span>
           </el-menu-item>
         </el-menu>
-        <div class="flex-grow border-t border-r p-4 flex flex-col gap-2">
+        <div class="flex-grow border-t border-r border-gray-200 p-4 flex flex-col gap-2">
           <div>
             <el-button class="w-full" type="primary" @click="openAssistant" v-if="!COMPACT">分屏</el-button>
           </div>
