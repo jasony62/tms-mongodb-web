@@ -5,7 +5,7 @@ import type { DbDTO } from '../interfaces.js'
 let dbTableEnsured = false
 async function ensureDbTable() {
   if (dbTableEnsured) return
-  await PgPool.query(`CREATE TABLE IF NOT EXISTS tms_database (
+  await PgPool.query(`CREATE TABLE IF NOT EXISTS tmw_database (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     sysname VARCHAR(255) NOT NULL UNIQUE,
@@ -25,7 +25,7 @@ async function ensureDbTable() {
 export class PgDbRepository implements IDbRepository {
   async findByName(name: string, bucket?: string): Promise<DbDTO | null> {
     await ensureDbTable()
-    let sql = 'SELECT * FROM tms_database WHERE name = $1'
+    let sql = 'SELECT * FROM tmw_database WHERE name = $1'
     const params: any[] = [name]
     if (bucket) {
       sql += ' AND bucket = $2'
@@ -37,7 +37,7 @@ export class PgDbRepository implements IDbRepository {
 
   async findBySysname(sysname: string, bucket?: string): Promise<DbDTO | null> {
     await ensureDbTable()
-    let sql = 'SELECT * FROM tms_database WHERE sysname = $1'
+    let sql = 'SELECT * FROM tmw_database WHERE sysname = $1'
     const params: any[] = [sysname]
     if (bucket) {
       sql += ' AND bucket = $2'
@@ -50,7 +50,7 @@ export class PgDbRepository implements IDbRepository {
   async create(info: Partial<DbDTO>): Promise<DbDTO> {
     await ensureDbTable()
     const row = await PgPool.queryOne(
-      `INSERT INTO tms_database (name, sysname, title, description, bucket, top, acl_check, admin_only, creator, created_at)
+      `INSERT INTO tmw_database (name, sysname, title, description, bucket, top, acl_check, admin_only, creator, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
       [
         info.name || '',
@@ -79,14 +79,14 @@ export class PgDbRepository implements IDbRepository {
     }
     if (sets.length === 0) return true
     params.push(id)
-    const sql = `UPDATE tms_database SET ${sets.join(', ')} WHERE id::text = $${params.length}`
+    const sql = `UPDATE tmw_database SET ${sets.join(', ')} WHERE id::text = $${params.length}`
     const result = await PgPool.query(sql, params)
     return result.rowCount !== null && result.rowCount > 0
   }
 
   async delete(sysname: string): Promise<boolean> {
     await ensureDbTable()
-    const result = await PgPool.query('DELETE FROM tms_database WHERE sysname = $1', [sysname])
+    const result = await PgPool.query('DELETE FROM tmw_database WHERE sysname = $1', [sysname])
     return result.rowCount !== null && result.rowCount > 0
   }
 
@@ -97,7 +97,7 @@ export class PgDbRepository implements IDbRepository {
     bucket?: string
   ): Promise<{ databases: DbDTO[]; total: number } | DbDTO[]> {
     await ensureDbTable()
-    let sql = 'SELECT * FROM tms_database'
+    let sql = 'SELECT * FROM tmw_database'
     const params: any[] = []
     const conditions: string[] = []
 

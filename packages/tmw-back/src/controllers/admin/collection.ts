@@ -84,13 +84,11 @@ class Collection extends CollectionBase {
       .listCollections({}, { nameOnly: true })
       .toArray()
 
+    const modelCl = new ModelCl(this.mongoClient, this.bucketObj, this.client)
     let uncontrolled = []
     for (let i = 0, rawCl; i < rawCls.length; i++) {
       rawCl = rawCls[i]
-      let tmwCl = await this['clMongoObj'].findOne({
-        sysname: rawCl.name,
-        type: 'collection',
-      })
+      let tmwCl = await modelCl.findBySysnameAnyDb(rawCl.name)
       if (!tmwCl) uncontrolled.push({ sysname: rawCl.name })
     }
 
@@ -202,7 +200,7 @@ class Collection extends CollectionBase {
     info.db = { sysname: reqDb.sysname, name: reqDb.name }
     if (this.bucket) info.bucket = this.bucketObj.name
 
-    return this.clMongoObj.insertOne(info).then((result) => {
+    return modelCl.createCollection(info).then((result) => {
       info._id = result.insertedId
       return new ResultData(info)
     })
@@ -310,9 +308,9 @@ class Collection extends CollectionBase {
   async discard() {
     const existCl = await this.clHelper.findRequestCl()
 
-    return this.clMongoObj
-      .deleteOne({ _id: existCl._id })
-      .then(() => new ResultData('ok'))
+    const modelCl = new ModelCl(this.mongoClient, this.bucketObj, this.client)
+    await modelCl.removeById(existCl._id.toString())
+    return new ResultData('ok')
   }
 }
 

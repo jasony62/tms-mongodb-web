@@ -1,6 +1,6 @@
 import DbBase from '../dbBase.js'
 import { ResultData, ResultFault } from 'tms-koa'
-import { ModelDb, isFerretdb } from 'tmw-kit'
+import { ModelDb, ModelCl, isFerretdb } from 'tmw-kit'
 import { Double } from 'mongodb'
 
 /**
@@ -59,6 +59,7 @@ class Db extends DbBase {
    *               "$ref": "#/components/schemas/ResponseDataArray"
    */
   async uncontrolled() {
+    const modelDb = new ModelDb(this.mongoClient, this.bucketObj, this.client)
     const result = await this['mongoClient']
       .db()
       .admin()
@@ -72,10 +73,7 @@ class Db extends DbBase {
     let uncontrolled = []
     for (let i = 0, db; i < dbs.length; i++) {
       db = dbs[i]
-      let tmwDb = await this['clMongoObj'].findOne({
-        sysname: db.name,
-        type: 'database',
-      })
+      let tmwDb = await modelDb.bySysname(db.name)
       if (!tmwDb) uncontrolled.push({ sysname: db.name })
     }
 
@@ -182,10 +180,10 @@ class Db extends DbBase {
     if (existTmwDb)
       return new ResultFault(`已存在同名数据库[name=${info.name}]`)
 
-    return this['clMongoObj'].insertOne(info).then((result) => {
-      info._id = result.insertedId
-      return new ResultData(info)
-    })
+    const [success, result] = await modelDb.create(info)
+    if (!success) return new ResultFault(result)
+    info._id = result._id
+    return new ResultData(info)
   }
   /**
    * @swagger
@@ -248,21 +246,21 @@ class Db extends DbBase {
     if (['admin', 'config', 'local', META_ADMIN_DB].includes(existDb.sysname))
       return new ResultFault(`不能删除系统自带数据库[${existDb.sysname}]`)
 
-    const cl = this['clMongoObj']
-    const query = { database: existDb.name, type: 'collection' }
-    if (this['bucket']) query['bucket'] = this.bucketObj.name
+    const modelDb = new ModelDb(this.mongoClient, this.bucketObj, this.client)
+    const modelCl = new ModelCl(this.mongoClient, this.bucketObj, this.client)
     // 查找数据库下是否有集合，如果有则不能删除
-    let colls = await cl.find(query).toArray()
-    if (colls.length > 0)
+    let collCount = await modelCl.countByDatabase(existDb.name)
+    if (collCount > 0)
       return new ResultFault(
         `删除失败，数据库[${existDb.sysname}]中存在未删除的集合`
       )
 
     const client = this['mongoClient']
-    return cl
-      .deleteOne({ _id: existDb._id })
-      .then(() => client.db(existDb.sysname).dropDatabase())
-      .then(() => new ResultData('ok'))
+    await modelDb.removeById(existDb._id.toString())
+    if (!isFerretdb()) {
+      await client.db(existDb.sysname).dropDatabase()
+    }
+    return new ResultData('ok')
   }
   /**
    * @swagger
@@ -286,17 +284,17 @@ class Db extends DbBase {
     if (['admin', 'config', 'local', META_ADMIN_DB].includes(existDb.sysname))
       return new ResultFault(`不能删除系统自带数据库[${existDb.sysname}]`)
 
-    const cl = this['clMongoObj']
-    const query = { database: existDb.name, type: 'collection' }
-    if (this['bucket']) query['bucket'] = this.bucketObj.name
+    const modelDb = new ModelDb(this.mongoClient, this.bucketObj, this.client)
+    const modelCl = new ModelCl(this.mongoClient, this.bucketObj, this.client)
     // 查找数据库下是否有集合，如果有则不能删除
-    let colls = await cl.find(query).toArray()
-    if (colls.length > 0)
+    let collCount = await modelCl.countByDatabase(existDb.name)
+    if (collCount > 0)
       return new ResultFault(
         `删除失败，数据库[${existDb.sysname}]中存在未删除的集合`
       )
 
-    return cl.deleteOne({ _id: existDb._id }).then(() => new ResultData('ok'))
+    await modelDb.removeById(existDb._id.toString())
+    return new ResultData('ok')
   }
   /**
    * @swagger

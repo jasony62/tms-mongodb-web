@@ -6,3 +6,7 @@ _lowdb.json
 .env*
 auth_client_account
 access_token.json
+
+# 启动服务时生成的文件
+tmw-back.log
+tmw-back.pid

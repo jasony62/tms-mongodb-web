@@ -1,5 +1,6 @@
 import { ModelCl } from 'tmw-kit'
 import { Helper } from 'tmw-kit/dist/ctrl/index.js'
+import { isFerretdb } from 'tmw-kit/dist/pg/pool.js'
 
 /** 数据库控制器辅助类 */
 class CollectionHelper extends Helper {
@@ -19,23 +20,23 @@ class CollectionHelper extends Helper {
    */
   async rename(db, clName, newName) {
     const { name: dbName, sysname } = db
-    const client = this.ctrl.mongoClient
-    // 检查是否已存在同名集合
-    let equalNameSum = await this.clMongoObj.countDocuments({
-      name: newName,
-      database: dbName,
-      type: 'collection',
-    })
 
+    // 检查是否已存在同名集合
+    let equalNameSum = await this._modelCl.countByName(dbName, newName)
     if (equalNameSum !== 0) return [false, '集合名修改失败！已存在同名集合']
 
-    // 修改集合名
-    const query: any = { name: clName, database: dbName, type: 'collection' }
-    if (this.ctrl.bucketObj) query.bucket = this.ctrl.bucketObj.name
+    if (isFerretdb()) {
+      // FerretDB: 只更新元数据
+      await this._modelCl.rename(dbName, clName, newName)
+      return [true]
+    }
+
+    // MongoDB: 重命名物理集合 + 更新元数据
+    const client = this.ctrl.mongoClient
     let clDb = client.db(sysname).collection(clName)
     return clDb
       .rename(newName)
-      .then(() => this.clMongoObj.updateOne(query, { $set: { name: newName } }))
+      .then(() => this._modelCl.rename(dbName, clName, newName))
       .then((rst) => [true, rst])
       .catch((err) => [false, err.message])
   }

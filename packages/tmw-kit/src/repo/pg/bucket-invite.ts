@@ -4,7 +4,7 @@ import { IBucketInviteRepository, InviteDTO } from '../interfaces.js'
 let inviteTableEnsured = false
 async function ensureInviteTable() {
   if (inviteTableEnsured) return
-  await PgPool.query(`CREATE TABLE IF NOT EXISTS tms_bucket_invite_log (
+  await PgPool.query(`CREATE TABLE IF NOT EXISTS tmw_bucket_invite_log (
     id SERIAL PRIMARY KEY,
     bucket VARCHAR(255) DEFAULT '',
     code VARCHAR(64) DEFAULT '',
@@ -42,7 +42,7 @@ export class PgBucketInviteRepository implements IBucketInviteRepository {
   ): Promise<InviteDTO | null> {
     await ensureInviteTable()
     const row = await PgPool.queryOne(
-      'SELECT * FROM tms_bucket_invite_log WHERE bucket = $1 AND nickname = $2 AND accept_at IS NULL',
+      'SELECT * FROM tmw_bucket_invite_log WHERE bucket = $1 AND nickname = $2 AND accept_at IS NULL',
       [bucket, nickname]
     )
     return mapRow(row)
@@ -56,7 +56,7 @@ export class PgBucketInviteRepository implements IBucketInviteRepository {
   ): Promise<InviteDTO | null> {
     await ensureInviteTable()
     const row = await PgPool.queryOne(
-      'SELECT * FROM tms_bucket_invite_log WHERE bucket = $1 AND code = $2 AND nickname = $3 AND expire_at > $4 AND accept_at IS NULL',
+      'SELECT * FROM tmw_bucket_invite_log WHERE bucket = $1 AND code = $2 AND nickname = $3 AND expire_at > $4 AND accept_at IS NULL',
       [bucket, code, nickname, now]
     )
     return mapRow(row)
@@ -68,7 +68,7 @@ export class PgBucketInviteRepository implements IBucketInviteRepository {
   ): Promise<InviteDTO | null> {
     await ensureInviteTable()
     const row = await PgPool.queryOne(
-      'SELECT * FROM tms_bucket_invite_log WHERE bucket = $1 AND code = $2',
+      'SELECT * FROM tmw_bucket_invite_log WHERE bucket = $1 AND code = $2',
       [bucket, code]
     )
     return mapRow(row)
@@ -77,7 +77,7 @@ export class PgBucketInviteRepository implements IBucketInviteRepository {
   async create(invite: Partial<InviteDTO>): Promise<InviteDTO> {
     await ensureInviteTable()
     const row = await PgPool.queryOne(
-      `INSERT INTO tms_bucket_invite_log (bucket, code, nickname, inviter, create_at, expire_at)
+      `INSERT INTO tmw_bucket_invite_log (bucket, code, nickname, inviter, create_at, expire_at)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
       [
         invite.bucket || '',
@@ -99,7 +99,7 @@ export class PgBucketInviteRepository implements IBucketInviteRepository {
     await ensureInviteTable()
     try {
       await PgPool.query(
-        'UPDATE tms_bucket_invite_log SET invitee = $1, accept_at = $2::timestamp WHERE id::text = $3',
+        'UPDATE tmw_bucket_invite_log SET invitee = $1, accept_at = $2::timestamp WHERE id::text = $3',
         [invitee, acceptAt, inviteId]
       )
       return true
@@ -112,7 +112,7 @@ export class PgBucketInviteRepository implements IBucketInviteRepository {
     await ensureInviteTable()
     try {
       await PgPool.query(
-        'UPDATE tms_bucket_invite_log SET expire_at = $1 WHERE id::text = $2',
+        'UPDATE tmw_bucket_invite_log SET expire_at = $1 WHERE id::text = $2',
         [expireAt, id]
       )
       return true

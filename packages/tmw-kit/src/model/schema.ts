@@ -1,6 +1,7 @@
 import mongodb from 'mongodb'
 import Base from './base.js'
 import ModelDb from './db.js'
+import ModelCollection from './collection.js'
 import { isFerretdb } from '../pg/pool.js'
 import { MongoSchemaRepository, PgSchemaRepository } from '../repo/index.js'
 import type { ISchemaRepository } from '../repo/interfaces.js'
@@ -15,8 +16,10 @@ class Schema extends Base {
   }
 
   get _modelDb() {
-    const model = new ModelDb(this.mongoClient, this.bucket, this.client)
-    return model
+    return new ModelDb(this.mongoClient, this.bucket, this.client)
+  }
+  get _modelCollection() {
+    return new ModelCollection(this.mongoClient, this.bucket, this.client)
   }
   /**
    * 根据ID获得字段定义
@@ -36,6 +39,12 @@ class Schema extends Base {
     if (onlyProperties === true) return schema.body?.properties
 
     return schema
+  }
+  /**
+   * 创建文档列定义
+   */
+  async create(info) {
+    return this._schemaRepo.create(info)
   }
   /**
    * 根据ID获得字段定义
@@ -76,10 +85,7 @@ class Schema extends Base {
    */
   async removeById(id: string): Promise<[boolean, string | null]> {
     // 是否正在使用
-    let rst = await this.clMongoObj.findOne({
-      schema_id: id,
-      type: 'collection',
-    })
+    let rst = await this._modelCollection.findBySchemaId(id)
     if (rst) {
       return [
         false,
@@ -95,6 +101,24 @@ class Schema extends Base {
    */
   async listSimple(dbName: string, scope = 'document') {
     return this._schemaRepo.listSimple(dbName, scope, this.bucket?.name)
+  }
+  /**
+   * 完整列表
+   */
+  async list(scopes: string[], dbName?: string | null) {
+    return this._schemaRepo.list(scopes, dbName, this.bucket?.name)
+  }
+  /**
+   * 按标签查找
+   */
+  async findByTag(tag: string) {
+    return this._schemaRepo.findByTag(tag, this.bucket?.name)
+  }
+  /**
+   * 更新schema
+   */
+  async updateById(id: string, info) {
+    return this._schemaRepo.updateById(id, info)
   }
 }
 

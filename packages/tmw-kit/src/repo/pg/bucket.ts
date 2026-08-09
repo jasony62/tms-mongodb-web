@@ -4,7 +4,7 @@ import { IBucketRepository, BucketDTO } from '../interfaces.js'
 let bucketTableEnsured = false
 async function ensureBucketTable() {
   if (bucketTableEnsured) return
-  await PgPool.query(`CREATE TABLE IF NOT EXISTS tms_bucket (
+  await PgPool.query(`CREATE TABLE IF NOT EXISTS tmw_bucket (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     title VARCHAR(255) DEFAULT '',
@@ -33,7 +33,7 @@ export class PgBucketRepository implements IBucketRepository {
   async findByName(name: string): Promise<BucketDTO | null> {
     await ensureBucketTable()
     const row = await PgPool.queryOne(
-      'SELECT * FROM tms_bucket WHERE name = $1',
+      'SELECT * FROM tmw_bucket WHERE name = $1',
       [name]
     )
     return mapRow(row)
@@ -42,7 +42,7 @@ export class PgBucketRepository implements IBucketRepository {
   async findById(id: string): Promise<BucketDTO | null> {
     await ensureBucketTable()
     const row = await PgPool.queryOne(
-      'SELECT * FROM tms_bucket WHERE id::text = $1',
+      'SELECT * FROM tmw_bucket WHERE id::text = $1',
       [id]
     )
     return mapRow(row)
@@ -51,7 +51,7 @@ export class PgBucketRepository implements IBucketRepository {
   async findByCreatorOrCoworker(userId: string): Promise<BucketDTO[]> {
     await ensureBucketTable()
     const result = await PgPool.query(
-      "SELECT * FROM tms_bucket WHERE creator = $1 OR coworkers @> '[{\"id\":\"' || $1 || '\"}]'::jsonb",
+      "SELECT * FROM tmw_bucket WHERE creator = $1 OR coworkers @> '[{\"id\":\"' || $1 || '\"}]'::jsonb",
       [userId]
     )
     return result.rows.map(mapRow).filter((r): r is BucketDTO => r !== null)
@@ -60,7 +60,7 @@ export class PgBucketRepository implements IBucketRepository {
   async create(info: Partial<BucketDTO>): Promise<BucketDTO> {
     await ensureBucketTable()
     const row = await PgPool.queryOne(
-      `INSERT INTO tms_bucket (name, title, description, creator, coworkers)
+      `INSERT INTO tmw_bucket (name, title, description, creator, coworkers)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
       [
         info.name || '',
@@ -93,7 +93,7 @@ export class PgBucketRepository implements IBucketRepository {
       idx++
       params.push(name)
       await PgPool.query(
-        `UPDATE tms_bucket SET ${sets.join(', ')} WHERE name = $${idx}`,
+        `UPDATE tmw_bucket SET ${sets.join(', ')} WHERE name = $${idx}`,
         params
       )
       return true
@@ -106,7 +106,7 @@ export class PgBucketRepository implements IBucketRepository {
     await ensureBucketTable()
     try {
       const result = await PgPool.query(
-        'DELETE FROM tms_bucket WHERE name = $1 AND creator = $2',
+        'DELETE FROM tmw_bucket WHERE name = $1 AND creator = $2',
         [name, creatorId]
       )
       return (result.rowCount || 0) > 0
@@ -122,7 +122,7 @@ export class PgBucketRepository implements IBucketRepository {
     await ensureBucketTable()
     try {
       await PgPool.query(
-        `UPDATE tms_bucket SET coworkers = coworkers || $1::jsonb WHERE name = $2`,
+        `UPDATE tmw_bucket SET coworkers = coworkers || $1::jsonb WHERE name = $2`,
         [JSON.stringify([coworker]), name]
       )
       return true
@@ -139,7 +139,7 @@ export class PgBucketRepository implements IBucketRepository {
     await ensureBucketTable()
     try {
       const row = await PgPool.queryOne(
-        'SELECT * FROM tms_bucket WHERE name = $1',
+        'SELECT * FROM tmw_bucket WHERE name = $1',
         [name]
       )
       if (!row) return false
@@ -152,7 +152,7 @@ export class PgBucketRepository implements IBucketRepository {
       if (data.change_time !== undefined)
         coworkers[cwIdx].change_time = data.change_time
       await PgPool.query(
-        'UPDATE tms_bucket SET coworkers = $1 WHERE name = $2',
+        'UPDATE tmw_bucket SET coworkers = $1 WHERE name = $2',
         [JSON.stringify(coworkers), name]
       )
       return true
@@ -166,7 +166,7 @@ export class PgBucketRepository implements IBucketRepository {
     try {
       // Read current coworkers, filter out the target, write back
       const row = await PgPool.queryOne(
-        'SELECT * FROM tms_bucket WHERE name = $1',
+        'SELECT * FROM tmw_bucket WHERE name = $1',
         [name]
       )
       if (!row) return false
@@ -174,7 +174,7 @@ export class PgBucketRepository implements IBucketRepository {
         (c: any) => c.id !== userId && String(c.id) !== userId
       )
       await PgPool.query(
-        'UPDATE tms_bucket SET coworkers = $1 WHERE name = $2',
+        'UPDATE tmw_bucket SET coworkers = $1 WHERE name = $2',
         [JSON.stringify(coworkers), name]
       )
       return true

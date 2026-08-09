@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb'
 import { ResultData, ResultFault } from 'tms-koa'
 import CollectionHelper from './collectionHelper.js'
 import SchemaHelper from './schemaHelper.js'
-import { ModelCl } from 'tmw-kit'
+import { ModelCl, ModelSchema } from 'tmw-kit'
 import { Base } from 'tmw-kit/dist/ctrl/index.js'
 import _ from 'lodash'
 
@@ -44,6 +44,9 @@ class CollectionBase extends Base {
 
     return true
   }
+  get _modelSchema() {
+    return new ModelSchema(this.mongoClient, this.bucket, this.client)
+  }
   /**
    * 根据名称返回指定集合
    */
@@ -51,23 +54,18 @@ class CollectionBase extends Base {
     const existCl = await this.clHelper.findRequestCl()
 
     if (existCl.schema_id) {
-      await this.clMongoObj
-        .findOne({ type: 'schema', _id: new ObjectId(existCl.schema_id) })
-        .then((schema) => {
-          existCl.schema = schema
-          delete existCl.schema_id
-          return existCl
-        })
+      const schema = await this._modelSchema.bySchemaId(existCl.schema_id, { onlyProperties: false })
+      if (schema) {
+        existCl.schema = schema
+        delete existCl.schema_id
+      }
     }
     if (Array.isArray(existCl.ext_schemas) && existCl.ext_schemas.length) {
       const editSchema = existCl.schema
         ? JSON.parse(JSON.stringify(existCl.schema))
         : { body: { properties: {} } }
       for (let es of existCl.ext_schemas) {
-        const extSchema = await this.clMongoObj.findOne({
-          type: 'schema',
-          _id: new ObjectId(es.id),
-        })
+        const extSchema = await this._modelSchema.bySchemaId(es.id, { onlyProperties: false })
         _.merge(editSchema.body.properties, extSchema.body.properties)
       }
       existCl.editSchema = editSchema

@@ -120,3 +120,9 @@ docker run -it --rm --name tmw-test -p 3077:3000 -p 7077:80 -e NGINX_BACK_BASE_U
 ```shell
 docker compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml up tmw-aio
 ```
+
+
+
+```shell
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.ferretdb.yml -p tms-mongodb-web up -d 
+```

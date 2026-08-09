@@ -4,7 +4,7 @@ import { ICollectionRepository } from '../interfaces.js'
 let collectionTableEnsured = false
 async function ensureCollectionTable() {
   if (collectionTableEnsured) return
-  await PgPool.query(`CREATE TABLE IF NOT EXISTS tms_collection (
+  await PgPool.query(`CREATE TABLE IF NOT EXISTS tmw_collection (
     id SERIAL PRIMARY KEY,
     mongo_id VARCHAR(64) DEFAULT '',
     name VARCHAR(255) NOT NULL,
@@ -68,7 +68,7 @@ export class PgCollectionRepository implements ICollectionRepository {
     bucket?: string
   ): Promise<any> {
     await ensureCollectionTable()
-    let sql = 'SELECT * FROM tms_collection WHERE (id::text = $1 OR mongo_id = $1) AND type = $2'
+    let sql = 'SELECT * FROM tmw_collection WHERE (id::text = $1 OR mongo_id = $1) AND type = $2'
     let params: any[] = [id, 'collection']
     if (typeof tmwDb === 'object') {
       sql += ' AND db_sysname = $' + (params.length + 1)
@@ -91,7 +91,7 @@ export class PgCollectionRepository implements ICollectionRepository {
     bucket?: string
   ): Promise<any> {
     await ensureCollectionTable()
-    let sql = 'SELECT * FROM tms_collection WHERE name = $1 AND type = $2'
+    let sql = 'SELECT * FROM tmw_collection WHERE name = $1 AND type = $2'
     let params: any[] = [name, 'collection']
     if (typeof tmwDb === 'object') {
       sql += ' AND db_sysname = $' + (params.length + 1)
@@ -115,7 +115,7 @@ export class PgCollectionRepository implements ICollectionRepository {
   ): Promise<any> {
     await ensureCollectionTable()
     let sql =
-      'SELECT * FROM tms_collection WHERE sysname = $1 AND db_sysname = $2 AND type = $3'
+      'SELECT * FROM tmw_collection WHERE sysname = $1 AND db_sysname = $2 AND type = $3'
     const params: any[] = [sysname, db.sysname, 'collection']
     if (bucket) {
       sql += ' AND bucket = $' + (params.length + 1)
@@ -125,11 +125,80 @@ export class PgCollectionRepository implements ICollectionRepository {
     return mapRow(row)
   }
 
+  async findBySchemaId(schemaId: string): Promise<any> {
+    await ensureCollectionTable()
+    const row = await PgPool.queryOne(
+      'SELECT * FROM tmw_collection WHERE schema_id = $1 AND type = $2 LIMIT 1',
+      [schemaId, 'collection']
+    )
+    return mapRow(row)
+  }
+
+  async countByName(
+    dbName: string,
+    name: string,
+    bucket?: string
+  ): Promise<number> {
+    await ensureCollectionTable()
+    let sql = 'SELECT COUNT(*) FROM tmw_collection WHERE name = $1 AND db_name = $2 AND type = $3'
+    const params: any[] = [name, dbName, 'collection']
+    if (bucket) {
+      sql += ' AND bucket = $' + (params.length + 1)
+      params.push(bucket)
+    }
+    const result = await PgPool.query(sql, params)
+    return parseInt(result.rows[0]?.count || '0')
+  }
+
+  async countByDatabase(dbName: string, bucket?: string): Promise<number> {
+    await ensureCollectionTable()
+    let sql = 'SELECT COUNT(*) FROM tmw_collection WHERE db_name = $1 AND type = $2'
+    const params: any[] = [dbName, 'collection']
+    if (bucket) {
+      sql += ' AND bucket = $' + (params.length + 1)
+      params.push(bucket)
+    }
+    const result = await PgPool.query(sql, params)
+    return parseInt(result.rows[0]?.count || '0')
+  }
+
+  async rename(
+    dbName: string,
+    oldName: string,
+    newName: string,
+    bucket?: string
+  ): Promise<boolean> {
+    await ensureCollectionTable()
+    let sql = 'UPDATE tmw_collection SET name = $1 WHERE name = $2 AND db_name = $3 AND type = $4'
+    const params: any[] = [newName, oldName, dbName, 'collection']
+    if (bucket) {
+      sql += ' AND bucket = $' + (params.length + 1)
+      params.push(bucket)
+    }
+    const result = await PgPool.query(sql, params)
+    return (result.rowCount ?? 0) > 0
+  }
+
+  async updateDbName(
+    dbSysname: string,
+    newName: string,
+    bucket?: string
+  ): Promise<void> {
+    await ensureCollectionTable()
+    let sql = 'UPDATE tmw_collection SET db_name = $1 WHERE db_sysname = $2 AND type = $3'
+    const params: any[] = [newName, dbSysname, 'collection']
+    if (bucket) {
+      sql += ' AND bucket = $' + (params.length + 1)
+      params.push(bucket)
+    }
+    await PgPool.query(sql, params)
+  }
+
   async create(collection: any): Promise<any> {
     await ensureCollectionTable()
     const db = collection.db || {}
     const result = await PgPool.queryOne(
-      `INSERT INTO tms_collection (name, sysname, title, description, type, db_sysname, db_name, bucket, dir_full_name, schema_id, ext_schemas, spreadsheet, "orderBy", acl_check, doc_acl_check, admin_only, tags, doc_field_convert_rules, extensions, creator, created_at, data)
+      `INSERT INTO tmw_collection (name, sysname, title, description, type, db_sysname, db_name, bucket, dir_full_name, schema_id, ext_schemas, spreadsheet, "orderBy", acl_check, doc_acl_check, admin_only, tags, doc_field_convert_rules, extensions, creator, created_at, data)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22) RETURNING id`,
       [
         collection.name || '',
@@ -204,7 +273,7 @@ export class PgCollectionRepository implements ICollectionRepository {
       idx++
       params.push(id)
       await PgPool.query(
-        `UPDATE tms_collection SET ${sets.join(', ')} WHERE (id::text = $${idx} OR mongo_id = $${idx})`,
+        `UPDATE tmw_collection SET ${sets.join(', ')} WHERE (id::text = $${idx} OR mongo_id = $${idx})`,
         params
       )
       return [true, null]
@@ -217,7 +286,7 @@ export class PgCollectionRepository implements ICollectionRepository {
     await ensureCollectionTable()
     try {
       await PgPool.query(
-        'DELETE FROM tms_collection WHERE (id::text = $1 OR mongo_id = $1)',
+        'DELETE FROM tmw_collection WHERE (id::text = $1 OR mongo_id = $1)',
         [id]
       )
       return true
@@ -235,7 +304,7 @@ export class PgCollectionRepository implements ICollectionRepository {
     bucket?: string
   ): Promise<{ collections: any[]; total: number } | any[]> {
     await ensureCollectionTable()
-    let sql = 'SELECT * FROM tms_collection WHERE db_sysname = $1 AND type = $2'
+    let sql = 'SELECT * FROM tmw_collection WHERE db_sysname = $1 AND type = $2'
     const params: any[] = [dbSysname, 'collection']
     if (bucket) {
       sql += ' AND bucket = $' + (params.length + 1)
@@ -255,7 +324,7 @@ export class PgCollectionRepository implements ICollectionRepository {
     const countSql = sql.replace('SELECT *', 'SELECT COUNT(*)')
     const countResult = await PgPool.query(countSql, params)
 
-    sql += ' ORDER BY _id DESC'
+    sql += ' ORDER BY id DESC'
     if (typeof skip === 'number' && typeof limit === 'number') {
       sql += ' OFFSET $' + (params.length + 1) + ' LIMIT $' + (params.length + 2)
       params.push(skip, limit)
@@ -278,7 +347,7 @@ export class PgCollectionRepository implements ICollectionRepository {
 
     const placeholders = schemaIds.map((_, i) => '$' + (i + 1)).join(',')
     const result = await PgPool.query(
-      `SELECT * FROM tms_schema WHERE (id::text IN (${placeholders}) OR mongo_id IN (${placeholders}))`,
+      `SELECT * FROM tmw_schema WHERE (id::text IN (${placeholders}) OR mongo_id IN (${placeholders}))`,
       [...schemaIds, ...schemaIds]
     )
     const idToSchema: any = {}

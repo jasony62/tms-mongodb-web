@@ -4,7 +4,7 @@ import { IDirRepository } from '../interfaces.js'
 let dirTableEnsured = false
 async function ensureDirTable() {
   if (dirTableEnsured) return
-  await PgPool.query(`CREATE TABLE IF NOT EXISTS tms_dir (
+  await PgPool.query(`CREATE TABLE IF NOT EXISTS tmw_dir (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     full_name VARCHAR(500) NOT NULL,
@@ -33,7 +33,7 @@ export class PgDirRepository implements IDirRepository {
     const level = fullName.split('/').length
     try {
       const row = await PgPool.queryOne(
-        `INSERT INTO tms_dir (name, full_name, level, title, description, "order", scope, db_sysname, db_name, bucket)
+        `INSERT INTO tmw_dir (name, full_name, level, title, description, "order", scope, db_sysname, db_name, bucket)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
         [
           info.name,
@@ -61,7 +61,7 @@ export class PgDirRepository implements IDirRepository {
     await ensureDirTable()
     try {
       const result = await PgPool.query(
-        `UPDATE tms_dir SET title = $1, description = $2, "order" = $3 WHERE id::text = $4`,
+        `UPDATE tmw_dir SET title = $1, description = $2, "order" = $3 WHERE id::text = $4`,
         [info.title || '', info.description || '', info.order ?? 99, id]
       )
       return [true, result]
@@ -73,7 +73,7 @@ export class PgDirRepository implements IDirRepository {
   async delete(id: string): Promise<[boolean, string | null]> {
     await ensureDirTable()
     try {
-      await PgPool.query('DELETE FROM tms_dir WHERE id::text = $1', [id])
+      await PgPool.query('DELETE FROM tmw_dir WHERE id::text = $1', [id])
       return [true, null]
     } catch (err: any) {
       return [false, err.message]
@@ -82,7 +82,7 @@ export class PgDirRepository implements IDirRepository {
 
   async findById(id: string, db?: { sysname: string }): Promise<any> {
     await ensureDirTable()
-    let sql = 'SELECT * FROM tms_dir WHERE id::text = $1'
+    let sql = 'SELECT * FROM tmw_dir WHERE id::text = $1'
     const params: any[] = [id]
     if (db) {
       sql += ' AND db_sysname = $2'
@@ -98,7 +98,7 @@ export class PgDirRepository implements IDirRepository {
     bucket?: string
   ): Promise<any> {
     await ensureDirTable()
-    let sql = 'SELECT * FROM tms_dir WHERE full_name = $1 AND scope = $2'
+    let sql = 'SELECT * FROM tmw_dir WHERE full_name = $1 AND scope = $2'
     const params: any[] = [fullName, scope]
     if (typeof db === 'object') {
       sql += ' AND db_sysname = $' + (params.length + 1)
@@ -121,7 +121,7 @@ export class PgDirRepository implements IDirRepository {
     bucket?: string
   ): Promise<any[]> {
     await ensureDirTable()
-    let sql = "SELECT * FROM tms_dir WHERE full_name LIKE $1 || '/%' AND scope = $2"
+    let sql = "SELECT * FROM tmw_dir WHERE full_name LIKE $1 || '/%' AND scope = $2"
     const params: any[] = [fullName, scope]
     if (typeof db === 'object') {
       sql += ' AND db_sysname = $' + (params.length + 1)
@@ -141,7 +141,7 @@ export class PgDirRepository implements IDirRepository {
   async list(db: { name: string }, scope = 'collection'): Promise<[boolean, any[]]> {
     await ensureDirTable()
     const result = await PgPool.query(
-      'SELECT * FROM tms_dir WHERE db_name = $1 AND scope = $2 ORDER BY level ASC, "order" ASC',
+      'SELECT * FROM tmw_dir WHERE db_name = $1 AND scope = $2 ORDER BY level ASC, "order" ASC',
       [db.name, scope]
     )
     return [true, result.rows]

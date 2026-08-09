@@ -5,7 +5,7 @@ import Base from './base.js'
 import ModelAcl from './acl.js'
 import { isFerretdb } from '../pg/pool.js'
 import { MongoDbRepository, PgDbRepository } from '../repo/index.js'
-import type { IDbRepository } from '../repo/interfaces.js'
+import type { IDbRepository, DbDTO } from '../repo/interfaces.js'
 
 const debug = Debug('tmw-kit:model:db')
 
@@ -84,6 +84,19 @@ class Db extends Base {
     }
   }
   /**
+   * 更新数据库
+   */
+  async update(id: string, info: any): Promise<[boolean, any]> {
+    const result = await this._dbRepo.update(id, info)
+    return [result, info]
+  }
+  /**
+   * 删除数据库
+   */
+  async removeById(id: string): Promise<boolean> {
+    return this._dbRepo.delete(id)
+  }
+  /**
    * 检查数据库的访问权限
    *
    * 0、管理员不没有访问限制
@@ -154,21 +167,37 @@ class Db extends Base {
    * @returns
    */
   async list(keyword: string, skip: number, limit: number) {
+    if (isFerretdb()) {
+      const bucket = this.bucket?.name
+      // PgDbRepository.list() handles keyword, skip, limit, bucket via SQL
+      const result = await this._dbRepo.list(keyword, skip, limit, bucket)
+      if (typeof skip === 'number') {
+        let { databases, total } = result as { databases: DbDTO[]; total: number }
+        // Non-admin: filter by ACL in JavaScript (PgDbRepository doesn't support ACL)
+        if (this.client.isAdmin !== true) {
+          databases = await this._filterByAcl(databases)
+          total = databases.length
+        }
+        return { databases, total }
+      }
+      let dbs = result as DbDTO[]
+      if (this.client.isAdmin !== true) {
+        dbs = await this._filterByAcl(dbs)
+      }
+      return dbs
+    }
+
+    // MongoDB path (original logic)
     const query: any = { type: 'database' }
 
-    // 检查授权访问列表条件
     let queryAclCheck!: any[]
 
-    // 当前用户不是管理员，仅管理员可见的数据库不允许访问
     if (this.client.isAdmin !== true) {
-      // 不能是仅管理员访问
       query.adminOnly = { $ne: true }
-      // 检查授权访问列表
       queryAclCheck = [
-        { creator: { $eq: this.client.id } }, // 创建人允许访问
-        { aclCheck: { $ne: true } }, // 没有限制访问
+        { creator: { $eq: this.client.id } },
+        { aclCheck: { $ne: true } },
       ]
-      // 获得当前用户在acl列表中授权访问的数据库
       const aclResult = await this._modelAcl.targetByUser(
         { type: 'database' },
         { id: this.client.id }
@@ -211,7 +240,6 @@ class Db extends Base {
       projection: { type: 0 },
       sort: { top: -1, _id: -1 },
     }
-    // 添加分页条件
     if (typeof skip === 'number') {
       options.skip = skip
       options.limit = limit
@@ -224,6 +252,36 @@ class Db extends Base {
     }
 
     return tmwDbs
+  }
+  /**
+   * FerretDB模式下按ACL过滤数据库列表
+   */
+  private async _filterByAcl(dbs: DbDTO[]): Promise<DbDTO[]> {
+    const filtered: DbDTO[] = []
+    for (const db of dbs) {
+      // 仅管理员可见的数据库不允许非管理员访问
+      if (db.adminOnly === true) continue
+      // 没有设置访问控制，允许访问
+      if (db.aclCheck !== true) {
+        filtered.push(db)
+        continue
+      }
+      // 创建人允许访问
+      if (db.creator === this.client.id) {
+        filtered.push(db)
+        continue
+      }
+      // 检查ACL授权
+      const aclResult = await this._modelAcl.check(
+        { id: String(db.id ?? db._id), type: 'database' },
+        { id: this.client.id }
+      )
+      if (aclResult) {
+        db.right = aclResult
+        filtered.push(db)
+      }
+    }
+    return filtered
   }
   /**
    *

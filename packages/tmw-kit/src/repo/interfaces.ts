@@ -78,6 +78,14 @@ export interface ISchemaRepository {
     scope?: string,
     bucket?: string
   ): Promise<SchemaDTO[]>
+  list(
+    scopes: string[],
+    dbName?: string | null,
+    bucket?: string
+  ): Promise<SchemaDTO[]>
+  findByTag(tag: string, bucket?: string): Promise<SchemaDTO[]>
+  create(info: Partial<SchemaDTO>): Promise<{ insertedId: any }>
+  updateById(id: string, info: Partial<SchemaDTO>): Promise<boolean>
   deleteById(id: string, bucket?: string): Promise<boolean>
 }
 
@@ -163,6 +171,24 @@ export interface ICollectionRepository {
     sysname: string,
     bucket?: string
   ): Promise<any>
+  findBySchemaId(schemaId: string): Promise<any>
+  countByName(
+    dbName: string,
+    name: string,
+    bucket?: string
+  ): Promise<number>
+  countByDatabase(dbName: string, bucket?: string): Promise<number>
+  rename(
+    dbName: string,
+    oldName: string,
+    newName: string,
+    bucket?: string
+  ): Promise<boolean>
+  updateDbName(
+    dbSysname: string,
+    newName: string,
+    bucket?: string
+  ): Promise<void>
   create(collection: any): Promise<any>
   update(id: string, info: any): Promise<[boolean, any]>
   delete(id: string): Promise<boolean>

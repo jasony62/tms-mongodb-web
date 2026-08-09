@@ -31,8 +31,8 @@ class SchemaHelper extends Helper {
     if (typeof info.order !== 'number') info.order = 99999
     if (this.bucketObj) info.bucket = this.bucketObj.name
 
-    return this.clMongoObj
-      .insertOne(info)
+    return this._modelSchema
+      .create(info)
       .then((result) => [true, result])
       .catch((err) => [false, err.message])
   }

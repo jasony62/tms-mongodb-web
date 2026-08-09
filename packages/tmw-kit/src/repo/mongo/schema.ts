@@ -77,6 +77,52 @@ export class MongoSchemaRepository implements ISchemaRepository {
       .toArray()
   }
 
+  async list(
+    scopes: string[],
+    dbName?: string | null,
+    bucket?: string
+  ): Promise<SchemaDTO[]> {
+    const query: any = { type: 'schema' }
+    if (scopes.length === 1) {
+      query.scope = scopes[0]
+    } else {
+      query.scope = { $in: scopes }
+    }
+    if (dbName) {
+      query.$or = [{ 'db.name': dbName }, { db: null }]
+    } else {
+      query.db = null
+    }
+    if (bucket) query.bucket = bucket
+    return this.clMongoObj
+      .find(query)
+      .sort('order', 1)
+      .toArray()
+  }
+
+  async findByTag(tag: string, bucket?: string): Promise<SchemaDTO[]> {
+    const query: any = { type: 'schema', tags: { $elemMatch: { $eq: tag } } }
+    if (bucket) query.bucket = bucket
+    return this.clMongoObj
+      .find(query)
+      .sort('order', 1)
+      .toArray()
+  }
+
+  async create(info: Partial<SchemaDTO>): Promise<{ insertedId: any }> {
+    const result = await this.clMongoObj.insertOne(info)
+    return { insertedId: result.insertedId }
+  }
+
+  async updateById(id: string, info: Partial<SchemaDTO>): Promise<boolean> {
+    const { _id, type, ...updateData } = info as any
+    const result = await this.clMongoObj.updateOne(
+      { _id: new ObjectId(id), type: 'schema' },
+      { $set: updateData }
+    )
+    return result.modifiedCount === 1
+  }
+
   async deleteById(id: string, bucket?: string): Promise<boolean> {
     const query: any = { _id: new ObjectId(id), type: 'schema' }
     if (bucket) query.bucket = bucket

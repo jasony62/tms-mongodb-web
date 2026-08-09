@@ -259,6 +259,9 @@ class Document extends Base {
   async create(existCl, data: any) {
     let sysCl = this._getSysCl(existCl.db.sysname, existCl.sysname)
 
+    // 移除空的_id，由数据库自动生成
+    if (!data._id) delete data._id
+
     // 对象的创建人
     data.creator = this.client.id
 
@@ -287,8 +290,11 @@ class Document extends Base {
     const clName = tmwCl.sysname
     const sysCl = this._getSysCl(dbName, clName)
 
-    // 对象的创建人
-    rows.forEach((row) => (row.creator = this.client.id))
+    // 移除行中空的_id，由数据库自动生成
+    rows.forEach((row) => {
+      if (!row._id) delete row._id
+      row.creator = this.client.id
+    })
 
     const rst = await sysCl.insertMany(rows).then(async ({ insertedIds }) => {
       // await this.dataActionLog(r.ops, '创建', dbName, clName)
@@ -519,7 +525,7 @@ class Document extends Base {
   ) {
     if (!operate_type || !dbname || !clname) return false
     if (this.tmwConfig.TMW_APP_DATA_ACTION_LOG !== 'Y') return true
-    if (dbname === META_ADMIN_DB && clname === 'tms_app_data_action_log')
+    if (dbname === META_ADMIN_DB && clname === 'tmw_app_data_action_log')
       return false
 
     let datas = JSON.parse(JSON.stringify(oDatas))
@@ -546,7 +552,7 @@ class Document extends Base {
     const client = this.mongoClient
     const cl = client.db(META_ADMIN_DB)
 
-    const cl2 = cl.collection('tms_app_data_action_log')
+    const cl2 = cl.collection('tmw_app_data_action_log')
     for (const data of datas) {
       if (data._id) {
         data.operate_id = data._id
@@ -591,7 +597,7 @@ class Document extends Base {
 
   async dataActionLogPG(datas: any[], operate_type: string, dbname: string, clname: string, operate_after_dbname: string, operate_after_clname: string, operate_before_data: any, client_info: any, current: string) {
     if (!dataActionLogTableEnsured) {
-      await PgPool.query(`CREATE TABLE IF NOT EXISTS tms_app_data_action_log (
+      await PgPool.query(`CREATE TABLE IF NOT EXISTS tmw_app_data_action_log (
         id SERIAL PRIMARY KEY,
         operate_id VARCHAR(255) DEFAULT '',
         operate_dbname VARCHAR(255) NOT NULL,
@@ -640,7 +646,7 @@ class Document extends Base {
       logEntry.original_data = JSON.stringify(cleanedData)
 
       await PgPool.query(
-        `INSERT INTO tms_app_data_action_log (operate_id, operate_dbname, operate_clname, operate_after_dbname, operate_after_clname, operate_time, operate_type, operate_account, operate_nickname, operate_before_data, original_data)
+        `INSERT INTO tmw_app_data_action_log (operate_id, operate_dbname, operate_clname, operate_after_dbname, operate_after_clname, operate_time, operate_type, operate_account, operate_nickname, operate_before_data, original_data)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11::jsonb)`,
         [
           logEntry.operate_id, logEntry.operate_dbname, logEntry.operate_clname,

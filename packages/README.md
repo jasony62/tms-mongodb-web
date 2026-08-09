@@ -77,3 +77,23 @@ DEV_SERVER_PORT=7077 pnpm dev
 ```shell
 pnpm build
 ```
+
+# 运行
+
+进行项目根目录。
+
+## 后端服务
+
+启动
+
+```sh
+(cd ./packages/tmw-back && nohup pnpm start > tmw-back.log 2>&1 & echo $! > tmw-back.pid)
+```
+
+停止
+
+```sh
+kill $(cat ./packages/tmw-back/tmw-back.pid) && rm ./packages/tmw-back/tmw-back.pid
+```
+
+## 前端服务

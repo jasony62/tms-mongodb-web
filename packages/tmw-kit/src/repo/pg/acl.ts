@@ -5,7 +5,7 @@ import type { AclTarget, AclUser, AclRight } from '../interfaces.js'
 let aclTableEnsured = false
 async function ensureAclTable() {
   if (aclTableEnsured) return
-  await PgPool.query(`CREATE TABLE IF NOT EXISTS mongodb_object_acl (
+  await PgPool.query(`CREATE TABLE IF NOT EXISTS tmw_acl (
     id SERIAL PRIMARY KEY,
     target_id VARCHAR(255) NOT NULL,
     target_type VARCHAR(255) NOT NULL,
@@ -25,11 +25,11 @@ export class PgAclRepository implements IAclRepository {
   ): Promise<[boolean, any?]> {
     await ensureAclTable()
     const existing = await PgPool.queryOne(
-      'SELECT 1 FROM mongodb_object_acl WHERE target_id = $1 AND target_type = $2',
+      'SELECT 1 FROM tmw_acl WHERE target_id = $1 AND target_type = $2',
       [target.id, target.type]
     )
     const row = await PgPool.queryOne(
-      `INSERT INTO mongodb_object_acl (target_id, target_type, user_id, user_remark, rights)
+      `INSERT INTO tmw_acl (target_id, target_type, user_id, user_remark, rights)
        VALUES ($1, $2, $3, $4, $5::jsonb)
        ON CONFLICT (target_id, target_type, user_id) DO NOTHING
        RETURNING id`,
@@ -45,7 +45,7 @@ export class PgAclRepository implements IAclRepository {
   async remove(target: AclTarget, user: AclUser): Promise<[boolean, string?]> {
     await ensureAclTable()
     const result = await PgPool.query(
-      'DELETE FROM mongodb_object_acl WHERE target_id = $1 AND target_type = $2 AND user_id = $3',
+      'DELETE FROM tmw_acl WHERE target_id = $1 AND target_type = $2 AND user_id = $3',
       [target.id, target.type, user.id]
     )
     if (result.rowCount && result.rowCount > 0) return [true]
@@ -62,7 +62,7 @@ export class PgAclRepository implements IAclRepository {
     await ensureAclTable()
     const { right } = data
     const result = await PgPool.query(
-      `UPDATE mongodb_object_acl SET rights = $1::jsonb, user_remark = $2
+      `UPDATE tmw_acl SET rights = $1::jsonb, user_remark = $2
        WHERE target_id = $3 AND target_type = $4 AND user_id = $5`,
       [JSON.stringify(right), user.remark || '', target.id, target.type, user.id]
     )
@@ -73,7 +73,7 @@ export class PgAclRepository implements IAclRepository {
   async check(target: AclTarget, user: AclUser): Promise<string[] | null> {
     await ensureAclTable()
     const row = await PgPool.queryOne(
-      'SELECT rights FROM mongodb_object_acl WHERE target_id = $1 AND target_type = $2 AND user_id = $3',
+      'SELECT rights FROM tmw_acl WHERE target_id = $1 AND target_type = $2 AND user_id = $3',
       [target.id, target.type, user.id]
     )
     return row ? row.rights : null
@@ -82,7 +82,7 @@ export class PgAclRepository implements IAclRepository {
   async clean(target: AclTarget): Promise<[boolean, string?]> {
     await ensureAclTable()
     const result = await PgPool.query(
-      'DELETE FROM mongodb_object_acl WHERE target_id = $1 AND target_type = $2',
+      'DELETE FROM tmw_acl WHERE target_id = $1 AND target_type = $2',
       [target.id, target.type]
     )
     if (result.rowCount && result.rowCount > 0) return [true]
@@ -95,7 +95,7 @@ export class PgAclRepository implements IAclRepository {
   ): Promise<{ [key: string]: string[] }> {
     await ensureAclTable()
     const result = await PgPool.query(
-      'SELECT target_id FROM mongodb_object_acl WHERE target_type = $1 AND user_id = $2',
+      'SELECT target_id FROM tmw_acl WHERE target_type = $1 AND user_id = $2',
       [target.type, user.id]
     )
     if (result.rows.length === 0) return { [target.type!]: [] }
@@ -108,7 +108,7 @@ export class PgAclRepository implements IAclRepository {
   ): Promise<[boolean, string | any[]]> {
     await ensureAclTable()
     const result = await PgPool.query(
-      'SELECT user_id, user_remark, rights FROM mongodb_object_acl WHERE target_id = $1 AND target_type = $2 ORDER BY id ASC',
+      'SELECT user_id, user_remark, rights FROM tmw_acl WHERE target_id = $1 AND target_type = $2 ORDER BY id ASC',
       [target.id, target.type]
     )
     if (result.rows.length === 0) {

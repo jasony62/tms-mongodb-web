@@ -59,6 +59,53 @@ export class MongoCollectionRepository implements ICollectionRepository {
     return this.clMongoObj.findOne(query)
   }
 
+  async findBySchemaId(schemaId: string): Promise<any> {
+    return this.clMongoObj.findOne({
+      schema_id: schemaId,
+      type: 'collection',
+    })
+  }
+
+  async countByName(
+    dbName: string,
+    name: string,
+    bucket?: string
+  ): Promise<number> {
+    const query: any = { name, database: dbName, type: 'collection' }
+    if (bucket) query.bucket = bucket
+    return this.clMongoObj.countDocuments(query)
+  }
+
+  async countByDatabase(dbName: string, bucket?: string): Promise<number> {
+    const query: any = { database: dbName, type: 'collection' }
+    if (bucket) query.bucket = bucket
+    return this.clMongoObj.countDocuments(query)
+  }
+
+  async rename(
+    dbName: string,
+    oldName: string,
+    newName: string,
+    bucket?: string
+  ): Promise<boolean> {
+    const query: any = { name: oldName, database: dbName, type: 'collection' }
+    if (bucket) query.bucket = bucket
+    const result = await this.clMongoObj.updateOne(query, { $set: { name: newName } })
+    return result.modifiedCount === 1
+  }
+
+  async updateDbName(
+    dbSysname: string,
+    newName: string,
+    bucket?: string
+  ): Promise<void> {
+    const query: any = { 'db.sysname': dbSysname, type: 'collection' }
+    if (bucket) query.bucket = bucket
+    await this.clMongoObj.updateMany(query, {
+      $set: { database: newName, 'db.name': newName },
+    })
+  }
+
   async create(collection: any): Promise<any> {
     return this.clMongoObj.insertOne(collection).then((r) => r)
   }

@@ -4,7 +4,7 @@ import { ITagRepository } from '../interfaces.js'
 let tagTableEnsured = false
 async function ensureTagTable() {
   if (tagTableEnsured) return
-  await PgPool.query(`CREATE TABLE IF NOT EXISTS mongodb_tag (
+  await PgPool.query(`CREATE TABLE IF NOT EXISTS tmw_tag (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     bucket VARCHAR(255) DEFAULT '',
@@ -18,7 +18,7 @@ export class PgTagRepository implements ITagRepository {
   async create(info: { name: string; bucket?: string }): Promise<any> {
     await ensureTagTable()
     const row = await PgPool.queryOne(
-      `INSERT INTO mongodb_tag (name, bucket, type) VALUES ($1, $2, 'tag') RETURNING id`,
+      `INSERT INTO tmw_tag (name, bucket, type) VALUES ($1, $2, 'tag') RETURNING id`,
       [info.name, info.bucket || '']
     )
     return row
@@ -39,7 +39,7 @@ export class PgTagRepository implements ITagRepository {
     if (sets.length === 0) return
     params.push(id)
     params.push(bucketName || '')
-    let sql = 'UPDATE mongodb_tag SET ' + sets.join(', ')
+    let sql = 'UPDATE tmw_tag SET ' + sets.join(', ')
     sql += ' WHERE id::text = $' + (params.length - 1)
     sql += ' AND bucket = $' + params.length
     await PgPool.query(sql, params)
@@ -48,7 +48,7 @@ export class PgTagRepository implements ITagRepository {
   async remove(name: string, bucketName?: string): Promise<any> {
     await ensureTagTable()
     const params: any[] = [name]
-    let sql = 'DELETE FROM mongodb_tag WHERE name = $1'
+    let sql = 'DELETE FROM tmw_tag WHERE name = $1'
     if (bucketName) {
       sql += ' AND bucket = $2'
       params.push(bucketName)
@@ -58,7 +58,7 @@ export class PgTagRepository implements ITagRepository {
 
   async findByName(name: string, bucketName?: string): Promise<any> {
     await ensureTagTable()
-    let sql = 'SELECT id, name, bucket, type FROM mongodb_tag WHERE name = $1'
+    let sql = 'SELECT id, name, bucket, type FROM tmw_tag WHERE name = $1'
     const params: any[] = [name]
     if (bucketName) {
       sql += ' AND bucket = $2'
@@ -69,7 +69,7 @@ export class PgTagRepository implements ITagRepository {
 
   async list(bucketName?: string): Promise<any[]> {
     await ensureTagTable()
-    let sql = 'SELECT id, name, bucket, type FROM mongodb_tag'
+    let sql = 'SELECT id, name, bucket, type FROM tmw_tag'
     const params: any[] = []
     if (bucketName) {
       sql += ' WHERE bucket = $1'

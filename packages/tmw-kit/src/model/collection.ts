@@ -43,6 +43,62 @@ class Collection extends Base {
     return model
   }
   /**
+   * 根据schema_id查找使用该schema的集合
+   */
+  async findBySchemaId(schemaId: string) {
+    return this._collectionRepo.findBySchemaId(schemaId)
+  }
+  /**
+   * 检查集合名是否已存在
+   */
+  async countByName(dbName: string, name: string) {
+    return this._collectionRepo.countByName(dbName, name, this.bucket?.name)
+  }
+  /**
+   * 重命名集合
+   */
+  async rename(dbName: string, oldName: string, newName: string) {
+    return this._collectionRepo.rename(dbName, oldName, newName, this.bucket?.name)
+  }
+  /**
+   * 更新集合关联的数据库名
+   */
+  async updateDbName(dbSysname: string, newName: string) {
+    return this._collectionRepo.updateDbName(dbSysname, newName, this.bucket?.name)
+  }
+  /**
+   * 创建集合
+   */
+  async createCollection(info: any) {
+    return this._collectionRepo.create(info)
+  }
+  /**
+   * 根据sysname查找集合（不限定数据库）
+   */
+  async findBySysnameAnyDb(sysname: string) {
+    if (isFerretdb()) {
+      const { PgPool } = await import('../pg/pool.js')
+      const row = await PgPool.queryOne(
+        'SELECT * FROM tmw_collection WHERE sysname = $1 AND type = $2 LIMIT 1',
+        [sysname, 'collection']
+      )
+      return row ? this._collectionRepo.findById(row.db_name || row.db_sysname, row.id) : null
+    }
+    return this.clMongoObj.findOne({ sysname, type: 'collection' })
+  }
+  /**
+   * 删除集合
+   */
+  async removeById(id: string) {
+    return this._collectionRepo.delete(id)
+  }
+  /**
+   * 检查数据库下是否有集合
+   */
+  async countByDatabase(dbName: string) {
+    return this._collectionRepo.countByDatabase(dbName, this.bucket?.name)
+  }
+  /**
    * 从传入的数据生成安全的集合对象
    *
    * @param info
@@ -313,7 +369,7 @@ class Collection extends Base {
      */
     const clSchemaIds = tmwCls.reduce((ids, tmwCl) => {
       const { schema_id } = tmwCl
-      if (schema_id || typeof schema_id === 'string')
+      if (schema_id && typeof schema_id === 'string')
         ids.push(new ObjectId(schema_id))
       return ids
     }, [])
@@ -364,6 +420,33 @@ class Collection extends Base {
     limit: number
   ) {
     const tmwDb = await this._modelDb.bySysname(dbSysname)
+
+    if (isFerretdb()) {
+      const result = await this._collectionRepo.list(
+        dbSysname,
+        dirFullName,
+        keyword,
+        skip,
+        limit,
+        this.bucket?.name
+      )
+      const collections = Array.isArray(result) ? result : result.collections
+      const total = Array.isArray(result) ? collections.length : result.total
+
+      // ACL filtering
+      let filtered = collections
+      if (this.client.isAdmin !== true && tmwDb?.asClAcl !== true) {
+        filtered = collections.filter((cl) => {
+          if (cl.adminOnly) return false
+          if (cl.creator === this.client.id) return true
+          if (!cl.aclCheck) return true
+          return false
+        })
+      }
+
+      const processed = await this.processCl(filtered)
+      return { collections: processed, total }
+    }
 
     const query: any = {
       type: 'collection',

@@ -1,7 +1,7 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import { CtrlBase } from './ctrlBase.js'
 import DbHelper from './dbHelper.js'
-import { ModelDb } from 'tmw-kit'
+import { ModelDb, ModelCl, ModelSchema } from 'tmw-kit'
 import mongodb from 'mongodb'
 const ObjectId = mongodb.ObjectId
 
@@ -24,6 +24,9 @@ class DbBase extends CtrlBase {
 
     return true
   }
+  get _modelSchema() {
+    return new ModelSchema(this.mongoClient, this.bucket, this.client)
+  }
   /**
    * 根据名称返回指定数据库
    */
@@ -33,13 +36,11 @@ class DbBase extends CtrlBase {
     const db = await this.dbHelper.dbByName(name)
 
     if (db.cl_schema_id) {
-      await this.clMongoObj
-        .findOne({ type: 'schema', _id: new ObjectId(db.cl_schema_id) })
-        .then((schema) => {
-          db.schema = schema
-          delete db.cl_schema_id
-          return db
-        })
+      const schema = await this._modelSchema.bySchemaId(db.cl_schema_id, { onlyProperties: false })
+      if (schema) {
+        db.schema = schema
+        delete db.cl_schema_id
+      }
     }
 
     return new ResultData(db)
@@ -87,22 +88,14 @@ class DbBase extends CtrlBase {
       info.name = newName[1]
     }
 
-    //修改集合查询
-    const queryList = { 'db.sysname': info.sysname, type: 'collection' }
-
-    // 修改集合值
-    const updateList = { database: info.name, 'db.name': info.name }
-
-    await this.clMongoObj.updateMany(queryList, {
-      $set: updateList,
-    })
+    // 修改关联集合的数据库名
+    const modelCl = new ModelCl(this.mongoClient, this.bucketObj, this.client)
+    await modelCl.updateDbName(info.sysname, info.name)
 
     let { _id, bucket, sysname, ...updatedInfo } = info
 
-    const query = { _id: new ObjectId(_id) }
-
-    return this.clMongoObj
-      .updateOne(query, { $set: updatedInfo })
+    return modelDb
+      .update(_id, updatedInfo)
       .then(() => new ResultData(info))
   }
 
@@ -113,12 +106,9 @@ class DbBase extends CtrlBase {
     let { id, type = 'up' } = this.request.query
 
     let top = type === 'up' ? '10000' : null
-    const query: any = { _id: new ObjectId(id) }
-    if (this.bucket) query.bucket = this.bucketObj.name
-
-    return this.clMongoObj
-      .updateOne(query, { $set: { top } })
-      .then((rst) => new ResultData(rst))
+    const modelDb = new ModelDb(this.mongoClient, this.bucketObj, this.client)
+    const [success, result] = await modelDb.update(id, { top })
+    return new ResultData(result)
   }
 }
 
